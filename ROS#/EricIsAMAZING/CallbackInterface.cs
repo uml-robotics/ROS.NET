@@ -17,9 +17,14 @@ namespace EricIsAMAZING
             return CallResult.Success;
         }
 
-        internal virtual bool Read()
+        internal virtual bool Ready()
         {
             return true;
+        }
+        
+        internal virtual bool ready()
+        {
+            throw new NotImplementedException();
         }
     }
 }

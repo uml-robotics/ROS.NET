@@ -34,5 +34,15 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("STARTING MANAGER");
         }
+
+        internal bool advertise(AdvertiseOptions ops, SubscriberCallbacks callbacks)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool subscribe<T>(SubscribeOptions<T> ops)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

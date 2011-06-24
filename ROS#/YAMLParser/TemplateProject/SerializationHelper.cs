@@ -37,6 +37,28 @@ namespace Messages
         }
     }
 
+    public abstract class IRosMessage<T>
+    {
+        public bool HasHeader = false;
+        public bool KnownSize = true;
+
+        public T data;
+
+        public IRosMessage()
+        {
+        }
+
+        public IRosMessage(byte[] SERIALIZEDSTUFF)
+        {
+            data = SerializationHelper.Deserialize<T>(SERIALIZEDSTUFF);
+        }
+
+        public byte[] Serialize()
+        {
+            return SerializationHelper.Serialize(data);
+        }
+    }
+
     /*public class StructTranslator
     {
         public bool Read<T>(byte[] buffer, int index, ref T retval)

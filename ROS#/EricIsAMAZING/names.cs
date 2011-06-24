@@ -53,7 +53,7 @@ namespace EricIsAMAZING
         {
             return resolve(this_node.Namespace, name, doremap);
         }
-        private static void InvalidName(string error)
+        internal static void InvalidName(string error)
         {
             throw new Exception("INVALID NAME -- " + error);
         }

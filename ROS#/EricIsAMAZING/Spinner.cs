@@ -30,7 +30,14 @@ namespace EricIsAMAZING
     {
         public virtual void spin(CallbackQueue queue = null)
         {
-
+            if (queue == null)
+                queue = ROS.GlobalCalbackQueue;
+            throw new NotImplementedException();
+            NodeHandle nh = new NodeHandle();
+            while (nh.ok)
+            {
+                queue.callAvailable(ROS.WallDuration);
+            }
         }
         public void Dispose()
         {
