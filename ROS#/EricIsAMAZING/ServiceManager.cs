@@ -25,5 +25,10 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("STARTING SERVICEMANAGER... SERVICE DEEZ NUTS!");
         }
+
+        internal bool advertiseService<MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

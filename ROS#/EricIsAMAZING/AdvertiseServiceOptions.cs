@@ -5,10 +5,10 @@ using System.Text;
 
 namespace EricIsAMAZING
 {
-    public class AdvertiseServiceOptions<MReq, MRes>
+    public class AdvertiseServiceOptions<MReq, MRes> : StuffOptions
     {
-        private string service;
-        private Func<MReq, MRes> srv_func;
+        public string service;
+        public Func<MReq, MRes> srv_func;
 
         public AdvertiseServiceOptions(string service, Func<MReq, MRes> srv_func)
         {

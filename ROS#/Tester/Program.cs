@@ -1,12 +1,16 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using XmlRpc_Wrapper;
 using EricIsAMAZING;
+using m = Messages;
+using gm = Messages.geometry_msgs;
+using nm = Messages.nav_msgs;
 #endregion
 
 namespace ConsoleApplication1
@@ -20,6 +24,9 @@ namespace ConsoleApplication1
         {
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ERICRULZ");
+            Subscriber<m.String> sub = new Subscriber<m.String>("/rosout_agg", new NodeHandle("/", new Hashtable()), new CallbackQueue());
+            ROS.start();
+            
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {
                 Console.WriteLine("FAILED TO REQUEST TOPIC... FUCK STAINS!");

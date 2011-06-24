@@ -7,16 +7,22 @@ namespace EricIsAMAZING
 {
     public class ServiceClientOptions
     {
-        private string service_name;
-        private bool persistent;
-        private System.Collections.IDictionary header_values;
+        public string service;
+        public bool persistent;
+        public System.Collections.IDictionary header_values;
+        public string md5sum;
 
-        public ServiceClientOptions(string service_name, bool persistent, System.Collections.IDictionary header_values)
+        public ServiceClientOptions(string service, bool persistent, System.Collections.IDictionary header_values) : this(service, persistent, header_values, "")
+        {
+        }
+
+        public ServiceClientOptions(string service, bool persistent, System.Collections.IDictionary header_values, string md5sum)
         {
             // TODO: Complete member initialization
-            this.service_name = service_name;
+            this.service = service;
             this.persistent = persistent;
             this.header_values = header_values;
+            this.md5sum = md5sum;
         }
     }
 }

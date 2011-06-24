@@ -5,11 +5,10 @@ using System.Text;
 
 namespace EricIsAMAZING
 {
-    class SubscribeOptions<T>
+    public class SubscribeOptions<T> : StuffOptions
     {
-        private string topic;
-        private int queue_size;
-        private Action<T> cb;
+        public bool latch = false, has_header;
+        public string topic, md5sum, datatype, message_definition;
 
         public SubscribeOptions(string topic, int queue_size)
         {
@@ -18,12 +17,18 @@ namespace EricIsAMAZING
             this.queue_size = queue_size;
         }
 
-        public SubscribeOptions(string topic, int queue_size, Action<T> cb)
+        public SubscribeOptions(string topic, int queue_size, CallbackQueue cb)
         {
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            this.cb = cb;
+            this.callbackQueue = cb;
         }
+    }
+
+    public class StuffOptions
+    {
+        public CallbackQueue callbackQueue;
+        public int queue_size;
     }
 }

@@ -15,20 +15,20 @@ namespace EricIsAMAZING
 {
     public static class ROS
     {
+        public static void FREAKTHEFUCKOUT()
+        {
+            throw new Exception("ROS IS FREAKING THE FUCK OUT!");
+        }
 
         public static CallbackQueue GlobalCalbackQueue;
-        public static bool IsInitialized, IsShuttingDown,atexit_registered, ok,init_options, shutting_down;
+        public static bool initialized, started, atexit_registered, ok, shutting_down,shutdown_requested;
         public static int int_options;
         public static string ROS_MASTER_URI;
-        /*public ROSNode(string RosMasterUri)
-        {
-            ROS_MASTER_URI = RosMasterUri;
-            TopicManager.Instance().Start();
-            ServiceManager.Instance().Start();
-            ConnectionManager.Instance().Start();
-            PollManager.Instance().Start();
-            XmlRpcManager.Instance().Start();
-        }*/
+        public static object start_mutex = new object();
+        /// <summary>
+        /// general global sleep time in miliseconds
+        /// </summary>
+        public static int WallDuration = 100;
 
         public static void Init(string[] args, string name, int options = 0)
         {
@@ -39,15 +39,17 @@ namespace EricIsAMAZING
         }
         public static void spinOnce()
         {
+            GlobalCalbackQueue.callAvailable(WallDuration);
         }
 
         public static void spin()
         {
+            spin(new SingleThreadSpinner());
         }
 
         public static void spin(Spinner spinner)
         {
-
+            spinner.spin();
         }
 
         public static void waitForShutdown()
@@ -58,8 +60,30 @@ namespace EricIsAMAZING
         {
         }
 
+        public static Thread internal_queue_thread;
+
         public static void start()
         {
+            lock (start_mutex)
+            {
+                if (started) return;
+                shutdown_requested = false;
+                shutting_down = false;
+                started = true;
+                ok = true;
+                //PollManager.Instance().addPollThreadListener(checkForShutdown);
+                //XmlRpcManager.Instance().bind("shutdown", shutdownCallback);
+                //initInternalTimerManager();
+                TopicManager.Instance().Start();
+                ServiceManager.Instance().Start();
+                ConnectionManager.Instance().Start();
+                PollManager.Instance().Start();
+                XmlRpcManager.Instance().Start();
+                //Time.Init();
+                //internal_queue_manager = new Thread(new ThreadStart(internalCallbackQueueThreadFunc));
+                //internal_queue_thread.Start();
+
+            }
         }
 
         public static bool isStarted()
@@ -67,6 +91,9 @@ namespace EricIsAMAZING
             return false;
         }
 
+        public static void shutdown()
+        {
+        }
 
         public static void removeROSArgs(string[] args, out string[] argsout)
         {

@@ -32,10 +32,11 @@ namespace EricIsAMAZING
         {
             if (queue == null)
                 queue = ROS.GlobalCalbackQueue;
-            
-            while (NodeHandle.ok)
+            throw new NotImplementedException();
+            NodeHandle nh = new NodeHandle();
+            while (nh.ok)
             {
-                queue.callAvailable(100);
+                queue.callAvailable(ROS.WallDuration);
             }
         }
         public void Dispose()
