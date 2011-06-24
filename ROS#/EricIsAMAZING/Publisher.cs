@@ -5,7 +5,11 @@ using System.Text;
 
 namespace EricIsAMAZING
 {
+    public class Publisher<M> : IPublisher
+    {
+    }
 
-    public class CallbackInfo : CallbackQueue
-    {}
+    public abstract class IPublisher
+    { 
+    }
 }

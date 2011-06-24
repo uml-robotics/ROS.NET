@@ -40,16 +40,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvertiseOptions.cs" />
+    <Compile Include="AdvertiseServiceOptions.cs" />
     <Compile Include="CallBackInfo.cs" />
     <Compile Include="CallbackInterface.cs" />
+    <Compile Include="CallbackQueue.cs" />
     <Compile Include="ConnectionManager.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Links.cs" />
     <Compile Include="names.cs" />
+    <Compile Include="NodeHandle.cs" />
     <Compile Include="PendingConnection.cs" />
     <Compile Include="PollManager.cs" />
+    <Compile Include="Publisher.cs" />
+    <Compile Include="ServiceClient.cs" />
+    <Compile Include="ServiceClientOptions.cs" />
     <Compile Include="ServiceManager.cs" />
+    <Compile Include="ServiceServer.cs" />
     <Compile Include="Spinner.cs" />
+    <Compile Include="SubscribeOptions.cs" />
+    <Compile Include="Subscriber.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="this_node.cs" />
     <Compile Include="TopicManager.cs" />

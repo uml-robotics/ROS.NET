@@ -5,7 +5,11 @@ using System.Text;
 
 namespace EricIsAMAZING
 {
+    public class Subscriber<T, M> : ISubscriber
+    {
+    }
 
-    public class CallbackInfo : CallbackQueue
-    {}
+    public abstract class ISubscriber
+    { 
+    }
 }

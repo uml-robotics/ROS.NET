@@ -17,7 +17,7 @@ namespace EricIsAMAZING
     {
 
         public static CallbackQueue GlobalCalbackQueue;
-        public static bool IsInitialized, IsShuttingDown,atexit_registered,ok,init_options, shutting_down;
+        public static bool IsInitialized, IsShuttingDown,atexit_registered, ok,init_options, shutting_down;
         public static int int_options;
         public static string ROS_MASTER_URI;
         /*public ROSNode(string RosMasterUri)
@@ -54,9 +54,6 @@ namespace EricIsAMAZING
         {
         }
 
-        public static void OK()
-        {
-        }
         public static void requestShutdown()
         {
         }

@@ -18,7 +18,8 @@ namespace ConsoleApplication1
         
         private static void Main(string[] args)
         {
-            ROSNode node = new ROSNode(ROS_MASTER_URI);
+            ROS.ROS_MASTER_URI = ROS_MASTER_URI;
+            ROS.Init(args, "ERICRULZ");
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {
                 Console.WriteLine("FAILED TO REQUEST TOPIC... FUCK STAINS!");
