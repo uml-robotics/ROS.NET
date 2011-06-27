@@ -9,11 +9,95 @@ using m=Messages;
 using gm=Messages.geometry_msgs;
 using nm=Messages.nav_msgs;
 using System.Threading;
-
+using System.Collections;
+using System.Collections.Generic;
 namespace EricIsAMAZING
 {
     public class XmlRpcManager
     {
+        public string uri;
+        public int port;
+        public bool shutting_down;
+        public Thread serverThreadFunc;
+        XmlRpcServer server;
+        List<CachedXmlRpcClient> clients = new List<CachedXmlRpcClient>();
+        object clients_mutex = new object();
+        List<ASyncXMLRPCConnection> added_connections;
+        object added_connections_mutex = new object();
+        List<ASyncXMLRPCConnection> removed_connections;
+        object removed_connections_mutex = new object();
+        public class FunctionInfo
+        {
+            public string name;
+            public XMLRPCFunc function;
+            public XMLRPCCallWrapper wrapper;
+        }
+        object functions_mutex = new object();
+        Dictionary<string, FunctionInfo> functions = new System.Collections.Generic.Dictionary<string, FunctionInfo>();
+        public bool validateXmlrpcResponse(string method, XmlRpcValue response, XmlRpcValue payload)
+        {
+
+        }
+
+        public XmlRpcClient getXMLRPCClient(string host, int port, string uri)
+        {
+
+        }
+
+        public void releaseXMLRPCClient(XmlRpcClient client)
+        {
+
+        }
+
+        public void addAsyncConnection(ASyncXMLRPCConnection conn)
+        {
+
+        }
+
+        public void removeASyncXMLRPCClient(ASyncXMLRPCConnection conn)
+        {
+
+        }
+
+        public bool bind(string function_name, XMLRPCFunc cb)
+        {
+
+        }
+
+        public void unbind(string function_name)
+        {
+
+        }
+
+
+
+        public XmlRpcValue responseStr(int code, string msg, string response)
+        {
+            XmlRpcValue v = new XmlRpcValue();
+            v.Set(0, new XmlRpcValue(code));
+            v.Set(1, msg);
+            v.Set(2, response);
+            return v;
+        }
+
+        public XmlRpcValue responseInt(int code, string msg, int response)
+        {
+            XmlRpcValue v = new XmlRpcValue();
+            v.Set(0, new XmlRpcValue(code));
+            v.Set(1, msg);
+            v.Set(2, new XmlRpcValue(response));
+            return v;
+        }
+
+        public XmlRpcValue responseBool(int code, string msg, bool response)
+        {
+            XmlRpcValue v = new XmlRpcValue();
+            v.Set(0, new XmlRpcValue(code));
+            v.Set(1, msg);
+            v.Set(2, new XmlRpcValue(response));
+            return v;
+        }
+
         private static XmlRpcManager _instance;
         public static XmlRpcManager Instance()
         {
@@ -25,5 +109,58 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("XmlRpc IN THE HIZI FOR SHIZI");
         }
+
+        internal void shutdown()
+        {
+            throw new NotImplementedException();
+        }
     }
+
+    public abstract class ASyncXMLRPCConnection
+    {
+        public virtual void addToDispatch(ref XmlRpcDispatch disp)
+        {
+
+        }
+
+        public virtual void removeFromDispatch(ref XmlRpcDispatch disp)
+        {
+
+        }
+
+        public virtual bool check()
+        {
+
+        }
+    }
+
+    public class CachedXmlRpcClient
+    {
+        public XmlRpcClient client;
+        bool in_use;
+        DateTime last_use_time;
+        public CachedXmlRpcClient(XmlRpcClient c)
+        {
+            client = c;
+        }
+    }
+
+    public class XMLRPCCallWrapper : XmlRpcServerMethod
+    {
+        public XMLRPCCallWrapper(string function_name, XMLRPCFunc cb, XmlRpcServer s) : base(function_name, s)
+        {
+            name = function_name;
+            func = cb;
+        }
+
+        private string name;
+        private XMLRPCFunc func;
+
+        public void execute(XmlRpcValue Params, XmlRpcValue result)
+        {
+            func(Params, result);
+        }
+    }
+
+    public delegate void XMLRPCFunc(XmlRpcValue Params, XmlRpcValue result);
 }

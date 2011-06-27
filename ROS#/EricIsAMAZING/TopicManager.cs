@@ -44,5 +44,25 @@ namespace EricIsAMAZING
         {
             throw new NotImplementedException();
         }
+
+        internal void unsubscribe(string topic, SubscriptionCallbackHelper subhelper)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal int getNumPublishers(string topic)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void unadvertise(string topic, SubscriberCallbacks callbacks)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void shutdown()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

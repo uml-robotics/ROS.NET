@@ -11,6 +11,13 @@ namespace XmlRpc_Wrapper
     //TODO: OPERATOR GARBAGE?
     public class XmlRpcValue : IDisposable
     {
+        public T Get<T>()
+        {
+            byte[] data = new byte[Size];
+            Marshal.Copy(instance, data, 0, Size);
+            return SerializationHelper.Deserialize<T>(data);
+        }
+
         private static Dictionary<IntPtr, XmlRpcValue> ValueRegistry;
 
         private IntPtr __instance;
@@ -153,7 +160,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set4", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, [In] [MarshalAs(UnmanagedType.LPWStr)] string key, IntPtr value);
-
+        
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Get1", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr get(IntPtr target, int key);
 

@@ -30,5 +30,20 @@ namespace EricIsAMAZING
         {
             throw new NotImplementedException();
         }
+
+        internal void unadvertiseService(string service)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2, System.Collections.IDictionary header_values)
+        {
+            return new IServiceServerLink(name, persistent, md5sum, md5sum_2, header_values);
+        }
+
+        internal void shutdown()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

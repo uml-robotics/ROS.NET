@@ -9,8 +9,8 @@ namespace EricIsAMAZING
     {
         public ServiceServer(string service, NodeHandle nodeHandle)
         {
-            this.service = service;
-            this.nodeHandle = nodeHandle;
+            impl.service = service;
+            impl.nodeHandle = nodeHandle;
         }
 
         public ServiceServer()
@@ -18,10 +18,25 @@ namespace EricIsAMAZING
             // TODO: Complete member initialization
         }
     }
-
-    public abstract class IServiceServer
+    public class IServiceServer
     {
-        public string service;
-        public NodeHandle nodeHandle;
+        public Impl impl;
+
+        public class Impl
+        {
+            public string service;
+            public NodeHandle nodeHandle;
+            public double constructed = (int)Math.Floor(DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+            public bool unadvertised;
+            public bool IsValid { get { return !unadvertised; } }
+                internal void unadvertise()
+            {
+                if (!unadvertised)
+                {
+                    unadvertised = true;
+                    ServiceManager.Instance().unadvertiseService(service);
+                }
+            }
+        }
     }
 }

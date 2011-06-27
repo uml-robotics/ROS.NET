@@ -13,7 +13,7 @@ namespace EricIsAMAZING
 
         public SubscriberCallbacks(MulticastDelegate connectCB, MulticastDelegate disconnectCB, CallbackQueue callbackQueue)
         {
-            // TODO: Complete member initialization
+            throw new NotImplementedException();
             this.connectCB = connectCB;
             this.disconnectCB = disconnectCB;
             this.callbackQueue = callbackQueue;

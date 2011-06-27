@@ -15,20 +15,51 @@ namespace EricIsAMAZING
 {
     public class NodeHandle
     {
+        public void shutdown()
+        {
+            foreach (ISubscriber sub in collection.subscribers)
+                sub.impl.unsubscribe();
+            foreach (IPublisher pub in collection.publishers)
+                pub.impl.unadvertise();
+            foreach (IServiceClient client in collection.serviceclients)
+                client.impl.shutdown();
+            foreach (IServiceServer srv in collection.serviceservers)
+                srv.impl.unadvertise();
+        }
+
         public NodeHandle(string ns, IDictionary remappings)
         {
+            if (ns != "" && ns[0] == '~')
+                ns = names.resolve(ns);
+            construct(ns, true);
+            initRemappings(remappings);
         }
 
         public NodeHandle(NodeHandle rhs)
         {
+            callbackQueue = rhs.callbackQueue;
+            remappings = rhs.remappings;
+            unresolved_remappings = rhs.unresolved_remappings;
+            construct(rhs.Namespace, true);
+            UnresolvedNamespace = rhs.UnresolvedNamespace;
         }
 
         public NodeHandle(NodeHandle parent, string ns)
         {
+            Namespace = parent.Namespace;
+            callbackQueue = parent.callbackQueue;
+            remappings = parent.remappings;
+            unresolved_remappings = parent.unresolved_remappings;
+            construct(ns, false);
         }
 
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
+            Namespace = parent.Namespace;
+            callbackQueue = parent.callbackQueue;
+            this.remappings = parent.remappings;
+            unresolved_remappings = parent.unresolved_remappings;
+
         }
 
         public NodeHandle()
@@ -55,7 +86,7 @@ namespace EricIsAMAZING
         {
             get
             {
-                if (_callbackQueue == null) return ROS.GlobalCalbackQueue;
+                if (_callbackQueue == null) return ROS.GlobalCallbackQueue;
                 return _callbackQueue;
             }
             set { _callbackQueue = value; }
@@ -89,7 +120,7 @@ namespace EricIsAMAZING
                 if (callbackQueue != null)
                     ops.callbackQueue = callbackQueue;
                 else
-                    ops.callbackQueue = ROS.GlobalCalbackQueue;
+                    ops.callbackQueue = ROS.GlobalCallbackQueue;
             }
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.callbackQueue);
             if (TopicManager.Instance().advertise(ops, callbacks))
@@ -116,7 +147,7 @@ namespace EricIsAMAZING
                 if (callbackQueue != null)
                     ops.callbackQueue = callbackQueue;
                 else
-                    ops.callbackQueue = ROS.GlobalCalbackQueue;
+                    ops.callbackQueue = ROS.GlobalCallbackQueue;
             }
             if (TopicManager.Instance().subscribe<M>(ops))
             {
@@ -141,7 +172,7 @@ namespace EricIsAMAZING
             if (ops.callbackQueue == null)
             {
                 if (callbackQueue == null)
-                    ops.callbackQueue = ROS.GlobalCalbackQueue;
+                    ops.callbackQueue = ROS.GlobalCallbackQueue;
                 else
                     ops.callbackQueue = callbackQueue;
             }
@@ -254,6 +285,11 @@ namespace EricIsAMAZING
                 final = remapName(final);
             }
             return names.resolve(final, false);
+        }
+
+        public Timer createTimer(TimeSpan period, TimerCallback tcb, bool oneshot)
+        {
+            return new Timer(tcb, null, 0, (int)Math.Floor(period.TotalMilliseconds));
         }
     }
 }
