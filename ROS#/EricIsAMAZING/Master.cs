@@ -30,7 +30,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, result, payload, false);
+            return execute("getPid", ref args, ref result, ref payload, false);
         }
 
         public static bool getTopics(ref TopicInfo[] topics)
@@ -39,9 +39,9 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, result, payload, true))
+            if (!execute("getPublishedTopics", ref args, ref result, ref payload, true))
                 return false;
-            topicss.clear();
+            topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
                 topicss.Add(new TopicInfo(payload.Get(i).Get(0).Get<string>(), payload.Get(i).Get(1).Get<string>()));
             topics = topicss.ToArray();
@@ -54,7 +54,7 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, result, payload, true))
+            if (!execute("getSystemState", ref args, ref result, ref payload, true))
             {
                 return false;
             }
@@ -74,7 +74,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool execute(string method, ref XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
+        public static bool execute(string method, ref XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
         {
             DateTime startTime = DateTime.Now;
             string master_host = host;

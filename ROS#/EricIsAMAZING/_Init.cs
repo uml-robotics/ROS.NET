@@ -122,7 +122,10 @@ namespace EricIsAMAZING
             }
         }
 
+        public static void internalCallbackQueueThreadFunc()
+        {
 
+        }
 
         public static bool isStarted()
         {

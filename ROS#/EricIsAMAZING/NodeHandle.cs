@@ -151,7 +151,7 @@ namespace EricIsAMAZING
             }
             if (TopicManager.Instance().subscribe<M>(ops))
             {
-                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, ops.callbackQueue);
+                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper(ops.callbackQueue));
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);

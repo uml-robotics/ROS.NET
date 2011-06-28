@@ -5,6 +5,6 @@ namespace XmlRpc_Wrapper
 {
     public class XmlRpcServer : XmlRpcSource, IDisposable
     {
-        
+
     }
 }

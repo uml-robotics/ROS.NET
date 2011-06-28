@@ -6,6 +6,10 @@ extern "C" XMLRPC_API int IntegerEcho(int val)
 { 
 	return val;
 }
+extern "C" XMLRPC_API void IntegerEchoFunctionPtr(void (*callback)(int val), int val)
+{
+	callback(val);
+}
 
 //client
 extern "C" XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri)

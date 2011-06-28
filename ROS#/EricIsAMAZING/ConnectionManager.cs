@@ -59,6 +59,11 @@ namespace EricIsAMAZING
 
         }
 
+        public void tcpRosConnection(TcpTransport accepted)
+        {
+
+        }
+
         public void Start()
         {
             Console.WriteLine("... and connection manager started too.");
@@ -67,7 +72,8 @@ namespace EricIsAMAZING
 
             tcpserver_transport = new TcpTransport(poll_manager.poll_set);
 
-            if (!tcpserver_transport.listen(
+            if (!tcpserver_transport.listen(network.tcpros_server_port, 100, tcpRosConnection))
+                throw new Exception("FUCK");
         }
     }
 }

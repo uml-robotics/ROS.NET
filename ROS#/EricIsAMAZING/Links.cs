@@ -19,7 +19,7 @@ namespace EricIsAMAZING
         public Subscription subscription;
         public Stats stats;
         public string XmlRpc_Uri,CallerID,md5sum;
-        public int ConnectionID;
+        public uint ConnectionID;
         public bool Latched;
         private Header header;
         public bool setHeader(Header h)

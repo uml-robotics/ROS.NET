@@ -66,7 +66,7 @@ namespace EricIsAMAZING
 
             if (did_drop)
             {
-                transport.Close();
+                transport.close();
             }
         }
 
@@ -97,7 +97,7 @@ namespace EricIsAMAZING
             
         }
 
-        void transport_ReadCallback(TcpTransport trans, byte[] data, bool success)
+        void transport_ReadCallback(TcpTransport trans)
         {
             
         }

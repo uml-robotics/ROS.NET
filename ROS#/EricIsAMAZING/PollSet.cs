@@ -17,7 +17,7 @@ namespace EricIsAMAZING
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
-            return addSocket(s, update_func, new TcpTransport());
+            return addSocket(s, update_func, null);
         }
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)

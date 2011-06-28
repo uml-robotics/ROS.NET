@@ -11,6 +11,11 @@ namespace XmlRpc_Wrapper
     {
         [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int IntegerEcho(int val);
+
+        public delegate void balls(int val);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint="IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void IntegerEchoFunctionPtr( IntPtr callback, int val);
     }
 
 

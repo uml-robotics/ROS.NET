@@ -9,7 +9,7 @@ namespace XmlRpc_Wrapper
 {
     public abstract class XmlRpcSource : IDisposable
     {
-        internal IntPtr instance;
+        public IntPtr instance;
 
         internal virtual void Close()
         {

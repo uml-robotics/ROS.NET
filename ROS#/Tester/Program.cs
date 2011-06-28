@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using XmlRpc_Wrapper;
 using EricIsAMAZING;
@@ -19,12 +20,21 @@ namespace ConsoleApplication1
     {
         private const string ROS_MASTER_URI = "http://robot-lab8:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
+
+        public static WrapperTest.balls BALLS;
         
         private static void Main(string[] args)
         {
+            int balls = 15;
+            Console.WriteLine("" + WrapperTest.IntegerEcho(666));
+            Console.ReadLine();
+            BALLS = new WrapperTest.balls((val) => Console.WriteLine("" + val.ToString()));
+            WrapperTest.IntegerEchoFunctionPtr(Marshal.GetFunctionPointerForDelegate(BALLS), balls);
+            Console.ReadLine();
+            return;
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ERICRULZ");
-            Subscriber<m.String> sub = new Subscriber<m.String>("/rosout_agg", new NodeHandle("/", new Hashtable()), new CallbackQueue());
+            Subscriber<m.String> sub = new Subscriber<m.String>("/rosout_agg", new NodeHandle("/", new Hashtable()), new SubscriptionCallbackHelper());
             ROS.start();
             
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))

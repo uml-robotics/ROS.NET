@@ -7,8 +7,9 @@ using namespace XmlRpc;
 extern "C" {
 #endif
 	//bullshit sanity check
+	//typedef void (__stdcall INTCALLBACK)(int val);
 	extern XMLRPC_API int IntegerEcho(int val);
-	
+	extern XMLRPC_API void IntegerEchoFunctionPtr(void (*callback)(int val), int val);
 	//XmlRpcClient
 	extern XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri);
 	extern XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance);

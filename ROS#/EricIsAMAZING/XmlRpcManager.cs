@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using XmlRpc_Wrapper;
 using m=Messages;
@@ -36,12 +37,14 @@ namespace EricIsAMAZING
         Dictionary<string, FunctionInfo> functions = new System.Collections.Generic.Dictionary<string, FunctionInfo>();
         public bool validateXmlrpcResponse(string method, XmlRpcValue response, XmlRpcValue payload)
         {
+            throw new NotImplementedException();
 
         }
 
         public XmlRpcClient getXMLRPCClient(string host, int port, string uri)
         {
 
+            throw new NotImplementedException();
         }
 
         public void releaseXMLRPCClient(XmlRpcClient client)
@@ -61,7 +64,7 @@ namespace EricIsAMAZING
 
         public bool bind(string function_name, XMLRPCFunc cb)
         {
-
+            throw new NotImplementedException();
         }
 
         public void unbind(string function_name)
@@ -130,7 +133,7 @@ namespace EricIsAMAZING
 
         public virtual bool check()
         {
-
+            throw new NotImplementedException();
         }
     }
 
@@ -145,21 +148,36 @@ namespace EricIsAMAZING
         }
     }
 
-    public class XMLRPCCallWrapper : XmlRpcServerMethod
+    public class XMLRPCCallWrapper
     {
-        public XMLRPCCallWrapper(string function_name, XMLRPCFunc cb, XmlRpcServer s) : base(function_name, s)
+        internal IntPtr instance;
+
+        public XMLRPCCallWrapper(string function_name, XMLRPCFunc cb, XmlRpcServer s)
         {
+            instance = create(function_name, s.instance);
             name = function_name;
             func = cb;
         }
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XMLRPCCallWrapper_Create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr create([In] [MarshalAs(UnmanagedType.LPWStr)] string function_name, IntPtr server);
 
         private string name;
         private XMLRPCFunc func;
 
         public void execute(XmlRpcValue Params, XmlRpcValue result)
         {
-            func(Params, result);
+
+
+            IntPtr XMLRPCFuncCB = Marshal.GetFunctionPointerForDelegate(func);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            CallDelegateDirectly(XMLRPCFuncCB);
         }
+
+        [DllImport(@"MarshalLib.dll", EntryPoint = "CallDelegate")]
+        public static extern void CallDelegateDirectly(IntPtr XMLRPCFuncPtr);
     }
 
     public delegate void XMLRPCFunc(XmlRpcValue Params, XmlRpcValue result);

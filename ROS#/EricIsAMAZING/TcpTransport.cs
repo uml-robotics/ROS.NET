@@ -10,6 +10,9 @@ namespace EricIsAMAZING
 {
     public class TcpTransport
     {
+        public event DisconnectFunc DisconnectCallback;
+        public event WriteFinishedFunc WriteCallback;
+        public event ReadFinishedFunc ReadCallback;
         public ReadFinishedFunc read_cb;
         public WriteFinishedFunc write_cb;
         public DisconnectFunc disconnect_cb;

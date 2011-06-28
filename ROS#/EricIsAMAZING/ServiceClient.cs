@@ -49,7 +49,7 @@ namespace EricIsAMAZING
 
                     if (server_link != null)
                     {
-                        server_link.getConnection().drop(Connection.Destructing);
+                        server_link.connection.drop(Connection.DropReason.Destructing);
                     }
                 }
             }
