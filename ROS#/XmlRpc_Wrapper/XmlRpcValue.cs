@@ -11,6 +11,21 @@ namespace XmlRpc_Wrapper
     //TODO: OPERATOR GARBAGE?
     public class XmlRpcValue : IDisposable
     {
+        private static Dictionary<IntPtr, XmlRpcValue> _instances = new Dictionary<IntPtr, XmlRpcValue>();
+        public static XmlRpcValue LookUp(IntPtr ptr)
+        {
+            if (_instances.ContainsKey(ptr))
+                return _instances[ptr];
+            if (ptr != IntPtr.Zero)
+                return new XmlRpcValue(ptr);
+            return null;
+        }
+
+        public Type GetType()
+        {
+            return GetType(this.Type);
+        }
+
         public T Get<T>()
         {
             byte[] data = new byte[Size];
@@ -59,50 +74,91 @@ namespace XmlRpc_Wrapper
                                                 TypeEnum.TypeIDFK
                                             };
 
+        public Type GetType(TypeEnum t)
+        {
+            switch (t)
+            {
+                case TypeEnum.TypeBoolean: return typeof(bool);
+                case TypeEnum.TypeInt: return typeof(int);
+                case TypeEnum.TypeDouble: return typeof(double);
+                case TypeEnum.TypeString: return typeof(string);
+                case TypeEnum.TypeDateTime: return typeof(DateTime);
+                case TypeEnum.TypeBase64: return typeof(UInt64);
+                case TypeEnum.TypeArray: return typeof(object[]);
+                case TypeEnum.TypeStruct: throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
+            }
+            return default(Type);
+        }
+
+        public T Get<T>(int key)
+        {
+            return Get(key).Get<T>();
+        }
+        public T Get<T>(string key)
+        {
+            return Get(key).Get<T>();
+        }
+
         #endregion
 
         public XmlRpcValue()
         {
             instance = create();
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance,this);
         }
 
         public XmlRpcValue(bool value)
         {
             instance = create(value);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance,this);
         }
 
         public XmlRpcValue(int value)
         {
             instance = create(value);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance,this);
         }
 
         public XmlRpcValue(double value)
         {
             instance = create(value);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance,this);
         }
 
         public XmlRpcValue(string value)
         {
             instance = create(value);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(IntPtr value, int nBytes)
         {
             instance = create(value, nBytes);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(string xml, int offset)
         {
             instance = create(xml, offset);
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(XmlRpcValue value) : this(value.instance)
         {
         }
 
-        internal XmlRpcValue(IntPtr existingptr)
+        public XmlRpcValue(IntPtr existingptr)
         {
             instance = existingptr;
+            if (!_instances.ContainsKey(instance))
+                _instances.Add(instance, this);
         }
 
         #region P/Invoke
@@ -169,7 +225,7 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
-        internal IntPtr instance
+        public IntPtr instance
         {
             get { return __instance; }
             set

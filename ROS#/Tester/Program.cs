@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using XmlRpc_Wrapper;
 using EricIsAMAZING;
 using m = Messages;
@@ -22,21 +23,33 @@ namespace ConsoleApplication1
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 
         public static WrapperTest.balls BALLS;
-        
+
+        public static void chatterCallback(m.String msg)
+        {
+            Console.WriteLine("HOLY FUCKSTICK!");
+        }
+
         private static void Main(string[] args)
         {
-            int balls = 15;
+            int balls = 0;
             Console.WriteLine("" + WrapperTest.IntegerEcho(666));
-            Console.ReadLine();
             BALLS = new WrapperTest.balls((val) => Console.WriteLine("" + val.ToString()));
-            WrapperTest.IntegerEchoFunctionPtr(Marshal.GetFunctionPointerForDelegate(BALLS), balls);
-            Console.ReadLine();
-            return;
+            WrapperTest.IntegerEchoFunctionPtr(BALLS);
+            while (WrapperTest.IntegerEchoRepeat(balls++))
+            {
+                if (balls >= 10)
+                {
+                    BALLS = null;
+                    break;
+                }
+                Thread.Sleep(1);
+            }
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ERICRULZ");
-            Subscriber<m.String> sub = new Subscriber<m.String>("/rosout_agg", new NodeHandle("/", new Hashtable()), new SubscriptionCallbackHelper());
             ROS.start();
-            
+            NodeHandle nh = new NodeHandle();
+            Subscriber<m.String> sub = nh.subscribe<m.String>("chatter", 1000, chatterCallback);
+            ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {
                 Console.WriteLine("FAILED TO REQUEST TOPIC... FUCK STAINS!");
@@ -56,7 +69,7 @@ namespace ConsoleApplication1
     }
     #region some day... later
 
-            /*
+    /*
             TcpClient tcp = new TcpClient(new IPEndPoint(IPAddress.Parse("129.63.16.176"), 0));
             UdpClient udp = new UdpClient(new IPEndPoint(IPAddress.Parse("129.63.16.176"), 0));
             udp.BeginReceive(udprape, udp);
@@ -94,7 +107,7 @@ namespace ConsoleApplication1
 
             */
 
-            #endregion
+    #endregion
     /*public class NodeClient : MarshalByRefObject, NodeProxy
     {
 

@@ -1,15 +1,17 @@
 #ifndef __Callers_h__
 #define __Callers_h__
 
+#include "XmlRpcServerMethodWrapper.h"
 #include "XmlRpc.h"		// needed for XMLRPC_API
 using namespace XmlRpc;
 #ifdef __cplusplus
 extern "C" {
 #endif
 	//bullshit sanity check
-	//typedef void (__stdcall INTCALLBACK)(int val);
+	typedef void (*FuncPtr)(int i);
 	extern XMLRPC_API int IntegerEcho(int val);
-	extern XMLRPC_API void IntegerEchoFunctionPtr(void (*callback)(int val), int val);
+	extern XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr fptr);
+	extern XMLRPC_API bool IntegerEchoRepeat(int val);
 	//XmlRpcClient
 	extern XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri);
 	extern XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance);
@@ -72,15 +74,23 @@ extern "C" {
 	extern XMLRPC_API void XmlRpcSource_SetKeepOpen(XmlRpcSource *instance, bool b);
 	extern XMLRPC_API unsigned handleEvent(unsigned eventType);
 
-	/*
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	extern XMLRPC_API 
-	*/
+	//XmlRpcServerMethod
+	extern XMLRPC_API XmlRpcServerMethodWrapper *XmlRpcServerMethod_Create(char *name, XmlRpcServer *server);
+	extern XMLRPC_API void XmlRpcServerMethod_SetFunc(XmlRpcServerMethodWrapper *instance, XmlRpcServerFUNC func);
+	extern XMLRPC_API void XmlRpcServerMethod_Execute(XmlRpcServerMethodWrapper *instance, XmlRpcValue *parms, XmlRpcValue *res);
+	
+	//XmlRpcServer	
+	extern XMLRPC_API XmlRpcServer *XmlRpcServer_Create();
+	extern XMLRPC_API void XmlRpcServer_AddMethod(XmlRpcServer *instance, XmlRpcServerMethod *method);
+	extern XMLRPC_API void XmlRpcServer_RemoveMethod(XmlRpcServer *instance, XmlRpcServerMethod *method);
+	extern XMLRPC_API void XmlRpcServer_RemoveMethodByName(XmlRpcServer *instance, char *name);
+	extern XMLRPC_API XmlRpcServerMethod *XmlRpcServer_FindMethod(XmlRpcServer *instance, char *name);
+	extern XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, int port, int backlog);
+	extern XMLRPC_API void XmlRpcServer_Work(XmlRpcServer *instance,double msTime);
+	extern XMLRPC_API void XmlRpcServer_Exit(XmlRpcServer *instance);
+	extern XMLRPC_API void XmlRpcServer_Shutdown(XmlRpcServer *instance);
+	extern XMLRPC_API int XmlRpcServer_GetPort(XmlRpcServer *instance);
+	extern XMLRPC_API XmlRpcDispatch *XmlRpcServer_GetDispatch(XmlRpcServer *instance);
 #ifdef __cplusplus
 }
 #endif

@@ -7,15 +7,21 @@ namespace EricIsAMAZING
 {
     public class SubscriberCallbacks
     {
-        private MulticastDelegate connectCB;
-        private MulticastDelegate disconnectCB;
-        private CallbackQueue callbackQueue;
-
-        public SubscriberCallbacks(MulticastDelegate connectCB, MulticastDelegate disconnectCB, CallbackQueue callbackQueue)
+        private static UInt64 _uid;
+        public UInt64 Get()
         {
-            throw new NotImplementedException();
-            this.connectCB = connectCB;
-            this.disconnectCB = disconnectCB;
+            return __uid;
+        }
+        private UInt64 __uid;
+
+        public SubscriberStatusCallback connect, disconnect;
+        public CallbackQueue callbackQueue;
+
+        public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueue callbackQueue)
+        {
+            __uid = _uid++;
+            this.connect = connectCB;
+            this.disconnect = disconnectCB;
             this.callbackQueue = callbackQueue;
         }
     }

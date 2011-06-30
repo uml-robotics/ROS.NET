@@ -6,9 +6,17 @@ extern "C" XMLRPC_API int IntegerEcho(int val)
 { 
 	return val;
 }
-extern "C" XMLRPC_API void IntegerEchoFunctionPtr(void (*callback)(int val), int val)
+FuncPtr CBREF;
+extern "C" XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr ptr)
 {
-	callback(val);
+	CBREF = ptr;
+}
+extern "C" XMLRPC_API bool IntegerEchoRepeat(int val)
+{
+	if (!CBREF)
+		return false;	
+	CBREF(val);
+	return true;
 }
 
 //client
@@ -230,4 +238,64 @@ extern "C" XMLRPC_API void XmlRpcSource_SetKeepOpen(XmlRpcSource *instance, bool
 extern "C" XMLRPC_API unsigned XmlRPcSource_HandleEvent(XmlRpcSource *instance, unsigned eventType)
 {
 	return instance->handleEvent(eventType);
+}
+
+//XmlRpcServerMethod
+extern "C" XMLRPC_API XmlRpcServerMethodWrapper *XmlRpcServerMethod_Create(char *name, XmlRpcServer *server)
+{
+	return new XmlRpcServerMethodWrapper(std::string(name), server);
+}
+extern "C" XMLRPC_API void XmlRpcServerMethod_SetFunc(XmlRpcServerMethodWrapper *instance, XmlRpcServerFUNC func)
+{
+	instance->setFunc(func);
+}
+extern "C" XMLRPC_API void XmlRpcServerMethod_Execute(XmlRpcServerMethodWrapper *instance, XmlRpcValue *parms, XmlRpcValue *res)
+{
+	instance->execute(*parms, *res);
+}
+	
+//XmlRpcServer	
+extern "C" XMLRPC_API XmlRpcServer *XmlRpcServer_Create()
+{
+	return new XmlRpcServer();
+}
+extern "C" XMLRPC_API void XmlRpcServer_AddMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
+{
+	instance->addMethod(method);
+}
+extern "C" XMLRPC_API void XmlRpcServer_RemoveMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
+{
+	instance->removeMethod(method);
+}
+extern "C" XMLRPC_API void XmlRpcServer_RemoveMethodByName(XmlRpcServer *instance, char *name)
+{
+	instance->removeMethod(std::string(name));
+}
+extern "C" XMLRPC_API XmlRpcServerMethod *XmlRpcServer_FindMethod(XmlRpcServer *instance, char *name)
+{
+	return instance->findMethod(std::string(name));
+}
+extern "C" XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, int port, int backlog)
+{
+	return instance->bindAndListen(port, backlog);
+}
+extern "C" XMLRPC_API void XmlRpcServer_Work(XmlRpcServer *instance, double msTime)
+{
+	instance->work(msTime);
+}
+extern "C" XMLRPC_API void XmlRpcServer_Exit(XmlRpcServer *instance)
+{
+	instance->exit();
+}
+extern "C" XMLRPC_API void XmlRpcServer_Shutdown(XmlRpcServer *instance)
+{
+	instance->shutdown();
+}
+extern "C" XMLRPC_API int XmlRpcServer_GetPort(XmlRpcServer *instance)
+{
+	return instance->get_port();
+}
+extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcServer_GetDispatch(XmlRpcServer *instance)
+{
+	return instance->get_dispatch();
 }

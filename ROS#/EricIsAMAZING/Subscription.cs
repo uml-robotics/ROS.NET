@@ -14,8 +14,9 @@ namespace EricIsAMAZING
 {
     public class Subscription
     {
-        string name, md5sum, datatype;
-        List<CallbackInfo> callbacks = new List<CallbackInfo>();
+        public object md5sum_mutex = new object(), callbacks_mutex = new object();
+        public string name, md5sum, datatype;
+        List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         List<PendingConnection> pendingconnections = new List<PendingConnection>();
         private bool dropped,shutting_down;
         public Subscription(string n, string md5s, string dt)
@@ -23,6 +24,14 @@ namespace EricIsAMAZING
             name = n;
             md5sum = md5s;
             datatype = dt;
+        }
+        public void removePublisherLink(PublisherLink pub)
+        {
+            throw new NotImplementedException();
+        }
+        public void addPublisherLink(PublisherLink pub)
+        {
+            throw new NotImplementedException();
         }
         public void drop()
         {
@@ -47,14 +56,17 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
 
+        internal ulong handleMessage(m.IRosMessage m, bool ser, bool nocopy, System.Collections.IDictionary iDictionary, TransportPublisherLink transportPublisherLink)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDropped
         {
             get { return dropped; }
             set { dropped = value; }
         }
 
-        private NetworkStream streamer;
-        private List<PollHelper> pollset = new List<PollHelper>();
         private int protos;
         private XmlRpcClient client = null;
         private XmlRpcValue tcpros_array = new XmlRpcValue(), protos_array = new XmlRpcValue(), Params = new XmlRpcValue();
@@ -83,81 +95,34 @@ namespace EricIsAMAZING
             }
         }
 
-        #region socket stuff and such
-        private void WriteThatShit(byte[] towrite)
-        {
-            if (streamer != null)
-            {
-                streamer.Write(towrite, 0, towrite.Length);
-            }
-            string analbead = Encoding.ASCII.GetString(towrite);
-            Console.WriteLine(analbead);
-            Console.WriteLine();
-            streamer.Flush();
-        }
-
-        private void AcceptRape(Socket tcp)
-        {
-            tcp.BeginAccept(EndAcceptRape, tcp);
-        }
-
-        private void EndAcceptRape(IAsyncResult iar)
-        {
-            Socket sock = (Socket)iar.AsyncState;
-            pollset.Add(new PollHelper(sock.EndAccept(iar)));
-        }
-
-        private void udprape(IAsyncResult iar)
-        {
-            IPEndPoint from = null;
-            UdpClient udp = (UdpClient)iar;
-            udp.EndReceive(iar, ref from);
-            Console.WriteLine("GOT SOME UDP SHIT FROM " + from + " WHAT THE FUCK?");
-            udp.BeginReceive(udprape, udp);
-        }
-        #endregion
-
-        #region Nested type: PollHelper
-
-        public class PollHelper
-        {
-            private static int ID;
-            public byte[] buffer;
-            public int id;
-            public EndPoint ipep;
-            public Socket sock;
-
-            public PollHelper(Socket s)
-            {
-                Console.WriteLine("MAKING NEW FUCKING SOCKET!");
-                Console.WriteLine("Socket[" + (ID) + "] = \t " + s.LocalEndPoint + "==> " + s.RemoteEndPoint);
-                sock = s;
-                id = ID++;
-                Poll();
-            }
-
-            public void Poll()
-            {
-                sock.BeginReceiveFrom
-                    ((buffer = new byte[8192]), 0, 8192, SocketFlags.None, ref ipep,
-                     EndReceive, null);
-            }
-
-            public void EndReceive(IAsyncResult iar)
-            {
-                int cnt = sock.EndReceiveFrom(iar, ref ipep);
-                Console.WriteLine
-                    ("Socket[" + id + "] received " + cnt + " bytes...\n" +
-                     Encoding.ASCII.GetString(buffer));
-                Poll();
-            }
-        }
-
-        #endregion
-
         public void Dispose()
         {
             Shutdown();
+        }
+
+        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackInterface queue) where M : m.IRosMessage
+        {
+            lock (md5sum_mutex)
+            {
+                if (this.md5sum == "*" && md5sum != "*")
+                    this.md5sum = md5sum;
+            }
+
+            if (md5sum != "*" && md5sum != this.md5sum)
+                return false;
+            lock (callbacks_mutex)
+            {
+                CallbackInfo<M> info = new CallbackInfo<M>();
+                info.helper = helper;
+                info.callback = queue;
+                info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
+                if (!helper.isConst())
+                {
+                    ++nonconst_callbacks;
+                }
+
+                callbacks.Add(info);
+            }
         }
     }
 }

@@ -39,7 +39,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\XmlRpc_Wrapper\</OutDir>
+    <OutDir>$(ProjectDir)..\XmlRpc_Wrapper\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -91,6 +91,7 @@
     <ClInclude Include="XmlRpcServer.h" />
     <ClInclude Include="XmlRpcServerConnection.h" />
     <ClInclude Include="XmlRpcServerMethod.h" />
+    <ClInclude Include="XmlRpcServerMethodWrapper.h" />
     <ClInclude Include="XmlRpcSocket.h" />
     <ClInclude Include="XmlRpcSource.h" />
     <ClInclude Include="XmlRpcUtil.h" />

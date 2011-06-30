@@ -16,6 +16,7 @@ namespace EricIsAMAZING
 {
     public static class ROS
     {
+        public static TimerManager timer_manager = new TimerManager();
         public static void FREAKTHEFUCKOUT()
         {
             throw new Exception("ROS IS FREAKING THE FUCK OUT!");
@@ -46,7 +47,7 @@ namespace EricIsAMAZING
             }
             Init(dick, name, options);
         }
-
+        public static NodeHandle GlobalNodeHandle;
         public static void Init(IDictionary remapping_args, string name, int options = 0)
         {
             if (!atexit_registered)
@@ -70,6 +71,7 @@ namespace EricIsAMAZING
                 this_node.Init(name, remapping_args, options);
                 Param.init(remapping_args);
                 initialized = true;
+                GlobalNodeHandle = new NodeHandle(this_node.Namespace, remapping_args);
             }
         }
         public static void spinOnce()

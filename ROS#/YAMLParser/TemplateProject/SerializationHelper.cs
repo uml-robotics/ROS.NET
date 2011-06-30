@@ -9,7 +9,7 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        public static T Deserialize<T>(byte[] bytes)
+        public static T Deserialize<T>(byte[] bytes) where T : IRosMessage
         {
             T thestructure = default(T);
             IntPtr pIP = Marshal.AllocHGlobal(Marshal.SizeOf(thestructure));
@@ -23,26 +23,28 @@ namespace Messages
             return thestructure;
         }
 
-        public static byte[] Serialize<T>(T outgoing)
+        public static byte[] Serialize<T>(T outgoing) where T : IRosMessage
         {
-            byte[] buffer = new byte[Marshal.SizeOf(outgoing)];
-            GCHandle h = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            if (outgoing.Serialized != null)
+                return outgoing.Serialized;
+            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing)];
+            GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
 
             // copy the struct into int byte[] mem alloc 
             Marshal.StructureToPtr(outgoing, h.AddrOfPinnedObject(), false);
 
             h.Free(); //Allow GC to do its job 
 
-            return buffer;
+            return outgoing.Serialized;
         }
     }
 
-    public abstract class IRosMessage<T>
+    public abstract class IRosMessage
     {
         public bool HasHeader = false;
         public bool KnownSize = true;
 
-        public T data;
+        public byte[] Serialized;
 
         public IRosMessage()
         {
@@ -50,12 +52,16 @@ namespace Messages
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
-            data = SerializationHelper.Deserialize<T>(SERIALIZEDSTUFF);
+            Deserialize(SERIALIZEDSTUFF);
         }
 
-        public byte[] Serialize()
+        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
         {
-            return SerializationHelper.Serialize(data);
+        }
+
+        public virtual byte[] Serialize()
+        {
+            return null;
         }
     }
 

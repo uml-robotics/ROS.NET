@@ -7,7 +7,7 @@ namespace EricIsAMAZING
 {
     public class Subscriber<M> : ISubscriber
     {
-        public Subscriber(string topic, NodeHandle nodeHandle, SubscriptionCallbackHelper cb)
+        public Subscriber(string topic, NodeHandle nodeHandle, ISubscriptionCallbackHelper cb)
         {
             // TODO: Complete member initialization
             impl.topic = topic;
@@ -45,7 +45,7 @@ namespace EricIsAMAZING
 
     public abstract class ISubscriber
     {
-        public Impl impl;
+        public Impl impl = new Impl();
 
 
         public string Topic
@@ -67,10 +67,10 @@ namespace EricIsAMAZING
         }
         public class Impl
         {
+            public ISubscriptionCallbackHelper helper;
             public bool unsubscribed;
             public double constructed = DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).Ticks;
             public string topic;
-            public SubscriptionCallbackHelper helper;
             public NodeHandle nodehandle;
             public bool IsValid { get { return !unsubscribed; } }
             public void unsubscribe()

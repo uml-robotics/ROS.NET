@@ -44,6 +44,7 @@ namespace EricIsAMAZING
         }
         public static string remap(string name)
         {
+            Console.WriteLine("remap(" + name + ")");
             string resolved = resolve(name, false);
             if (resolved_remappings.Contains("name"))
                 return (string)resolved_remappings["name"];

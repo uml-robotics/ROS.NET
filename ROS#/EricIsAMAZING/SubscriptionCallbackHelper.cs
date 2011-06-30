@@ -5,20 +5,47 @@ using System.Text;
 
 namespace EricIsAMAZING
 {
-    public class SubscriptionCallbackHelper
+    public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : Messages.IRosMessage
+    {
+        public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
+        
+        public SubscriptionCallbackHelper()
+        {
+            
+        }
+
+        public SubscriptionCallbackHelper(CallbackQueue q)
+            : base(q)
+        {
+        }
+    }
+
+    public abstract class ISubscriptionCallbackHelper
     {
         private CallbackQueue callbackQueue;
 
-        public SubscriptionCallbackHelper()
+        public ISubscriptionCallbackHelper()
         {
-            throw new Exception("I MADE THIS SHIT UP, SO IT'S PROBABLY FUCKED!");
         }
 
-        public SubscriptionCallbackHelper(CallbackQueue callbackQueue)
+        public ISubscriptionCallbackHelper(CallbackQueue callbackQueue)
         {
-            throw new Exception("I MADE THIS SHIT UP, SO IT'S PROBABLY FUCKED!");
-            // TODO: Complete member initialization
             this.callbackQueue = callbackQueue;
         }
+    }
+
+    public class ParameterAdapter<P> : IParameterAdapter where P : Messages.IRosMessage
+    {
+        
+    }
+
+    public abstract class IParameterAdapter
+    {
+
+    }
+
+    public class MessageStuff<T>
+    {
+
     }
 }

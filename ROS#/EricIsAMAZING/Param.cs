@@ -2,15 +2,193 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using XmlRpc_Wrapper;
 
 namespace EricIsAMAZING
 {
     public static class Param
     {
+        public static Dictionary<string, XmlRpcValue> parms = new Dictionary<string, XmlRpcValue>();
+        public static object parms_mutex = new object();
+        public static List<string> subscribed_params = new List<string>();
+
+        public static void set(string key, XmlRpcValue val)
+        {
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = null, payload = null;
+            parm.Set(0, new XmlRpcValue(this_node.Name));
+            parm.Set(1, new XmlRpcValue(mapped_key));
+            parm.Set(2, val);
+            lock (parms_mutex)
+            {
+                if (master.execute("setParam", parm, out response, out payload, true))
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                        parms.Add(mapped_key, val);
+                }
+            }
+        }
+
+        public static void set(string key, string s)
+        {
+            set(key, new XmlRpcValue(s));
+        }
+
+        public static void set(string key, double s)
+        {
+            set(key, new XmlRpcValue(s));
+        }
+
+        public static void set(string key, int s)
+        {
+            set(key, new XmlRpcValue(s));
+        }
+
+        public static void set(string key, bool s)
+        {
+            set(key, new XmlRpcValue(s));
+        }
+
+        public static bool had(string key)
+        {
+            XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+            parm.Set(0, this_node.Name);
+            parm.Set(1, names.resolve(key));
+            if (!master.execute("hasParam", parm, out result, out payload, false))
+                return false;
+            return payload.Get<bool>();
+        }
+
+        public static bool del(string key)
+        {
+            string mapped_key = names.resolve(key);
+            lock (parms_mutex)
+            {
+                if (subscribed_params.Contains(key))
+                {
+                    subscribed_params.Remove(key);
+                    if (parms.ContainsKey(key))
+                        parms.Remove(key);
+                }
+            }
+
+            XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            if (!master.execute("deleteParam", parm, out result, out payload, false))
+                return false;
+            return true;
+        }
 
         internal static void init(System.Collections.IDictionary remapping_args)
         {
-            throw new NotImplementedException();
+            foreach (object o in remapping_args.Keys)
+            {
+                string name = (string)o;
+                string param = (string)remapping_args[o];
+                if (name.Length < 2) continue;
+                if (name[0] == '_' && name[1] != '_')
+                {
+                    string local_name = "~" + name.Substring(1);
+                    int i =0;
+                    bool success = int.TryParse(param, out i);
+                    if (success)
+                    {
+                        set(names.resolve(local_name), i);
+                        continue;
+                    }
+                    double d = 0;
+                    success = double.TryParse(param, out d);
+                    if (success)
+                    {
+                        set(names.resolve(local_name), d);
+                        continue;
+                    }
+                    bool b = false;
+                    success = bool.TryParse(param.ToLower(), out b);
+                    if (success)
+                    {
+                        set(names.resolve(local_name), b);
+                        continue;
+                    }
+                    set(names.resolve(local_name), param);
+                }
+            }
+            XmlRpcManager.Instance().bind("paramUpdate", paramUpdateCallback);
+        }
+
+        public static void update(string key, XmlRpcValue v)
+        {
+            string clean_key = names.clean(key);
+            lock (parms_mutex)
+            {
+                if (!parms.ContainsKey(clean_key))
+                    parms.Add(clean_key, v);
+                else
+                    parms[clean_key] = v;
+            }
+        }
+
+        public static void paramUpdateCallback(IntPtr parm, IntPtr result)
+        {
+            XmlRpcValue val = XmlRpcValue.LookUp(parm);
+            val.Set(0, new XmlRpcValue(1));
+            val.Set(1, new XmlRpcValue(""));
+            val.Set(2, new XmlRpcValue(0));
+            update(XmlRpcValue.LookUp(parm).Get<string>(1), XmlRpcValue.LookUp(parm).Get(2));
+        }
+
+        public static bool getImpl(string key, ref XmlRpcValue v, bool use_cache)
+        {
+            string mapped_key = names.resolve(key);
+
+            if (use_cache)
+            {
+                lock (parms_mutex)
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                    {
+                        if (parms.ContainsKey(mapped_key))
+                        {
+                            if (parms[mapped_key].Valid)
+                            {
+                                v = parms[mapped_key];
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        subscribed_params.Add(mapped_key);
+                        XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+                        parm.Set(0, this_node.Name);
+                        parm.Set(1, XmlRpcManager.Instance().uri);
+                        parm.Set(2, mapped_key);
+                        if (!master.execute("subscribeParam", parm, out result, out payload, false))
+                        {
+                            subscribed_params.Remove(mapped_key);
+                            use_cache = false;
+                        }
+                    }
+                }
+            }
+
+            XmlRpcValue parm2 = new XmlRpcValue(), result2 = null;
+            parm2.Set(0, this_node.Name);
+            parm2.Set(1, mapped_key);
+
+            bool ret = master.execute("getParam", parm2, out result2, out v, false);
+
+            if (use_cache)
+            {
+                lock (parms_mutex)
+                {
+                    parms.Add(mapped_key, v);
+                }
+            }
+
+            return ret;
         }
     }
 }

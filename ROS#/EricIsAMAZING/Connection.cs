@@ -26,12 +26,12 @@ namespace EricIsAMAZING
         
         public void sendHeaderError(string error_message)
         {
-
+            throw new NotImplementedException();
         }
 
         public void writeHeader(IDictionary key_vals, WriteFinishedFunc finished_func)
         {
-
+            throw new NotImplementedException();
         }
 
         public void read(uint size, ReadFinishedFunc finished_func)
@@ -94,54 +94,51 @@ namespace EricIsAMAZING
 
         void transport_WriteCallback(TcpTransport trans)
         {
-            
+            throw new NotImplementedException();
         }
 
         void transport_ReadCallback(TcpTransport trans)
         {
-            
+            throw new NotImplementedException();
         }
 
         private void onReadable(TcpTransport trans)
         {
-
+            throw new NotImplementedException();
         }
 
         private void onWriteable(TcpTransport trans)
         {
-
+            throw new NotImplementedException();
         }
 
         private void onDisconnect(TcpTransport trans)
         {
-
+            throw new NotImplementedException();
         }
         private void onHeaderWritten(Connection conn)
         {
-
+            throw new NotImplementedException();
         }
         private void onErrorHeaderWritten(Connection con)
         {
-
+            throw new NotImplementedException();
         }
-        private void onHeaderLengthRead(Connection connection, byte[] data, bool success)
+        private void onHeaderLengthRead(Connection connection, byte[] data, int size, bool success)
         {
-
-        }
-        private void onHeaderRead(Connection con, byte[] buffer, bool success)
-        {
+            throw new NotImplementedException();
         }
         private void readTransport()
         {
-
+            throw new NotImplementedException();
         }
         private void writeTransport()
         {
-
+            throw new NotImplementedException();
         }
     }
     public delegate void DisconnectFunc(Connection connection, Connection.DropReason reason);
     public delegate void HeaderReceivedFunc(Connection connection, Header header);
     public delegate void WriteFinishedFunc(Connection connection);
-    public delegate void ReadFinishedFunc(Connection connection, byte[] data, bool success);
+    public delegate void ReadFinishedFunc(Connection connection, byte[] data, int size, bool success);
 }

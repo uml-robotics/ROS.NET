@@ -15,10 +15,19 @@ namespace EricIsAMAZING
             }
         }
 
-        //public PublisherLink(Subscription parent, string xmlrpc_uri);
-        public Subscription subscription;
+        public PublisherLink(Subscription parent, string xmlrpc_uri)
+        {
+            this.parent = parent;
+            XmlRpc_Uri = xmlrpc_uri;
+        }
+        public PublisherLink()
+        {
+
+        }
+
+        public Subscription parent;
         public Stats stats;
-        public string XmlRpc_Uri,CallerID,md5sum;
+        public string XmlRpc_Uri, CallerID, md5sum;
         public uint ConnectionID;
         public bool Latched;
         private Header header;
@@ -31,11 +40,11 @@ namespace EricIsAMAZING
             Latched = false;
             if (!h.Values.Contains("latching"))
                 return false;
-            if ((string)h.Values["latching"]=="1")
+            if ((string)h.Values["latching"] == "1")
                 Latched = true;
             ConnectionID = ConnectionManager.Instance().GetNewConnectionID();
             header = h;
-            subscription.headerReceived(this, header);
+            parent.headerReceived(this, header);
             return true;
         }
         public string TransportType { get { return "TCPROS"; /*lol... pwned*/ } }

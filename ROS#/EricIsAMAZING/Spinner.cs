@@ -14,13 +14,13 @@ using System.Threading;
 namespace EricIsAMAZING
 {
 
-    public class Spinner : IDisposable
+    public abstract class Spinner : IDisposable
     {
         public virtual void spin(CallbackQueue queue = null)
         {
 
         }
-        public void Dispose()
+        public virtual void Dispose()
         {
             throw new NotImplementedException();
         }
@@ -28,18 +28,16 @@ namespace EricIsAMAZING
 
     public class SingleThreadSpinner : Spinner
     {
-        public virtual void spin(CallbackQueue queue = null)
+        public override void spin(CallbackQueue queue = null)
         {
             if (queue == null)
                 queue = ROS.GlobalCallbackQueue;
-            throw new NotImplementedException();
-            NodeHandle nh = new NodeHandle();
-            while (nh.ok)
+            while (ROS.GlobalNodeHandle.ok)
             {
                 queue.callAvailable(ROS.WallDuration);
             }
         }
-        public void Dispose()
+        public override void Dispose()
         {
             throw new NotImplementedException();
         }
@@ -53,11 +51,11 @@ namespace EricIsAMAZING
 
         }
 
-        public virtual void spin(CallbackQueue queue = null)
+        public override void spin(CallbackQueue queue = null)
         {
 
         }
-        public void Dispose()
+        public override void Dispose()
         {
             throw new NotImplementedException();
         }

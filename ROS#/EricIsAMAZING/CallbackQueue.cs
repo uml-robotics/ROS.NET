@@ -16,7 +16,7 @@ namespace EricIsAMAZING
 
     public class CallbackQueue : IDisposable
     {
-        Mutex condition = new Mutex();
+        Semaphore sem = new Semaphore(0, int.MaxValue);
         public TLS tls;
         public void setupTLS()
         {
@@ -28,11 +28,11 @@ namespace EricIsAMAZING
 
         internal void notify_all()
         {
-            condition.ReleaseMutex();
+            sem.Release();
         }
         internal void notify_one()
         {
-            condition.ReleaseMutex();
+            sem.Release(1);
         }
         public IDInfo getIDInfo(UInt64 id)
         {
@@ -44,19 +44,18 @@ namespace EricIsAMAZING
             return null;
         }
         public Dictionary<UInt64, IDInfo> id_info = new Dictionary<ulong, IDInfo>();
-        public List<CallbackInfo> callbacks = new List<CallbackInfo>();
+        public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         object mutex = new object();
         object id_info_mutex = new object();
         public void AddCallback(CallbackInterface cb, ulong owner_id)
         {
-            CallbackInfo info = new CallbackInfo{callback = cb, removal_id = owner_id};
+            ICallbackInfo info = new ICallbackInfo{callback = cb, removal_id = owner_id};
 
             lock (mutex)
             {
                 if (!enabled) return;
                 callbacks.Add(info);
             }
-
             notify_one();
         }
 
@@ -84,7 +83,7 @@ namespace EricIsAMAZING
             {
                 for (int i = 0; i < callbacks.Count; i++)
                 {
-                    CallbackInfo info = callbacks[i];
+                    ICallbackInfo info = callbacks[i];
                     if (info.removal_id == owner_id)
                     {
                         i--;
@@ -147,7 +146,7 @@ namespace EricIsAMAZING
             }
             if (tls.current == null)
                 return CallOneResult.Empty;
-            CallbackInfo info = tls.current.info;
+            ICallbackInfo info = tls.current.info;
             CallbackInterface cb = info.callback;
             IDInfo id_info = getIDInfo(info.removal_id);
             if (id_info != null)
@@ -189,16 +188,19 @@ namespace EricIsAMAZING
         public CallOneResult callOne(int timeout)
         {
             setupTLS();
-            CallbackInfo cbinfo = null;
+            ICallbackInfo cbinfo = null;
             lock (mutex)
             {
                 if (!enabled) return CallOneResult.Disabled;
-                if (callbacks.Count == 0 && timeout!=0) condition.WaitOne(TimeSpan.FromMilliseconds(timeout));
+                if (callbacks.Count == 0 && timeout != 0)
+                {
+                    sem.WaitOne(timeout);
+                }
                 if (callbacks.Count == 0) return CallOneResult.Empty;
                 if (!enabled) return CallOneResult.Disabled;
                 for(int i=0;i<callbacks.Count;i++)
                 {
-                    CallbackInfo info = callbacks[i];
+                    ICallbackInfo info = callbacks[i];
                     if (info.marked_for_removal)
                     {
                         i--;
@@ -243,7 +245,12 @@ namespace EricIsAMAZING
             lock (mutex)
             {
                 if (!enabled) return;
-                if (callbacks.Count == 0 && timeout != 0) condition.WaitOne(TimeSpan.FromMilliseconds(timeout));
+                if (callbacks.Count == 0 && timeout != 0)
+                {
+                    DateTime prewait = DateTime.Now;
+                    sem.WaitOne(timeout);
+                    Console.WriteLine("call avail waited for "+DateTime.Now.Subtract(prewait).TotalMilliseconds+" ms");
+                }
                 if (callbacks.Count == 0 || !enabled) return;
                 bool wasempty = tls.Count == 0;
                 callbacks.ForEach((cbi) => tls.enqueue(cbi));
@@ -273,10 +280,10 @@ namespace EricIsAMAZING
         public CallbackInfoNode tail;
         public CallbackInfoNode current;
         public int Count = 0;
-        public CallbackInfo dequeue()
+        public ICallbackInfo dequeue()
         {
             Count--;
-            CallbackInfo ret = head.info;
+            ICallbackInfo ret = head.info;
             head = head.next;
             if (Count == 0)
             {
@@ -285,7 +292,7 @@ namespace EricIsAMAZING
             }
             return ret;
         }
-        public void enqueue(CallbackInfo info)
+        public void enqueue(ICallbackInfo info)
         {
             Count++;
             if (head == null)
@@ -299,7 +306,7 @@ namespace EricIsAMAZING
                 tail = tail.next;
             }
         }
-        public CallbackInfo spliceout(CallbackInfo info)
+        public ICallbackInfo spliceout(ICallbackInfo info)
         {
             CallbackInfoNode walk = head, walkbehind = null;
             while ((walkbehind = walk) != null && (walk = walk.next) != null)
@@ -319,20 +326,25 @@ namespace EricIsAMAZING
         }
         public class CallbackInfoNode
         {
-            public CallbackInfo info;
+            public ICallbackInfo info;
             public CallbackInfoNode next;
-            public CallbackInfoNode(CallbackInfo i, CallbackInfoNode n)
+            public CallbackInfoNode(ICallbackInfo i, CallbackInfoNode n)
             {
                 info = i;
                 next = n;
             }
-            public CallbackInfoNode(CallbackInfo i) : this(i, null)
+            public CallbackInfoNode(ICallbackInfo i) : this(i, null)
             {
             }
         }
     }
 
-    public class CallbackInfo
+    public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage
+    {
+        public SubscriptionCallbackHelper<M> helper;
+    }
+
+    public abstract class ICallbackInfo
     {
         public UInt64 removal_id;
         public bool marked_for_removal;

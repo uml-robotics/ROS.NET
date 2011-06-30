@@ -57,6 +57,9 @@
     <ClInclude Include="XmlRpcValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="XmlRpcServerMethodWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

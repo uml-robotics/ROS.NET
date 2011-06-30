@@ -10,6 +10,15 @@ namespace EricIsAMAZING
 {
     public class TcpTransport
     {
+        public TcpTransport()
+        {
+
+        }
+        public virtual bool getRequiresHeader()
+        {
+            return true;
+        }
+
         public event DisconnectFunc DisconnectCallback;
         public event WriteFinishedFunc WriteCallback;
         public event ReadFinishedFunc ReadCallback;
@@ -21,19 +30,19 @@ namespace EricIsAMAZING
         public bool no_delay;
         public int connected_port;
         Socket sock;
-        bool closed;
-        object close_mutex = new object();
-        bool expecting_read;
-        bool expecting_write;
-        bool is_server;
-        IPEndPoint server_address;
-        AcceptCallback accept_cb;
-        string cached_remote_host;
-        PollSet poll_set;
-        int flags;
-        string connected_host;
-        int events = 0;
-        string ClientURI
+        public bool closed;
+        public object close_mutex = new object();
+        public bool expecting_read;
+        public bool expecting_write;
+        public bool is_server;
+        public IPEndPoint server_address;
+        public AcceptCallback accept_cb;
+        public string cached_remote_host;
+        public PollSet poll_set;
+        public int flags;
+        public string connected_host;
+        public int events = 0;
+        public string ClientURI
         {
             get { return sock.RemoteEndPoint.ToString(); }
         }
@@ -137,9 +146,6 @@ namespace EricIsAMAZING
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
-
-            if (sock == null)
-                return false;
 
             setNonBlocking();
 
@@ -384,7 +390,7 @@ namespace EricIsAMAZING
 
             if (poll_set != null)
             {
-                poll_set.addSocket(sock, new PollSet.SocketUpdateFunc(socketUpdate), this);
+                poll_set.addSocket(sock, socketUpdate, this);
             }
 
 
@@ -416,6 +422,11 @@ namespace EricIsAMAZING
                 throw new Exception("GOT A NULL SOCKET FROM SERVER SOCKET!");
             }
             return null;
+        }
+
+        public override string ToString()
+        {
+            return "TCPROS connection to [" + cached_remote_host + "]";
         }
 
         private void socketUpdate(int events)

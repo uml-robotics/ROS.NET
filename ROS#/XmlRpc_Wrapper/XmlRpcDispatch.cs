@@ -9,6 +9,12 @@ namespace XmlRpc_Wrapper
 {
     public class XmlRpcDispatch : IDisposable
     {
+        private static Dictionary<IntPtr, XmlRpcDispatch> _instances = new Dictionary<IntPtr, XmlRpcDispatch>();
+        public static XmlRpcDispatch LookUp(IntPtr ptr)
+        {
+            if (!_instances.ContainsKey(ptr)) return null;
+            return _instances[ptr];
+        }
         internal IntPtr instance;
 
         public XmlRpcDispatch()
@@ -19,11 +25,17 @@ namespace XmlRpc_Wrapper
         public void Create()
         {
             instance = create();
+            if (instance != IntPtr.Zero && !_instances.ContainsKey(instance))
+                _instances.Add(instance, this);
+            else
+                throw new Exception("Dispatch creation failed... either got null pointer returned, or identical pointer already in instances dictionary.");
         }
 
         public void Close()
         {
             close(instance);
+            if (_instances.ContainsKey(instance))
+                _instances.Remove(instance);
         }
 
         public void Dispose()

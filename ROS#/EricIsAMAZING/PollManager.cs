@@ -14,6 +14,11 @@ namespace EricIsAMAZING
 {
     public class PollManager
     {
+        public PollManager()
+        {
+            poll_set = new PollSet();
+        }
+
         public TcpTransport tcpserver_transport;
         public bool shutting_down;
         private Thread thread;
@@ -38,7 +43,6 @@ namespace EricIsAMAZING
                 if (poll_signal != null)
                     poll_signal();
             }
-            signal();
         }
 
         public void removePollThreadListener(Poll_Signal poll)

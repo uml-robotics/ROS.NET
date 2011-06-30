@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Messages;
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
@@ -102,17 +103,17 @@ namespace EricIsAMAZING
         public bool no_validate = false;
         public IDictionary remappings = new Hashtable(),unresolved_remappings = new Hashtable();
 
-        Publisher<M> advertise<M>(string topic, int q_size, bool l = false)
+        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false)
         {
             return advertise<M>(new AdvertiseOptions(topic, q_size) { latch = l });
         }
 
-        Publisher<M> advertise<M>(string topic, int queue_size, MulticastDelegate connectcallback, MulticastDelegate disconnectcallback, bool l = false)
+        public Publisher<M> advertise<M>(string topic, int queue_size, MulticastDelegate connectcallback, MulticastDelegate disconnectcallback, bool l = false)
         {
             return advertise<M>(new AdvertiseOptions(topic, queue_size, connectcallback, disconnectcallback) { latch = l });
         }
 
-        Publisher<M> advertise<M>(AdvertiseOptions ops)
+        public Publisher<M> advertise<M>(AdvertiseOptions ops)
         {
             ops.topic = resolveName(ops.topic);
             if (ops.callbackQueue == null)
@@ -134,12 +135,19 @@ namespace EricIsAMAZING
             }
             return new Publisher<M>();
         }
-        Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackQueue cb)
+
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, Action<M> callbackfunction) where M : IRosMessage
+        {
+            SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size) { callback = callbackfunction };
+            return subscribe<M>(ops);
+        }
+
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : IRosMessage
         {
             return subscribe<M>(new SubscribeOptions<M>(topic, queue_size, cb));
         }
 
-        Subscriber<M> subscribe<M>(SubscribeOptions<M> ops)
+        public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage
         {
             ops.topic = resolveName(ops.topic);
             if (ops.callbackQueue == null)
@@ -151,7 +159,7 @@ namespace EricIsAMAZING
             }
             if (TopicManager.Instance().subscribe<M>(ops))
             {
-                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper(ops.callbackQueue));
+                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper<M>(ops.callbackQueue));
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);
@@ -256,7 +264,9 @@ namespace EricIsAMAZING
         public string remapName(string name)
         {
             string resolved = resolveName(name, false);
-            if (remappings.Contains(resolved))
+            if (resolved == null)
+                resolved = "";
+            else if (remappings.Contains(resolved))
                 return (string)remappings[resolved];
             return names.remap(resolved);
         }
@@ -271,6 +281,7 @@ namespace EricIsAMAZING
 
         public string resolveName(string name, bool remap, bool novalidate)
         {
+            Console.WriteLine("resolveName(" + name + ")");
             if (name == "") return Namespace;
             string final = name;
             if (final[0] == '~')

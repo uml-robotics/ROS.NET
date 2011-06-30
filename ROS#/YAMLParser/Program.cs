@@ -260,7 +260,7 @@ namespace YAMLParser
             }
             if (wasnull)
             {
-                fronthalf += "\tpublic class " + classname + " : IRosMessage<" + classname + ".Data>\n\t{\n\t\tpublic " + classname + "(" + classname + ".Data d)\n\t\t{\n"+(HasHeader
+                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\tpublic " + classname + "(" + classname + ".Data d)\n\t\t{\n" + (HasHeader
                         ? "\t\t\tHasHeader = true;\n"
                         : "\t\t\tHasHeader = false;\n") +
                    (KnownSize

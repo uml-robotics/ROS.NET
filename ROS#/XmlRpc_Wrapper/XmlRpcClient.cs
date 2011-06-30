@@ -12,10 +12,14 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int IntegerEcho(int val);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void balls(int val);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint="IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void IntegerEchoFunctionPtr( IntPtr callback, int val);
+        public static extern void IntegerEchoFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] balls callback);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool IntegerEchoRepeat(int val);
     }
 
 
@@ -176,8 +180,9 @@ namespace XmlRpc_Wrapper
 
         #region public function passthroughs
 
-        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
+        public bool Execute(string method, XmlRpcValue parameters, out XmlRpcValue result)
         {
+            result = new XmlRpcValue();
             return execute(instance, method, parameters.instance, result.instance);
         }
 
