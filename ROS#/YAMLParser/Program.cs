@@ -319,7 +319,7 @@ namespace YAMLParser
             }
             if (wasnull)
             {
-                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\t" +
+                fronthalf += "\tpublic class " + classname + " : TypedMessage<"+classname+".Data>\n\t{"/*+"\n\t\tpublic Data data;"*/+"\n\n\t\t" +
                              "public  " + classname + "()\n\t\t{ type = TypeEnum." + classname + "; }\n\n\t\t"
                              + "public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
                                                                                                              ? "\t\t\tHasHeader = true;\n"

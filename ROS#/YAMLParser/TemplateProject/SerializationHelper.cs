@@ -39,6 +39,11 @@ namespace Messages
         }
     }
 
+    public class TypedMessage<M> : IRosMessage where M : struct
+    {
+        public M data;
+    }
+
     public class IRosMessage
     {
         public bool HasHeader;
