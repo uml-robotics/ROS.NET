@@ -79,5 +79,5 @@ namespace XmlRpc_Wrapper
 
         
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void XMLRPCFunc(IntPtr addrofparams, IntPtr addrofresult);
+    public delegate void XMLRPCFunc([In][Out] IntPtr addrofparams, [In][Out] IntPtr addrofresult);
 }

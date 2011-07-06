@@ -9,7 +9,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public abstract class SubscriberLink
+    public class SubscriberLink
     {
         public class Stats
         {
@@ -59,7 +59,7 @@ namespace EricIsAMAZING
 
         }
 
-        public virtual void getPublishTypes(ref bool ser, ref bool nocopy, ref XmlRpcValue.TypeEnum type_info)
+        public virtual void getPublishTypes(ref bool ser, ref bool nocopy, ref m.TypeEnum type_info)
         {
             ser = true;
             nocopy = false;

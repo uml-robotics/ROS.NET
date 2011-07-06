@@ -14,7 +14,7 @@ using System.Threading;
 namespace EricIsAMAZING
 {
 
-    public class CallbackQueue : IDisposable
+    public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
         Semaphore sem = new Semaphore(0, int.MaxValue);
         public TLS tls;
@@ -47,9 +47,9 @@ namespace EricIsAMAZING
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         object mutex = new object();
         object id_info_mutex = new object();
-        public void AddCallback(CallbackInterface cb, ulong owner_id)
+        public override void addCallback(CallbackInterface cb, UInt64 owner_id)
         {
-            ICallbackInfo info = new ICallbackInfo{callback = cb, removal_id = owner_id};
+            ICallbackInfo info = new ICallbackInfo{Callback = cb, removal_id = owner_id};
 
             lock (mutex)
             {
@@ -59,7 +59,7 @@ namespace EricIsAMAZING
             notify_one();
         }
 
-        public void removeByID(UInt64 owner_id)
+        public override void removeByID(UInt64 owner_id)
         {
             setupTLS();
             IDInfo idinfo;
@@ -147,7 +147,7 @@ namespace EricIsAMAZING
             if (tls.current == null)
                 return CallOneResult.Empty;
             ICallbackInfo info = tls.current.info;
-            CallbackInterface cb = info.callback;
+            CallbackInterface cb = info.Callback;
             IDInfo id_info = getIDInfo(info.removal_id);
             if (id_info != null)
             {
@@ -207,7 +207,7 @@ namespace EricIsAMAZING
                         callbacks.RemoveAt(i);
                         continue;
                     }
-                    if (info.callback.ready())
+                    if (info.Callback.ready())
                     {
                         cbinfo = info;
                         i--;
@@ -215,7 +215,7 @@ namespace EricIsAMAZING
                         break;
                     }
                 }
-                if (cbinfo.callback == null) return CallOneResult.TryAgain;
+                if (cbinfo.Callback == null) return CallOneResult.TryAgain;
                 calling++;
             }
             bool wasempty = tls.Count == 0;
@@ -280,10 +280,10 @@ namespace EricIsAMAZING
         public CallbackInfoNode tail;
         public CallbackInfoNode current;
         public int Count = 0;
-        public ICallbackInfo dequeue()
+        public CallbackQueueInterface.ICallbackInfo dequeue()
         {
             Count--;
-            ICallbackInfo ret = head.info;
+            CallbackQueueInterface.ICallbackInfo ret = head.info;
             head = head.next;
             if (Count == 0)
             {
@@ -292,7 +292,7 @@ namespace EricIsAMAZING
             }
             return ret;
         }
-        public void enqueue(ICallbackInfo info)
+        public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
             Count++;
             if (head == null)
@@ -306,7 +306,7 @@ namespace EricIsAMAZING
                 tail = tail.next;
             }
         }
-        public ICallbackInfo spliceout(ICallbackInfo info)
+        public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
             CallbackInfoNode walk = head, walkbehind = null;
             while ((walkbehind = walk) != null && (walk = walk.next) != null)
@@ -326,29 +326,41 @@ namespace EricIsAMAZING
         }
         public class CallbackInfoNode
         {
-            public ICallbackInfo info;
+            public CallbackQueueInterface.ICallbackInfo info;
             public CallbackInfoNode next;
-            public CallbackInfoNode(ICallbackInfo i, CallbackInfoNode n)
+            public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i, CallbackInfoNode n)
             {
                 info = i;
                 next = n;
             }
-            public CallbackInfoNode(ICallbackInfo i) : this(i, null)
+            public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i)
+                : this(i, null)
             {
             }
         }
     }
 
-    public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage
+    public class CallbackQueueInterface
     {
-        public SubscriptionCallbackHelper<M> helper;
-    }
+        public virtual void addCallback(CallbackInterface callback, UInt64 owner_id = 0)
+        {
+        }
 
-    public abstract class ICallbackInfo
-    {
-        public UInt64 removal_id;
-        public bool marked_for_removal;
-        public CallbackInterface callback;
+        public virtual void removeByID(UInt64 owner_id)
+        {
+        }
+
+        public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage, new()
+        {
+            public SubscriptionCallbackHelper<M> helper;
+        }
+
+        public class ICallbackInfo
+        {
+            public UInt64 removal_id;
+            public bool marked_for_removal;
+            public CallbackInterface Callback;
+        }
     }
 
     public class IDInfo

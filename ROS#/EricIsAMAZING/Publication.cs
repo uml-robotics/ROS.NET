@@ -141,7 +141,7 @@ namespace EricIsAMAZING
                 {
                     XmlRpcValue curr_info = new XmlRpcValue();
                     curr_info.Set(0, new XmlRpcValue((int)c.connection_id));
-                    curr_info.Set(1, new XmlRpcValue(c.destination_caller_id);
+                    curr_info.Set(1, new XmlRpcValue(c.destination_caller_id));
                     curr_info.Set(2, new XmlRpcValue("o"));
                     curr_info.Set(3, new XmlRpcValue("TCPROS"));
                     curr_info.Set(4, new XmlRpcValue(Name));
@@ -160,7 +160,7 @@ namespace EricIsAMAZING
             lock (callbacks_mutex)
             {
                 this.callbacks.Add(callbacks);
-                if (callbacks.connect != null && callbacks.callbackQueue != null)
+                if (callbacks.connect != null && callbacks.Callback != null)
                 {
                     lock (subscriber_links_mutex)
                     {
@@ -168,7 +168,7 @@ namespace EricIsAMAZING
                         {
                             CallbackInterface cb = new PeerConnDisconnCallback(callbacks.connect, i);
 
-                            callbacks.callbackQueue.AddCallback(cb, callbacks.Get());
+                            callbacks.Callback.addCallback(cb, callbacks.Get());
                         }
                     }
                 }
@@ -179,7 +179,7 @@ namespace EricIsAMAZING
         {
             lock (callbacks_mutex)
             {
-                callbacks.callbackQueue.removeByID(callbacks.Get());
+                callbacks.Callback.removeByID(callbacks.Get());
                 if (this.callbacks.Contains(callbacks))
                     this.callbacks.Remove(callbacks);
             }
@@ -239,10 +239,10 @@ namespace EricIsAMAZING
         {
             foreach (SubscriberCallbacks cbs in callbacks)
             {
-                if (cbs.connect != null && cbs.callbackQueue != null)
+                if (cbs.connect != null && cbs.Callback != null)
                 {
                     CallbackInterface cb = new PeerConnDisconnCallback(cbs.connect, sub_link);
-                    cbs.callbackQueue.AddCallback(cb, cbs.Get());
+                    cbs.Callback.addCallback(cb, cbs.Get());
                 }
             }
         }
@@ -251,10 +251,10 @@ namespace EricIsAMAZING
         {
             foreach (SubscriberCallbacks cbs in callbacks)
             {
-                if (cbs.disconnect != null && cbs.callbackQueue != null)
+                if (cbs.disconnect != null && cbs.Callback != null)
                 {
                     CallbackInterface cb = new PeerConnDisconnCallback(cbs.disconnect, sub_link);
-                    cbs.callbackQueue.AddCallback(cb, cbs.Get());
+                    cbs.Callback.addCallback(cb, cbs.Get());
                 }
             }
         }
@@ -283,10 +283,26 @@ namespace EricIsAMAZING
                 queue = new Queue<m.IRosMessage>(publish_queue);
                 publish_queue.Clear();
             }
-            if (queue == null || queue.Count == 0))
+            if (queue == null || queue.Count == 0)
             {
                 foreach(m.IRosMessage msg in queue)
                     EnqueueMessage(msg);
+            }
+        }
+
+        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref m.TypeEnum typeEnum)
+        {
+            lock (subscriber_links_mutex)
+            {
+                foreach (SubscriberLink sub in subscriber_links)
+                {
+                    bool s = false, n = false;
+                    sub.getPublishTypes(ref s, ref n, ref typeEnum);
+                    serialize = serialize || s;
+                    nocopy = nocopy || n;
+                    if (serialize && nocopy)
+                        break;
+                }
             }
         }
     }

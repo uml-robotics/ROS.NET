@@ -12,6 +12,32 @@ namespace XmlRpc_Wrapper
     public class XmlRpcValue : IDisposable
     {
         private static Dictionary<IntPtr, XmlRpcValue> _instances = new Dictionary<IntPtr, XmlRpcValue>();
+        public XmlRpcValue(params object[] initialvalues) : this()
+        {
+            for (int i = 0; i < initialvalues.Length; i++)
+            {
+                int ires = 0;
+                double dres = 0;
+                bool bres = false;
+                if (int.TryParse(initialvalues[i].ToString(), out ires))
+                {
+                    Set(i, new XmlRpcValue(ires));
+                    continue;
+                }
+                if (double.TryParse(initialvalues[i].ToString(), out dres))
+                {
+                    Set(i, new XmlRpcValue(dres));
+                    continue;
+                }
+                if (bool.TryParse(initialvalues[i].ToString(), out bres))
+                {
+                    Set(i, new XmlRpcValue(bres));
+                    continue;
+                }
+                Set(i, initialvalues[i].ToString());
+            }
+        }
+
         public static XmlRpcValue LookUp(IntPtr ptr)
         {
             if (_instances.ContainsKey(ptr))

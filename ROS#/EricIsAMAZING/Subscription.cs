@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +14,27 @@ namespace EricIsAMAZING
 {
     public class Subscription
     {
+        public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage, new()
+        {
+            public new SubscriptionCallbackHelper<M> helper;
+        }
+
+        public class ICallbackInfo
+        {
+            public ISubscriptionCallbackHelper helper;
+            public CallbackQueueInterface callback;
+            public SubscriptionQueue subscription_queue;
+        }
+
         public object md5sum_mutex = new object(), callbacks_mutex = new object();
         public string name, md5sum, datatype;
         List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
-        List<PendingConnection> pendingconnections = new List<PendingConnection>();
+        List<PendingConnection> pending_connections = new List<PendingConnection>();
+        List<PublisherLink> publisher_links = new List<PublisherLink>();
+        public object publisher_links_mutex = new object();
+        public object pending_connections_mutex = new object();
         private bool dropped,shutting_down;
+        public int nonconst_callbacks;
         public Subscription(string n, string md5s, string dt)
         {
             name = n;
@@ -37,19 +53,19 @@ namespace EricIsAMAZING
         {
             throw new NotImplementedException();
         }
-        public bool PubUpdatte(List<string> pubs)
+        public bool PubUpdate(List<string> pubs)
         {
             throw new NotImplementedException();
         }
         public bool NegotiateConnection(string xmlrpc_uri)
         {
-            client = new XmlRpcClient(xmlrpc_uri);
+            XmlRpcValue tcpros_array = new XmlRpcValue(), protos_array = new XmlRpcValue(), Params = new XmlRpcValue();
             tcpros_array.Set(0, "TCPROS");
             protos_array.Set(protos++, tcpros_array);
-            Params.Set(0, name);
-            Params.Set(1, this_node.Name);
+            Params.Set(0, this_node.Name);
+            Params.Set(1, name);
             Params.Set(2, protos_array);
-            return !client.IsNull && client.ExecuteNonBlock("requestTopic", Params);
+            throw new NotImplementedException();
         }
         public void headerReceived(PublisherLink link, Header header)
         {
@@ -69,7 +85,6 @@ namespace EricIsAMAZING
 
         private int protos;
         private XmlRpcClient client = null;
-        private XmlRpcValue tcpros_array = new XmlRpcValue(), protos_array = new XmlRpcValue(), Params = new XmlRpcValue();
         public void ConnectAsync()
         {
             Console.WriteLine("Began asynchronous xmlrpc connection to [" + client.HostUri + "]");
@@ -100,7 +115,7 @@ namespace EricIsAMAZING
             Shutdown();
         }
 
-        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackInterface queue) where M : m.IRosMessage
+        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : m.IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -123,6 +138,11 @@ namespace EricIsAMAZING
 
                 callbacks.Add(info);
             }
+        }
+
+        public void addLocalConnection(Subscription sub)
+        {
+            throw new Exception("NO LOCAL CONNECTIONS, BUTTHEAD");
         }
     }
 }

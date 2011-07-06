@@ -15,6 +15,8 @@ namespace EricIsAMAZING
         public List<PollFD> ufds = new List<PollFD>();
         public delegate void SocketUpdateFunc(int stufftodo);
 
+        public object signal_mutex = new object();
+
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
             return addSocket(s, update_func, null);

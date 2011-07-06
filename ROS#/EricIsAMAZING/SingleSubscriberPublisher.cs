@@ -20,7 +20,7 @@ namespace EricIsAMAZING
             this.link = link;
         }
 
-        public void publish<M>(M message) where M : m.IRosMessage
+        public void publish<M>(M message) where M : m.IRosMessage, new()
         {
             link.enqueueMessage(message, true, true);
         }

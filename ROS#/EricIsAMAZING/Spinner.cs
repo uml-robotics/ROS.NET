@@ -28,13 +28,13 @@ namespace EricIsAMAZING
 
     public class SingleThreadSpinner : Spinner
     {
-        public override void spin(CallbackQueue queue = null)
+        public override void spin(CallbackQueue callbackInterface = null)
         {
-            if (queue == null)
-                queue = ROS.GlobalCallbackQueue;
+            if (callbackInterface == null)
+                callbackInterface = ROS.GlobalCallbackQueue;
             while (ROS.GlobalNodeHandle.ok)
             {
-                queue.callAvailable(ROS.WallDuration);
+                callbackInterface.callAvailable(ROS.WallDuration);
             }
         }
         public override void Dispose()
@@ -51,7 +51,7 @@ namespace EricIsAMAZING
 
         }
 
-        public override void spin(CallbackQueue queue = null)
+        public override void spin(CallbackQueue callbackInterface = null)
         {
 
         }
@@ -66,7 +66,7 @@ namespace EricIsAMAZING
         public AsyncSpinner(int tc)
         {
         }
-        public AsyncSpinner(int tc, CallbackQueue queue)
+        public AsyncSpinner(int tc, CallbackQueueInterface queue)
         {
         }
         public void Start()

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Messages;
 using XmlRpc_Wrapper;
@@ -125,55 +126,226 @@ namespace EricIsAMAZING
 
         public bool advertise(AdvertiseOptions ops, SubscriberCallbacks callbacks)
         {
-            throw new NotImplementedException();
+            if (ops.datatype == "*")
+                throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
+            if (ops.md5sum == "*")
+                throw new Exception("Advertising with * as the md5sum is not allowed.  Topic [" + ops.topic + "]");
+            if (ops.md5sum == "")
+                throw new Exception("Advertising on topic [" + ops.topic + "] with an empty md5sum");
+            if (ops.datatype == "")
+                throw new Exception("Advertising on topic [" + ops.topic + "] with an empty datatype");
+            if (ops.message_definition == "")
+                Console.WriteLine("Danger, Will Robinson... Advertising on topic [" + ops.topic + "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
+            Publication pub = null;
+            lock (advertised_topics_mutex)
+            {
+                if (shutting_down)
+                    return false;
+                pub = lookupPublicationWithoutLock(ops.topic);
+                if (pub != null)
+                {
+                    if (pub.Md5sum != ops.md5sum)
+                    {
+                        Console.WriteLine("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]", ops.topic, ops.md5sum, ops.datatype, pub.Md5sum, pub.DataType);
+                        return false;
+                    }
+                    pub.addCallbacks(callbacks);
+                    advertised_topics.Add(pub);
+                }
+            }
+
+            lock (advertised_topics_names_mutex)
+            {
+                advertised_topics_names.Add(ops.topic);
+            }
+
+            bool found = false;
+            Subscription sub = null;
+            lock (subs_mutex)
+            {
+                foreach (Subscription s in subscriptions)
+                {
+                    if (s.name == ops.topic && md5sumsMatch(s.md5sum, ops.md5sum) && !s.IsDropped)
+                    {
+                        found = true;
+                        sub = s;
+                        break;
+                    }
+                }
+            }
+
+            if (found)
+                sub.addLocalConnection(pub);
+
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = null, payload = null;
+            master.execute("registerPublisher", args, out result, out payload, true);
+            return true;
         }
 
-        public bool subscribe<T>(SubscribeOptions<T> ops)
+        public bool subscribe<T>(SubscribeOptions<T> ops) where T : m.IRosMessage, new()
         {
-            throw new NotImplementedException();
+            lock (subs_mutex)
+            {
+                if (addSubCallback(ops))
+                    return true;
+                if (shutting_down)
+                    return false;
+                if (ops.md5sum == "")
+                    throw subscribeFail(ops, "with an empty md5sum");
+                if (ops.datatype == "")
+                    throw subscribeFail(ops, "with an empty datatype");
+                if (ops.helper == null)
+                    throw subscribeFail(ops, "without a callback");
+                string md5sum = ops.md5sum;
+                string datatype = ops.datatype;
+                Subscription s = new Subscription(ops.topic, md5sum, datatype);
+                s.addCallback(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks);
+                if (!registerSubscriber(s, ops.datatype))
+                {
+                    Console.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
+                    s.Shutdown();
+                    return false;
+                }
+                subscriptions.Add(s);
+                return true;
+            }
         }
 
-        public void unsubscribe(string topic, ISubscriptionCallbackHelper sbch)
+        public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : m.IRosMessage, new()
         {
-            throw new NotImplementedException();
+            return new Exception("Subscribing to topic [" + ops.topic + "] " + reason);
+        }
+
+        public bool unsubscribe(string topic, ISubscriptionCallbackHelper sbch)
+        {
+            Subscription sub = null;
+            lock (subs_mutex)
+            {
+                if (shutting_down) return false;
+                foreach (Subscription s in subscriptions)
+                {
+                    if (s.name == topic)
+                    {
+                        sub = s;
+                        break;
+                    }
+                }
+            }
+            if (sub == null) return false;
+            sub.removeCallback(sbch);
+            if (sub.NumCallbacks == 0)
+            {
+                lock (subs_mutex)
+                {
+                    subscriptions.Remove(sub);
+
+                    if (!unregisterSubscriber(topic))
+                        Console.WriteLine("Couldn't unregister subscriber for topic [" + topic + "]");
+                }
+
+                sub.Shutdown();
+                return true;
+            }
+            return true;
         }
 
         public int getNumPublishers(string topic)
         {
-            throw new NotImplementedException();
+            lock (subs_mutex)
+            {
+                if (shutting_down) return 0;
+
+                foreach (Subscription t in subscriptions)
+                {
+                    if (!t.IsDropped && t.name == topic)
+                        return t.NumPublishers;
+                }
+            }
+            return 0;
         }
         public int getNumSubscribers(string topic)
         {
-            throw new NotImplementedException();
+            lock (advertised_topics_mutex)
+            {
+                if (shutting_down) return 0;
+                Publication p = lookupPublicationWithoutLock(topic);
+                if (p != null)
+                    return p.NumSubscribers;
+                return 0;
+            }
         }
         public int getNumSubscriptions()
         {
-            throw new NotImplementedException();
+            lock (subs_mutex)
+            {
+                return subscriptions.Count;
+            }
         }
         public void publish<M>(string topic, M message) where M : IRosMessage
         {
-            publish(topic, message.Serialize(), message);
+            publish(topic, message.Serialize, message);
         }
 
-        public void publish(string topic, byte[] serializedmsg, IRosMessage msg)
+        public delegate byte[] SerializeFunc();
+
+        public void publish(string topic, SerializeFunc serfunc, IRosMessage msg)
         {
-            throw new NotImplementedException();
+            if (msg == null) return;
+            lock (advertised_topics_mutex)
+            {
+                if (shutting_down) return;
+
+                Publication p = lookupPublicationWithoutLock(topic);
+                if (p == null) return;
+                if (p.HasSubscribers || p.Latch)
+                {
+                    bool nocopy = false;
+                    bool serialize = false;
+                    if (msg != null && msg.type != TypeEnum.Unknown)
+                    {
+                        Console.WriteLine("This line is sketchy... TopicManager.cs:254-ish... publish(string, byte, msg)");
+                        p.getPublishTypes(ref serialize, ref nocopy, ref msg.type);
+                    }
+                    else
+                        serialize = true;
+                    if (!nocopy)
+                    {
+                        Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
+                        msg.type = TypeEnum.Unknown;
+                    }
+                    if (serialize)
+                    {
+                        msg.Serialized = serfunc();
+                    }
+
+                    p.publish(msg);
+
+                    if (serialize)
+                        Console.WriteLine("Signal your mom's pollset!");
+                }
+                else
+                    p.incrementSequence();
+            }
         }
 
         public void incrementSequence(string topic)
         {
-            throw new NotImplementedException();
+            Publication pub = lookupPublication(topic);
+            if (pub != null)
+                pub.incrementSequence();
         }
         public bool isLatched(string topic)
         {
-            throw new NotImplementedException();
+            Publication pub = lookupPublication(topic);
+            if (pub != null) return pub.Latch;
+            return false;
         }
         public bool md5sumsMatch(string lhs, string rhs)
         {
             return (lhs == "*" || rhs == "*" || lhs == rhs);
         }
 
-        bool addSubCallback<M>(SubscribeOptions<M> ops) where M : m.IRosMessage
+        public bool addSubCallback<M>(SubscribeOptions<M> ops) where M : m.IRosMessage, new()
         {
             bool found = false;
             bool found_topic = false;
@@ -190,51 +362,123 @@ namespace EricIsAMAZING
                     break;
                 }
             }
-
+            if (sub == null)
+                throw new Exception("SOMEHOW, THE SUBSCRIPTION IN addSubCallback<M> IS NULL! SCREW THAT JAZZ!");
             if (found_topic && !found)
                 throw new Exception("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" + sub.md5sum + "]");
+            else if (found)
+                if (!sub.addCallback<M>(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks))
+                    return false;
+            return found;
+        }
 
-            if (!sub.addCallback<M>(ops.helper, ops.md5sum, ops.callbackQueue))
+        public bool requestTopic(string topic, XmlRpcValue protos, ref XmlRpcValue ret)
+        {
+            for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
+                XmlRpcValue proto = protos.Get(proto_idx);
+                if (proto.Type == XmlRpcValue.TypeEnum.TypeArray)
+                {
+                    Console.WriteLine("requestTopic protocol list was not a list of lists");
+                    return false;
+                }
+                if (proto.Get(0).Type != XmlRpcValue.TypeEnum.TypeString)
+                {
+                    Console.WriteLine("requestTopic received a protocol list in which a sublist did not start with a string");
+                    return false;
+                }
 
+                string proto_name = proto.Get<string>(0);
+
+                if (proto_name == "TCPROS")
+                {
+                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int)connection_manager.TCPPort);
+                    ret.Set(0, new XmlRpcValue(1));
+                    ret.Set(1, "");
+                    ret.Set(2, tcp_ros_params);
+                    return true;
+                }
+                else if (proto_name == "UDPROS")
+                {
+                    Console.WriteLine("IGNORING UDP GIZNARBAGE");
+                }
+                else
+                    Console.WriteLine("an unsupported protocol was offered: [{0}]", proto_name);
             }
+            Console.WriteLine("The caller to requestTopic has NO IDEA WHAT'S GOING ON!");
+            return false;
         }
 
-        bool requestTopic(string topic, XmlRpcValue protos, out XmlRpcValue ret)
+        public bool isTopicAdvertised(string topic)
         {
-            throw new NotImplementedException();
+            return advertised_topics.Count((o) => o.Name == topic) > 0;
         }
 
-        bool isTopicAdvertised(string topic)
+        public bool registerSubscriber(Subscription s, string datatype)
         {
-            throw new NotImplementedException();
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, xmlrpc_manager.uri), result = null, payload = null;
+            if (!master.execute("registerSubscriber", args, out result, out payload, true))
+                return false;
+            List<string> pub_uris = new List<string>();
+            for (int i = 0; i < payload.Size; i++)
+            {
+                string pubed = payload.Get<string>(i);
+                if (pubed != xmlrpc_manager.uri && !pub_uris.Contains(pubed))
+                {
+                    pub_uris.Add(pubed);
+                }
+            }
+            bool self_subscribed = false;
+            Publication pub = null;
+            string sub_md5sum = s.md5sum;
+            lock (advertised_topics_mutex)
+            {
+                foreach (Publication p in advertised_topics)
+                {
+                    pub = p;
+                    string pub_md5sum = pub.Md5sum;
+                    if (pub.Name == s.name && md5sumsMatch(pub_md5sum, sub_md5sum) && !pub.Dropped)
+                    {
+                        self_subscribed = true;
+                        break;
+                    }
+                }
+            }
 
+            s.pubUpdate(pub_uris);
+            if (self_subscribed)
+                s.addLocalConnection(pub);
+            return true;
         }
 
-        bool registerSubscriber(Subscription s, string datatype)
+        public bool unregisterSubscriber(string topic)
         {
-            throw new NotImplementedException();
-
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = null, payload = null;
+            master.execute("unregisterSubscriber", args, out result, out payload, false);
+            return true;
         }
-
-        bool unregisterSubscriber(string topic)
+        public bool unregisterPublisher(string topic)
         {
-            throw new NotImplementedException();
-
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = null, payload = null;
+            master.execute("unregisterPublisher", args, out result, out payload, false);
+            return true;
         }
-        bool unregisterPublisher(string topic)
+
+       public  Publication lookupPublicationWithoutLock(string topic)
         {
-            throw new NotImplementedException();
-
+            Publication t = null;
+            foreach (Publication p in advertised_topics)
+            {
+                if (p.Name == topic && !p.Dropped)
+                {
+                    t = p;
+                    break;
+                }
+            }
+            return t;
         }
 
-        Publication lookupPublicationWithoutLock(string topic)
-        {
-            throw new NotImplementedException();
-
-        }
-
-        void processPublishQueues()
+        public void processPublishQueues()
         {
             lock (advertised_topics_mutex)
             {
@@ -245,71 +489,203 @@ namespace EricIsAMAZING
             }
         }
 
-        void getBusInfo(ref XmlRpcValue info)
+        public void getBusStats(ref XmlRpcValue stats)
         {
-            throw new NotImplementedException();
-
+            XmlRpcValue publish_stats = new XmlRpcValue(), subscribe_stats = new XmlRpcValue(), service_stats = new XmlRpcValue();
+            publish_stats.Size = 0;
+            subscribe_stats.Size = 0;
+            service_stats.Size = 0;
+            int pidx = 0;
+            lock(advertised_topics_mutex)
+            {
+                foreach(Publication t in advertised_topics)
+                {
+                    publish_stats.Set(pidx++, t.GetStats());
+                }
+            }
+            int sidx = 0;
+            lock(subs_mutex)
+            {
+                foreach(Subscription t in subscriptions)
+                {
+                    subscribe_stats.Set(sidx++, t.GetStats());
+                }
+            }
+            stats.Set(0, publish_stats);
+            stats.Set(1, subscribe_stats);
+            stats.Set(2, service_stats);
         }
 
-        void getSubscriptions(ref XmlRpcValue subscriptions)
+        public void getBusInfo(ref XmlRpcValue info)
         {
-            throw new NotImplementedException();
-
+            info.Size = 0;
+            lock(advertised_topics_mutex)
+            {
+                foreach(Publication t in advertised_topics)
+                {
+                    t.getInfo(ref info);
+                }
+            }
+            lock(subs_mutex)
+            {
+                foreach(Subscription t in subscriptions)
+                {
+                    t.getInfo(ref info);
+                }
+            }
         }
 
-        void getPublications(ref XmlRpcValue publications)
+        public void getSubscriptions(ref XmlRpcValue subs)
         {
-            throw new NotImplementedException();
-
+            subs.Size = 0;
+            lock(subs_mutex)
+            {
+                int sidx = 0;
+                foreach (Subscription t in subscriptions)
+                {
+                    XmlRpcValue sub = new XmlRpcValue();
+                    sub.Set(0, t.name);
+                    sub.Set(1, t.datatype);
+                    subs.Set(sidx++, sub);
+                }
+            }
         }
 
-        bool pubUpdate(string topic, List<string> pubs)
+        public void getPublications(ref XmlRpcValue pubs)
         {
-            throw new NotImplementedException();
-
+            pubs.Size = 0;
+            lock(advertised_topics_mutex)
+            {
+                int sidx = 0;
+                foreach (Publication t in advertised_topics)
+                {
+                    XmlRpcValue pub = new XmlRpcValue();
+                    pub.Set(0, t.Name);
+                    pub.Set(1, t.DataType);
+                    pubs.Set(sidx++, pub);
+                }
+            }
         }
 
-        void pubUpdateCallback(IntPtr parms, IntPtr result)
+        public bool pubUpdate(string topic, List<string> pubs)
+        {
+            Subscription sub = null;
+            lock (subs_mutex)
+            {
+                if (shutting_down) return false;
+                foreach (Subscription s in subscriptions)
+                {
+                    if (s.name != topic || s.IsDropped)
+                        continue;
+                    sub = s;
+                    break;
+                }
+            }
+            if (sub != null)
+                sub.pubUpdate(pubs);
+            else
+                Console.WriteLine("got a request for updating publishers of topic " + topic + ", but I don't have any subscribers to that topic.");
+            return false;
+        }
+
+        public void pubUpdateCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            List<string> pubs = new List<string>();
+            for(int idx=0;idx < parm.Get(2).Size;idx++)
+                pubs.Add(parm.Get(2).Get<string>(idx));
+            if (pubUpdate(parm.Get<string>(1), pubs))
+                XmlRpcManager.Instance().responseInt(1, "", 0)(result);
+            else
+            {
+                Console.WriteLine("Unknown Error or some shit");
+                XmlRpcManager.Instance().responseInt(0, "Unknown Error or some shit", 0)(result);
+            }
         }
 
-        void requestTopicCallback(IntPtr parms, IntPtr result)
+        public void requestTopicCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            if (!requestTopic(parm.Get<string>(1), parm.Get(2), ref res))
+            {
+                string last_error = "Unknown error or some shit";
+
+                XmlRpcManager.Instance().responseInt(0, last_error, 0)(result);
+            }
         }
-        void getBusStatusCallback(IntPtr parms, IntPtr result)
+        public void getBusStatusCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            res.Set(0, new XmlRpcValue(1));
+            res.Set(1, "");
+            XmlRpcValue response = new XmlRpcValue();
+            getBusStats(ref response);
+            res.Set(2, response);
         }
-        void getBusInfoCallback(IntPtr parms, IntPtr result)
+        public void getBusInfoCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            res.Set(0, new XmlRpcValue(1));
+            res.Set(1, "");
+            XmlRpcValue response = new XmlRpcValue();
+            getBusInfo(ref response);
+            res.Set(2, response);
         }
-        void getSubscriptionsCallback(IntPtr parms, IntPtr result)
+        public void getSubscriptionsCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            res.Set(0, new XmlRpcValue(1));
+            res.Set(1, "subscriptions");
+            XmlRpcValue response = new XmlRpcValue();
+            getSubscriptions(ref response);
+            res.Set(2, response);
         }
-        void getPublicationsCallback(IntPtr parms, IntPtr result)
+        public void getPublicationsCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
-            throw new NotImplementedException();
+            res.Set(0, new XmlRpcValue(1));
+            res.Set(1, "publications");
+            XmlRpcValue response = new XmlRpcValue();
+            getPublications(ref response);
+            res.Set(2, response);
         }
 
-        public void unadvertise(string topic, SubscriberCallbacks callbacks)
+        public bool unadvertise(string topic, SubscriberCallbacks callbacks)
         {
-            throw new NotImplementedException();
+            Publication pub = null;
+            lock (advertised_topics_mutex)
+            {
+                if (shutting_down) return false;
+                foreach (Publication p in advertised_topics)
+                {
+                    if (p.Name == topic && !p.Dropped)
+                    {
+                        pub = p;
+                        break;
+                    }
+                }
+            }
+            if (pub == null)
+                return false;
+            pub.removeCallbacks(callbacks);
+            lock (advertised_topics_mutex)
+            {
+                if (pub.NumCallbacks == 0)
+                {
+                    unregisterPublisher(pub.Name);
+                    pub.drop();
+                    advertised_topics.Remove(pub);
+                    lock (advertised_topics_names_mutex)
+                        advertised_topics_names.Remove(pub.Name);
+                }
+            }
+            return true;
         }
     }
 }

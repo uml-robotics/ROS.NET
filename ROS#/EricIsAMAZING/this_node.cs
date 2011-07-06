@@ -12,7 +12,9 @@ namespace EricIsAMAZING
         public static string Namespace = "";
         public static List<string> AdvertisedTopics()
         {
-            return TopicManager.Instance().getAdvertisedTopics();
+            List<string> ret = new List<string>();
+            TopicManager.Instance().getAdvertisedTopics(ref ret);
+            return ret;
         }
         
         public static void Init(string n, IDictionary remappings, int options=0)

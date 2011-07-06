@@ -14,32 +14,37 @@ namespace EricIsAMAZING
 {
     public class PendingConnection : AsyncXmlRpcConnection
     {
-        public XmlRpcClient xmlrpcclient;
-        public UdpClient udpclient;
-        public Subscription subscription;
+        public XmlRpcClient client;
+        public Subscription parent;
         public string RemoteUri;
 
-        public PendingConnection(XmlRpcClient client, UdpClient udp, Subscription s, string uri)
+        public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
-            xmlrpcclient = client;
-            udpclient = udp;
-            subscription = s;
+            this.client = client;
+            parent = s;
             RemoteUri = uri;
         }
 
         public virtual void addToDispatch(XmlRpcDispatch disp)
         {
-            disp.AddSource(xmlrpcclient, (int)(XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
+            disp.AddSource(client, (int)(XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public virtual void removeFromDispatch(XmlRpcDispatch disp)
         {
-            disp.RemoveSource(xmlrpcclient);
+            disp.RemoveSource(client);
         }
 
         public virtual bool check()
         {
-            return true;
+            if (parent == null) return true;
+            XmlRpcValue result = new XmlRpcValue();
+            if (client.ExecuteCheckDone(result))
+            {
+                parent.pendingConnectionDone(this, result);
+                return true;
+            }
+            return false;
         }
     }
 }

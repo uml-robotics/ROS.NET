@@ -15,14 +15,14 @@ namespace EricIsAMAZING
         private UInt64 __uid;
 
         public SubscriberStatusCallback connect, disconnect;
-        public CallbackQueue callbackQueue;
+        public CallbackQueueInterface Callback;
 
-        public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueue callbackQueue)
+        public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueueInterface Callback)
         {
             __uid = _uid++;
             this.connect = connectCB;
             this.disconnect = disconnectCB;
-            this.callbackQueue = callbackQueue;
+            this.Callback = Callback;
         }
     }
 }

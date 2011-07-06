@@ -12,7 +12,7 @@ using System.Net.Sockets;
 
 namespace EricIsAMAZING
 {
-    public class SubscribeOptions<T> : StuffOptions where T : m.IRosMessage
+    public class SubscribeOptions<T> : StuffOptions where T : m.IRosMessage, new()
     {
         public bool latch = false, has_header;
         public string topic, md5sum, datatype, message_definition;
@@ -22,7 +22,7 @@ namespace EricIsAMAZING
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            helper  = new SubscriptionCallbackHelper<T>();
+            helper  = new SubscriptionCallbackHelper<T>(new T());
         }
 
         public SubscribeOptions(string topic, int queue_size, CallbackQueue cb)
@@ -30,14 +30,16 @@ namespace EricIsAMAZING
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            this.callbackQueue = cb;
+            this.Callback = cb;
             helper = new SubscriptionCallbackHelper<T>(cb);
         }
+
+        public bool allow_concurrent_callbacks;
     }
 
     public class StuffOptions
     {
-        public CallbackQueue callbackQueue;
+        public CallbackQueueInterface Callback;
         public int queue_size;
     }
 }

@@ -137,6 +137,7 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
     }
+    public delegate void ConnectFunc(Connection connection);
     public delegate void DisconnectFunc(Connection connection, Connection.DropReason reason);
     public delegate void HeaderReceivedFunc(Connection connection, Header header);
     public delegate void WriteFinishedFunc(Connection connection);

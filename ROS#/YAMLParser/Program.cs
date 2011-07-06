@@ -17,6 +17,8 @@ namespace YAMLParser
             get { return "YAMLProjectDir"; }
         }
 
+        public static List<string> types = new List<string>();
+        public static List<string> namespaces = new List<string>();
         private static void Main(string[] args)
         {
             List<string> paths = new List<string>();
@@ -95,6 +97,8 @@ namespace YAMLParser
             {
                 m.Write();
             }
+
+            File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }
 
         public static void GenerateProject(List<MsgsFile> files)
@@ -117,6 +121,7 @@ namespace YAMLParser
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
+                    output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                     File.Copy("TemplateProject\\SerializationHelper.cs", outputdir + "\\SerializationHelper.cs");
                 }
             }
@@ -169,6 +174,59 @@ namespace YAMLParser
                     Console.WriteLine(error);
                 Console.WriteLine("AMG BUILD FAIL!");
             }
+        }
+
+        public static string backhalf;
+        public static string fronthalf;
+        public new static string ToString()
+        {
+            if (fronthalf == null)
+            {
+                fronthalf = "";
+                backhalf = "";
+                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
+                bool hitvariablehole = false;
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
+                    {
+                        hitvariablehole = true;
+                        continue;
+                    }
+                    if (lines[i].Contains("namespace"))
+                    {
+                        fronthalf += "using Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "namespace " + "Messages" + "\n";
+                        continue;
+                    }
+                    if (!hitvariablehole)
+                        fronthalf += lines[i] + "\n";
+                    else
+                        backhalf += lines[i] + "\n";
+                }
+            }
+            fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static Dictionary<TypeEnum, Type> Types = new Dictionary<TypeEnum, Type>()\n\t\t{";
+            fronthalf += "\n\t\t\t{TypeEnum.Unknown, null},";
+            for(int i=0;i<types.Count;i++)
+            {
+                fronthalf += "\n\t\t\t";
+                fronthalf += "{TypeEnum." + types[i] + ", typeof("+(namespaces[i].Length>0?namespaces[i]+".":"") + types[i] + ")}";
+                if (i < types.Count - 1)
+                    fronthalf += ",";
+            }
+            fronthalf += "\n\t\t};\n\t}\n";
+            fronthalf += "\n\tpublic enum TypeEnum\n\t{";
+            fronthalf += "\n\t\tUnknown,";
+            for (int i = 0; i < types.Count; i++)
+            {
+                fronthalf += "\n\t\t";
+                fronthalf += types[i];
+                if (i < types.Count - 1)
+                    fronthalf += ",";
+            }
+            fronthalf += "\n\t}\n";
+            string ret = fronthalf + backhalf;
+            return ret;
         }
     }
 
@@ -260,19 +318,21 @@ namespace YAMLParser
             }
             if (wasnull)
             {
-                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\tpublic " + classname + "(" + classname + ".Data d)\n\t\t{\n" + (HasHeader
+                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\t"+
+                    "public  "+ classname+"()\n\t\t{ type = TypeEnum."+classname+"; }\n\n\t\t"
+                   +"public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
                         ? "\t\t\tHasHeader = true;\n"
                         : "\t\t\tHasHeader = false;\n") +
                    (KnownSize
                         ? "\t\t\tKnownSize = true;\n"
                         : "\t\t\tKnownSize = false;\n") + "\t\t\tdata = d;\n\t\t}\n" +
                              "\n\t\tpublic " + classname +
-                             "(byte[] SERIALIZEDSTUFF)\n\t\t\t : base(SERIALIZEDSTUFF)\n\t\t{\n"+(HasHeader
+                             "(byte[] SERIALIZEDSTUFF)\n\t\t\t : this()\n\t\t{\n" + (HasHeader
                         ? "\t\t\tHasHeader = true;\n"
                         : "\t\t\tHasHeader = false;\n") +
                    (KnownSize
                         ? "\t\t\tKnownSize = true;\n"
-                        : "\t\t\tKnownSize = false;\n") +"\t\t}\n";//\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
+                        : "\t\t\tKnownSize = false;\n") + "\t\t\tDeserialize(SERIALIZEDSTUFF);\n\t\t}\n\n\t\t" + "public override void Deserialize(byte[] SERIALIZEDSTUFF)\n\t\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
             }
             string ret = fronthalf +
                    /*(objects.Length > 0
@@ -287,6 +347,8 @@ namespace YAMLParser
 
         public void Write()
         {
+            Program.types.Add(classname);
+            Program.namespaces.Add(Namespace);
             string outdir = Program.outputdir;
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)

@@ -38,7 +38,7 @@ namespace EricIsAMAZING
 
         public NodeHandle(NodeHandle rhs)
         {
-            callbackQueue = rhs.callbackQueue;
+            Callback = rhs.Callback;
             remappings = rhs.remappings;
             unresolved_remappings = rhs.unresolved_remappings;
             construct(rhs.Namespace, true);
@@ -48,7 +48,7 @@ namespace EricIsAMAZING
         public NodeHandle(NodeHandle parent, string ns)
         {
             Namespace = parent.Namespace;
-            callbackQueue = parent.callbackQueue;
+            Callback = parent.Callback;
             remappings = parent.remappings;
             unresolved_remappings = parent.unresolved_remappings;
             construct(ns, false);
@@ -57,7 +57,7 @@ namespace EricIsAMAZING
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
             Namespace = parent.Namespace;
-            callbackQueue = parent.callbackQueue;
+            Callback = parent.Callback;
             this.remappings = parent.remappings;
             unresolved_remappings = parent.unresolved_remappings;
 
@@ -83,14 +83,14 @@ namespace EricIsAMAZING
             }
         }
         public NodeHandleBackingCollection collection;
-        public CallbackQueue callbackQueue
+        public CallbackQueue Callback
         {
             get
             {
-                if (_callbackQueue == null) return ROS.GlobalCallbackQueue;
-                return _callbackQueue;
+                if (_callback == null) return ROS.GlobalCallbackQueue;
+                return _callback;
             }
-            set { _callbackQueue = value; }
+            set { _callback = value; }
         }
         public bool ok { get { return ROS.ok && _ok; } set { _ok = value; }
         }
@@ -98,7 +98,7 @@ namespace EricIsAMAZING
         public object nh_refcount_mutex = new object();
         private bool _ok;
         public bool node_started_by_nh = false;
-        private CallbackQueue _callbackQueue;
+        private CallbackQueue _callback;
         public string Namespace, UnresolvedNamespace;
         public bool no_validate = false;
         public IDictionary remappings = new Hashtable(),unresolved_remappings = new Hashtable();
@@ -108,7 +108,7 @@ namespace EricIsAMAZING
             return advertise<M>(new AdvertiseOptions(topic, q_size) { latch = l });
         }
 
-        public Publisher<M> advertise<M>(string topic, int queue_size, MulticastDelegate connectcallback, MulticastDelegate disconnectcallback, bool l = false)
+        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
         {
             return advertise<M>(new AdvertiseOptions(topic, queue_size, connectcallback, disconnectcallback) { latch = l });
         }
@@ -116,14 +116,14 @@ namespace EricIsAMAZING
         public Publisher<M> advertise<M>(AdvertiseOptions ops)
         {
             ops.topic = resolveName(ops.topic);
-            if (ops.callbackQueue == null)
+            if (ops.Callback == null)
             {
-                if (callbackQueue != null)
-                    ops.callbackQueue = callbackQueue;
+                if (Callback != null)
+                    ops.Callback = Callback;
                 else
-                    ops.callbackQueue = ROS.GlobalCallbackQueue;
+                    ops.Callback = ROS.GlobalCallbackQueue;
             }
-            SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.callbackQueue);
+            SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
             if (TopicManager.Instance().advertise(ops, callbacks))
             {
                 Publisher<M> pub = new Publisher<M>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
@@ -136,30 +136,24 @@ namespace EricIsAMAZING
             return new Publisher<M>();
         }
 
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, Action<M> callbackfunction) where M : IRosMessage
-        {
-            SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size) { callback = callbackfunction };
-            return subscribe<M>(ops);
-        }
-
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : IRosMessage
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : IRosMessage, new()
         {
             return subscribe<M>(new SubscribeOptions<M>(topic, queue_size, cb));
         }
 
-        public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage
+        public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
             ops.topic = resolveName(ops.topic);
-            if (ops.callbackQueue == null)
+            if (ops.Callback == null)
             {
-                if (callbackQueue != null)
-                    ops.callbackQueue = callbackQueue;
+                if (Callback != null)
+                    ops.Callback = Callback;
                 else
-                    ops.callbackQueue = ROS.GlobalCallbackQueue;
+                    ops.Callback = ROS.GlobalCallbackQueue;
             }
             if (TopicManager.Instance().subscribe<M>(ops))
             {
-                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper<M>(ops.callbackQueue));
+                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper<M>(ops.Callback));
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);
@@ -177,12 +171,12 @@ namespace EricIsAMAZING
         public ServiceServer<T,MReq,MRes> advertiseService<T,MReq,MRes>(AdvertiseServiceOptions<MReq,MRes> ops)
         {
             ops.service = resolveName(ops.service);
-            if (ops.callbackQueue == null)
+            if (ops.Callback == null)
             {
-                if (callbackQueue == null)
-                    ops.callbackQueue = ROS.GlobalCallbackQueue;
+                if (Callback == null)
+                    ops.Callback = ROS.GlobalCallbackQueue;
                 else
-                    ops.callbackQueue = callbackQueue;
+                    ops.Callback = Callback;
             }
             if (ServiceManager.Instance().advertiseService<MReq,MRes>(ops))
             {
