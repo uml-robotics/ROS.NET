@@ -8,11 +8,10 @@ namespace EricIsAMAZING
 {
     public class SubscriberCallbacks
     {
-        private static UInt64 _uid;
         public CallbackQueueInterface Callback;
 
+        private static UInt64 _uid;
         private UInt64 __uid;
-
         public SubscriberStatusCallback connect, disconnect;
 
         public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueueInterface Callback)

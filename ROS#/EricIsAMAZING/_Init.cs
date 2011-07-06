@@ -18,6 +18,15 @@ namespace EricIsAMAZING
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
+        public static m.IRosMessage MakeAndDownCast<T>(m.TypeEnum type)
+        {
+            return MakeAndDowncast<
+        }
+
+        public static G MakeAndDowncast<T, G>(params Type[] types)
+        {
+            return (G)Activator.CreateInstance(typeof(T).MakeGenericType(types));
+        }
 
         public static CallbackQueue GlobalCallbackQueue;
         public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;

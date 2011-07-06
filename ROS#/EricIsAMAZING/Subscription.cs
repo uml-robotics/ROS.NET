@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Messages;
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
@@ -30,6 +29,7 @@ namespace EricIsAMAZING
         private bool shutting_down;
         public bool IsDropped { get { return _dropped; } }
         private bool _dropped;
+        public Dictionary<m.TypeEnum, IMessageDeserializer> cached_deserializers = new Dictionary<m.TypeEnum, IMessageDeserializer>();
 
         public Subscription(string n, string md5s, string dt)
         {
@@ -244,8 +244,109 @@ namespace EricIsAMAZING
                 Console.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
                 return false;
             }
+            XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
+            if (!c.ExecuteNonBlock("requestTopic", Params))
+            {
+                Console.WriteLine("Failed to contact publisher [" + peer_host + ":" + peer_port + "] for topic [" + name + "]");
+                c.Dispose();
+                return false;
+            }
+#if DEBUG
+            Console.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+#endif
+            PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
+            XmlRpcManager.Instance().addAsyncConnection(conn);
+            lock (pending_connections_mutex)
+            {
+                pending_connections.Add(conn);
+            }
+            return true;
+        }
+        public void pendingConnectionDone(PendingConnection conn, XmlRpcValue result)
+        {
+            lock (shutdown_mutex)
+            {
+                if (shutting_down || _dropped)
+                    return;
+                lock (pending_connections_mutex)
+                    pending_connections.Remove(conn);
+            }
+            string peer_host = conn.client.Host;
+            int peer_port = conn.client.Port;
+            string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
+            XmlRpcValue proto;
+            if (!XmlRpcManager.Instance().validateXmlrpcResponse("requestTopic", result, out proto))
+            {
+                Console.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
+                return;
+            }
+            if (proto == null)
+            {
+                Console.WriteLine("Got invalid xmlrpcvalue back from validate... ?");
+                return;
+            }
+            if (proto.Size == 0)
+            {
+#if DEBUG
+                Console.WriteLine("Coulsn't agreeon any common protocols with [" + xmlrpc_uri + "] for topic [" + name + "]");
+#endif
+                return;
+            }
+            if (proto.Type != XmlRpcValue.TypeEnum.TypeArray)
+            {
+                Console.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
+                return;
+            }
+            string proto_name = proto.Get<string>(0);
+            if (proto_name == "UDPROS")
+            {
+                Console.WriteLine("OWNED! Only tcpros is supported right now.");
+                return;
+            }
+            else if (proto_name == "TCPROS")
+            {
+                if (proto.Size != 3 || proto.Get(1).Type != XmlRpcValue.TypeEnum.TypeString || proto.Get(2).Type != XmlRpcValue.TypeEnum.TypeInt)
+                {
+                    Console.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
+                    return;
+                }
+                string pub_host = proto.Get<string>(1);
+                int pub_port = proto.Get<int>(2);
+#if DEBUG
+                Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port + "]");
+#endif
 
-            throw new NotImplementedException();
+                TcpTransport transport = new TcpTransport(PollManager.Instance().poll_set);
+                if (transport.connect(pub_host, pub_port))
+                {
+                    Connection connection = new Connection();
+                    TransportPublisherLink pub_link = new TransportPublisherLink(this, xmlrpc_uri);
+
+                    connection.initialize(transport, false, headerReceived);
+                    pub_link.initialize(connection);
+
+                    ConnectionManager.Instance().addConnection(connection);
+
+                    lock (publisher_links_mutex)
+                    {
+                        addPublisherLink(pub_link);
+                    }
+
+
+#if DEBUG
+                    Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
+#endif
+                }
+                else
+                {
+                    Console.WriteLine("Failed to connect to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Your xmlrpc server be talking jibber jabber, foo");
+                return;
+            }
         }
 
         public void headerReceived(PublisherLink link, Header header)
@@ -253,9 +354,44 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
 
-        internal ulong handleMessage(IRosMessage m, bool ser, bool nocopy, IDictionary iDictionary, TransportPublisherLink transportPublisherLink)
+        internal ulong handleMessage(m.IRosMessage msg, bool ser, bool nocopy, IDictionary iDictionary, TransportPublisherLink transportPublisherLink)
         {
-            throw new NotImplementedException();
+            lock (callbacks_mutex)
+            {
+                int drops = 0;
+                cached_deserializers.Clear();
+                DateTime receipt_time = DateTime.Now;
+                foreach (ICallbackInfo info in callbacks)
+                {
+                    m.TypeEnum ti = info.helper.type;
+                    if (nocopy && ti != m.TypeEnum.Unknown || ser && (msg.type == m.TypeEnum.Unknown || ti != msg.type))
+                    {
+                        IMessageDeserializer deserializer = null;
+                        if (cached_deserializers.ContainsKey(ti))
+                            deserializer = cached_deserializers[ti];
+                        else
+                        {
+                            deserializer = MakeDeserializer(ti);
+                            cached_deserializers.Add(ti, deserializer);
+                        }
+                        bool was_full = false;
+                        bool nonconst_need_copy = false;
+                        if (callbacks.Count > 1)
+                            nonconst_need_copy = true;
+                        info.subscription_queue.push(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+                        if (was_full)
+                            ++drops;
+                        else
+                            info.callback.addCallback(info.subscription_queue, info.Get());
+                    }
+                }
+            }
+        }
+
+        public IMessageDeserializer MakeDeserializer(m.TypeEnum type)
+        {
+            if (type == m.TypeEnum.Unknown) return null;
+            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(m.TypeHelper.Types[type].GetGenericArguments()));
         }
 
         public void ConnectAsync()
@@ -289,7 +425,7 @@ namespace EricIsAMAZING
             Shutdown();
         }
 
-        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()
+        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : m.IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -321,7 +457,7 @@ namespace EricIsAMAZING
 
         #region Nested type: CallbackInfo
 
-        public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
+        public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage, new()
         {
             public new SubscriptionCallbackHelper<M> helper;
         }
@@ -335,6 +471,16 @@ namespace EricIsAMAZING
             public CallbackQueueInterface callback;
             public ISubscriptionCallbackHelper helper;
             public SubscriptionQueue subscription_queue;
+            private static UInt64 _uid;
+            private UInt64 __uid;
+            public ICallbackInfo()
+            {
+                __uid = _uid++;
+            }
+            public UInt64 Get()
+            {
+                return __uid;
+            }
         }
 
         #endregion

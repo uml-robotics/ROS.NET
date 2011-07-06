@@ -24,7 +24,7 @@ namespace EricIsAMAZING
         public string RemoteString;
         public bool dropped;
         public Header header;
-        public HeaderReceivedFunc header_func;
+        public PublisherLink.HeaderReceivedFunc header_func;
         public bool is_server;
         public ReadFinishedFunc read_callback;
         public bool sendingHeaderError;
@@ -76,7 +76,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public void initialize(TcpTransport trans, bool is_server, HeaderReceivedFunc header_func)
+        public void initialize(TcpTransport trans, bool is_server, PublisherLink.HeaderReceivedFunc header_func)
         {
             if (trans == null) throw new Exception("Connection innitialized with null transport");
             transport = trans;
