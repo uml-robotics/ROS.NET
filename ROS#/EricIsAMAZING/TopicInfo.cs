@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace EricIsAMAZING
+﻿namespace EricIsAMAZING
 {
     public class TopicInfo
     {
-        public string name;
         public string data_type;
+        public string name;
 
         public TopicInfo(string name, string data_type)
         {

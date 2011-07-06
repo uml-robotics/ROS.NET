@@ -1,28 +1,27 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using XmlRpc_Wrapper;
+﻿#region USINGZ
+
+using System;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
-
     public abstract class Spinner : IDisposable
     {
-        public virtual void spin(CallbackQueue queue = null)
-        {
+        #region IDisposable Members
 
-        }
         public virtual void Dispose()
         {
             throw new NotImplementedException();
+        }
+
+        #endregion
+
+        public virtual void spin(CallbackQueue queue = null)
+        {
         }
     }
 
@@ -37,6 +36,7 @@ namespace EricIsAMAZING
                 callbackInterface.callAvailable(ROS.WallDuration);
             }
         }
+
         public override void Dispose()
         {
             throw new NotImplementedException();
@@ -46,15 +46,15 @@ namespace EricIsAMAZING
     public class MultiThreadSpinner : Spinner
     {
         private int thread_count;
+
         public MultiThreadSpinner(int tc = 0)
         {
-
         }
 
         public override void spin(CallbackQueue callbackInterface = null)
         {
-
         }
+
         public override void Dispose()
         {
             throw new NotImplementedException();
@@ -66,18 +66,26 @@ namespace EricIsAMAZING
         public AsyncSpinner(int tc)
         {
         }
+
         public AsyncSpinner(int tc, CallbackQueueInterface queue)
         {
         }
-        public void Start()
-        {
-        }
-        public void Stop()
-        {
-        }
+
+        #region IDisposable Members
+
         public void Dispose()
         {
             throw new NotImplementedException();
+        }
+
+        #endregion
+
+        public void Start()
+        {
+        }
+
+        public void Stop()
+        {
         }
     }
 }

@@ -14,16 +14,17 @@ namespace TestProject
         [TestMethod]
         public void SerializationTest()
         {
-            DummyMsgThing dmt = new DummyMsgThing(new DummyMsgThing.Data
-                           {
-                               leftnipple = new Twist.Data
-                                                {
-                                                    angular =
-                                                        new Vector3.Data {x = 1, y = 2, z = 3}
-                                                },
-                               rightnipple =
-                                   new Twist.Data {angular = new Vector3.Data {x = 4, y = 5, z = 6}}
-                           });
+            DummyMsgThing dmt = new DummyMsgThing
+                (new DummyMsgThing.Data
+                     {
+                         leftnipple = new Twist.Data
+                                          {
+                                              angular =
+                                                  new Vector3.Data {x = 1, y = 2, z = 3}
+                                          },
+                         rightnipple =
+                             new Twist.Data {angular = new Vector3.Data {x = 4, y = 5, z = 6}}
+                     });
 
 
             byte[] guts = dmt.Serialize();

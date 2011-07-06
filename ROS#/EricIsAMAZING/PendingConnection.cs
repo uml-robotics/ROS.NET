@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
+﻿#region USINGZ
+
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class PendingConnection : AsyncXmlRpcConnection
     {
+        public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
-        public string RemoteUri;
 
         public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
@@ -27,7 +24,7 @@ namespace EricIsAMAZING
 
         public virtual void addToDispatch(XmlRpcDispatch disp)
         {
-            disp.AddSource(client, (int)(XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
+            disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public virtual void removeFromDispatch(XmlRpcDispatch disp)

@@ -1,39 +1,73 @@
-﻿using System;
-using System.Collections;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using XmlRpc_Wrapper;
+using System.Threading;
+using Messages;
+using UInt64 = System.UInt64;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
-
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
-        Semaphore sem = new Semaphore(0, int.MaxValue);
+        public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
+        public int calling;
+        private bool enabled;
+        public Dictionary<UInt64, IDInfo> id_info = new Dictionary<ulong, IDInfo>();
+        private object id_info_mutex = new object();
+        private object mutex = new object();
+        private Semaphore sem = new Semaphore(0, int.MaxValue);
         public TLS tls;
+
+        public bool IsEmpty
+        {
+            get
+            {
+                lock (mutex)
+                {
+                    return callbacks.Count == 0;
+                }
+            }
+        }
+
+        public bool IsEnabled
+        {
+            get { return enabled; }
+        }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            lock (mutex)
+            {
+                Disable();
+            }
+        }
+
+        #endregion
+
         public void setupTLS()
         {
             if (tls == null)
-                tls = new TLS() { calling_in_this_thread = (UInt64)Thread.CurrentThread.ManagedThreadId };
+                tls = new TLS {calling_in_this_thread = (UInt64) Thread.CurrentThread.ManagedThreadId};
         }
-        public int calling;
-        bool enabled = false;
 
         internal void notify_all()
         {
             sem.Release();
         }
+
         internal void notify_one()
         {
             sem.Release(1);
         }
+
         public IDInfo getIDInfo(UInt64 id)
         {
             lock (id_info_mutex)
@@ -43,13 +77,10 @@ namespace EricIsAMAZING
             }
             return null;
         }
-        public Dictionary<UInt64, IDInfo> id_info = new Dictionary<ulong, IDInfo>();
-        public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
-        object mutex = new object();
-        object id_info_mutex = new object();
+
         public override void addCallback(CallbackInterface cb, UInt64 owner_id)
         {
-            ICallbackInfo info = new ICallbackInfo{Callback = cb, removal_id = owner_id};
+            ICallbackInfo info = new ICallbackInfo {Callback = cb, removal_id = owner_id};
 
             lock (mutex)
             {
@@ -111,30 +142,11 @@ namespace EricIsAMAZING
             }
         }
 
-        public void Dispose()
-        {
-            lock (mutex)
-            {
-                Disable();
-            }
-        }
-        
         public void Clear()
         {
             lock (mutex)
             {
                 callbacks.Clear();
-            }
-        }
-
-        public bool IsEmpty
-        {
-            get
-            {
-                lock (mutex)
-                {
-                    return callbacks.Count == 0;
-                }
             }
         }
 
@@ -178,8 +190,6 @@ namespace EricIsAMAZING
             return CallOneResult.Called;
         }
 
-        public bool IsEnabled { get { return enabled; } }
-
         public CallOneResult callOne()
         {
             return callOne(ROS.WallDuration);
@@ -198,7 +208,7 @@ namespace EricIsAMAZING
                 }
                 if (callbacks.Count == 0) return CallOneResult.Empty;
                 if (!enabled) return CallOneResult.Disabled;
-                for(int i=0;i<callbacks.Count;i++)
+                for (int i = 0; i < callbacks.Count; i++)
                 {
                     ICallbackInfo info = callbacks[i];
                     if (info.marked_for_removal)
@@ -240,7 +250,7 @@ namespace EricIsAMAZING
 
         public void callAvailable(int timeout)
         {
-            setupTLS(); 
+            setupTLS();
             int called = 0;
             lock (mutex)
             {
@@ -249,7 +259,7 @@ namespace EricIsAMAZING
                 {
                     DateTime prewait = DateTime.Now;
                     sem.WaitOne(timeout);
-                    Console.WriteLine("call avail waited for "+DateTime.Now.Subtract(prewait).TotalMilliseconds+" ms");
+                    Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
                 }
                 if (callbacks.Count == 0 || !enabled) return;
                 bool wasempty = tls.Count == 0;
@@ -275,11 +285,12 @@ namespace EricIsAMAZING
 
     public class TLS
     {
+        public int Count;
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
+        public CallbackInfoNode current;
         public CallbackInfoNode head;
         public CallbackInfoNode tail;
-        public CallbackInfoNode current;
-        public int Count = 0;
+
         public CallbackQueueInterface.ICallbackInfo dequeue()
         {
             Count--;
@@ -292,6 +303,7 @@ namespace EricIsAMAZING
             }
             return ret;
         }
+
         public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
             Count++;
@@ -306,12 +318,13 @@ namespace EricIsAMAZING
                 tail = tail.next;
             }
         }
+
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
             CallbackInfoNode walk = head, walkbehind = null;
             while ((walkbehind = walk) != null && (walk = walk.next) != null)
             {
-                if (walk.info == info) 
+                if (walk.info == info)
                     break;
             }
             if (walk == tail && walk.info != info)
@@ -324,20 +337,27 @@ namespace EricIsAMAZING
             if (Count == 0) current = null;
             return current.info;
         }
+
+        #region Nested type: CallbackInfoNode
+
         public class CallbackInfoNode
         {
             public CallbackQueueInterface.ICallbackInfo info;
             public CallbackInfoNode next;
+
             public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i, CallbackInfoNode n)
             {
                 info = i;
                 next = n;
             }
+
             public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i)
                 : this(i, null)
             {
             }
         }
+
+        #endregion
     }
 
     public class CallbackQueueInterface
@@ -350,27 +370,38 @@ namespace EricIsAMAZING
         {
         }
 
-        public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage, new()
+        #region Nested type: CallbackInfo
+
+        public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
             public SubscriptionCallbackHelper<M> helper;
         }
 
+        #endregion
+
+        #region Nested type: ICallbackInfo
+
         public class ICallbackInfo
         {
-            public UInt64 removal_id;
-            public bool marked_for_removal;
             public CallbackInterface Callback;
+            public bool marked_for_removal;
+            public UInt64 removal_id;
         }
+
+        #endregion
     }
 
     public class IDInfo
     {
-        public UInt64 id;
         public object calling_rw_mutex;
+        public UInt64 id;
     }
 
     public enum CallOneResult
     {
-        Called,TryAgain,Disabled,Empty
+        Called,
+        TryAgain,
+        Disabled,
+        Empty
     }
 }

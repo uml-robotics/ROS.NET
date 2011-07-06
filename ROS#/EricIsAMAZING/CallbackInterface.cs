@@ -1,20 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+﻿#region USINGZ
+
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class CallbackInterface
     {
+        #region CallResult enum
+
         public enum CallResult
         {
-            Success, TryAgain, Invalid
+            Success,
+            TryAgain,
+            Invalid
         }
+
+        #endregion
 
         internal virtual CallResult Call()
         {

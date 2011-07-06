@@ -1,15 +1,17 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public static class network
     {
         public static string host;
-        public static int tcpros_server_port = 0;
+        public static int tcpros_server_port;
 
         public static bool splitURI(ref string uri, ref string host, ref int port)
         {
@@ -39,16 +41,16 @@ namespace EricIsAMAZING
         public static void init(IDictionary remappings)
         {
             if (remappings.Contains("__hostname"))
-                host = (string)remappings["__hostname"];
+                host = (string) remappings["__hostname"];
             else
             {
                 if (remappings.Contains("__ip"))
-                    host = (string)remappings["__ip"];
+                    host = (string) remappings["__ip"];
             }
 
             if (remappings.Contains("__tcpros_server_port"))
             {
-                tcpros_server_port = int.Parse((string)remappings["__tcpros_server_port"]);
+                tcpros_server_port = int.Parse((string) remappings["__tcpros_server_port"]);
             }
 
             if (host == "")

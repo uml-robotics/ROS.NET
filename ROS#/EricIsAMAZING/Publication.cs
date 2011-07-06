@@ -1,29 +1,77 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
+using Messages;
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class Publication : IDisposable
     {
-        public int MaxQueue;
-        public uint _seq;
-        public object seq_mutex = new object(), callbacks_mutex = new object(), subscriber_links_mutex = new object(), publish_queue_mutex = new object();
+        public string DataType;
         public bool Dropped;
-        public string Name,DataType,Md5sum, MessageDefinition;
-        public bool Latch, HasHeader;
+        public bool HasHeader;
+        public bool Latch;
+        public int MaxQueue;
+        public string Md5sum, MessageDefinition;
+        public string Name;
+        public uint _seq;
+
+        public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
+        public object callbacks_mutex = new object();
+        public IRosMessage last_message;
+        public Queue<IRosMessage> publish_queue = new Queue<IRosMessage>();
+        public object publish_queue_mutex = new object();
+        public object seq_mutex = new object();
+        public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
+        public object subscriber_links_mutex = new object();
+
+        public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue, bool latch, bool has_header)
+        {
+            Name = name;
+            DataType = datatype;
+            Md5sum = md5sum;
+            MessageDefinition = message_definition;
+            MaxQueue = max_queue;
+            Latch = latch;
+            HasHeader = has_header;
+        }
+
+        public int NumCallbacks
+        {
+            get { lock (callbacks_mutex) return callbacks.Count; }
+        }
+
+        public bool HasSubscribers
+        {
+            get { lock (subscriber_links_mutex) return subscriber_links.Count > 0; }
+        }
+
+        public int NumSubscribers
+        {
+            get { lock (subscriber_links_mutex) return subscriber_links.Count; }
+        }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            drop();
+        }
+
+        #endregion
+
         public XmlRpcValue GetStats()
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, Name);
-            XmlRpcValue conn_data = new XmlRpcValue() { Size = 0 };
+            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
             lock (subscriber_links_mutex)
             {
                 int cidx = 0;
@@ -44,10 +92,6 @@ namespace EricIsAMAZING
             return stats;
         }
 
-        public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
-        public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
-        public Queue<m.IRosMessage> publish_queue = new Queue<m.IRosMessage>();
-        public m.IRosMessage last_message;
         public void drop()
         {
             lock (publish_queue_mutex)
@@ -95,7 +139,7 @@ namespace EricIsAMAZING
                 peerDisconnect(lnk);
         }
 
-        public void publish(m.IRosMessage msg)
+        public void publish(IRosMessage msg)
         {
             lock (publish_queue_mutex)
                 publish_queue.Enqueue(msg);
@@ -111,9 +155,9 @@ namespace EricIsAMAZING
                 error_message = msg;
                 return false;
             }
-            md5sum = (string)header.Values["md5sum"];
-            topic = (string)header.Values["topic"];
-            client_callerid = (string)header.Values["callerid"];
+            md5sum = (string) header.Values["md5sum"];
+            topic = (string) header.Values["topic"];
+            client_callerid = (string) header.Values["callerid"];
             if (Dropped)
             {
                 string msg = "received a tcpros connection for a nonexistent topic [" + topic + "] from [" + client_callerid + "].";
@@ -124,8 +168,9 @@ namespace EricIsAMAZING
 
             if (Md5sum != md5sum && (md5sum != "*") && Md5sum != "*")
             {
-                string datatype = header.Values.Contains("type") ? (string)header.Values["type"] : "unknown";
-                string msg = "Client [" + client_callerid + "] wants topic [" + topic + "] to hava datatype/md5sum [" + datatype + "/" + md5sum + "], but our version has [" + DataType + "/" + Md5sum + "]. Dropping connection";
+                string datatype = header.Values.Contains("type") ? (string) header.Values["type"] : "unknown";
+                string msg = "Client [" + client_callerid + "] wants topic [" + topic + "] to hava datatype/md5sum [" + datatype + "/" + md5sum + "], but our version has [" + DataType + "/" + Md5sum +
+                             "]. Dropping connection";
                 Console.WriteLine(msg);
                 error_message = msg;
                 return false;
@@ -140,19 +185,14 @@ namespace EricIsAMAZING
                 foreach (SubscriberLink c in subscriber_links)
                 {
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, new XmlRpcValue((int)c.connection_id));
+                    curr_info.Set(0, new XmlRpcValue((int) c.connection_id));
                     curr_info.Set(1, new XmlRpcValue(c.destination_caller_id));
                     curr_info.Set(2, new XmlRpcValue("o"));
                     curr_info.Set(3, new XmlRpcValue("TCPROS"));
                     curr_info.Set(4, new XmlRpcValue(Name));
-                    info.Set(info.Size,curr_info);
+                    info.Set(info.Size, curr_info);
                 }
             }
-        }
-
-        public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue, bool latch, bool has_header)
-        {
-            Name = name; DataType = datatype; Md5sum = md5sum; MessageDefinition = message_definition; MaxQueue = max_queue; Latch = latch; HasHeader = has_header;
         }
 
         public void addCallbacks(SubscriberCallbacks callbacks)
@@ -164,7 +204,7 @@ namespace EricIsAMAZING
                 {
                     lock (subscriber_links_mutex)
                     {
-                        foreach(SubscriberLink i in subscriber_links)
+                        foreach (SubscriberLink i in subscriber_links)
                         {
                             CallbackInterface cb = new PeerConnDisconnCallback(callbacks.connect, i);
 
@@ -185,7 +225,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public bool EnqueueMessage(m.IRosMessage msg)
+        public bool EnqueueMessage(IRosMessage msg)
         {
             lock (subscriber_links_mutex)
             {
@@ -197,9 +237,9 @@ namespace EricIsAMAZING
             if (HasHeader)
             {
                 byte[] stuff = msg.Serialize();
-                byte[] withoutlength = new byte[stuff.Length-4];
+                byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);
-                m.Header header = new m.Header(withoutlength);
+                Messages.Header header = new Messages.Header(withoutlength);
                 header.data.seq = seq;
                 msg = header;
             }
@@ -213,12 +253,6 @@ namespace EricIsAMAZING
                 last_message = msg;
             return true;
         }
-
-        public int NumCallbacks { get { lock (callbacks_mutex) return callbacks.Count; } }
-
-        public bool HasSubscribers { get { lock(subscriber_links_mutex) return subscriber_links.Count > 0; } }
-
-        public int NumSubscribers { get { lock(subscriber_links_mutex) return subscriber_links.Count; } }
 
         public void dropAllConnections()
         {
@@ -259,11 +293,6 @@ namespace EricIsAMAZING
             }
         }
 
-        public void Dispose()
-        {
-            drop();
-        }
-
         public uint incrementSequence()
         {
             lock (seq_mutex)
@@ -276,21 +305,21 @@ namespace EricIsAMAZING
 
         public void processPublishQueue()
         {
-            Queue<m.IRosMessage> queue = null;
+            Queue<IRosMessage> queue = null;
             lock (publish_queue_mutex)
             {
                 if (Dropped) return;
-                queue = new Queue<m.IRosMessage>(publish_queue);
+                queue = new Queue<IRosMessage>(publish_queue);
                 publish_queue.Clear();
             }
             if (queue == null || queue.Count == 0)
             {
-                foreach(m.IRosMessage msg in queue)
+                foreach (IRosMessage msg in queue)
                     EnqueueMessage(msg);
             }
         }
 
-        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref m.TypeEnum typeEnum)
+        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref TypeEnum typeEnum)
         {
             lock (subscriber_links_mutex)
             {
@@ -311,6 +340,7 @@ namespace EricIsAMAZING
     {
         public SubscriberStatusCallback callback;
         public SubscriberLink sub_link;
+
         public PeerConnDisconnCallback(SubscriberStatusCallback callback, SubscriberLink sub_link)
         {
             this.callback = callback;

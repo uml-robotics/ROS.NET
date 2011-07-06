@@ -1,30 +1,46 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+using System.Threading;
+using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class TransportPublisherLink : PublisherLink, IDisposable
     {
         public Connection connection;
-        private bool needs_retry;
-        private TimeSpan retry_period;
-        private DateTime next_retry;
-        private Timer retry_timer;
         public bool dropping;
+        private bool needs_retry;
+        private DateTime next_retry;
+        private TimeSpan retry_period;
+        private Timer retry_timer;
 
         public TransportPublisherLink(Subscription parent, string xmlrpc_uri) : base(parent, xmlrpc_uri)
         {
             needs_retry = false;
             dropping = false;
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            dropping = true;
+            if (retry_timer != null)
+            {
+                ROS.timer_manager.StopTimer(ref retry_timer);
+                retry_timer.Dispose();
+            }
+            connection.drop(Connection.DropReason.Destructing);
+        }
+
+        #endregion
 
         public bool initialize(Connection connection)
         {
@@ -71,8 +87,7 @@ namespace EricIsAMAZING
                     next_retry = DateTime.Now.Add(retry_period);
                     if (retry_timer == null)
                         retry_period = TimeSpan.FromMilliseconds(100);
-                    ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer, (int)Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
-
+                    ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer, (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
                 }
                 else
                     drop();
@@ -93,9 +108,9 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public virtual void handleMessage(m.IRosMessage m, bool ser, bool nocopy)
+        public virtual void handleMessage(IRosMessage m, bool ser, bool nocopy)
         {
-            stats.bytes_received += (ulong)m.Serialize().Length;
+            stats.bytes_received += (ulong) m.Serialize().Length;
             stats.messages_received++;
             if (parent != null)
                 lock (parent)
@@ -118,7 +133,7 @@ namespace EricIsAMAZING
                 return;
             }
             if (conn != connection || size != 4) return;
-            uint len = (uint)buffer.Length;
+            uint len = (uint) buffer.Length;
             if (len > 1000000000)
             {
                 Console.WriteLine("1 GB message WTF?!");
@@ -130,12 +145,12 @@ namespace EricIsAMAZING
 
         private void onMessage(Connection conn, byte[] buffer, int size, bool success)
         {
-            if (!success && conn == null || conn!=connection) return;
+            if (!success && conn == null || conn != connection) return;
             if (success)
             {
                 Type t = Type.GetType("m." + parent.datatype);
-                var T = t.GetConstructor(new[] { typeof(byte[]) }).Invoke(new[] { buffer });
-                handleMessage(T as m.IRosMessage, true, false);
+                var T = t.GetConstructor(new[] {typeof (byte[])}).Invoke(new[] {buffer});
+                handleMessage(T as IRosMessage, true, false);
             }
             if (success || !connection.transport.getRequiresHeader())
                 connection.read(4, onMessageLength);
@@ -146,7 +161,7 @@ namespace EricIsAMAZING
             if (dropping) return;
             if (needs_retry && DateTime.Now.Subtract(next_retry).TotalMilliseconds < 0)
             {
-                retry_period = TimeSpan.FromSeconds((retry_period.TotalSeconds > 20) ? 20 : (2 * retry_period.TotalSeconds));
+                retry_period = TimeSpan.FromSeconds((retry_period.TotalSeconds > 20) ? 20 : (2*retry_period.TotalSeconds));
                 needs_retry = false;
                 lock (parent)
                 {
@@ -166,22 +181,5 @@ namespace EricIsAMAZING
                 }
             }
         }
-
-
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            dropping = true;
-            if (retry_timer != null)
-            {
-                ROS.timer_manager.StopTimer(ref retry_timer);
-                retry_timer.Dispose();
-            }
-            connection.drop(Connection.DropReason.Destructing);
-        }
-
-        #endregion
     }
 }

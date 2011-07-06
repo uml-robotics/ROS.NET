@@ -1,8 +1,11 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using XmlRpc_Wrapper;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -80,17 +83,17 @@ namespace EricIsAMAZING
             return true;
         }
 
-        internal static void init(System.Collections.IDictionary remapping_args)
+        internal static void init(IDictionary remapping_args)
         {
             foreach (object o in remapping_args.Keys)
             {
-                string name = (string)o;
-                string param = (string)remapping_args[o];
+                string name = (string) o;
+                string param = (string) remapping_args[o];
                 if (name.Length < 2) continue;
                 if (name[0] == '_' && name[1] != '_')
                 {
                     string local_name = "~" + name.Substring(1);
-                    int i =0;
+                    int i = 0;
                     bool success = int.TryParse(param, out i);
                     if (success)
                     {

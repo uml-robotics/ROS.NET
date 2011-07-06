@@ -1,19 +1,25 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public abstract class TransportSubscriberLink : SubscriberLink, IDisposable
     {
         public Connection connection;
+        private bool header_written;
+        private Queue<IRosMessage> outbox = new Queue<IRosMessage>();
+        private object outbox_mutex = new object();
+        private bool queue_full;
+        private bool writing_message;
 
         public TransportSubscriberLink()
         {
@@ -21,6 +27,15 @@ namespace EricIsAMAZING
             header_written = false;
             queue_full = false;
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            drop();
+        }
+
+        #endregion
 
         public bool initialize(Connection connection)
         {
@@ -38,12 +53,12 @@ namespace EricIsAMAZING
                 connection.sendHeaderError(msg);
                 return false;
             }
-            string topic = (string)header.Values["topic"];
-            string client_callerid = (string)header.Values["callerid"];
+            string topic = (string) header.Values["topic"];
+            string client_callerid = (string) header.Values["callerid"];
             Publication pt = TopicManager.Instance().lookupPublication(topic);
             if (pt == null)
             {
-                string msg = "received a connection for a nonexistent topic ["+topic+"] from ["+connection.transport+"] ["+client_callerid+"]";
+                string msg = "received a connection for a nonexistent topic [" + topic + "] from [" + connection.transport + "] [" + client_callerid + "]";
                 Console.WriteLine(msg);
                 connection.sendHeaderError(msg);
                 return false;
@@ -71,7 +86,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public virtual void enqueueMessage(m.IRosMessage msg, bool ser, bool nocopy)
+        public virtual void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
         {
             if (!ser) return;
             lock (outbox_mutex)
@@ -130,9 +145,9 @@ namespace EricIsAMAZING
             startMessageWrite(true);
         }
 
-        void startMessageWrite(bool immediate_write)
+        private void startMessageWrite(bool immediate_write)
         {
-            m.IRosMessage m = null;
+            IRosMessage m = null;
             lock (outbox_mutex)
             {
                 if (writing_message || !header_written)
@@ -147,16 +162,6 @@ namespace EricIsAMAZING
             {
                 connection.write(m.Serialize(), onMessageWritten, immediate_write);
             }
-        }
-
-        private bool writing_message;
-        private bool header_written;
-        private Queue<m.IRosMessage> outbox = new Queue<m.IRosMessage>();
-        private object outbox_mutex = new object();
-        private bool queue_full;
-        public void Dispose()
-        {
-            drop();
         }
     }
 }

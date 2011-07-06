@@ -1,17 +1,21 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using XmlRpc_Wrapper;
+
+#endregion
+
 namespace EricIsAMAZING
 {
     public static class master
     {
-        public static int port=0;
-        public static string host="";
-        public static string uri="";
-        
-        internal static void init(System.Collections.IDictionary remapping_args)
+        public static int port;
+        public static string host = "";
+        public static string uri = "";
+
+        internal static void init(IDictionary remapping_args)
         {
             if (remapping_args.Contains("__master"))
             {
@@ -58,9 +62,9 @@ namespace EricIsAMAZING
             {
                 return false;
             }
-            for(int i=0;i<payload.Size;i++)
+            for (int i = 0; i < payload.Size; i++)
             {
-                for(int j=0;j<payload.Get(i).Size;j++)
+                for (int j = 0; j < payload.Get(i).Size; j++)
                 {
                     XmlRpcValue val = payload.Get(i).Get(j).Get(1);
                     for (int k = 0; k < val.Size; k++)

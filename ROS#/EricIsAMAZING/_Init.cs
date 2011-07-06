@@ -1,35 +1,45 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
-using XmlRpc_Wrapper;
+using System.Threading;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
+
+        public static CallbackQueue GlobalCallbackQueue;
+        public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;
+        public static int init_options;
+        public static string ROS_MASTER_URI;
+        public static object start_mutex = new object();
+
+        /// <summary>
+        ///   general global sleep time in miliseconds
+        /// </summary>
+        public static int WallDuration = 100;
+
+        public static NodeHandle GlobalNodeHandle;
+        public static Thread internal_queue_thread;
+        public static object shutting_down_mutex = new object();
+        private static bool dictinit;
+        private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
+
         public static void FREAKTHEFUCKOUT()
         {
             throw new Exception("ROS IS FREAKING THE FUCK OUT!");
         }
-        public static CallbackQueue GlobalCallbackQueue;
-        public static bool initialized, started, atexit_registered, ok, shutting_down,shutdown_requested;
-        public static int init_options;
-        public static string ROS_MASTER_URI;
-        public static object start_mutex = new object();
-        /// <summary>
-        /// general global sleep time in miliseconds
-        /// </summary>
-        public static int WallDuration = 100;
 
         public static void Init(string[] args, string name, int options = 0)
         {
@@ -47,14 +57,14 @@ namespace EricIsAMAZING
             }
             Init(dick, name, options);
         }
-        public static NodeHandle GlobalNodeHandle;
+
         public static void Init(IDictionary remapping_args, string name, int options = 0)
         {
             if (!atexit_registered)
             {
                 atexit_registered = true;
-                System.Diagnostics.Process.GetCurrentProcess().EnableRaisingEvents = true;
-                System.Diagnostics.Process.GetCurrentProcess().Exited += (o, args) => shutdown();
+                Process.GetCurrentProcess().EnableRaisingEvents = true;
+                Process.GetCurrentProcess().Exited += (o, args) => shutdown();
             }
 
             if (GlobalCallbackQueue == null)
@@ -74,6 +84,7 @@ namespace EricIsAMAZING
                 GlobalNodeHandle = new NodeHandle(this_node.Namespace, remapping_args);
             }
         }
+
         public static void spinOnce()
         {
             GlobalCallbackQueue.callAvailable(WallDuration);
@@ -97,8 +108,6 @@ namespace EricIsAMAZING
         {
         }
 
-        public static Thread internal_queue_thread;
-
         public static void start()
         {
             lock (start_mutex)
@@ -117,7 +126,7 @@ namespace EricIsAMAZING
                 PollManager.Instance().Start();
                 XmlRpcManager.Instance().Start();
                 //Time.Init();
-                internal_queue_thread = new Thread(new ThreadStart(internalCallbackQueueThreadFunc));
+                internal_queue_thread = new Thread(internalCallbackQueueThreadFunc);
                 internal_queue_thread.IsBackground = true;
                 internal_queue_thread.Start();
                 GlobalCallbackQueue.Enable();
@@ -126,7 +135,6 @@ namespace EricIsAMAZING
 
         public static void internalCallbackQueueThreadFunc()
         {
-
         }
 
         public static bool isStarted()
@@ -135,7 +143,6 @@ namespace EricIsAMAZING
         }
 
 
-        public static object shutting_down_mutex = new object();
         public static void shutdown()
         {
             lock (shutting_down_mutex)
@@ -181,7 +188,7 @@ namespace EricIsAMAZING
             if (!dictinit)
             {
                 dictinit = true;
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new Assembly[] { Assembly.GetExecutingAssembly() }))
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()}))
                 {
                     foreach (Type t in a.GetTypes())
                     {
@@ -195,9 +202,6 @@ namespace EricIsAMAZING
             }
             return typedict[name];
         }
-
-        private static bool dictinit = false;
-        private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
     }
 
     public enum InitOption
@@ -207,4 +211,3 @@ namespace EricIsAMAZING
         NoRousout = 1 << 2
     }
 }
-

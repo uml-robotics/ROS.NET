@@ -41,14 +41,12 @@ namespace Messages
 
     public class IRosMessage
     {
-        public TypeEnum type = TypeEnum.Unknown;
-
-        public bool HasHeader = false;
+        public bool HasHeader;
         public bool KnownSize = true;
 
-        public string connection_header;
-
         public byte[] Serialized;
+        public string connection_header;
+        public TypeEnum type = TypeEnum.Unknown;
 
         public IRosMessage()
         {

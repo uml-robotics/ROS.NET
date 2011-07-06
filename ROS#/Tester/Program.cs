@@ -1,18 +1,14 @@
 ﻿#region USINGZ
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using XmlRpc_Wrapper;
 using EricIsAMAZING;
+using XmlRpc_Wrapper;
+using String = Messages.String;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+
 #endregion
 
 namespace ConsoleApplication1
@@ -24,7 +20,7 @@ namespace ConsoleApplication1
 
         public static WrapperTest.balls BALLS;
 
-        public static void chatterCallback(m.String msg)
+        public static void chatterCallback(String msg)
         {
             Console.WriteLine("HOLY FUCKSTICK!");
         }
@@ -33,7 +29,7 @@ namespace ConsoleApplication1
         {
             int balls = 0;
             Console.WriteLine("" + WrapperTest.IntegerEcho(666));
-            BALLS = new WrapperTest.balls((val) => Console.WriteLine("" + val.ToString()));
+            BALLS = (val) => Console.WriteLine("" + val.ToString());
             WrapperTest.IntegerEchoFunctionPtr(BALLS);
             while (WrapperTest.IntegerEchoRepeat(balls++))
             {
@@ -48,7 +44,7 @@ namespace ConsoleApplication1
             ROS.Init(args, "ERICRULZ");
             ROS.start();
             NodeHandle nh = new NodeHandle();
-            Subscriber<m.String> sub = nh.subscribe<m.String>("chatter", 1000, chatterCallback);
+            Subscriber<String> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {
@@ -67,6 +63,7 @@ namespace ConsoleApplication1
             //node.Shutdown();
         }
     }
+
     #region some day... later
 
     /*
@@ -108,6 +105,7 @@ namespace ConsoleApplication1
             */
 
     #endregion
+
     /*public class NodeClient : MarshalByRefObject, NodeProxy
     {
 
@@ -129,10 +127,6 @@ namespace ConsoleApplication1
             return default(BusStats);
         }
     }*/
-
-
-
-
 
     #region LUL
 
@@ -311,5 +305,4 @@ namespace ConsoleApplication1
     //WriteThatShit(listenerheader);
 
     #endregion
-
 }

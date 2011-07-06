@@ -12,6 +12,11 @@ namespace XmlRpc_Wrapper
     public class XmlRpcValue : IDisposable
     {
         private static Dictionary<IntPtr, XmlRpcValue> _instances = new Dictionary<IntPtr, XmlRpcValue>();
+
+        private static Dictionary<IntPtr, XmlRpcValue> ValueRegistry;
+
+        private IntPtr __instance;
+
         public XmlRpcValue(params object[] initialvalues) : this()
         {
             for (int i = 0; i < initialvalues.Length; i++)
@@ -38,121 +43,32 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public static XmlRpcValue LookUp(IntPtr ptr)
-        {
-            if (_instances.ContainsKey(ptr))
-                return _instances[ptr];
-            if (ptr != IntPtr.Zero)
-                return new XmlRpcValue(ptr);
-            return null;
-        }
-
-        public Type GetType()
-        {
-            return GetType(this.Type);
-        }
-
-        public T Get<T>()
-        {
-            byte[] data = new byte[Size];
-            Marshal.Copy(instance, data, 0, Size);
-            return SerializationHelper.Deserialize<T>(data);
-        }
-
-        private static Dictionary<IntPtr, XmlRpcValue> ValueRegistry;
-
-        private IntPtr __instance;
-
-        public override string ToString()
-        {
-            if (instance == IntPtr.Zero)
-                return "this XmlRpcValue == (NULL)";
-            return "this XmlRpcValue is a " + Type+"\n\tIt enjoys long walks on the beach.\n\tIt is "+(Valid?"Valid":"Invalid")+"\n\tIts size is "+Size;
-        }
-
-        #region myjunk
-
-        public enum TypeEnum
-        {
-            TypeInvalid,
-            TypeBoolean,
-            TypeInt,
-            TypeDouble,
-            TypeString,
-            TypeDateTime,
-            TypeBase64,
-            TypeArray,
-            TypeStruct,
-            TypeIDFK
-        }
-
-        private TypeEnum[] _typearray = new[]
-                                            {
-                                                TypeEnum.TypeInvalid,
-                                                TypeEnum.TypeBoolean,
-                                                TypeEnum.TypeInt,
-                                                TypeEnum.TypeDouble,
-                                                TypeEnum.TypeString,
-                                                TypeEnum.TypeDateTime,
-                                                TypeEnum.TypeBase64,
-                                                TypeEnum.TypeArray,
-                                                TypeEnum.TypeStruct,
-                                                TypeEnum.TypeIDFK
-                                            };
-
-        public Type GetType(TypeEnum t)
-        {
-            switch (t)
-            {
-                case TypeEnum.TypeBoolean: return typeof(bool);
-                case TypeEnum.TypeInt: return typeof(int);
-                case TypeEnum.TypeDouble: return typeof(double);
-                case TypeEnum.TypeString: return typeof(string);
-                case TypeEnum.TypeDateTime: return typeof(DateTime);
-                case TypeEnum.TypeBase64: return typeof(UInt64);
-                case TypeEnum.TypeArray: return typeof(object[]);
-                case TypeEnum.TypeStruct: throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
-            }
-            return default(Type);
-        }
-
-        public T Get<T>(int key)
-        {
-            return Get(key).Get<T>();
-        }
-        public T Get<T>(string key)
-        {
-            return Get(key).Get<T>();
-        }
-
-        #endregion
-
         public XmlRpcValue()
         {
             instance = create();
             if (!_instances.ContainsKey(instance))
-                _instances.Add(instance,this);
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(bool value)
         {
             instance = create(value);
             if (!_instances.ContainsKey(instance))
-                _instances.Add(instance,this);
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(int value)
         {
             instance = create(value);
             if (!_instances.ContainsKey(instance))
-                _instances.Add(instance,this);
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(double value)
         {
             instance = create(value);
             if (!_instances.ContainsKey(instance))
-                _instances.Add(instance,this);
+                _instances.Add(instance, this);
         }
 
         public XmlRpcValue(string value)
@@ -242,7 +158,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set4", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, [In] [MarshalAs(UnmanagedType.LPWStr)] string key, IntPtr value);
-        
+
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Get1", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr get(IntPtr target, int key);
 
@@ -306,6 +222,34 @@ namespace XmlRpc_Wrapper
         }
 
         #endregion
+
+        public static XmlRpcValue LookUp(IntPtr ptr)
+        {
+            if (_instances.ContainsKey(ptr))
+                return _instances[ptr];
+            if (ptr != IntPtr.Zero)
+                return new XmlRpcValue(ptr);
+            return null;
+        }
+
+        public Type GetType()
+        {
+            return GetType(Type);
+        }
+
+        public T Get<T>()
+        {
+            byte[] data = new byte[Size];
+            Marshal.Copy(instance, data, 0, Size);
+            return SerializationHelper.Deserialize<T>(data);
+        }
+
+        public override string ToString()
+        {
+            if (instance == IntPtr.Zero)
+                return "this XmlRpcValue == (NULL)";
+            return "this XmlRpcValue is a " + Type + "\n\tIt enjoys long walks on the beach.\n\tIt is " + (Valid ? "Valid" : "Invalid") + "\n\tIts size is " + Size;
+        }
 
         public static XmlRpcValue Create(IntPtr existingvalue)
         {
@@ -373,5 +317,71 @@ namespace XmlRpc_Wrapper
                 throw new Exception("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
             }
         }
+
+        #region myjunk
+
+        public enum TypeEnum
+        {
+            TypeInvalid,
+            TypeBoolean,
+            TypeInt,
+            TypeDouble,
+            TypeString,
+            TypeDateTime,
+            TypeBase64,
+            TypeArray,
+            TypeStruct,
+            TypeIDFK
+        }
+
+        private TypeEnum[] _typearray = new[]
+                                            {
+                                                TypeEnum.TypeInvalid,
+                                                TypeEnum.TypeBoolean,
+                                                TypeEnum.TypeInt,
+                                                TypeEnum.TypeDouble,
+                                                TypeEnum.TypeString,
+                                                TypeEnum.TypeDateTime,
+                                                TypeEnum.TypeBase64,
+                                                TypeEnum.TypeArray,
+                                                TypeEnum.TypeStruct,
+                                                TypeEnum.TypeIDFK
+                                            };
+
+        public Type GetType(TypeEnum t)
+        {
+            switch (t)
+            {
+                case TypeEnum.TypeBoolean:
+                    return typeof (bool);
+                case TypeEnum.TypeInt:
+                    return typeof (int);
+                case TypeEnum.TypeDouble:
+                    return typeof (double);
+                case TypeEnum.TypeString:
+                    return typeof (string);
+                case TypeEnum.TypeDateTime:
+                    return typeof (DateTime);
+                case TypeEnum.TypeBase64:
+                    return typeof (UInt64);
+                case TypeEnum.TypeArray:
+                    return typeof (object[]);
+                case TypeEnum.TypeStruct:
+                    throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
+            }
+            return default(Type);
+        }
+
+        public T Get<T>(int key)
+        {
+            return Get(key).Get<T>();
+        }
+
+        public T Get<T>(string key)
+        {
+            return Get(key).Get<T>();
+        }
+
+        #endregion
     }
 }

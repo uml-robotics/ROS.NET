@@ -1,8 +1,10 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -19,25 +21,29 @@ namespace EricIsAMAZING
                 impl.server_link = ServiceManager.Instance().createServiceServerLink(impl.service, impl.persistent, impl.md5sum, impl.md5sum, impl.header_values);
             }
         }
-
     }
 
     public class IServiceClient
     {
         public Impl impl;
+
+        #region Nested type: Impl
+
         public class Impl
         {
-            public string service;
-            public string md5sum;
+            public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
             public IDictionary header_values;
-            public bool persistent;
             public bool is_shutdown;
-            public double constructed = (int)Math.Floor(DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+            public string md5sum;
+            public bool persistent;
             public IServiceServerLink server_link;
+            public string service;
+
             public bool IsValid
             {
                 get { return !persistent || (!is_shutdown && server_link != null && server_link.IsValid); }
             }
+
             internal void shutdown()
             {
                 if (!is_shutdown)
@@ -54,5 +60,7 @@ namespace EricIsAMAZING
                 }
             }
         }
+
+        #endregion
     }
 }

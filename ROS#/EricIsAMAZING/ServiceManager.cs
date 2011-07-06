@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+﻿#region USINGZ
+
+using System;
+using System.Collections;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class ServiceManager
     {
         private static ServiceManager _instance;
+
         public static ServiceManager Instance()
         {
             if (_instance == null) _instance = new ServiceManager();
@@ -36,7 +35,7 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
 
-        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2, System.Collections.IDictionary header_values)
+        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2, IDictionary header_values)
         {
             return new IServiceServerLink(name, persistent, md5sum, md5sum_2, header_values);
         }

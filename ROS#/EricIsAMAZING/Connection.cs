@@ -1,29 +1,40 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+#endregion
 
 namespace EricIsAMAZING
 {
-
-
     public class Connection
     {
+        #region DropReason enum
+
+        public enum DropReason
+        {
+            TransportDisconnect,
+            HeaderError,
+            Destructing
+        }
+
+        #endregion
+
+        public string CallerID;
+        public string RemoteString;
+        public bool dropped;
+        public Header header;
+        public HeaderReceivedFunc header_func;
+        public bool is_server;
+        public ReadFinishedFunc read_callback;
+        public bool sendingHeaderError;
+
         public TcpTransport transport;
+        public WriteFinishedFunc write_callback;
         public event DisconnectFunc DroppedEvent;
         public event HeaderReceivedFunc HeaderReceivedEvent;
         public event WriteFinishedFunc header_written_callback;
-        public ReadFinishedFunc read_callback;
-        public WriteFinishedFunc write_callback;
-        public HeaderReceivedFunc header_func;
-        public bool dropped;
-        public bool is_server;
-        public bool sendingHeaderError;
-        public string CallerID;
-        public string RemoteString;
-        public Header header;
-        
+
         public void sendHeaderError(string error_message)
         {
             throw new NotImplementedException();
@@ -49,11 +60,6 @@ namespace EricIsAMAZING
                 writeTransport();
         }
 
-        public enum DropReason
-        {
-            TransportDisconnect, HeaderError, Destructing
-        }
-
         public void drop(DropReason reason)
         {
             bool did_drop = false;
@@ -77,9 +83,9 @@ namespace EricIsAMAZING
             this.header_func = header_func;
             this.is_server = is_server;
 
-            transport.ReadCallback += new TcpTransport.ReadFinishedFunc(transport_ReadCallback);
-            transport.WriteCallback += new TcpTransport.WriteFinishedFunc(transport_WriteCallback);
-            transport.DisconnectCallback += new TcpTransport.DisconnectFunc(transport_DisconnectCallback);
+            transport.ReadCallback += transport_ReadCallback;
+            transport.WriteCallback += transport_WriteCallback;
+            transport.DisconnectCallback += transport_DisconnectCallback;
 
             if (header_func != null)
             {
@@ -87,17 +93,17 @@ namespace EricIsAMAZING
             }
         }
 
-        void transport_DisconnectCallback(TcpTransport trans, Connection.DropReason reason)
+        private void transport_DisconnectCallback(TcpTransport trans, DropReason reason)
         {
             drop(DropReason.TransportDisconnect);
         }
 
-        void transport_WriteCallback(TcpTransport trans)
+        private void transport_WriteCallback(TcpTransport trans)
         {
             throw new NotImplementedException();
         }
 
-        void transport_ReadCallback(TcpTransport trans)
+        private void transport_ReadCallback(TcpTransport trans)
         {
             throw new NotImplementedException();
         }
@@ -116,30 +122,40 @@ namespace EricIsAMAZING
         {
             throw new NotImplementedException();
         }
+
         private void onHeaderWritten(Connection conn)
         {
             throw new NotImplementedException();
         }
+
         private void onErrorHeaderWritten(Connection con)
         {
             throw new NotImplementedException();
         }
+
         private void onHeaderLengthRead(Connection connection, byte[] data, int size, bool success)
         {
             throw new NotImplementedException();
         }
+
         private void readTransport()
         {
             throw new NotImplementedException();
         }
+
         private void writeTransport()
         {
             throw new NotImplementedException();
         }
     }
+
     public delegate void ConnectFunc(Connection connection);
+
     public delegate void DisconnectFunc(Connection connection, Connection.DropReason reason);
+
     public delegate void HeaderReceivedFunc(Connection connection, Header header);
+
     public delegate void WriteFinishedFunc(Connection connection);
+
     public delegate void ReadFinishedFunc(Connection connection, byte[] data, int size, bool success);
 }

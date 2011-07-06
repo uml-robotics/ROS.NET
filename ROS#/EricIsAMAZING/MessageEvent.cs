@@ -1,27 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+﻿#region USINGZ
+
+using System;
+using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
+#endregion
+
 namespace EricIsAMAZING
 {
-    public class MessageEvent<M> : IMessageEvent where M : m.IRosMessage, new()
+    public class MessageEvent<M> : IMessageEvent where M : IRosMessage, new()
     {
+        #region Delegates
+
         public delegate M SpecCreateFunction();
+
+        #endregion
+
         public SpecCreateFunction speccreate;
-        public static CreateFunction convert(SpecCreateFunction spec)
-        {
-            return () => (m.IRosMessage)spec.Invoke();
-        }
-        public static SpecCreateFunction convert(CreateFunction spec)
-        {
-            return () => (M)spec.Invoke();
-        }
-        public MessageEvent() : base()
+
+        public MessageEvent()
         {
         }
 
@@ -30,7 +29,7 @@ namespace EricIsAMAZING
         {
         }
 
-        public MessageEvent(MessageEvent<M> rhs, bool needcopy) : base(rhs,needcopy)
+        public MessageEvent(MessageEvent<M> rhs, bool needcopy) : base(rhs, needcopy)
         {
         }
 
@@ -45,6 +44,7 @@ namespace EricIsAMAZING
         {
             speccreate = convert(c);
         }
+
         public MessageEvent(M msg) : base(msg)
         {
         }
@@ -63,42 +63,49 @@ namespace EricIsAMAZING
         {
             speccreate = c;
         }
+
         public MessageEvent(M msg, string head, DateTime rec, bool needcopy, CreateFunction c)
             : base(msg, head, rec, needcopy, c)
         {
             speccreate = convert(c);
         }
-        public override void init(m.IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
+
+        public static CreateFunction convert(SpecCreateFunction spec)
+        {
+            return () => (IRosMessage) spec.Invoke();
+        }
+
+        public static SpecCreateFunction convert(CreateFunction spec)
+        {
+            return () => (M) spec.Invoke();
+        }
+
+        public override void init(IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
         {
             base.init(msg, connhead, rec, needcopy, c);
             speccreate = convert(c);
         }
+
         public new M getMessage()
         {
-            return (M)base.getMessage();
+            return (M) base.getMessage();
         }
-
     }
 
     public class IMessageEvent
     {
-        public m.IRosMessage getMessage()
-        {
-            if (nonconst_need_copy)
-                return new m.IRosMessage(message.Serialize());
-            return message;
-        }
-
-        public static CreateFunction DefaultCreator = () => new m.IRosMessage();
-        public m.IRosMessage message;
+        public static CreateFunction DefaultCreator = () => new IRosMessage();
         public string connection_header;
-        public DateTime receipt_time;
-        public bool nonconst_need_copy;
         public CreateFunction create;
+        public IRosMessage message;
+        public bool nonconst_need_copy;
+        public DateTime receipt_time;
+
         public IMessageEvent()
         {
             nonconst_need_copy = false;
         }
+
         public IMessageEvent(IMessageEvent rhs)
         {
             message = rhs.message;
@@ -107,33 +114,46 @@ namespace EricIsAMAZING
             nonconst_need_copy = rhs.nonconst_need_copy;
             create = rhs.create;
         }
+
         public IMessageEvent(IMessageEvent rhs, bool needcopy)
             : this(rhs)
         {
             nonconst_need_copy = needcopy;
         }
+
         public IMessageEvent(IMessageEvent rhs, CreateFunction c)
             : this(rhs.message, rhs.connection_header, rhs.receipt_time, rhs.nonconst_need_copy, c)
         {
         }
-        public IMessageEvent(m.IRosMessage msg)
+
+        public IMessageEvent(IRosMessage msg)
             : this(msg, msg.connection_header, DateTime.Now, true, DefaultCreator)
         {
         }
-        public IMessageEvent(m.IRosMessage msg, DateTime rec)
+
+        public IMessageEvent(IRosMessage msg, DateTime rec)
             : this(msg, msg.connection_header, rec, true, DefaultCreator)
         {
         }
-        public IMessageEvent(m.IRosMessage msg, string head, DateTime rec)
+
+        public IMessageEvent(IRosMessage msg, string head, DateTime rec)
             : this(msg, head, rec, true, DefaultCreator)
         {
         }
-        public IMessageEvent(m.IRosMessage msg, string conhead, DateTime rectime, bool needcopy, CreateFunction c)
+
+        public IMessageEvent(IRosMessage msg, string conhead, DateTime rectime, bool needcopy, CreateFunction c)
         {
             init(msg, conhead, rectime, needcopy, c);
         }
 
-        public virtual void init(m.IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
+        public IRosMessage getMessage()
+        {
+            if (nonconst_need_copy)
+                return new IRosMessage(message.Serialize());
+            return message;
+        }
+
+        public virtual void init(IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
         {
             message = msg;
             connection_header = connhead;
@@ -143,5 +163,5 @@ namespace EricIsAMAZING
         }
     }
 
-    public delegate m.IRosMessage CreateFunction();
+    public delegate IRosMessage CreateFunction();
 }

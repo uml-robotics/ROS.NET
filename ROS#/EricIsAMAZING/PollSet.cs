@@ -1,21 +1,28 @@
-﻿using System;
+﻿#region USINGZ
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.Net.Sockets;
+
+#endregion
+
 namespace EricIsAMAZING
 {
     public class PollSet
     {
-        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
-        public object socket_info_mutex = new object(), just_deleted_mutex = new object();
-        public List<Socket> just_deleted = new List<Socket>();
-        public bool sockets_changed;
-        public List<PollFD> ufds = new List<PollFD>();
+        #region Delegates
+
         public delegate void SocketUpdateFunc(int stufftodo);
 
+        #endregion
+
+        public List<Socket> just_deleted = new List<Socket>();
+        public object just_deleted_mutex = new object();
         public object signal_mutex = new object();
+
+        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
+        public object socket_info_mutex = new object();
+        public bool sockets_changed;
+        public List<PollFD> ufds = new List<PollFD>();
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
@@ -24,7 +31,7 @@ namespace EricIsAMAZING
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo() { sock = s, func = update_func, transport = trans };
+            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -98,7 +105,7 @@ namespace EricIsAMAZING
 
                 int revents = ufds[i].events;
 
-                if (func != null && ((events & revents)!=0 || (revents & 0x008)!=0 || (revents & 0x010)!=0 || (revents & 0x020)!=0))
+                if (func != null && ((events & revents) != 0 || (revents & 0x008) != 0 || (revents & 0x010) != 0 || (revents & 0x020) != 0))
                 {
                     bool skip = false;
                     if ((revents & (0x008 | 0x010 | 0x020)) != 0)
@@ -134,7 +141,7 @@ namespace EricIsAMAZING
                 ufds.Clear();
                 foreach (SocketInfo info in socket_info.Values)
                 {
-                    ufds.Add(new PollFD() {events = info.events, sock = info.sock, revents = 0});
+                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
                 }
             }
         }
@@ -142,16 +149,16 @@ namespace EricIsAMAZING
 
     public class SocketInfo
     {
-        public TcpTransport transport;
+        public int events;
         public PollSet.SocketUpdateFunc func;
         public Socket sock;
-        public int events;
+        public TcpTransport transport;
     }
 
     public class PollFD
     {
-        public Socket sock;
         public int events;
         public int revents;
+        public Socket sock;
     }
 }

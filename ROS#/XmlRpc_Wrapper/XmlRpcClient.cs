@@ -9,13 +9,17 @@ namespace XmlRpc_Wrapper
 {
     public static class WrapperTest
     {
-        [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int IntegerEcho(int val);
+        #region Delegates
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void balls(int val);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint="IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl)]
+        #endregion
+
+        [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int IntegerEcho(int val);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl)]
         public static extern void IntegerEchoFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] balls callback);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
@@ -25,21 +29,7 @@ namespace XmlRpc_Wrapper
 
     public class XmlRpcClient : XmlRpcSource, IDisposable
     {
-        public bool IsNull { get { return instance == IntPtr.Zero; } }
-
         public string HostUri = "";
-
-        private bool Create(string HostName, int Port, string Uri)
-        {
-            HostUri = "http://" + HostName + ":" + Port + Uri;
-            IntPtr testcreate = create(HostName, Port, Uri);
-            if (testcreate != IntPtr.Zero)
-            {
-                instance = testcreate;
-                return true;
-            }
-            return false;
-        }
 
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
@@ -74,106 +64,67 @@ namespace XmlRpc_Wrapper
 
         public bool IsFault
         {
-            get
-            {
-                return isfault(instance);
-            }
+            get { return isfault(instance); }
         }
 
         public string Host
         {
-            get
-            {
-                return gethost(instance);
-            }
+            get { return gethost(instance); }
         }
 
         public string Uri
         {
-            get
-            {
-                return geturi(instance);
-            }
+            get { return geturi(instance); }
         }
 
         public int Port
         {
-            get
-            {
-                return getport(instance);
-            }
+            get { return getport(instance); }
         }
 
         public string Request
         {
-            get
-            {
-                return getrequest(instance);
-            }
+            get { return getrequest(instance); }
         }
 
         public string Header
         {
-            get
-            {
-                return getheader(instance);
-            }
+            get { return getheader(instance); }
         }
 
         public string Response
         {
-            get
-            {
-                return getresponse(instance);
-            }
+            get { return getresponse(instance); }
         }
 
         public int SendAttempts
         {
-            get
-            {
-                return getsendattempts(instance);
-            }
+            get { return getsendattempts(instance); }
         }
 
         public int BytesWritten
         {
-            get
-            {
-                return getbyteswritten(instance);
-            }
+            get { return getbyteswritten(instance); }
         }
 
         public bool Executing
         {
-            get
-            {
-                return getexecuting(instance);
-            }
+            get { return getexecuting(instance); }
         }
 
         public bool EOF
         {
-            get
-            {
-                return geteof(instance);
-            }
+            get { return geteof(instance); }
         }
 
         public int ContentLength
         {
-            get
-            {
-                return getcontentlength(instance);
-            }
+            get { return getcontentlength(instance); }
         }
 
         public IntPtr XmlRpcDispatch
         {
-            get
-            {
-                return getxmlrpcdispatch(instance);
-            }
+            get { return getxmlrpcdispatch(instance); }
         }
 
         #endregion
@@ -202,6 +153,11 @@ namespace XmlRpc_Wrapper
         }
 
         #endregion
+
+        public bool IsNull
+        {
+            get { return instance == IntPtr.Zero; }
+        }
 
         #region IDisposable Members
 
@@ -282,6 +238,18 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr getxmlrpcdispatch(IntPtr target);
 
         #endregion
+
+        private bool Create(string HostName, int Port, string Uri)
+        {
+            HostUri = "http://" + HostName + ":" + Port + Uri;
+            IntPtr testcreate = create(HostName, Port, Uri);
+            if (testcreate != IntPtr.Zero)
+            {
+                instance = testcreate;
+                return true;
+            }
+            return false;
+        }
 
         public bool Close()
         {

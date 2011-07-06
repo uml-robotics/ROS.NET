@@ -1,44 +1,51 @@
-﻿using System;
-using System.Collections;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Messages;
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class TopicManager
     {
+        #region Delegates
+
+        public delegate byte[] SerializeFunc();
+
+        #endregion
+
         private static TopicManager _instance;
+
+        private List<Publication> advertised_topics = new List<Publication>();
+        private object advertised_topics_mutex = new object();
+        private List<string> advertised_topics_names = new List<string>();
+        private object advertised_topics_names_mutex = new object();
+        private ConnectionManager connection_manager;
+        private PollManager poll_manager;
+        private bool shutting_down;
+        private object shutting_down_mutex = new object();
+        private object subs_mutex = new object();
+        private List<Subscription> subscriptions = new List<Subscription>();
+        private XmlRpcManager xmlrpc_manager;
+
         public static TopicManager Instance()
         {
             if (_instance == null) _instance = new TopicManager();
             return _instance;
         }
 
-        private bool shutting_down;
-        private object shutting_down_mutex = new object();
-        private object subs_mutex = new object();
-        private List<Subscription> subscriptions = new List<Subscription>();
-        private object advertised_topics_mutex = new object();
-        List<Publication> advertised_topics = new List<Publication>();
-        List<string> advertised_topics_names = new List<string>();
-        private object advertised_topics_names_mutex = new object();
-        private PollManager poll_manager;
-        private ConnectionManager connection_manager;
-        private XmlRpcManager xmlrpc_manager;
         public void Start()
         {
             Console.WriteLine("STARTING TOPICS MANAGER");
-            lock (shutting_down_mutex) 
+            lock (shutting_down_mutex)
             {
                 shutting_down = false;
 
@@ -101,6 +108,7 @@ namespace EricIsAMAZING
                 }
             }
         }
+
         public void getAdvertisedTopics(ref List<string> topics)
         {
             lock (advertised_topics_names_mutex)
@@ -108,6 +116,7 @@ namespace EricIsAMAZING
                 topics = new List<string>(advertised_topics_names);
             }
         }
+
         public void getSubscribedTopics(ref List<string> topics)
         {
             lock (subs_mutex)
@@ -116,6 +125,7 @@ namespace EricIsAMAZING
                 topics.AddRange(subscriptions.Select(s => s.name));
             }
         }
+
         public Publication lookupPublication(string topic)
         {
             lock (advertised_topics_mutex)
@@ -135,7 +145,8 @@ namespace EricIsAMAZING
             if (ops.datatype == "")
                 throw new Exception("Advertising on topic [" + ops.topic + "] with an empty datatype");
             if (ops.message_definition == "")
-                Console.WriteLine("Danger, Will Robinson... Advertising on topic [" + ops.topic + "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
+                Console.WriteLine
+                    ("Danger, Will Robinson... Advertising on topic [" + ops.topic + "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
@@ -146,7 +157,9 @@ namespace EricIsAMAZING
                 {
                     if (pub.Md5sum != ops.md5sum)
                     {
-                        Console.WriteLine("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]", ops.topic, ops.md5sum, ops.datatype, pub.Md5sum, pub.DataType);
+                        Console.WriteLine
+                            ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]", ops.topic, ops.md5sum,
+                             ops.datatype, pub.Md5sum, pub.DataType);
                         return false;
                     }
                     pub.addCallbacks(callbacks);
@@ -182,7 +195,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool subscribe<T>(SubscribeOptions<T> ops) where T : m.IRosMessage, new()
+        public bool subscribe<T>(SubscribeOptions<T> ops) where T : IRosMessage, new()
         {
             lock (subs_mutex)
             {
@@ -211,7 +224,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : m.IRosMessage, new()
+        public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : IRosMessage, new()
         {
             return new Exception("Subscribing to topic [" + ops.topic + "] " + reason);
         }
@@ -263,6 +276,7 @@ namespace EricIsAMAZING
             }
             return 0;
         }
+
         public int getNumSubscribers(string topic)
         {
             lock (advertised_topics_mutex)
@@ -274,6 +288,7 @@ namespace EricIsAMAZING
                 return 0;
             }
         }
+
         public int getNumSubscriptions()
         {
             lock (subs_mutex)
@@ -281,12 +296,11 @@ namespace EricIsAMAZING
                 return subscriptions.Count;
             }
         }
+
         public void publish<M>(string topic, M message) where M : IRosMessage
         {
             publish(topic, message.Serialize, message);
         }
-
-        public delegate byte[] SerializeFunc();
 
         public void publish(string topic, SerializeFunc serfunc, IRosMessage msg)
         {
@@ -334,18 +348,20 @@ namespace EricIsAMAZING
             if (pub != null)
                 pub.incrementSequence();
         }
+
         public bool isLatched(string topic)
         {
             Publication pub = lookupPublication(topic);
             if (pub != null) return pub.Latch;
             return false;
         }
+
         public bool md5sumsMatch(string lhs, string rhs)
         {
             return (lhs == "*" || rhs == "*" || lhs == rhs);
         }
 
-        public bool addSubCallback<M>(SubscribeOptions<M> ops) where M : m.IRosMessage, new()
+        public bool addSubCallback<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
             bool found = false;
             bool found_topic = false;
@@ -365,9 +381,11 @@ namespace EricIsAMAZING
             if (sub == null)
                 throw new Exception("SOMEHOW, THE SUBSCRIPTION IN addSubCallback<M> IS NULL! SCREW THAT JAZZ!");
             if (found_topic && !found)
-                throw new Exception("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" + sub.md5sum + "]");
+                throw new Exception
+                    ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +
+                     sub.md5sum + "]");
             else if (found)
-                if (!sub.addCallback<M>(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks))
+                if (!sub.addCallback(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks))
                     return false;
             return found;
         }
@@ -392,7 +410,7 @@ namespace EricIsAMAZING
 
                 if (proto_name == "TCPROS")
                 {
-                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int)connection_manager.TCPPort);
+                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int) connection_manager.TCPPort);
                     ret.Set(0, new XmlRpcValue(1));
                     ret.Set(1, "");
                     ret.Set(2, tcp_ros_params);
@@ -457,6 +475,7 @@ namespace EricIsAMAZING
             master.execute("unregisterSubscriber", args, out result, out payload, false);
             return true;
         }
+
         public bool unregisterPublisher(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = null, payload = null;
@@ -464,7 +483,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-       public  Publication lookupPublicationWithoutLock(string topic)
+        public Publication lookupPublicationWithoutLock(string topic)
         {
             Publication t = null;
             foreach (Publication p in advertised_topics)
@@ -482,7 +501,7 @@ namespace EricIsAMAZING
         {
             lock (advertised_topics_mutex)
             {
-                foreach(Publication pub in advertised_topics)
+                foreach (Publication pub in advertised_topics)
                 {
                     pub.processPublishQueue();
                 }
@@ -496,17 +515,17 @@ namespace EricIsAMAZING
             subscribe_stats.Size = 0;
             service_stats.Size = 0;
             int pidx = 0;
-            lock(advertised_topics_mutex)
+            lock (advertised_topics_mutex)
             {
-                foreach(Publication t in advertised_topics)
+                foreach (Publication t in advertised_topics)
                 {
                     publish_stats.Set(pidx++, t.GetStats());
                 }
             }
             int sidx = 0;
-            lock(subs_mutex)
+            lock (subs_mutex)
             {
-                foreach(Subscription t in subscriptions)
+                foreach (Subscription t in subscriptions)
                 {
                     subscribe_stats.Set(sidx++, t.GetStats());
                 }
@@ -519,16 +538,16 @@ namespace EricIsAMAZING
         public void getBusInfo(ref XmlRpcValue info)
         {
             info.Size = 0;
-            lock(advertised_topics_mutex)
+            lock (advertised_topics_mutex)
             {
-                foreach(Publication t in advertised_topics)
+                foreach (Publication t in advertised_topics)
                 {
                     t.getInfo(ref info);
                 }
             }
-            lock(subs_mutex)
+            lock (subs_mutex)
             {
-                foreach(Subscription t in subscriptions)
+                foreach (Subscription t in subscriptions)
                 {
                     t.getInfo(ref info);
                 }
@@ -538,7 +557,7 @@ namespace EricIsAMAZING
         public void getSubscriptions(ref XmlRpcValue subs)
         {
             subs.Size = 0;
-            lock(subs_mutex)
+            lock (subs_mutex)
             {
                 int sidx = 0;
                 foreach (Subscription t in subscriptions)
@@ -554,7 +573,7 @@ namespace EricIsAMAZING
         public void getPublications(ref XmlRpcValue pubs)
         {
             pubs.Size = 0;
-            lock(advertised_topics_mutex)
+            lock (advertised_topics_mutex)
             {
                 int sidx = 0;
                 foreach (Publication t in advertised_topics)
@@ -588,12 +607,12 @@ namespace EricIsAMAZING
             return false;
         }
 
-        public void pubUpdateCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+        public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
             List<string> pubs = new List<string>();
-            for(int idx=0;idx < parm.Get(2).Size;idx++)
+            for (int idx = 0; idx < parm.Get(2).Size; idx++)
                 pubs.Add(parm.Get(2).Get<string>(idx));
             if (pubUpdate(parm.Get<string>(1), pubs))
                 XmlRpcManager.Instance().responseInt(1, "", 0)(result);
@@ -604,7 +623,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public void requestTopicCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+        public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
@@ -615,7 +634,8 @@ namespace EricIsAMAZING
                 XmlRpcManager.Instance().responseInt(0, last_error, 0)(result);
             }
         }
-        public void getBusStatusCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+
+        public void getBusStatusCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
@@ -625,7 +645,8 @@ namespace EricIsAMAZING
             getBusStats(ref response);
             res.Set(2, response);
         }
-        public void getBusInfoCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+
+        public void getBusInfoCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
@@ -635,7 +656,8 @@ namespace EricIsAMAZING
             getBusInfo(ref response);
             res.Set(2, response);
         }
-        public void getSubscriptionsCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+
+        public void getSubscriptionsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;
@@ -645,7 +667,8 @@ namespace EricIsAMAZING
             getSubscriptions(ref response);
             res.Set(2, response);
         }
-        public void getPublicationsCallback([In][Out]IntPtr parms, [In][Out]IntPtr result)
+
+        public void getPublicationsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
             result = res.instance;

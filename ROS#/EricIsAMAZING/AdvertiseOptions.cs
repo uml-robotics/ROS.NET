@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace EricIsAMAZING
+﻿namespace EricIsAMAZING
 {
     public class AdvertiseOptions : StuffOptions
     {
-        public bool latch = false, has_header;
-        public string topic, md5sum, datatype, message_definition;
         public SubscriberStatusCallback connectCB;
+        public string datatype;
         public SubscriberStatusCallback disconnectCB;
+        public bool has_header;
+        public bool latch;
+        public string md5sum;
+        public string message_definition;
+        public string topic;
+
         public AdvertiseOptions()
         {
         }
@@ -33,7 +33,7 @@ namespace EricIsAMAZING
 
         public static AdvertiseOptions Create(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
         {
-            return new AdvertiseOptions(topic, q_size, connectcallback, disconnectcallback) { Callback = queue };
+            return new AdvertiseOptions(topic, q_size, connectcallback, disconnectcallback) {Callback = queue};
         }
     }
 }

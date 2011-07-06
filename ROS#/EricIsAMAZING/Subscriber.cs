@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
+using System.Diagnostics;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -24,12 +26,6 @@ namespace EricIsAMAZING
         {
         }
 
-        public void shutdown()
-        {
-            if (impl != null)
-                impl.unsubscribe();
-        }
-
         public int NumPublishers
         {
             get
@@ -40,6 +36,12 @@ namespace EricIsAMAZING
                 }
                 return 0;
             }
+        }
+
+        public void shutdown()
+        {
+            if (impl != null)
+                impl.unsubscribe();
         }
     }
 
@@ -61,18 +63,32 @@ namespace EricIsAMAZING
         {
             return lhs.impl == rhs.impl;
         }
+
         public static bool operator !=(ISubscriber lhs, ISubscriber rhs)
         {
             return lhs.impl != rhs.impl;
         }
+
+        internal void unsubscribe()
+        {
+            impl.unsubscribe();
+        }
+
+        #region Nested type: Impl
+
         public class Impl
         {
+            public double constructed = DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).Ticks;
             public ISubscriptionCallbackHelper helper;
-            public bool unsubscribed;
-            public double constructed = DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).Ticks;
-            public string topic;
             public NodeHandle nodehandle;
-            public bool IsValid { get { return !unsubscribed; } }
+            public string topic;
+            public bool unsubscribed;
+
+            public bool IsValid
+            {
+                get { return !unsubscribed; }
+            }
+
             public void unsubscribe()
             {
                 if (!unsubscribed)
@@ -83,9 +99,6 @@ namespace EricIsAMAZING
             }
         }
 
-        internal void unsubscribe()
-        {
-            impl.unsubscribe();
-        }
+        #endregion
     }
 }

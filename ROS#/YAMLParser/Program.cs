@@ -12,13 +12,16 @@ namespace YAMLParser
 {
     internal class Program
     {
+        public static List<string> types = new List<string>();
+        public static List<string> namespaces = new List<string>();
+        public static string backhalf;
+        public static string fronthalf;
+
         public static string outputdir
         {
             get { return "YAMLProjectDir"; }
         }
 
-        public static List<string> types = new List<string>();
-        public static List<string> namespaces = new List<string>();
         private static void Main(string[] args)
         {
             List<string> paths = new List<string>();
@@ -176,8 +179,6 @@ namespace YAMLParser
             }
         }
 
-        public static string backhalf;
-        public static string fronthalf;
         public new static string ToString()
         {
             if (fronthalf == null)
@@ -207,10 +208,10 @@ namespace YAMLParser
             }
             fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static Dictionary<TypeEnum, Type> Types = new Dictionary<TypeEnum, Type>()\n\t\t{";
             fronthalf += "\n\t\t\t{TypeEnum.Unknown, null},";
-            for(int i=0;i<types.Count;i++)
+            for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{TypeEnum." + types[i] + ", typeof("+(namespaces[i].Length>0?namespaces[i]+".":"") + types[i] + ")}";
+                fronthalf += "{TypeEnum." + types[i] + ", typeof(" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ")}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -282,7 +283,7 @@ namespace YAMLParser
                 wasnull = true;
                 fronthalf = "";
                 backhalf = "";
-                    //"\t\tpublic byte[] Serialize()\n\t\t{\n\t\t\treturn SerializationHelper.Serialize<Data>(data);\n\t}\n}\n";
+                //"\t\tpublic byte[] Serialize()\n\t\t{\n\t\t\treturn SerializationHelper.Serialize<Data>(data);\n\t}\n}\n";
                 string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
                 bool hitvariablehole = false;
                 for (int i = 0; i < lines.Length; i++)
@@ -318,30 +319,31 @@ namespace YAMLParser
             }
             if (wasnull)
             {
-                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\t"+
-                    "public  "+ classname+"()\n\t\t{ type = TypeEnum."+classname+"; }\n\n\t\t"
-                   +"public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
-                        ? "\t\t\tHasHeader = true;\n"
-                        : "\t\t\tHasHeader = false;\n") +
-                   (KnownSize
-                        ? "\t\t\tKnownSize = true;\n"
-                        : "\t\t\tKnownSize = false;\n") + "\t\t\tdata = d;\n\t\t}\n" +
+                fronthalf += "\tpublic class " + classname + " : IRosMessage\n\t{\n\t\tpublic Data data;\n\n\t\t" +
+                             "public  " + classname + "()\n\t\t{ type = TypeEnum." + classname + "; }\n\n\t\t"
+                             + "public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
+                                                                                                             ? "\t\t\tHasHeader = true;\n"
+                                                                                                             : "\t\t\tHasHeader = false;\n") +
+                             (KnownSize
+                                  ? "\t\t\tKnownSize = true;\n"
+                                  : "\t\t\tKnownSize = false;\n") + "\t\t\tdata = d;\n\t\t}\n" +
                              "\n\t\tpublic " + classname +
                              "(byte[] SERIALIZEDSTUFF)\n\t\t\t : this()\n\t\t{\n" + (HasHeader
-                        ? "\t\t\tHasHeader = true;\n"
-                        : "\t\t\tHasHeader = false;\n") +
-                   (KnownSize
-                        ? "\t\t\tKnownSize = true;\n"
-                        : "\t\t\tKnownSize = false;\n") + "\t\t\tDeserialize(SERIALIZEDSTUFF);\n\t\t}\n\n\t\t" + "public override void Deserialize(byte[] SERIALIZEDSTUFF)\n\t\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
+                                                                                         ? "\t\t\tHasHeader = true;\n"
+                                                                                         : "\t\t\tHasHeader = false;\n") +
+                             (KnownSize
+                                  ? "\t\t\tKnownSize = true;\n"
+                                  : "\t\t\tKnownSize = false;\n") + "\t\t\tDeserialize(SERIALIZEDSTUFF);\n\t\t}\n\n\t\t" +
+                             "public override void Deserialize(byte[] SERIALIZEDSTUFF)\n\t\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
             }
             string ret = fronthalf +
-                   /*(objects.Length > 0
+                         /*(objects.Length > 0
                 ? "\t\tpublic object[] Data\n\t\t{\n\t\t\tget { return new[] {" + objects + "}; }\n\t\t}\n" : 
                 "\t\tpublic object[] Data\n\t\t{\n\t\t\tget { return new object[0]; }\n\t\t}\n")+*/
-                   /*(types.Length>0 ? ("\n\t\tpublic Type[] dataTypes = new []{"+types+"\t\t};\n") : "") +*/
-                   "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct Data\n\t\t{\n" +
-                   memoizedcontent + "\t\t}\n\t}\n" +
-                   backhalf;
+                         /*(types.Length>0 ? ("\n\t\tpublic Type[] dataTypes = new []{"+types+"\t\t};\n") : "") +*/
+                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct Data\n\t\t{\n" +
+                         memoizedcontent + "\t\t}\n\t}\n" +
+                         backhalf;
             return ret;
         }
 
@@ -480,7 +482,7 @@ namespace YAMLParser
                     string[] split = othershit.Split('=');
                     othershit = split[0] + " = (" + type + ")" + split[1];
                 }*/
-                output = "\t\tpublic " +(isconst?"const ":"")+ type + (KnownSize ? "" : ".Data") + " " + name + othershit + ";";
+                output = "\t\tpublic " + (isconst ? "const " : "") + type + (KnownSize ? "" : ".Data") + " " + name + othershit + ";";
             }
             else
             {

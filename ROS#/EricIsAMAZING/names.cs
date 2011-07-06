@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -34,30 +35,36 @@ namespace EricIsAMAZING
             }
             return true;
         }
+
         public static string clean(string name)
         {
-            return name.Replace("//", "/").TrimEnd('/'); 
+            return name.Replace("//", "/").TrimEnd('/');
         }
+
         public static string append(string left, string right)
         {
             return clean(left + "/" + right);
         }
+
         public static string remap(string name)
         {
             Console.WriteLine("remap(" + name + ")");
             string resolved = resolve(name, false);
             if (resolved_remappings.Contains("name"))
-                return (string)resolved_remappings["name"];
+                return (string) resolved_remappings["name"];
             return name;
         }
-        public static string resolve(string name, bool doremap=true)
+
+        public static string resolve(string name, bool doremap = true)
         {
             return resolve(this_node.Namespace, name, doremap);
         }
+
         internal static void InvalidName(string error)
         {
             throw new Exception("INVALID NAME -- " + error);
         }
+
         public static string resolve(string ns, string name, bool doremap = true)
         {
             string error = "";
@@ -80,12 +87,13 @@ namespace EricIsAMAZING
                 copy = remap(copy);
             return copy;
         }
+
         public static void Init(IDictionary remappings)
         {
             foreach (object k in remappings.Keys)
             {
-                string left = (string)k;
-                string right = (string)remappings[k];
+                string left = (string) k;
+                string right = (string) remappings[k];
                 if (left != "" && left[0] != '_')
                 {
                     string resolved_left = resolve(left, false);
@@ -95,9 +103,10 @@ namespace EricIsAMAZING
                 }
             }
         }
+
         public static string parentNamespace(string name)
         {
-            string error="";
+            string error = "";
             if (!validate(name, ref error))
                 InvalidName(error);
             if (name != "") return "";

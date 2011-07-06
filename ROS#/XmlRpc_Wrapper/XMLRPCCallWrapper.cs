@@ -1,30 +1,22 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Text;
+
+#endregion
 
 namespace XmlRpc_Wrapper
 {
     public class XMLRPCCallWrapper : IDisposable
     {
         private static Dictionary<IntPtr, XMLRPCCallWrapper> _instances = new Dictionary<IntPtr, XMLRPCCallWrapper>();
-        public static XMLRPCCallWrapper LookUp(IntPtr ptr)
-        {
-            if (!_instances.ContainsKey(ptr)) return null;
-            return _instances[ptr];
-        }
+
+        private XMLRPCFunc _FUNC;
+
+        public IntPtr instance;
         public string name;
         public XmlRpcServer server;
-        private XMLRPCFunc _FUNC;
-        public XMLRPCFunc FUNC
-        {
-            get { return _FUNC; }
-            set { SetFunc((_FUNC = value)); }
-        }
-        public IntPtr instance;
 
         public XMLRPCCallWrapper(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
@@ -37,6 +29,29 @@ namespace XmlRpc_Wrapper
             else
                 throw new Exception("DUPLICATE ADDRESS ZOMG!");
             FUNC = func;
+        }
+
+        public XMLRPCFunc FUNC
+        {
+            get { return _FUNC; }
+            set { SetFunc((_FUNC = value)); }
+        }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (_instances.ContainsKey(instance))
+                _instances.Remove(instance);
+            FUNC = null;
+        }
+
+        #endregion
+
+        public static XMLRPCCallWrapper LookUp(IntPtr ptr)
+        {
+            if (!_instances.ContainsKey(ptr)) return null;
+            return _instances[ptr];
         }
 
         public void SetFunc(XMLRPCFunc func)
@@ -59,6 +74,7 @@ namespace XmlRpc_Wrapper
         }
 
         #region P/Invoke
+
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create([In] [MarshalAs(UnmanagedType.LPWStr)] string name, IntPtr server);
 
@@ -67,17 +83,11 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Execute", CallingConvention = CallingConvention.Cdecl)]
         private static extern void execute(IntPtr target, IntPtr parms, IntPtr res);
-        #endregion
 
-        public void Dispose()
-        {
-            if (_instances.ContainsKey(instance))
-                _instances.Remove(instance);
-            FUNC = null;
-        }
+        #endregion
     }
 
-        
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void XMLRPCFunc([In][Out] IntPtr addrofparams, [In][Out] IntPtr addrofresult);
+    public delegate void XMLRPCFunc([In] [Out] IntPtr addrofparams, [In] [Out] IntPtr addrofresult);
 }

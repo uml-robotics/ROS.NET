@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
+﻿#region USINGZ
+
+using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
+#endregion
+
 namespace EricIsAMAZING
 {
-    public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : m.IRosMessage, new()
+    public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
-        
+
         public SubscriptionCallbackHelper(M msg)
         {
             type = msg.type;
@@ -26,9 +26,8 @@ namespace EricIsAMAZING
 
     public class ISubscriptionCallbackHelper
     {
-        public m.TypeEnum type = m.TypeEnum.Unknown;
-
         private CallbackQueueInterface Callback;
+        public TypeEnum type = TypeEnum.Unknown;
 
         protected ISubscriptionCallbackHelper()
         {
@@ -48,7 +47,7 @@ namespace EricIsAMAZING
         {
         }
 
-        public virtual m.TypeEnum getTypeInfo()
+        public virtual TypeEnum getTypeInfo()
         {
             return type;
         }
@@ -62,8 +61,8 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelperDeserializeParams
     {
         public byte[] buffer;
-        public int length;
         public string connection_header;
+        public int length;
     }
 
     public class SubscriptionCallbackHelperCallParams
@@ -71,18 +70,15 @@ namespace EricIsAMAZING
         public IMessageEvent Event;
     }
 
-    public class ParameterAdapter<P> : IParameterAdapter where P : m.IRosMessage
+    public class ParameterAdapter<P> : IParameterAdapter where P : IRosMessage
     {
-        
     }
 
     public abstract class IParameterAdapter
     {
-
     }
 
     public class MessageStuff<T>
     {
-
     }
 }

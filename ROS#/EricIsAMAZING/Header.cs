@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
 using System.Collections;
-using SerializationHelper = Messages.SerializationHelper;
+using System.Text;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -24,10 +25,11 @@ namespace EricIsAMAZING
                 if (chunks.Length != 2)
                     return false;
                 Values[chunks[0].Trim()] = chunks[1].Trim();
-                i += (int)size;
+                i += (int) size;
             }
             return true;
         }
+
         private static byte[] concat(byte[] a, byte[] b)
         {
             byte[] result;
@@ -36,6 +38,7 @@ namespace EricIsAMAZING
             Array.Copy(b, 0, result, a.Length, b.Length);
             return result;
         }
+
         public void Write(IDictionary dict, ref byte[] buffer, ref int totallength)
         {
             buffer = new byte[0];
@@ -43,8 +46,8 @@ namespace EricIsAMAZING
             foreach (object k in dict.Keys)
             {
                 int linelength = 0;
-                byte[] key = Encoding.ASCII.GetBytes((string)k);
-                byte[] val = Encoding.ASCII.GetBytes((string)dict[k]);
+                byte[] key = Encoding.ASCII.GetBytes((string) k);
+                byte[] val = Encoding.ASCII.GetBytes((string) dict[k]);
                 totallength += val.Length + key.Length + 1 + 4;
                 linelength = val.Length + key.Length + 1;
                 buffer = concat(buffer, ByteLength(linelength));
@@ -58,7 +61,7 @@ namespace EricIsAMAZING
 
         private static byte[] ByteLength(int num)
         {
-            return ByteLength((uint)num);
+            return ByteLength((uint) num);
         }
 
         private static byte[] ByteLength(uint num)

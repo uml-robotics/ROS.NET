@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Win32;
+﻿#region USINGZ
+
+using System;
 using System.Runtime.InteropServices;
+
+#endregion
 
 namespace XmlRpc_Wrapper
 {
@@ -11,33 +11,29 @@ namespace XmlRpc_Wrapper
     {
         public IntPtr instance;
 
-        internal virtual void Close()
-        {
-            close(instance);
-        }
-
         public int FD
         {
             get { return getfd(instance); }
             set { setfd(instance, value); }
         }
+
         public bool KeepOpen
         {
             get { return getkeepopen(instance); }
             set { setkeepopen(instance, value); }
         }
 
-        internal virtual UInt16 HandleEvent(UInt16 eventType)
-        {
-            return handleevent(instance, eventType);
-        }
+        #region IDisposable Members
 
         public void Dispose()
         {
             Close();
         }
 
+        #endregion
+
         #region P/Invoke
+
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_Close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void close(IntPtr target);
 
@@ -55,6 +51,17 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
+
         #endregion
+
+        internal virtual void Close()
+        {
+            close(instance);
+        }
+
+        internal virtual UInt16 HandleEvent(UInt16 eventType)
+        {
+            return handleevent(instance, eventType);
+        }
     }
 }

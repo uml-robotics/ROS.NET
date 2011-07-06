@@ -1,19 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class TcpTransport
     {
+        #region Delegates
+
+        public delegate void AcceptCallback(TcpTransport trans);
+
+        public delegate void DisconnectFunc(TcpTransport trans, Connection.DropReason reason);
+
+        public delegate void HeaderReceivedFunc(TcpTransport trans, Header header);
+
+        public delegate void ReadFinishedFunc(TcpTransport trans);
+
+        public delegate void WriteFinishedFunc(TcpTransport trans);
+
+        #endregion
+
+        #region Flags enum
+
+        public enum Flags
+        {
+            SYNCHRONOUS = 1 << 0
+        }
+
+        #endregion
+
+        private const int bytesperlong = 4; // 32 / 8
+        private const int bitsperbyte = 8;
+
+        public static bool use_keepalive;
+        public AcceptCallback accept_cb;
+        public string cached_remote_host;
+        public object close_mutex = new object();
+        public bool closed;
+        public string connected_host;
+        public int connected_port;
+        public DisconnectFunc disconnect_cb;
+        public int events;
+        public bool expecting_read;
+        public bool expecting_write;
+        public int flags;
+        public bool is_server;
+        public bool no_delay;
+        public PollSet poll_set;
+        public ReadFinishedFunc read_cb;
+        public IPEndPoint server_address;
+        public int server_port = -1;
+        private Socket sock;
+        public WriteFinishedFunc write_cb;
+
         public TcpTransport()
         {
-
         }
+
+        public TcpTransport(PollSet pollset, int flags = 0)
+        {
+            poll_set = pollset;
+            this.flags = flags;
+            Console.WriteLine("Making a fucking socket, MOTHERFUCKER!");
+        }
+
+        public string ClientURI
+        {
+            get { return sock.RemoteEndPoint.ToString(); }
+        }
+
         public virtual bool getRequiresHeader()
         {
             return true;
@@ -22,33 +81,10 @@ namespace EricIsAMAZING
         public event DisconnectFunc DisconnectCallback;
         public event WriteFinishedFunc WriteCallback;
         public event ReadFinishedFunc ReadCallback;
-        public ReadFinishedFunc read_cb;
-        public WriteFinishedFunc write_cb;
-        public DisconnectFunc disconnect_cb;
-        public static bool use_keepalive;
-        public int server_port = -1;
-        public bool no_delay;
-        public int connected_port;
-        Socket sock;
-        public bool closed;
-        public object close_mutex = new object();
-        public bool expecting_read;
-        public bool expecting_write;
-        public bool is_server;
-        public IPEndPoint server_address;
-        public AcceptCallback accept_cb;
-        public string cached_remote_host;
-        public PollSet poll_set;
-        public int flags;
-        public string connected_host;
-        public int events = 0;
-        public string ClientURI
-        {
-            get { return sock.RemoteEndPoint.ToString(); }
-        }
+
         public bool setNonBlocking()
         {
-            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
             {
                 try
                 {
@@ -78,11 +114,6 @@ namespace EricIsAMAZING
             }
         }
 
-        public enum Flags
-        {
-            SYNCHRONOUS = 1<<0
-        }
-
         public void enableRead()
         {
             lock (close_mutex)
@@ -108,6 +139,7 @@ namespace EricIsAMAZING
                 expecting_read = false;
             }
         }
+
         public void enableWrite()
         {
             lock (close_mutex)
@@ -132,13 +164,6 @@ namespace EricIsAMAZING
                 poll_set.delEvents(sock, 0x004);
                 expecting_write = false;
             }
-        }
-
-        public TcpTransport(PollSet pollset, int flags = 0)
-        {
-            poll_set = pollset;
-            this.flags = flags;
-            Console.WriteLine("Making a fucking socket, MOTHERFUCKER!");
         }
 
         public bool connect(string host, int port)
@@ -194,20 +219,17 @@ namespace EricIsAMAZING
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
                 enableRead();
             return true;
         }
-
-        const int bytesperlong = 4; // 32 / 8
-        const int bitsperbyte = 8;
 
         private bool setKeepAlive(Socket sock, ulong time, ulong interval)
         {
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[3];
@@ -224,10 +246,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -242,12 +264,13 @@ namespace EricIsAMAZING
             }
             return true;
         }
+
         private bool setKeepAlive(Socket sock, ulong time, ulong interval, ulong count)
         {
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[4];
@@ -264,10 +287,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -289,8 +312,8 @@ namespace EricIsAMAZING
             for (int i = 0; i < b.Length; i++)
             {
                 s += "" + b[i].ToString("x") + " ";
-                if (i % 4 == 0) s += "     ";
-                if (i % 16 == 0 && i != b.Length - 1) s += "\n";
+                if (i%4 == 0) s += "     ";
+                if (i%16 == 0 && i != b.Length - 1) s += "\n";
             }
             Console.WriteLine(s);
         }
@@ -309,7 +332,7 @@ namespace EricIsAMAZING
                     return;
                 }
 
-                if (!setKeepAlive(sock, (ulong)idle, (ulong)interval, (ulong)count) && !setKeepAlive(sock, (ulong)idle, (ulong)interval))
+                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) && !setKeepAlive(sock, (ulong) idle, (ulong) interval))
                     Console.WriteLine("FAIL!");
             }
             else
@@ -394,7 +417,6 @@ namespace EricIsAMAZING
             }
 
 
-
             return true;
         }
 
@@ -403,7 +425,7 @@ namespace EricIsAMAZING
             sock = s;
             return initializeSocket();
         }
-            
+
         public TcpTransport accept()
         {
             Socket acc = sock.Accept();
@@ -490,10 +512,5 @@ namespace EricIsAMAZING
                 close();
             }
         }
-        public delegate void AcceptCallback(TcpTransport trans);
-        public delegate void DisconnectFunc(TcpTransport trans, Connection.DropReason reason);
-        public delegate void HeaderReceivedFunc(TcpTransport trans, Header header);
-        public delegate void WriteFinishedFunc(TcpTransport trans);
-        public delegate void ReadFinishedFunc(TcpTransport trans);
     }
 }

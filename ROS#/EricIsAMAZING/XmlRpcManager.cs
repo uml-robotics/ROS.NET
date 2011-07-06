@@ -1,40 +1,54 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
-using XmlRpc_Wrapper;
-using m=Messages;
-using gm=Messages.geometry_msgs;
-using nm=Messages.nav_msgs;
 using System.Threading;
-using System.Collections;
-using System.Collections.Generic;
+using XmlRpc_Wrapper;
+using m = Messages;
+using gm = Messages.geometry_msgs;
+using nm = Messages.nav_msgs;
+
+#endregion
+
 namespace EricIsAMAZING
 {
     public class XmlRpcManager : IDisposable
     {
-        public string uri;
+        private static XmlRpcManager _instance;
+        private List<AsyncXmlRpcConnection> added_connections = new List<AsyncXmlRpcConnection>();
+        private object added_connections_mutex = new object();
+        private List<CachedXmlRpcClient> clients = new List<CachedXmlRpcClient>();
+        private object clients_mutex = new object();
+        private List<AsyncXmlRpcConnection> connections = new List<AsyncXmlRpcConnection>();
+        private Dictionary<string, FunctionInfo> functions = new Dictionary<string, FunctionInfo>();
+        private object functions_mutex = new object();
+        private XMLRPCFunc getPid;
         public int port;
-        public bool shutting_down;
+        private List<AsyncXmlRpcConnection> removed_connections = new List<AsyncXmlRpcConnection>();
+        private object removed_connections_mutex = new object();
+        private XmlRpcServer server;
         public Thread server_thread;
-        XmlRpcServer server;
+        public bool shutting_down;
         public bool unbind_requested;
-        List<CachedXmlRpcClient> clients = new List<CachedXmlRpcClient>();
-        object clients_mutex = new object();
-        List<AsyncXmlRpcConnection> added_connections = new List<AsyncXmlRpcConnection>();
-        List<AsyncXmlRpcConnection> removed_connections = new List<AsyncXmlRpcConnection>();
-        object added_connections_mutex = new object();
-        object removed_connections_mutex = new object();
-        List<AsyncXmlRpcConnection> connections = new List<AsyncXmlRpcConnection>();
-        public class FunctionInfo
+        public string uri;
+
+        public XmlRpcManager()
         {
-            public string name;
-            public XMLRPCFunc function;
-            public XMLRPCCallWrapper wrapper;
+            server = new XmlRpcServer();
+            getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            shutdown();
+        }
+
+        #endregion
+
         public void serverThreadFunc()
         {
             while (!shutting_down)
@@ -78,8 +92,6 @@ namespace EricIsAMAZING
             }
         }
 
-        object functions_mutex = new object();
-        Dictionary<string, FunctionInfo> functions = new System.Collections.Generic.Dictionary<string, FunctionInfo>();
         public bool validateXmlrpcResponse(string method, XmlRpcValue response, out XmlRpcValue payload)
         {
             payload = null;
@@ -98,6 +110,7 @@ namespace EricIsAMAZING
             payload = new XmlRpcValue(response.Get(2));
             return true;
         }
+
         private bool validateFailed(string method, string errorfmat, params object[] info)
         {
             Console.WriteLine("XML-RPC Call [{0}] {1}", method, string.Format(errorfmat, info));
@@ -106,7 +119,6 @@ namespace EricIsAMAZING
 
         public XmlRpcClient getXMLRPCClient(string host, int port, string uri)
         {
-
             XmlRpcClient c = null;
             lock (clients_mutex)
             {
@@ -172,7 +184,7 @@ namespace EricIsAMAZING
             {
                 if (functions.ContainsKey(function_name))
                     return false;
-                functions.Add(function_name, new FunctionInfo { name = function_name, function = cb, wrapper = new XMLRPCCallWrapper(function_name, cb, server) });
+                functions.Add(function_name, new FunctionInfo {name = function_name, function = cb, wrapper = new XMLRPCCallWrapper(function_name, cb, server)});
             }
             return true;
         }
@@ -188,61 +200,51 @@ namespace EricIsAMAZING
         }
 
 
-
         public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
         {
-            return new Action<IntPtr>((p)=>
-                {
-                    XmlRpcValue v = XmlRpcValue.LookUp(p);
-                    if (v == null)
-                        v = new XmlRpcValue(p);
-                    v.Set(0, new XmlRpcValue(code));
-                    v.Set(1, new XmlRpcValue(msg));
-                    v.Set(2, new XmlRpcValue(response));
-                });
+            return (p) =>
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           if (v == null)
+                               v = new XmlRpcValue(p);
+                           v.Set(0, new XmlRpcValue(code));
+                           v.Set(1, new XmlRpcValue(msg));
+                           v.Set(2, new XmlRpcValue(response));
+                       };
         }
 
         public Action<IntPtr> responseInt(int code, string msg, int response)
         {
-            return new Action<IntPtr>((p) =>
-                                          {
-                                              XmlRpcValue v = XmlRpcValue.LookUp(p);
-                                              if (v == null)
-                                                  v = new XmlRpcValue(p);
-                                              v.Set(0, new XmlRpcValue(code));
-                                              v.Set(1, new XmlRpcValue(msg));
-                                              v.Set(2, new XmlRpcValue(response));
-                                          });
+            return (p) =>
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           if (v == null)
+                               v = new XmlRpcValue(p);
+                           v.Set(0, new XmlRpcValue(code));
+                           v.Set(1, new XmlRpcValue(msg));
+                           v.Set(2, new XmlRpcValue(response));
+                       };
         }
 
         public Action<IntPtr> responseBool(int code, string msg, bool response)
         {
-            return new Action<IntPtr>((p) =>
-                                          {
-                                              XmlRpcValue v = XmlRpcValue.LookUp(p);
-                                              if (v == null)
-                                                  v = new XmlRpcValue(p);
-                                              v.Set(0, new XmlRpcValue(code));
-                                              v.Set(1, new XmlRpcValue(msg));
-                                              v.Set(2, new XmlRpcValue(response));
-                                          });
+            return (p) =>
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           if (v == null)
+                               v = new XmlRpcValue(p);
+                           v.Set(0, new XmlRpcValue(code));
+                           v.Set(1, new XmlRpcValue(msg));
+                           v.Set(2, new XmlRpcValue(response));
+                       };
         }
 
-        private static XmlRpcManager _instance;
         public static XmlRpcManager Instance()
         {
             if (_instance == null) _instance = new XmlRpcManager();
             return _instance;
         }
 
-        public XmlRpcManager()
-        {
-            server = new XmlRpcServer();
-            getPid = new XMLRPCFunc((parms, result) => responseInt(1, "", (int)System.Diagnostics.Process.GetCurrentProcess().Id)(result));
-        }
-
-        XMLRPCFunc getPid;
-        
         public void Start()
         {
             shutting_down = false;
@@ -257,12 +259,11 @@ namespace EricIsAMAZING
                 throw new Exception("RPCServer's port is invalid");
             uri = "http://" + network.host + ":" + port + "/";
 
-            Console.WriteLine("XmlRpc IN THE HIZI ("+uri+" FOR SHIZI");
-            server_thread = new Thread(new ThreadStart(serverThreadFunc));
+            Console.WriteLine("XmlRpc IN THE HIZI (" + uri + " FOR SHIZI");
+            server_thread = new Thread(serverThreadFunc);
             server_thread.IsBackground = true;
             server_thread.Start();
         }
-
 
 
         internal void shutdown()
@@ -298,10 +299,16 @@ namespace EricIsAMAZING
             }
         }
 
-        public void Dispose()
+        #region Nested type: FunctionInfo
+
+        public class FunctionInfo
         {
-            shutdown();
+            public XMLRPCFunc function;
+            public string name;
+            public XMLRPCCallWrapper wrapper;
         }
+
+        #endregion
     }
 
     public class CachedXmlRpcClient
@@ -309,6 +316,7 @@ namespace EricIsAMAZING
         public XmlRpcClient client;
         public bool in_use;
         public DateTime last_use_time;
+
         public CachedXmlRpcClient(XmlRpcClient c)
         {
             client = c;

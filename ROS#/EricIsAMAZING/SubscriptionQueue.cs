@@ -1,27 +1,27 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Threading;
 
+#endregion
 
 namespace EricIsAMAZING
 {
     public class SubscriptionQueue : CallbackInterface
     {
-        public class Item
-        {
-            public ISubscriptionCallbackHelper helper;
-            public bool nonconst_need_copy;
-            public DateTime receipt_time;
-            public IMessageDeserializer deserializer;
-        }
+        public bool _full;
+        public bool allow_concurrent_callbacks;
 
+        public bool callback_mutex;
         public Queue<Item> queue = new Queue<Item>();
+        public object queue_mutex = new object();
+
+        public uint queue_size;
+        public int size;
+        public string topic;
 
         public SubscriptionQueue(string topic, int queue_size, bool allow_concurrent_callbacks)
         {
@@ -32,7 +32,7 @@ namespace EricIsAMAZING
             this.queue_size = 0;
         }
 
-        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,  ref bool was_full, DateTime receipt_time = default(DateTime))
+        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, DateTime receipt_time = default(DateTime))
         {
             if (receipt_time == default(DateTime)) receipt_time = DateTime.Now;
             lock (queue_mutex)
@@ -52,7 +52,7 @@ namespace EricIsAMAZING
                     _full = false;
             }
 
-            Item i = new Item { helper = helper, deserializer=deserializer, nonconst_need_copy = nonconst_need_copy, receipt_time = receipt_time };
+            Item i = new Item {helper = helper, deserializer = deserializer, nonconst_need_copy = nonconst_need_copy, receipt_time = receipt_time};
             queue.Enqueue(i);
             ++queue_size;
         }
@@ -71,7 +71,7 @@ namespace EricIsAMAZING
             callback_mutex = false;
         }
 
-        public virtual CallbackInterface.CallResult call()
+        public virtual CallResult call()
         {
             if (!allow_concurrent_callbacks)
             {
@@ -100,14 +100,12 @@ namespace EricIsAMAZING
         {
             return true;
         }
-        
+
         private bool fullNoLock()
         {
             return size > 0 && queue_size >= size;
         }
 
-        public string topic;
-        public int size;
         public bool full()
         {
             lock (queue_mutex)
@@ -115,13 +113,17 @@ namespace EricIsAMAZING
                 return fullNoLock();
             }
         }
-        public bool _full;
 
-        public object queue_mutex = new object();
+        #region Nested type: Item
 
-        public uint queue_size;
-        public bool allow_concurrent_callbacks;
+        public class Item
+        {
+            public IMessageDeserializer deserializer;
+            public ISubscriptionCallbackHelper helper;
+            public bool nonconst_need_copy;
+            public DateTime receipt_time;
+        }
 
-        public bool callback_mutex = false;
+        #endregion
     }
 }

@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
+using System.Diagnostics;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class Publisher<M> : IPublisher
     {
-
         public Publisher()
         {
-
         }
 
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
@@ -30,15 +30,20 @@ namespace EricIsAMAZING
     }
 
     public class Impl
-    {  
-        public string topic;
-        public string md5sum;
-        public string datatype;
-        public NodeHandle nodeHandle;
+    {
         public SubscriberCallbacks callbacks;
+        public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+        public string datatype;
+        public string md5sum;
+        public NodeHandle nodeHandle;
+        public string topic;
         public bool unadvertised;
-        public double constructed = (int)Math.Floor(DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds);
-        public bool IsValid { get { return !unadvertised; } }
+
+        public bool IsValid
+        {
+            get { return !unadvertised; }
+        }
+
         internal void unadvertise()
         {
             if (!unadvertised)

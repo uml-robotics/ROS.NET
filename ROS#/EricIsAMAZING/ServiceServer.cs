@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
+using System.Diagnostics;
+
+#endregion
 
 namespace EricIsAMAZING
 {
@@ -18,18 +20,26 @@ namespace EricIsAMAZING
             // TODO: Complete member initialization
         }
     }
+
     public class IServiceServer
     {
         public Impl impl;
 
+        #region Nested type: Impl
+
         public class Impl
         {
-            public string service;
+            public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
             public NodeHandle nodeHandle;
-            public double constructed = (int)Math.Floor(DateTime.Now.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+            public string service;
             public bool unadvertised;
-            public bool IsValid { get { return !unadvertised; } }
-                internal void unadvertise()
+
+            public bool IsValid
+            {
+                get { return !unadvertised; }
+            }
+
+            internal void unadvertise()
             {
                 if (!unadvertised)
                 {
@@ -38,5 +48,7 @@ namespace EricIsAMAZING
                 }
             }
         }
+
+        #endregion
     }
 }
