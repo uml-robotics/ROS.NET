@@ -319,6 +319,7 @@ namespace YAMLParser
             }
             if (wasnull)
             {
+#if CLASS
                 fronthalf += "\tpublic class " + classname + " : TypedMessage<"+classname+".Data>\n\t{"/*+"\n\t\tpublic Data data;"*/+"\n\n\t\t" +
                              "public  " + classname + "()\n\t\t{ type = TypeEnum." + classname + "; }\n\n\t\t"
                              + "public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
@@ -335,14 +336,20 @@ namespace YAMLParser
                                   ? "\t\t\tKnownSize = true;\n"
                                   : "\t\t\tKnownSize = false;\n") + "\t\t\tDeserialize(SERIALIZEDSTUFF);\n\t\t}\n\n\t\t" +
                              "public override void Deserialize(byte[] SERIALIZEDSTUFF)\n\t\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
+#endif
             }
             string ret = fronthalf +
-                         /*(objects.Length > 0
-                ? "\t\tpublic object[] Data\n\t\t{\n\t\t\tget { return new[] {" + objects + "}; }\n\t\t}\n" : 
-                "\t\tpublic object[] Data\n\t\t{\n\t\t\tget { return new object[0]; }\n\t\t}\n")+*/
-                         /*(types.Length>0 ? ("\n\t\tpublic Type[] dataTypes = new []{"+types+"\t\t};\n") : "") +*/
-                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct Data\n\t\t{\n" +
-                         memoizedcontent + "\t\t}\n\t}\n" +
+                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct "+
+#if CLASS
+                         "Data"+
+#else
+                         classname+
+#endif
+                         "\n\t\t{\n" +
+                         memoizedcontent + "\t\t}"+
+#if CLASS
+                         "\n\t}\n" +
+#endif
                          backhalf;
             return ret;
         }
