@@ -348,9 +348,9 @@ namespace YAMLParser
                          "\n\t\t{\n" +
                          memoizedcontent + "\t\t}"+
 #if CLASS
-                         "\n\t}\n" +
+                         "\n\t}" +
 #endif
-                         backhalf;
+                         "\n"+backhalf;
             return ret;
         }
 
