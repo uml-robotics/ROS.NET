@@ -489,7 +489,7 @@ namespace YAMLParser
                     string[] split = othershit.Split('=');
                     othershit = split[0] + " = (" + type + ")" + split[1];
                 }*/
-                output = "\t\tpublic " + (isconst ? "const " : "") + type + (KnownSize ? "" : ".Data") + " " + name + othershit + ";";
+                output = "\t\tpublic " + (isconst ? "const " : "") + /*(KnownSize ? "" : "m.") +*/ type + " " + name + othershit + ";";
             }
             else
             {
@@ -505,7 +505,7 @@ namespace YAMLParser
                     string[] split = othershit.Split('=');
                     othershit = split[0] + " = (" + type + ")" + split[1];
                 }
-                output = "\t\tpublic " + type + (KnownSize ? "" : ".Data") + "[] " + name + othershit + ";";
+                output = "\t\tpublic " + /*(KnownSize ? "" : "m.") +*/ type +  "[] " + name + othershit + ";";
             }
             Type = type;
             if (name.Length == 0)
