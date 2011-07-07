@@ -25,15 +25,22 @@ namespace EricIsAMAZING
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            helper = new SubscriptionCallbackHelper<T>(new T());
+            helper = new SubscriptionCallbackHelper<T>(new T().type);
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackQueue cb)
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> cb)
         {
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            Callback = cb;
+            helper = new SubscriptionCallbackHelper<T>(new T().type, cb);
+        }
+
+        public SubscribeOptions(string topic, int queue_size, CallbackQueueInterface cb)
+        {
+            // TODO: Complete member initialization
+            this.topic = topic;
+            this.queue_size = queue_size;
             helper = new SubscriptionCallbackHelper<T>(cb);
         }
     }
@@ -43,4 +50,6 @@ namespace EricIsAMAZING
         public CallbackQueueInterface Callback;
         public int queue_size;
     }
+
+    public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();
 }

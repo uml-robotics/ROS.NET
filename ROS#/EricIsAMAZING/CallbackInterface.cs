@@ -8,10 +8,24 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
+    public class Callback<T> : CallbackInterface where T : m.IRosMessage, new()
+    {
+        public CallbackDelegate<T> func = null;
+
+        public Callback()
+        {
+        }
+
+        public Callback(CallbackDelegate<T> f)
+        {
+            func = f;
+        }
+    }
+
     public class CallbackInterface
     {
         #region CallResult enum
-
+        
         public enum CallResult
         {
             Success,

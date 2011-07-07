@@ -211,7 +211,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{TypeEnum." + types[i] + ", typeof(" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ")}";
+                fronthalf += "{TypeEnum." + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }

@@ -124,12 +124,24 @@ namespace EricIsAMAZING
             return new Publisher<M>();
         }
 
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : IRosMessage, new()
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackDelegate<TypedMessage<M>> cb) where M : struct
         {
-            return subscribe(new SubscribeOptions<M>(topic, queue_size, cb));
+            return subscribe<M>(topic, queue_size, new Callback<TypedMessage<M>>(cb));
         }
 
-        public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb) where M : struct
+        {
+            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size);
+            ops.Callback.addCallback(cb);
+            return subscribe(ops);
+        }
+
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : struct
+        {
+            return subscribe(new SubscribeOptions<TypedMessage<M>>(topic, queue_size, cb));
+        }
+
+        public Subscriber<TypedMessage<M>> subscribe<M>(SubscribeOptions<TypedMessage<M>> ops) where M : struct
         {
             ops.topic = resolveName(ops.topic);
             if (ops.Callback == null)
@@ -141,14 +153,14 @@ namespace EricIsAMAZING
             }
             if (TopicManager.Instance().subscribe(ops))
             {
-                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, new SubscriptionCallbackHelper<M>(ops.Callback));
+                Subscriber<TypedMessage<M>> sub = new Subscriber<TypedMessage<M>>(ops.topic, this, new SubscriptionCallbackHelper<TypedMessage<M>>(ops.Callback));
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);
                 }
                 return sub;
             }
-            return new Subscriber<M>();
+            return new Subscriber<TypedMessage<M>>();
         }
 
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, Func<MReq, MRes> srv_func)

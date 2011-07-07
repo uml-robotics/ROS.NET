@@ -13,9 +13,15 @@ namespace EricIsAMAZING
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
 
-        public SubscriptionCallbackHelper(M msg)
+        public SubscriptionCallbackHelper(m.TypeEnum t, CallbackDelegate<M> cb)
         {
-            type = msg.type;
+            type = t;
+            Callback.addCallback(new Callback<M>(cb));
+        }
+
+        public SubscriptionCallbackHelper(TypeEnum t)
+        {
+            type = t;
         }
 
         public SubscriptionCallbackHelper(CallbackQueueInterface q)
@@ -26,8 +32,9 @@ namespace EricIsAMAZING
 
     public class ISubscriptionCallbackHelper
     {
-        private CallbackQueueInterface Callback;
-        public TypeEnum type = TypeEnum.Unknown;
+        public CallbackQueueInterface Callback;
+
+        public TypeEnum type;
 
         protected ISubscriptionCallbackHelper()
         {

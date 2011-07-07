@@ -20,7 +20,7 @@ namespace ConsoleApplication1
 
         public static WrapperTest.balls BALLS;
 
-        public static void chatterCallback(String msg)
+        public static void chatterCallback(m.TypedMessage<String> msg)
         {
             Console.WriteLine("HOLY FUCKSTICK!");
         }
@@ -44,7 +44,7 @@ namespace ConsoleApplication1
             ROS.Init(args, "ERICRULZ");
             ROS.start();
             NodeHandle nh = new NodeHandle();
-            Subscriber<String> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
+            Subscriber<m.TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {

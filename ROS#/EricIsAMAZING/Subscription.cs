@@ -30,7 +30,7 @@ namespace EricIsAMAZING
         public bool IsDropped { get { return _dropped; } }
         private bool _dropped;
         public Dictionary<m.TypeEnum, IMessageDeserializer> cached_deserializers = new Dictionary<m.TypeEnum, IMessageDeserializer>();
-
+        public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
         public Subscription(string n, string md5s, string dt)
         {
             name = n;
@@ -130,14 +130,22 @@ namespace EricIsAMAZING
 
         public void removePublisherLink(PublisherLink pub)
         {
-            throw new NotImplementedException();
+            lock (publisher_links_mutex)
+            {
+                if (publisher_links.Contains(pub))
+                {
+                    publisher_links.Remove(pub);
+                }
+                if (pub.Latched)
+                    latched_messages.Remove(pub);
+            }
         }
 
         public void addPublisherLink(PublisherLink pub)
         {
-            throw new NotImplementedException();
+            publisher_links.Add(pub);
         }
-        public bool PubUpdate(List<string> pubs)
+        public bool pubUpdate(List<string> pubs)
         {
             lock (shutdown_mutex)
             {
@@ -351,14 +359,18 @@ namespace EricIsAMAZING
 
         public void headerReceived(PublisherLink link, Header header)
         {
-            throw new NotImplementedException();
+            lock (md5sum_mutex)
+            {
+                if (md5sum == "*")
+                    md5sum = link.md5sum;
+            }
         }
 
-        internal ulong handleMessage(m.IRosMessage msg, bool ser, bool nocopy, IDictionary iDictionary, TransportPublisherLink transportPublisherLink)
+        internal ulong handleMessage(m.IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header, TransportPublisherLink link)
         {
             lock (callbacks_mutex)
             {
-                int drops = 0;
+                ulong drops = 0;
                 cached_deserializers.Clear();
                 DateTime receipt_time = DateTime.Now;
                 foreach (ICallbackInfo info in callbacks)
@@ -385,12 +397,33 @@ namespace EricIsAMAZING
                             info.callback.addCallback(info.subscription_queue, info.Get());
                     }
                 }
+
+                if (link.Latched)
+                {
+                    LatchInfo li = new LatchInfo { message = msg, link = link, connection_header = connection_header, receipt_time = receipt_time };
+                    if (latched_messages.ContainsKey(link))
+                        latched_messages[link] = li;
+                    else
+                        latched_messages.Add(link, li);
+                }
+
+                cached_deserializers.Clear();
+                return drops;
             }
+        }
+
+        public class LatchInfo
+        {
+            public m.IRosMessage message;
+            public PublisherLink link;
+            public IDictionary connection_header;
+            public DateTime receipt_time;
         }
 
         public IMessageDeserializer MakeDeserializer(m.TypeEnum type)
         {
             if (type == m.TypeEnum.Unknown) return null;
+            return ROS.MakeDeserializer(ROS.MakeMessage<m.IRosMessage>(type));
             return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(m.TypeHelper.Types[type].GetGenericArguments()));
         }
 
@@ -447,13 +480,57 @@ namespace EricIsAMAZING
                 }
 
                 callbacks.Add(info);
+
+                if (latched_messages.Count > 0)
+                {
+                    lock (publisher_links_mutex)
+                    {
+                        foreach (PublisherLink link in publisher_links)
+                        {
+                            if (link.Latched)
+                            {
+                                if (latched_messages.ContainsKey(link))
+                                {
+                                    LatchInfo latch_info = latched_messages[link];
+                                    IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message, latch_info.connection_header);
+                                    bool was_full = false;
+                                    info.subscription_queue.push(info.helper, des, true, ref was_full, latch_info.receipt_time);
+                                    if (!was_full)
+                                        info.callback.addCallback(info.subscription_queue, (ulong)info.Get());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        public void removeCallback(ISubscriptionCallbackHelper helper)
+        {
+            lock (callbacks_mutex)
+            {
+                foreach (ICallbackInfo info in callbacks)
+                {
+                    if (info.helper == helper)
+                    {
+                        info.subscription_queue.clear();
+                        info.callback.removeByID(info.Get());
+                        callbacks.Remove(info);
+                        if (!helper.isConst())
+                            --nonconst_callbacks;
+                        break;
+                    }
+                }
             }
         }
 
-        public void addLocalConnection(Subscription sub)
+        public void addLocalConnection(Publication pub)
         {
             throw new Exception("NO LOCAL CONNECTIONS, BUTTHEAD");
         }
+
+
 
         #region Nested type: CallbackInfo
 
@@ -484,5 +561,6 @@ namespace EricIsAMAZING
         }
 
         #endregion
+
     }
 }

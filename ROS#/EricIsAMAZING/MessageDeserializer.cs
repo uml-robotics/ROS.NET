@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System.Collections;
 using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
@@ -11,7 +12,8 @@ namespace EricIsAMAZING
 {
     public class MessageDeserializer<M> : IMessageDeserializer where M : IRosMessage, new()
     {
-        public MessageDeserializer(SubscriptionCallbackHelper<M> helper, M m, string connection_header) : base(helper, m, connection_header)
+        public MessageDeserializer(SubscriptionCallbackHelper<M> helper, M m, IDictionary connection_header)
+            : base(helper, m, connection_header)
         {
         }
 
@@ -28,11 +30,11 @@ namespace EricIsAMAZING
 
     public class IMessageDeserializer
     {
-        public string connection_header;
+        public IDictionary connection_header;
         public ISubscriptionCallbackHelper helper;
         public IRosMessage message;
 
-        public IMessageDeserializer(ISubscriptionCallbackHelper helper, IRosMessage m, string connection_header)
+        public IMessageDeserializer(ISubscriptionCallbackHelper helper, IRosMessage m, IDictionary connection_header)
         {
             this.helper = helper;
             message = m;

@@ -195,7 +195,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool subscribe<T>(SubscribeOptions<T> ops) where T : IRosMessage, new()
+        public bool subscribe<T>(SubscribeOptions<TypedMessage<T>> ops) where T : struct
         {
             lock (subs_mutex)
             {
@@ -224,7 +224,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : IRosMessage, new()
+        public Exception subscribeFail<T>(SubscribeOptions<TypedMessage<T>> ops, string reason) where T : struct
         {
             return new Exception("Subscribing to topic [" + ops.topic + "] " + reason);
         }
@@ -465,7 +465,7 @@ namespace EricIsAMAZING
 
             s.pubUpdate(pub_uris);
             if (self_subscribed)
-                s.addLocalConnection(s);
+                s.addLocalConnection(pub);
             return true;
         }
 
@@ -527,7 +527,7 @@ namespace EricIsAMAZING
             {
                 foreach (Subscription t in subscriptions)
                 {
-                    subscribe_stats.Set(sidx++, t.GetStats());
+                    subscribe_stats.Set(sidx++, t.getStats());
                 }
             }
             stats.Set(0, publish_stats);

@@ -9,7 +9,7 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        public static T Deserialize<T>(byte[] bytes) where T : struct
+        public static T Deserialize<T>(byte[] bytes)
         {
             T thestructure = default(T);
             IntPtr pIP = Marshal.AllocHGlobal(Marshal.SizeOf(thestructure));
@@ -39,7 +39,7 @@ namespace Messages
         }
     }
 
-    public class TypedMessage<M> : IRosMessage where M : struct
+    public class TypedMessage<M> : IRosMessage
     {
         public M data;
 
