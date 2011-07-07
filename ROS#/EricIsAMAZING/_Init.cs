@@ -18,9 +18,9 @@ namespace EricIsAMAZING
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
-        public static m.IRosMessage MakeAndDownCast<T>(m.TypeEnum type)
+        public static m.IRosMessage MakeAndDownCast<T>(m.TypeEnum type) where T : struct
         {
-            return MakeAndDowncast<
+            return MakeAndDowncast<m.TypedMessage<T>, m.IRosMessage>(m.TypeHelper.Types[type].GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
