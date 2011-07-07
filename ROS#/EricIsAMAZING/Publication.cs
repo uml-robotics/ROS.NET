@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Messages;
 using XmlRpc_Wrapper;
 using m = Messages;
 using gm = Messages.geometry_msgs;
@@ -25,8 +24,8 @@ namespace EricIsAMAZING
 
         public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
         public object callbacks_mutex = new object();
-        public IRosMessage last_message;
-        public Queue<IRosMessage> publish_queue = new Queue<IRosMessage>();
+        public m.IRosMessage last_message;
+        public Queue<m.IRosMessage> publish_queue = new Queue<m.IRosMessage>();
         public object publish_queue_mutex = new object();
         public object seq_mutex = new object();
         public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
@@ -139,7 +138,7 @@ namespace EricIsAMAZING
                 peerDisconnect(lnk);
         }
 
-        public void publish(IRosMessage msg)
+        public void publish(m.IRosMessage msg)
         {
             lock (publish_queue_mutex)
                 publish_queue.Enqueue(msg);
@@ -225,7 +224,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public bool EnqueueMessage(IRosMessage msg)
+        public bool EnqueueMessage(m.IRosMessage msg)
         {
             lock (subscriber_links_mutex)
             {
@@ -239,7 +238,7 @@ namespace EricIsAMAZING
                 byte[] stuff = msg.Serialize();
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);
-                Messages.Header header = new Messages.Header(withoutlength);
+                m.TypedMessage<m.Header> header = new m.TypedMessage<Messages.Header>(withoutlength);
                 header.data.seq = seq;
                 msg = header;
             }
@@ -305,21 +304,21 @@ namespace EricIsAMAZING
 
         public void processPublishQueue()
         {
-            Queue<IRosMessage> queue = null;
+            Queue<m.IRosMessage> queue = null;
             lock (publish_queue_mutex)
             {
                 if (Dropped) return;
-                queue = new Queue<IRosMessage>(publish_queue);
+                queue = new Queue<m.IRosMessage>(publish_queue);
                 publish_queue.Clear();
             }
             if (queue == null || queue.Count == 0)
             {
-                foreach (IRosMessage msg in queue)
+                foreach (m.IRosMessage msg in queue)
                     EnqueueMessage(msg);
             }
         }
 
-        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref TypeEnum typeEnum)
+        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref m.TypeEnum typeEnum)
         {
             lock (subscriber_links_mutex)
             {

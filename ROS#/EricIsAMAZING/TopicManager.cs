@@ -465,7 +465,7 @@ namespace EricIsAMAZING
 
             s.pubUpdate(pub_uris);
             if (self_subscribed)
-                s.addLocalConnection(pub);
+                s.addLocalConnection(s);
             return true;
         }
 

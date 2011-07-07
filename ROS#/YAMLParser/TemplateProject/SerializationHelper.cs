@@ -9,7 +9,7 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        public static T Deserialize<T>(byte[] bytes)
+        public static T Deserialize<T>(byte[] bytes) where T : struct
         {
             T thestructure = default(T);
             IntPtr pIP = Marshal.AllocHGlobal(Marshal.SizeOf(thestructure));
@@ -42,6 +42,30 @@ namespace Messages
     public class TypedMessage<M> : IRosMessage where M : struct
     {
         public M data;
+
+        public TypedMessage()
+        {
+        }
+
+        public TypedMessage(M d)
+        {
+            data = d;
+        }
+
+        public TypedMessage(byte[] SERIALIZEDSTUFF)
+        {
+            Deserialize(SERIALIZEDSTUFF);
+        }
+
+        public override void Deserialize(byte[] SERIALIZEDSTUFF)
+        {
+            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF);
+        }
+
+        public override byte[] Serialize()
+        {
+            return SerializationHelper.Serialize(this);
+        }
     }
 
     public class IRosMessage
@@ -67,7 +91,7 @@ namespace Messages
             throw new NotImplementedException();
         }
 
-        public byte[] Serialize()
+        public virtual byte[] Serialize()
         {
             return null;
         }
