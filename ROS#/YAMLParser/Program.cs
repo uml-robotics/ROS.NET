@@ -196,7 +196,7 @@ namespace YAMLParser
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages.std_messages;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }
@@ -295,7 +295,7 @@ namespace YAMLParser
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
