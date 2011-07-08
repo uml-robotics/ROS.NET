@@ -149,6 +149,10 @@ namespace EricIsAMAZING
 
         public static void internalCallbackQueueThreadFunc()
         {
+            while (!shutting_down)
+            {
+                GlobalCallbackQueue.callAvailable(100);
+            }
         }
 
         public static bool isStarted()

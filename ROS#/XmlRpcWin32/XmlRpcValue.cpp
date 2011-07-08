@@ -201,8 +201,9 @@ namespace XmlRpc {
       case TypeStruct: return int(_value.asStruct->size());
       default: break;
     }
-
-    throw XmlRpcException("type error");
+	XmlRpcUtil::log(4, "Trying to get size of something without a size!");
+	return 0;
+    //throw XmlRpcException("type error");
   }
 
   // Checks for existence of struct member

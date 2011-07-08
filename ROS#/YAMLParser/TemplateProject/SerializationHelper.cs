@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -74,7 +75,7 @@ namespace Messages
         public bool KnownSize = true;
 
         public byte[] Serialized;
-        public string connection_header;
+        public IDictionary connection_header;
         public TypeEnum type = TypeEnum.Unknown;
 
         public IRosMessage()

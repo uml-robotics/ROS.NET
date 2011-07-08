@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "Callers.h"
+#include "EricRulz.h"
 using namespace XmlRpc;
 //bullshit check
 extern "C" XMLRPC_API int IntegerEcho(int val)
@@ -18,11 +19,22 @@ extern "C" XMLRPC_API bool IntegerEchoRepeat(int val)
 	CBREF(val);
 	return true;
 }
+extern "C" XMLRPC_API void StringPassingTest(const char *str)
+{
+	XmlRpcUtil::log(0, "%s", str);
+}
+EricRulz OUTREF;	
+//general
+extern "C" XMLRPC_API void SetStringOutFunc(EricRulz fptr)
+{
+	OUTREF = fptr;
+}
 
 //client
 extern "C" XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri)
 {
-	return new XmlRpc::XmlRpcClient(host, port, uri);
+	XmlRpcUtil::log(0, "Making new client http://%s:%d%s", host, port, uri);
+	return new XmlRpcClient(host, port, uri);
 }
 extern "C" XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance)
 {	
@@ -165,11 +177,11 @@ extern "C" XMLRPC_API XmlRpcValue* XmlRpcValue_Get2(XmlRpcValue* instance, const
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set1(XmlRpcValue* instance, int key, const char *value)
 {
-	instance->operator[](key) = new XmlRpcValue(value);
+	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set2(XmlRpcValue* instance, const char* key, const char *value)
 {
-	instance->operator[](key) = new XmlRpcValue(value);
+	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, int key, XmlRpcValue *value)
 {
@@ -177,6 +189,30 @@ extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, int key, XmlR
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set4(XmlRpcValue* instance, const char* key, XmlRpcValue *value)
 {	
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int key, int *value)
+{
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set6(XmlRpcValue* instance, const char* key, int *value)
+{
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, int key, bool *value)
+{
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set8(XmlRpcValue* instance, const char* key, bool *value)
+{
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, int key, double *value)
+{
+	instance->operator[](key) = value;
+}
+extern "C" XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* key, double *value)
+{
 	instance->operator[](key) = value;
 }
 

@@ -33,6 +33,8 @@
 # include <string>
 #endif
 
+
+#include "EricRulz.h"
 #include "XmlRpcClient.h"
 #include "XmlRpcException.h"
 #include "XmlRpcServer.h"
@@ -41,7 +43,6 @@
 #include "XmlRpcUtil.h"
 
 #include <stdexcept>
-
 namespace XmlRpc {
 
 

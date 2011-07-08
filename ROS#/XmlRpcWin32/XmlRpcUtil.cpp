@@ -70,22 +70,31 @@ public:
 // Error handler singleton
 XmlRpcErrorHandler* XmlRpcErrorHandler::_errorHandler = &defaultErrorHandler;
 
+extern EricRulz OUTREF;	
+
+void XmlRpcUtil::OUTFN(const char *str)
+{
+	if (OUTREF)
+		OUTREF(str);
+}
 
 // Easy API for log verbosity
 int XmlRpc::getVerbosity() { return XmlRpcLogHandler::getVerbosity(); }
 void XmlRpc::setVerbosity(int level) { XmlRpcLogHandler::setVerbosity(level); }
 
- 
-
 void XmlRpcUtil::log(int level, const char* fmt, ...)
 {
+	  va_list va;
+	  char buf[1024];
+	  va_start( va, fmt);
+	  vsnprintf(buf,sizeof(buf)-1,fmt,va);
+	  buf[sizeof(buf)-1] = 0;
+	if (level <= 4)
+	{
+	  OUTFN(buf);
+	}
   if (level <= XmlRpcLogHandler::getVerbosity())
   {
-    va_list va;
-    char buf[1024];
-    va_start( va, fmt);
-    vsnprintf(buf,sizeof(buf)-1,fmt,va);
-    buf[sizeof(buf)-1] = 0;
     XmlRpcLogHandler::getLogHandler()->log(level, buf);
   }
 }
@@ -98,6 +107,7 @@ void XmlRpcUtil::error(const char* fmt, ...)
   char buf[1024];
   vsnprintf(buf,sizeof(buf)-1,fmt,va);
   buf[sizeof(buf)-1] = 0;
+  OUTFN(buf);
   XmlRpcErrorHandler::getErrorHandler()->error(buf);
 }
 

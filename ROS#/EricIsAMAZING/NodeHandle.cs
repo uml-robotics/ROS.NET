@@ -91,17 +91,17 @@ namespace EricIsAMAZING
                 srv.impl.unadvertise();
         }
 
-        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false)
+        public Publisher<m.TypedMessage<M>> advertise<M>(string topic, int q_size, bool l = false) where M : struct
         {
             return advertise<M>(new AdvertiseOptions(topic, q_size) {latch = l});
         }
 
-        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
+        public Publisher<m.TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
         {
             return advertise<M>(new AdvertiseOptions(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
-        public Publisher<M> advertise<M>(AdvertiseOptions ops)
+        public Publisher<m.TypedMessage<M>> advertise<M>(AdvertiseOptions ops)
         {
             ops.topic = resolveName(ops.topic);
             if (ops.Callback == null)
@@ -114,14 +114,14 @@ namespace EricIsAMAZING
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
             if (TopicManager.Instance().advertise(ops, callbacks))
             {
-                Publisher<M> pub = new Publisher<M>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
+                Publisher<m.TypedMessage<M>> pub = new Publisher<m.TypedMessage<M>>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
                 lock (collection.mutex)
                 {
                     collection.publishers.Add(pub);
                 }
                 return pub;
             }
-            return new Publisher<M>();
+            return null;
         }
 
         public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackDelegate<TypedMessage<M>> cb) where M : struct

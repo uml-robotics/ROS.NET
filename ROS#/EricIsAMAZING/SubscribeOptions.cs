@@ -20,11 +20,9 @@ namespace EricIsAMAZING
         public string message_definition;
         public string topic;
 
-        public SubscribeOptions(string topic, int queue_size)
+        public SubscribeOptions(string topic, int queue_size) : this(topic, queue_size, ROS.GlobalCallbackQueue)
         {
             // TODO: Complete member initialization
-            this.topic = topic;
-            this.queue_size = queue_size;
             helper = new SubscriptionCallbackHelper<T>(new T().type);
         }
 
@@ -42,6 +40,7 @@ namespace EricIsAMAZING
             this.topic = topic;
             this.queue_size = queue_size;
             helper = new SubscriptionCallbackHelper<T>(cb);
+            Callback = cb;
         }
     }
 

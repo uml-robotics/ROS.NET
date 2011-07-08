@@ -2,16 +2,17 @@
 
 using System;
 using System.Diagnostics;
+using XmlRpc_Wrapper;
+using m = Messages;
+using gm = Messages.geometry_msgs;
+using nm = Messages.nav_msgs;
 
 #endregion
 
 namespace EricIsAMAZING
 {
-    public class Publisher<M> : IPublisher
+    public class Publisher<M> : IPublisher where M : m.IRosMessage
     {
-        public Publisher()
-        {
-        }
 
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
         {
@@ -21,6 +22,15 @@ namespace EricIsAMAZING
             impl.datatype = datatype;
             impl.nodeHandle = nodeHandle;
             impl.callbacks = callbacks;
+        }
+
+        public void publish(M msg)
+        {
+            if (impl == null)
+                return;
+            if (!impl.IsValid)
+                return;
+            TopicManager.Instance().publish(impl.topic, msg);
         }
     }
 

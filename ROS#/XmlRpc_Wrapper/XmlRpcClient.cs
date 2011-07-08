@@ -24,6 +24,15 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool IntegerEchoRepeat(int val);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void TellMeHowAwesomeIAm(string s);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "SetStringOutFunc", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetAwesomeFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] TellMeHowAwesomeIAm callback);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void StringTest([In] [MarshalAs(UnmanagedType.LPStr)] string str);
     }
 
 
@@ -69,7 +78,11 @@ namespace XmlRpc_Wrapper
 
         public string Host
         {
-            get { return gethost(instance); }
+            get
+            {
+                string ret = gethost(instance);
+                return ret;
+            }
         }
 
         public string Uri
@@ -173,9 +186,9 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create
             (
-            [In] [MarshalAs(UnmanagedType.LPWStr)] string host,
+            [In] [MarshalAs(UnmanagedType.LPStr)] string host,
             int port,
-            [In] [MarshalAs(UnmanagedType.LPWStr)] string uri);
+            [In] [MarshalAs(UnmanagedType.LPStr)] string uri);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void close(IntPtr target);
@@ -183,14 +196,14 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Execute", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool execute
             (IntPtr target,
-             [In] [MarshalAs(UnmanagedType.LPWStr)] string method,
+             [In] [MarshalAs(UnmanagedType.LPStr)] string method,
              IntPtr parameters,
              IntPtr result);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool executenonblock
             (IntPtr target,
-             [In] [MarshalAs(UnmanagedType.LPWStr)] string method, IntPtr parameters);
+             [In] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool executecheckdone(IntPtr target, IntPtr result);

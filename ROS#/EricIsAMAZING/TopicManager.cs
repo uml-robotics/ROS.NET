@@ -378,8 +378,6 @@ namespace EricIsAMAZING
                     break;
                 }
             }
-            if (sub == null)
-                throw new Exception("SOMEHOW, THE SUBSCRIPTION IN addSubCallback<M> IS NULL! SCREW THAT JAZZ!");
             if (found_topic && !found)
                 throw new Exception
                     ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +

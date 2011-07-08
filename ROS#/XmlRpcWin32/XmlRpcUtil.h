@@ -1,5 +1,8 @@
 #ifndef _XMLRPCUTIL_H_
 #define _XMLRPCUTIL_H_
+
+#include "Callers.h"
+
 //
 // XmlRpc++ Copyright (c) 2002-2003 by Chris Morley
 //
@@ -26,6 +29,9 @@ namespace XmlRpc {
   //! Utilities for XML parsing, encoding, and decoding and message handlers.
   class XmlRpcUtil {
   public:
+
+	static void OUTFN(const char *str);
+
     // hokey xml parsing
     //! Returns contents between <tag> and </tag>, updates offset to char after </tag>
     static std::string parseTag(const char* tag, std::string const& xml, int* offset);
@@ -54,7 +60,6 @@ namespace XmlRpc {
 
     //! Dump error messages somewhere
     static void error(const char* fmt, ...);
-
   };
 } // namespace XmlRpc
 

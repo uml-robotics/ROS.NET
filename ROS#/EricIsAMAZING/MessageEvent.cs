@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using Messages;
 using m = Messages;
 using gm = Messages.geometry_msgs;
@@ -54,17 +55,18 @@ namespace EricIsAMAZING
         {
         }
 
-        public MessageEvent(M msg, string head, DateTime rec)
+        public MessageEvent(M msg, IDictionary head, DateTime rec)
             : base(msg, head, rec)
         {
         }
 
-        public MessageEvent(M msg, string head, DateTime rec, bool needcopy, SpecCreateFunction c) : base(msg, head, rec, needcopy, convert(c))
+        public MessageEvent(M msg, IDictionary head, DateTime rec, bool needcopy, SpecCreateFunction c)
+            : base(msg, head, rec, needcopy, convert(c))
         {
             speccreate = c;
         }
 
-        public MessageEvent(M msg, string head, DateTime rec, bool needcopy, CreateFunction c)
+        public MessageEvent(M msg, IDictionary head, DateTime rec, bool needcopy, CreateFunction c)
             : base(msg, head, rec, needcopy, c)
         {
             speccreate = convert(c);
@@ -80,7 +82,7 @@ namespace EricIsAMAZING
             return () => (M) spec.Invoke();
         }
 
-        public override void init(IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
+        public override void init(IRosMessage msg, IDictionary connhead, DateTime rec, bool needcopy, CreateFunction c)
         {
             base.init(msg, connhead, rec, needcopy, c);
             speccreate = convert(c);
@@ -95,7 +97,7 @@ namespace EricIsAMAZING
     public class IMessageEvent
     {
         public static CreateFunction DefaultCreator = () => new IRosMessage();
-        public string connection_header;
+        public IDictionary connection_header;
         public CreateFunction create;
         public IRosMessage message;
         public bool nonconst_need_copy;
@@ -136,12 +138,12 @@ namespace EricIsAMAZING
         {
         }
 
-        public IMessageEvent(IRosMessage msg, string head, DateTime rec)
+        public IMessageEvent(IRosMessage msg, IDictionary head, DateTime rec)
             : this(msg, head, rec, true, DefaultCreator)
         {
         }
 
-        public IMessageEvent(IRosMessage msg, string conhead, DateTime rectime, bool needcopy, CreateFunction c)
+        public IMessageEvent(IRosMessage msg, IDictionary conhead, DateTime rectime, bool needcopy, CreateFunction c)
         {
             init(msg, conhead, rectime, needcopy, c);
         }
@@ -153,7 +155,7 @@ namespace EricIsAMAZING
             return message;
         }
 
-        public virtual void init(IRosMessage msg, string connhead, DateTime rec, bool needcopy, CreateFunction c)
+        public virtual void init(IRosMessage msg, IDictionary connhead, DateTime rec, bool needcopy, CreateFunction c)
         {
             message = msg;
             connection_header = connhead;

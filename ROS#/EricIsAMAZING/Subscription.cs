@@ -530,7 +530,26 @@ namespace EricIsAMAZING
             throw new Exception("NO LOCAL CONNECTIONS, BUTTHEAD");
         }
 
+        public void getPublishTypes(ref bool ser, ref bool nocopy, ref m.TypeEnum ti)
+        {
+            lock (callbacks_mutex)
+            {
+                foreach (ICallbackInfo info in callbacks)
+                {
+                    if (info.helper.type == ti)
+                        nocopy = true;
+                    else
+                        ser = true;
+                    if (nocopy && ser)
+                        return;
+                }
+            }
+        }
 
+        public int NumCallbacks
+        {
+            get { lock (callbacks_mutex) return callbacks.Count; }
+        }
 
         #region Nested type: CallbackInfo
 

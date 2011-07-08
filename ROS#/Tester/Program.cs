@@ -20,6 +20,14 @@ namespace ConsoleApplication1
 
         public static WrapperTest.balls BALLS;
 
+        public static WrapperTest.TellMeHowAwesomeIAm tellmehowawesomeiam;
+
+
+        public static void thisishowawesomeyouare(string s)
+        {
+            Console.WriteLine(s);
+        }
+
         public static void chatterCallback(m.TypedMessage<String> msg)
         {
             Console.WriteLine("HOLY FUCKSTICK!");
@@ -31,8 +39,11 @@ namespace ConsoleApplication1
             Console.WriteLine("" + WrapperTest.IntegerEcho(666));
             BALLS = (val) => Console.WriteLine("" + val.ToString());
             WrapperTest.IntegerEchoFunctionPtr(BALLS);
+            tellmehowawesomeiam = thisishowawesomeyouare;
             while (WrapperTest.IntegerEchoRepeat(balls++))
             {
+                string BALLSZOMG = "BALLS ZOMG: " + (balls - 1);
+                WrapperTest.StringTest(BALLSZOMG);
                 if (balls >= 10)
                 {
                     BALLS = null;
@@ -40,10 +51,13 @@ namespace ConsoleApplication1
                 }
                 Thread.Sleep(1);
             }
+            WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ERICRULZ");
             ROS.start();
             NodeHandle nh = new NodeHandle();
+            //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
+            //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
             Subscriber<m.TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))

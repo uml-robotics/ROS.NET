@@ -8,10 +8,15 @@ using namespace XmlRpc;
 extern "C" {
 #endif
 	//bullshit sanity check
-	typedef void (*FuncPtr)(int i);
+	typedef void (*FuncPtr)(int i);	
 	extern XMLRPC_API int IntegerEcho(int val);
-	extern XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr fptr);
+	extern XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr fptr);	
 	extern XMLRPC_API bool IntegerEchoRepeat(int val);
+	
+	extern XMLRPC_API void StringPassingTest(const char *str);
+	//general	
+	typedef void (*EricRulz)(const char *c);
+	extern XMLRPC_API void SetStringOutFunc(EricRulz fptr);	
 	//XmlRpcClient
 	extern XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri);
 	extern XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance);
@@ -54,6 +59,12 @@ extern "C" {
 	extern XMLRPC_API void XmlRpcValue_Set2(XmlRpcValue* instance, const char* key, const char *value);
 	extern XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, int key, XmlRpcValue *value);
 	extern XMLRPC_API void XmlRpcValue_Set4(XmlRpcValue* instance, const char* key, XmlRpcValue *value);
+	extern XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int key, int *value);
+	extern XMLRPC_API void XmlRpcValue_Set6(XmlRpcValue* instance, const char* key, int *value);
+	extern XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, int key, bool *value);
+	extern XMLRPC_API void XmlRpcValue_Set8(XmlRpcValue* instance, const char* key, bool *value);
+	extern XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, int key, double *value);
+	extern XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* key, double *value);
 	
 	//XmlRpcDispatch
 	extern XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create();

@@ -53,7 +53,7 @@ namespace EricIsAMAZING
                 tcpros_server_port = int.Parse((string) remappings["__tcpros_server_port"]);
             }
 
-            if (host == "")
+            if (string.IsNullOrEmpty(host))
                 host = determineHost();
         }
     }

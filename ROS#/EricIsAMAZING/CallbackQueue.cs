@@ -257,9 +257,9 @@ namespace EricIsAMAZING
                 if (!enabled) return;
                 if (callbacks.Count == 0 && timeout != 0)
                 {
-                    DateTime prewait = DateTime.Now;
+                    //DateTime prewait = DateTime.Now;
                     sem.WaitOne(timeout);
-                    Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
+                    //Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
                 }
                 if (callbacks.Count == 0 || !enabled) return;
                 bool wasempty = tls.Count == 0;
@@ -332,9 +332,16 @@ namespace EricIsAMAZING
             Count--;
             if (walk == tail)
                 tail = walkbehind;
-            walkbehind.next = walk.next;
+            if (walk != null)
+                walkbehind.next = walk.next;
+            else
+                walkbehind = null;
             walk = null;
-            if (Count == 0) current = null;
+            if (Count == 0)
+            {
+                current = null;
+                return null;
+            }
             return current.info;
         }
 

@@ -1,4 +1,3 @@
-
 #include "XmlRpcClient.h"
 
 #include "XmlRpcSocket.h"
@@ -24,7 +23,6 @@ const char XmlRpcClient::PARAM_ETAG[] =  "</param>";
 const char XmlRpcClient::REQUEST_END[] = "</methodCall>\r\n";
 const char XmlRpcClient::METHODRESPONSE_TAG[] = "<methodResponse>";
 const char XmlRpcClient::FAULT_TAG[] = "<fault>";
-
 
 //done and works
 XmlRpcClient::XmlRpcClient(const char* host, int port, const char* uri/*=0*/)

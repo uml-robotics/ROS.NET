@@ -128,7 +128,7 @@ XmlRpcServer::bindAndListen(int port, int backlog /*= 5*/)
 void 
 XmlRpcServer::work(double msTime)
 {
-  XmlRpcUtil::log(2, "XmlRpcServer::work: waiting for a connection");
+  XmlRpcUtil::log(5, "XmlRpcServer::work: waiting for a connection");
   _disp.work(msTime);
 }
 

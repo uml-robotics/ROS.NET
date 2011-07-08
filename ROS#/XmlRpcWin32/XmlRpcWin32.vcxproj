@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base64.h" />
+    <ClInclude Include="EricRulz.h" />
     <ClInclude Include="XmlRpc.h" />
     <ClInclude Include="XmlRpcClient.h" />
     <ClInclude Include="XmlRpcDispatch.h" />

@@ -12,7 +12,6 @@
 #ifndef MAKEDEPEND
 # include <string>
 #endif
-
 #include "XmlRpcDispatch.h"
 #include "XmlRpcSource.h"
 
