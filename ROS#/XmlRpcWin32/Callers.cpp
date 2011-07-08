@@ -32,12 +32,13 @@ extern "C" XMLRPC_API void SetStringOutFunc(EricRulz fptr)
 
 //client
 extern "C" XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri)
-{
+{	
 	XmlRpcUtil::log(0, "Making new client http://%s:%d%s", host, port, uri);
 	return new XmlRpcClient(host, port, uri);
 }
 extern "C" XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance)
-{	
+{
+	if (!instance) return;
 	instance->close();
 }
 extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue const& parameters, XmlRpcValue& result)
@@ -145,6 +146,7 @@ extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create8(XmlRpcValue *rhs)
 }
 extern "C" XMLRPC_API void XmlRpcValue_Clear(XmlRpcValue* instance)
 {
+	if (!instance) return;
 	instance->clear();
 }
 extern "C" XMLRPC_API bool XmlRpcValue_Valid(XmlRpcValue* instance)
@@ -161,6 +163,7 @@ extern "C" XMLRPC_API int XmlRpcValue_Size(XmlRpcValue* instance)
 }
 extern "C" XMLRPC_API void XmlRpcValue_SetSize(XmlRpcValue* instance, int size)
 {
+	if (!instance) return;
 	instance->setSize(size);
 }
 extern "C" XMLRPC_API bool XmlRpcValue_HasMember(XmlRpcValue* instance, const char* name)
@@ -177,42 +180,52 @@ extern "C" XMLRPC_API XmlRpcValue* XmlRpcValue_Get2(XmlRpcValue* instance, const
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set1(XmlRpcValue* instance, int key, const char *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set2(XmlRpcValue* instance, const char* key, const char *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, int key, XmlRpcValue *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set4(XmlRpcValue* instance, const char* key, XmlRpcValue *value)
 {	
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int key, int *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set6(XmlRpcValue* instance, const char* key, int *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, int key, bool *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set8(XmlRpcValue* instance, const char* key, bool *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, int key, double *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* key, double *value)
 {
+	if (!instance) return;
 	instance->operator[](key) = value;
 }
 extern "C" XMLRPC_API int XmlRpcValue_GetInt0(XmlRpcValue* instance)
@@ -263,6 +276,10 @@ extern "C" XMLRPC_API double XmlRpcValue_GetDouble2(XmlRpcValue* instance, const
 {
 	return (&instance->operator[](key))->operator double &();
 }
+extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
+{
+	XmlRpcUtil::log(4, "RETURNING STRING FAIL!\n%s", instance->toXml());
+}
 
 //dispatch
 extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create()
@@ -271,36 +288,44 @@ extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create()
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Close(XmlRpcDispatch *instance)
 {
+	if (!instance) return;
 	instance->~XmlRpcDispatch();
 }
 extern "C" XMLRPC_API void XmlRPcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned int eventMask)
 {
+	if (!instance) return;
 	instance->addSource(source, eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_RemoveSource(XmlRpcDispatch* instance, XmlRpcSource *source)
 {
+	if (!instance) return;
 	instance->removeSource(source);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned int eventMask)
 {
+	if (!instance) return;
 	instance->setSourceEvents(source, eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Work(XmlRpcDispatch *instance, double msTime)
 {
+	if (!instance) return;
 	instance->work(msTime);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Exit(XmlRpcDispatch *instance)
 {
+	if (!instance) return;
 	instance->exit();
 }
 extern "C" XMLRPC_API void XmlRPcDispatch_Clear(XmlRpcDispatch *instance)
 {
+	if (!instance) return;
 	instance->clear();
 }
 
 //XmlRpcSource
 extern "C" XMLRPC_API void XmlRpcSource_Close(XmlRpcSource *instance)
 {
+	if (!instance) return;
 	instance->close();
 }
 extern "C" XMLRPC_API int XmlRpcSource_GetFd(XmlRpcSource *instance)
@@ -309,6 +334,7 @@ extern "C" XMLRPC_API int XmlRpcSource_GetFd(XmlRpcSource *instance)
 }
 extern "C" XMLRPC_API void XmlRpcSource_SetFd(XmlRpcSource *instance, int fd)
 {
+	if (!instance) return;
 	instance->setfd(fd);
 }
 extern "C" XMLRPC_API bool XmlRpcSource_GetKeepOpen(XmlRpcSource *instance)
@@ -317,6 +343,7 @@ extern "C" XMLRPC_API bool XmlRpcSource_GetKeepOpen(XmlRpcSource *instance)
 }
 extern "C" XMLRPC_API void XmlRpcSource_SetKeepOpen(XmlRpcSource *instance, bool b)
 {
+	if (!instance) return;
 	instance->setKeepOpen(b);
 }
 extern "C" XMLRPC_API unsigned XmlRPcSource_HandleEvent(XmlRpcSource *instance, unsigned eventType)
@@ -331,10 +358,12 @@ extern "C" XMLRPC_API XmlRpcServerMethodWrapper *XmlRpcServerMethod_Create(char 
 }
 extern "C" XMLRPC_API void XmlRpcServerMethod_SetFunc(XmlRpcServerMethodWrapper *instance, XmlRpcServerFUNC func)
 {
+	if (!instance) return;
 	instance->setFunc(func);
 }
 extern "C" XMLRPC_API void XmlRpcServerMethod_Execute(XmlRpcServerMethodWrapper *instance, XmlRpcValue *parms, XmlRpcValue *res)
 {
+	if (!instance) return;
 	instance->execute(*parms, *res);
 }
 	
@@ -345,14 +374,17 @@ extern "C" XMLRPC_API XmlRpcServer *XmlRpcServer_Create()
 }
 extern "C" XMLRPC_API void XmlRpcServer_AddMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
 {
+	if (!instance) return;
 	instance->addMethod(method);
 }
 extern "C" XMLRPC_API void XmlRpcServer_RemoveMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
 {
+	if (!instance) return;
 	instance->removeMethod(method);
 }
 extern "C" XMLRPC_API void XmlRpcServer_RemoveMethodByName(XmlRpcServer *instance, char *name)
 {
+	if (!instance) return;
 	instance->removeMethod(std::string(name));
 }
 extern "C" XMLRPC_API XmlRpcServerMethod *XmlRpcServer_FindMethod(XmlRpcServer *instance, char *name)
@@ -365,14 +397,17 @@ extern "C" XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, in
 }
 extern "C" XMLRPC_API void XmlRpcServer_Work(XmlRpcServer *instance, double msTime)
 {
+	if (!instance) return;
 	instance->work(msTime);
 }
 extern "C" XMLRPC_API void XmlRpcServer_Exit(XmlRpcServer *instance)
 {
+	if (!instance) return;
 	instance->exit();
 }
 extern "C" XMLRPC_API void XmlRpcServer_Shutdown(XmlRpcServer *instance)
 {
+	if (!instance) return;
 	instance->shutdown();
 }
 extern "C" XMLRPC_API int XmlRpcServer_GetPort(XmlRpcServer *instance)

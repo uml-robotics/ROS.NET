@@ -64,37 +64,37 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ROS_MESSAGES\Bool.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Bool.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Byte.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Byte.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\ByteMultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\ByteMultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Char.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Char.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\ColorRGBA.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\ColorRGBA.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Duration.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Duration.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Empty.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Empty.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Float32.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Float32.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Float32MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Float32MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Float64.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Float64.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Float64MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Float64MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ROS_MESSAGES\geometry_msgs\Point.msg">
@@ -166,37 +166,37 @@
     <Content Include="ROS_MESSAGES\geometry_msgs\WrenchStamped.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Header.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Header.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int16.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int16.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int16MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int16MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int32.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int32.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int32MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int32MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int64.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int64.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int64MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int64MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int8.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int8.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Int8MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Int8MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\MultiArrayDimension.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\MultiArrayDimension.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\MultiArrayLayout.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\MultiArrayLayout.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ROS_MESSAGES\nav_msgs\GridCells.msg">
@@ -214,34 +214,34 @@
     <Content Include="ROS_MESSAGES\nav_msgs\Path.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\String.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\String.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\Time.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\Time.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt16.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt16.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt16MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt16MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt32.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt32.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt32MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt32MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt64.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt64.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt64MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt64MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt8.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt8.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\UInt8MultiArray.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\UInt8MultiArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -249,7 +249,7 @@
     <None Include="DummyMsgThing.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="ROS_MESSAGES\ConnectionHeader.msg">
+    <Content Include="ROS_MESSAGES\std_msgs\ConnectionHeader.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

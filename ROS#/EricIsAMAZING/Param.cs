@@ -19,8 +19,8 @@ namespace EricIsAMAZING
         {
             string mapped_key = names.resolve(key);
             XmlRpcValue parm = new XmlRpcValue(), response = null, payload = null;
-            parm.Set(0, new XmlRpcValue(this_node.Name));
-            parm.Set(1, new XmlRpcValue(mapped_key));
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
             parm.Set(2, val);
             lock (parms_mutex)
             {
@@ -135,9 +135,9 @@ namespace EricIsAMAZING
         public static void paramUpdateCallback(IntPtr parm, IntPtr result)
         {
             XmlRpcValue val = XmlRpcValue.LookUp(parm);
-            val.Set(0, new XmlRpcValue(1));
-            val.Set(1, new XmlRpcValue(""));
-            val.Set(2, new XmlRpcValue(0));
+            val.Set(0, 1);
+            val.Set(1, "");
+            val.Set(2, 0);
             update(XmlRpcValue.LookUp(parm).Get<string>(1), XmlRpcValue.LookUp(parm).Get(2));
         }
 

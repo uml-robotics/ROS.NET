@@ -89,7 +89,7 @@ void XmlRpcUtil::log(int level, const char* fmt, ...)
 	  va_start( va, fmt);
 	  vsnprintf(buf,sizeof(buf)-1,fmt,va);
 	  buf[sizeof(buf)-1] = 0;
-	if (level <= 4)
+	if (level <= 5)
 	{
 	  OUTFN(buf);
 	}

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using XmlRpc_Wrapper;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -32,7 +32,7 @@ namespace EricIsAMAZING
         public Thread server_thread;
         public bool shutting_down;
         public bool unbind_requested;
-        public string uri;
+        public string uri = "";
 
         public XmlRpcManager()
         {
@@ -99,6 +99,7 @@ namespace EricIsAMAZING
                 return validateFailed(method, "didn't return an array");
             if (response.Size != 3)
                 return validateFailed(method, "didn't return a 3-element array");
+            Console.WriteLine(response);
             if (response.Get(0).Type != XmlRpcValue.TypeEnum.TypeInt)
                 return validateFailed(method, "didn't return an int as the 1st element");
             int status_code = response.Get<int>(0);
@@ -207,9 +208,9 @@ namespace EricIsAMAZING
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
                            if (v == null)
                                v = new XmlRpcValue(p);
-                           v.Set(0, new XmlRpcValue(code));
-                           v.Set(1, new XmlRpcValue(msg));
-                           v.Set(2, new XmlRpcValue(response));
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
                        };
         }
 
@@ -220,9 +221,9 @@ namespace EricIsAMAZING
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
                            if (v == null)
                                v = new XmlRpcValue(p);
-                           v.Set(0, new XmlRpcValue(code));
-                           v.Set(1, new XmlRpcValue(msg));
-                           v.Set(2, new XmlRpcValue(response));
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
                        };
         }
 
@@ -233,9 +234,9 @@ namespace EricIsAMAZING
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
                            if (v == null)
                                v = new XmlRpcValue(p);
-                           v.Set(0, new XmlRpcValue(code));
-                           v.Set(1, new XmlRpcValue(msg));
-                           v.Set(2, new XmlRpcValue(response));
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
                        };
         }
 
@@ -304,7 +305,7 @@ namespace EricIsAMAZING
         public class FunctionInfo
         {
             public XMLRPCFunc function;
-            public string name;
+            public string name = "";
             public XMLRPCCallWrapper wrapper;
         }
 

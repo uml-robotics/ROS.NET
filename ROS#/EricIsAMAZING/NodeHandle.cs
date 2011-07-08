@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Messages;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -15,7 +15,7 @@ namespace EricIsAMAZING
 {
     public class NodeHandle
     {
-        public string Namespace, UnresolvedNamespace;
+        public string Namespace = "", UnresolvedNamespace = "";
         private CallbackQueue _callback;
         private bool _ok;
         public NodeHandleBackingCollection collection;

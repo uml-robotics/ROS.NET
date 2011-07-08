@@ -31,17 +31,17 @@ namespace XmlRpc_Wrapper
                 }
                 if (int.TryParse(initialvalues[i].ToString(), out ires))
                 {
-                    Set(i, new XmlRpcValue(ires));
+                    Set(i, ires);
                     continue;
                 }
                 if (double.TryParse(initialvalues[i].ToString(), out dres))
                 {
-                    Set(i, new XmlRpcValue(dres));
+                    Set(i, dres);
                     continue;
                 }
                 if (bool.TryParse(initialvalues[i].ToString(), out bres))
                 {
-                    Set(i, new XmlRpcValue(bres));
+                    Set(i, bres);
                     continue;
                 }
                 Set(i, initialvalues[i].ToString());
@@ -198,12 +198,15 @@ namespace XmlRpc_Wrapper
         private static extern int getint(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
         private static extern string getstring(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString1", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
         private static extern string getstring(IntPtr target, int key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString2", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
         private static extern string getstring(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
@@ -223,6 +226,9 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble2", CallingConvention = CallingConvention.Cdecl)]
         private static extern double getdouble(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Dump", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void dump(IntPtr target);
         #endregion
 
         public IntPtr instance
@@ -292,9 +298,72 @@ namespace XmlRpc_Wrapper
             return null;
         }
 
-        public Type GetType()
+        public new Type GetType()
         {
             return GetType(Type);
+        }
+
+        public object GetRobust()
+        {
+            int iret = 0;
+            string sret = "";
+            double dret = 0;
+            bool bret = false;
+            iret = Get<int>();
+            if (iret != default(int))
+                return iret;
+            sret = Get<string>();
+            if (sret != default(string))
+                return sret;
+            dret = Get<double>();
+            if (dret != default(double))
+                return dret;
+            bret = Get<bool>();
+            if (bret != default(bool))
+                return bret;
+            return null;
+        }
+
+        public object GetRobust(int key)
+        {
+            int iret = 0;
+            string sret = "";
+            double dret = 0;
+            bool bret = false;
+            iret = Get<int>(key);
+            if (iret != default(int))
+                return iret;
+            sret = Get<string>(key);
+            if (sret != default(string))
+                return sret;
+            dret = Get<double>(key);
+            if (dret != default(double))
+                return dret;
+            bret = Get<bool>(key);
+            if (bret != default(bool))
+                return bret;
+            return null;
+        }
+
+        public object GetRobust(string key)
+        {
+            int iret = 0;
+            string sret = "";
+            double dret = 0;
+            bool bret = false;
+            iret = Get<int>(key);
+            if (iret != default(int))
+                return iret;
+            sret = Get<string>(key);
+            if (sret != default(string))
+                return sret;
+            dret = Get<double>(key);
+            if (dret != default(double))
+                return dret;
+            bret = Get<bool>(key);
+            if (bret != default(bool))
+                return bret;
+            return null;
         }
 
         public T Get<T>()
@@ -488,16 +557,32 @@ namespace XmlRpc_Wrapper
         {
             if (instance == IntPtr.Zero)
                 return "this XmlRpcValue == (NULL)";
-            return "this XmlRpcValue is a " + Type + "\n\tIt enjoys long walks on the beach.\n\tIt is " + (Valid ? "Valid" : "Invalid") + "\n\tIts size is " + Size;
+            return Dump();
         }
 
         public static XmlRpcValue Create(IntPtr existingvalue)
         {
             if (ValueRegistry != null && ValueRegistry.ContainsKey(existingvalue))
                 return ValueRegistry[existingvalue];
-            Console.WriteLine("Bitch, you're tripping!");
             return new XmlRpcValue();
         }
+        public string Dump()
+        {
+            SegFault();
+            if (Valid)
+            {
+                try
+                {
+                    dump(instance);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            return "WHOAH DAMN";
+        }
+
         public void Set(int key, int value)
         {
             SegFault();

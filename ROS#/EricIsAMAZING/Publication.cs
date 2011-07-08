@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using XmlRpc_Wrapper;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -13,13 +13,13 @@ namespace EricIsAMAZING
 {
     public class Publication : IDisposable
     {
-        public string DataType;
+        public string DataType = "";
         public bool Dropped;
         public bool HasHeader;
         public bool Latch;
         public int MaxQueue;
-        public string Md5sum, MessageDefinition;
-        public string Name;
+        public string Md5sum = "", MessageDefinition = "";
+        public string Name = "";
         public uint _seq;
 
         public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
@@ -77,14 +77,13 @@ namespace EricIsAMAZING
                 foreach (SubscriberLink sub_link in subscriber_links)
                 {
                     SubscriberLink.Stats s = sub_link.stats;
-                    conn_data.Set(cidx, new XmlRpcValue());
-                    XmlRpcValue inside = conn_data.Get(cidx);
-                    inside.Set(0, new XmlRpcValue(sub_link.connection_id));
-                    inside.Set(1, new XmlRpcValue(s.bytes_sent));
-                    inside.Set(2, new XmlRpcValue(s.message_data_sent));
-                    inside.Set(3, new XmlRpcValue(s.messages_sent));
-                    inside.Set(4, new XmlRpcValue(0));
-                    cidx++;
+                    XmlRpcValue inside = new XmlRpcValue();
+                    inside.Set(0, sub_link.connection_id);
+                    inside.Set(1, s.bytes_sent);
+                    inside.Set(2, s.message_data_sent);
+                    inside.Set(3, s.messages_sent);
+                    inside.Set(4, 0);
+                    conn_data.Set(cidx++, inside);
                 }
             }
             stats.Set(1, conn_data);
@@ -184,11 +183,11 @@ namespace EricIsAMAZING
                 foreach (SubscriberLink c in subscriber_links)
                 {
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, new XmlRpcValue((int) c.connection_id));
-                    curr_info.Set(1, new XmlRpcValue(c.destination_caller_id));
-                    curr_info.Set(2, new XmlRpcValue("o"));
-                    curr_info.Set(3, new XmlRpcValue("TCPROS"));
-                    curr_info.Set(4, new XmlRpcValue(Name));
+                    curr_info.Set(0, c.connection_id);
+                    curr_info.Set(1, c.destination_caller_id);
+                    curr_info.Set(2, "o");
+                    curr_info.Set(3, "TCPROS");
+                    curr_info.Set(4, Name);
                     info.Set(info.Size, curr_info);
                 }
             }

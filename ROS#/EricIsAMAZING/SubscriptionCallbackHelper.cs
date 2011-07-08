@@ -1,7 +1,7 @@
 ﻿#region USINGZ
 
 using Messages;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -68,7 +68,7 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelperDeserializeParams
     {
         public byte[] buffer;
-        public string connection_header;
+        public string connection_header = "";
         public int length;
     }
 

@@ -2,7 +2,7 @@
 
 using System.Collections;
 using Messages;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 

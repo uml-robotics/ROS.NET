@@ -9,6 +9,8 @@
 # include <ostream>
 # include <stdlib.h>
 # include <stdio.h>
+#include <iostream>
+#include <exception>
 #endif
 
 #include <sstream>
@@ -202,8 +204,7 @@ namespace XmlRpc {
       default: break;
     }
 	XmlRpcUtil::log(4, "Trying to get size of something without a size!");
-	return 0;
-    //throw XmlRpcException("type error");
+	throw XmlRpcException("type error");
   }
 
   // Checks for existence of struct member
@@ -270,7 +271,7 @@ namespace XmlRpc {
       case TypeStruct:   return structToXml();
       default: break;
     }
-    return std::string();   // Invalid value
+    return std::string("");   // Invalid value
   }
 
 

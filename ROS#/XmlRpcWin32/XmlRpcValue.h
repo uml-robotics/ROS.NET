@@ -13,6 +13,8 @@
 # include <string>
 # include <vector>
 # include <time.h>
+#include <iostream>
+#include <exception>
 #endif
 
 namespace XmlRpc {

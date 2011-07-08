@@ -1,7 +1,7 @@
 ﻿#region USINGZ
 
 using Messages;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -12,13 +12,13 @@ namespace EricIsAMAZING
     public class SubscribeOptions<T> : StuffOptions where T : IRosMessage, new()
     {
         public bool allow_concurrent_callbacks;
-        public string datatype;
+        public string datatype = "";
         public bool has_header;
         public SubscriptionCallbackHelper<T> helper;
         public bool latch;
-        public string md5sum;
-        public string message_definition;
-        public string topic;
+        public string md5sum = "";
+        public string message_definition = "";
+        public string topic = "";
 
         public SubscribeOptions(string topic, int queue_size) : this(topic, queue_size, ROS.GlobalCallbackQueue)
         {
@@ -26,21 +26,20 @@ namespace EricIsAMAZING
             helper = new SubscriptionCallbackHelper<T>(new T().type);
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> cb)
+        public SubscribeOptions(string topic, int queue_size, CallbackQueueInterface cb, CallbackDelegate<T> CALL = null)
         {
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
-            helper = new SubscriptionCallbackHelper<T>(new T().type, cb);
-        }
-
-        public SubscribeOptions(string topic, int queue_size, CallbackQueueInterface cb)
-        {
-            // TODO: Complete member initialization
-            this.topic = topic;
-            this.queue_size = queue_size;
-            helper = new SubscriptionCallbackHelper<T>(cb);
+            if (CALL != null)
+                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL){ Callback=cb};
+            else
+                helper = new SubscriptionCallbackHelper<T>(cb);
             Callback = cb;
+
+
+            md5sum = "FUCK";
+            datatype = typeof(T).GetGenericArguments()[0].Name;
         }
     }
 

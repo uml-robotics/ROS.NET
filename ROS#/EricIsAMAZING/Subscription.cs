@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using XmlRpc_Wrapper;
-using m = Messages;
+using m = Messages.std_messages;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -17,10 +17,10 @@ namespace EricIsAMAZING
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         private XmlRpcClient client;
-        public string datatype;
-        public string md5sum;
+        public string datatype = "";
+        public string md5sum = "";
         public object md5sum_mutex = new object();
-        public string name;
+        public string name = "";
         public int nonconst_callbacks;
         private List<PendingConnection> pending_connections = new List<PendingConnection>();
         public object pending_connections_mutex = new object();
@@ -60,11 +60,11 @@ namespace EricIsAMAZING
                 {
                     XmlRpcValue v = new XmlRpcValue();
                     PublisherLink.Stats s = link.stats;
-                    v.Set(0, new XmlRpcValue(link.ConnectionID));
-                    v.Set(1, new XmlRpcValue(s.bytes_received));
-                    v.Set(2, new XmlRpcValue(s.messages_received));
-                    v.Set(3, new XmlRpcValue(s.drops));
-                    v.Set(4, new XmlRpcValue(0));
+                    v.Set(0, link.ConnectionID);
+                    v.Set(1, s.bytes_received);
+                    v.Set(2, s.messages_received);
+                    v.Set(3, s.drops);
+                    v.Set(4, 0);
                     conn_data.Set(cidx++, v);
                 }
             }
@@ -79,7 +79,7 @@ namespace EricIsAMAZING
                 foreach (PublisherLink c in publisher_links)
                 {
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, new XmlRpcValue(c.ConnectionID));
+                    curr_info.Set(0, c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
