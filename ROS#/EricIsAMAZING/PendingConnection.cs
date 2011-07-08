@@ -22,17 +22,19 @@ namespace EricIsAMAZING
             RemoteUri = uri;
         }
 
-        public virtual void addToDispatch(XmlRpcDispatch disp)
+        public override void addToDispatch(XmlRpcDispatch disp)
         {
+            if (disp == null)
+                return;
             disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
-        public virtual void removeFromDispatch(XmlRpcDispatch disp)
+        public override void removeFromDispatch(XmlRpcDispatch disp)
         {
             disp.RemoveSource(client);
         }
 
-        public virtual bool check()
+        public override bool check()
         {
             if (parent == null) return true;
             XmlRpcValue result = new XmlRpcValue();

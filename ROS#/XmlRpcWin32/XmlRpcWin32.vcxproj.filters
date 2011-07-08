@@ -48,9 +48,6 @@
     <ClInclude Include="XmlRpcSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XmlRpcSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="XmlRpcUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>

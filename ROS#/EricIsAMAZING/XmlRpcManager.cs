@@ -57,7 +57,7 @@ namespace EricIsAMAZING
                 {
                     foreach (AsyncXmlRpcConnection con in added_connections)
                     {
-                        con.AddToDispatch(server.Dispatch);
+                        con.addToDispatch(server.Dispatch);
                         connections.Add(con);
                     }
                     added_connections.Clear();
@@ -77,7 +77,7 @@ namespace EricIsAMAZING
 
                 foreach (AsyncXmlRpcConnection con in connections)
                 {
-                    if (con.Check())
+                    if (con.check())
                         removeASyncXMLRPCClient(con);
                 }
 
@@ -85,29 +85,27 @@ namespace EricIsAMAZING
                 {
                     foreach (AsyncXmlRpcConnection con in removed_connections)
                     {
-                        con.RemoveFromDispatch(server.Dispatch);
+                        con.removeFromDispatch(server.Dispatch);
                     }
                     removed_connections.Clear();
                 }
             }
         }
 
-        public bool validateXmlrpcResponse(string method, XmlRpcValue response, out XmlRpcValue payload)
+        public bool validateXmlrpcResponse(string method, XmlRpcValue response, ref XmlRpcValue payload)
         {
-            payload = null;
-            if (response.Type != XmlRpcValue.TypeEnum.TypeArray)
-                return validateFailed(method, "didn't return an array");
+            if (response.Type != TypeEnum.TypeArray)
+                return validateFailed(method, "didn't return an array -- {0}", response);
             if (response.Size != 3)
-                return validateFailed(method, "didn't return a 3-element array");
-            Console.WriteLine(response);
-            if (response.Get(0).Type != XmlRpcValue.TypeEnum.TypeInt)
-                return validateFailed(method, "didn't return an int as the 1st element");
+                return validateFailed(method, "didn't return a 3-element array -- {0}", response);
+            if (response.Get(0).Type != TypeEnum.TypeInt)
+                return validateFailed(method, "didn't return an int as the 1st element -- {0}", response);
             int status_code = response.Get<int>(0);
-            if (response.Get(1).Type != XmlRpcValue.TypeEnum.TypeString)
-                return validateFailed(method, "didn't return a string as the 2nd element");
+            if (response.Get(1).Type != TypeEnum.TypeString)
+                return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response.Get<string>(1);
             if (status_code != 1)
-                return validateFailed(method, "returned an error ({0}): [{1}]", status_code, status_string);
+                return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string, response);
             payload = new XmlRpcValue(response.Get(2));
             return true;
         }
@@ -206,7 +204,7 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (v == null)
+                           if (!v.Initialized)
                                v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
@@ -219,7 +217,7 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (v == null)
+                           if (!v.Initialized)
                                v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
@@ -232,7 +230,7 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (v == null)
+                           if (!v.Initialized)
                                v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
@@ -273,7 +271,7 @@ namespace EricIsAMAZING
                 return;
             shutting_down = true;
             server_thread.Join();
-            server.Close();
+            server.Shutdown();
             foreach (CachedXmlRpcClient c in clients)
             {
                 for (int wait_count = 0; c.in_use && wait_count < 10; wait_count++)
@@ -288,7 +286,7 @@ namespace EricIsAMAZING
                 functions.Clear();
             }
             foreach (AsyncXmlRpcConnection ass in connections)
-                ass.RemoveFromDispatch(server.Dispatch);
+                ass.removeFromDispatch(server.Dispatch);
             connections.Clear();
             lock (added_connections_mutex)
             {

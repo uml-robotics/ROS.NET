@@ -13,8 +13,10 @@ namespace EricIsAMAZING
         public static string host;
         public static int tcpros_server_port;
 
-        public static bool splitURI(ref string uri, ref string host, ref int port)
+        public static bool splitURI(string uri, ref string host, ref int port)
         {
+            if (uri == null)
+                throw new Exception("NULL STUFF FAIL!");
             if (uri.Substring(0, 7) == "http://")
                 host = uri.Substring(7);
             else if (uri.Substring(0, 9) == "rosrpc://")

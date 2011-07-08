@@ -120,12 +120,14 @@ namespace EricIsAMAZING
         }
         public bool urisEqual(string uri1, string uri2)
         {
+            if (uri1 == null || uri2 == null)
+                throw new Exception("ZOMG IT'S NULL IN URISEQUAL!");
             string h1, n1;
             h1 = n1 = "";
             int p1, p2;
             p1 = p2 = 0;
-            network.splitURI(ref uri1, ref h1, ref p1);
-            network.splitURI(ref uri2, ref n1, ref p2);
+            network.splitURI(uri1, ref h1, ref p1);
+            network.splitURI(uri2, ref n1, ref p2);
             return h1 == n1 && p1 == p2;
         }
 
@@ -248,7 +250,7 @@ namespace EricIsAMAZING
             Params.Set(2, protos_array);
             string peer_host = "";
             int peer_port = 0;
-            if (!network.splitURI(ref xmlrpc_uri, ref peer_host, ref peer_port))
+            if (!network.splitURI(xmlrpc_uri, ref peer_host, ref peer_port))
             {
                 Console.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
                 return false;
@@ -283,13 +285,13 @@ namespace EricIsAMAZING
             string peer_host = conn.client.Host;
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
-            XmlRpcValue proto;
-            if (!XmlRpcManager.Instance().validateXmlrpcResponse("requestTopic", result, out proto))
+            XmlRpcValue proto = new XmlRpcValue();
+            if (!XmlRpcManager.Instance().validateXmlrpcResponse("requestTopic", result, ref proto))
             {
                 Console.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
                 return;
             }
-            if (proto == null)
+            if (proto.Initialized)
             {
                 Console.WriteLine("Got invalid xmlrpcvalue back from validate... ?");
                 return;
@@ -301,7 +303,7 @@ namespace EricIsAMAZING
 #endif
                 return;
             }
-            if (proto.Type != XmlRpcValue.TypeEnum.TypeArray)
+            if (proto.Type != TypeEnum.TypeArray)
             {
                 Console.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
                 return;
@@ -314,7 +316,7 @@ namespace EricIsAMAZING
             }
             else if (proto_name == "TCPROS")
             {
-                if (proto.Size != 3 || proto.Get(1).Type != XmlRpcValue.TypeEnum.TypeString || proto.Get(2).Type != XmlRpcValue.TypeEnum.TypeInt)
+                if (proto.Size != 3 || proto.Get(1).Type != TypeEnum.TypeString || proto.Get(2).Type != TypeEnum.TypeInt)
                 {
                     Console.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
                     return;

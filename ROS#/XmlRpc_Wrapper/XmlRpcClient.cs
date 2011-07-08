@@ -144,9 +144,8 @@ namespace XmlRpc_Wrapper
 
         #region public function passthroughs
 
-        public bool Execute(string method, XmlRpcValue parameters, out XmlRpcValue result)
+        public bool Execute(string method, XmlRpcValue parameters, ref XmlRpcValue result)
         {
-            result = new XmlRpcValue();
             return execute(instance, method, parameters.instance, result.instance);
         }
 

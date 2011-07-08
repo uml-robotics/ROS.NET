@@ -18,7 +18,7 @@ namespace EricIsAMAZING
         public string Namespace = "", UnresolvedNamespace = "";
         private CallbackQueue _callback;
         private bool _ok;
-        public NodeHandleBackingCollection collection;
+        public NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
         public int nh_refcount;
         public object nh_refcount_mutex = new object();
         public bool no_validate;

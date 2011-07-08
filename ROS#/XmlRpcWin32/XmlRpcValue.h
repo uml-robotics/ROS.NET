@@ -135,10 +135,26 @@ class XmlRpcValue {
     //! Specify the format used to write double values.
     static void setDoubleFormat(const char* f) { _doubleFormat = f; }
 
+	// Clean up
+    void invalidate();
+
+    // Type tag and values
+    Type _type;
+
+    // At some point I will split off Arrays and Structs into
+    // separate ref-counted objects for more efficient copying.
+    union {
+      bool          asBool;
+      int           asInt;
+      double        asDouble;
+      struct tm*    asTime;
+      std::string*  asString;
+      BinaryData*   asBinary;
+      ValueArray*   asArray;
+      ValueStruct*  asStruct;
+    } _value;
 
   protected:
-    // Clean up
-    void invalidate();
 
     // Type checking
     void assertTypeOrInvalid(Type t);
@@ -168,23 +184,6 @@ class XmlRpcValue {
 
     // Format strings
     static std::string _doubleFormat;
-
-    // Type tag and values
-    Type _type;
-
-    // At some point I will split off Arrays and Structs into
-    // separate ref-counted objects for more efficient copying.
-    union {
-      bool          asBool;
-      int           asInt;
-      double        asDouble;
-      struct tm*    asTime;
-      std::string*  asString;
-      BinaryData*   asBinary;
-      ValueArray*   asArray;
-      ValueStruct*  asStruct;
-    } _value;
-    
   };
 } // namespace XmlRpc
 

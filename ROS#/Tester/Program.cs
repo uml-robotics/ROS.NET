@@ -54,12 +54,12 @@ namespace ConsoleApplication1
             }
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
-            ROS.Init(args, "A_Subscriber_FROM_Csharp_LAND");
+            ROS.Init(args, "ROSsharp_Listener");
             ROS.start();
             NodeHandle nh = new NodeHandle();
             //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
             //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
-            Subscriber<TypedMessage<m.String>> sub = nh.subscribe<m.String>("ZOMGNOWAI", 1000, chatterCallback);
+            Subscriber<TypedMessage<m.String>> sub = nh.subscribe<m.String>("chatter", 1000, chatterCallback);
             ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {

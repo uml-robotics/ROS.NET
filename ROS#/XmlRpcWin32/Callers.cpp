@@ -278,7 +278,8 @@ extern "C" XMLRPC_API double XmlRpcValue_GetDouble2(XmlRpcValue* instance, const
 }
 extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
 {
-	XmlRpcUtil::log(4, "RETURNING STRING FAIL!\n%s", instance->toXml());
+	if (!instance) return;
+	XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d", (int)instance, instance->_type, instance->size());
 }
 
 //dispatch

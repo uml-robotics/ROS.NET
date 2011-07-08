@@ -203,7 +203,7 @@ namespace XmlRpc {
       case TypeStruct: return int(_value.asStruct->size());
       default: break;
     }
-	XmlRpcUtil::log(4, "Trying to get size of something without a size!");
+	XmlRpcUtil::log(4, "Trying to get size of something without a size! -- type=%d", _type);
 	throw XmlRpcException("type error");
   }
 
@@ -271,6 +271,7 @@ namespace XmlRpc {
       case TypeStruct:   return structToXml();
       default: break;
     }
+	XmlRpcUtil::log(4, "calling ToXml on invalid type");
     return std::string("");   // Invalid value
   }
 

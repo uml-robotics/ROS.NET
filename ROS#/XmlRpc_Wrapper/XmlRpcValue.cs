@@ -1,8 +1,9 @@
 ﻿#region USINGZ
-
+//#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #endregion
 
@@ -11,13 +12,152 @@ namespace XmlRpc_Wrapper
     //TODO: OPERATOR GARBAGE?
     public class XmlRpcValue : IDisposable
     {
-        private static Dictionary<IntPtr, XmlRpcValue> _instances = new Dictionary<IntPtr, XmlRpcValue>();
 
-        private static Dictionary<IntPtr, XmlRpcValue> ValueRegistry;
 
+        #region Reference Tracking + unmanaged pointer management
+        
         private IntPtr __instance;
 
-        public XmlRpcValue(params object[] initialvalues) : this()
+        public void Dispose()
+        {
+            Clear();
+        }
+
+        ~XmlRpcValue()
+        {
+            Clear();
+        }
+
+        public bool Initialized
+        {
+            get
+            {
+                return __instance != IntPtr.Zero;
+            }
+        }
+
+        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
+        private static object reflock = new object();
+#if REFDEBUG
+        private static Thread refdumper;
+        private static void dumprefs()
+        {
+            while (true)
+            {
+                Dictionary<IntPtr, int> dainbrammage = null;
+                lock (reflock)
+                {
+                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
+                }
+                Console.WriteLine("REF DUMP");
+                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
+                {
+                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
+                    Console.WriteLine("\t" + new XmlRpcValue(reff.Key));
+                }
+                Thread.Sleep(500);
+            }
+        }
+#endif
+
+        public static XmlRpcValue LookUp(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                AddRef(ptr);
+                return new XmlRpcValue(ptr);
+            }
+            return null;
+        }
+
+
+        private static void AddRef(IntPtr ptr)
+        {
+#if REFDEBUG
+            if (refdumper == null)
+            {
+                refdumper = new Thread(dumprefs);
+                refdumper.IsBackground = true;
+                refdumper.Start();
+            }
+#endif
+            lock (reflock)
+            {
+                if (!_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
+#endif
+                    _refs.Add(ptr, 1);
+                }
+                else
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
+#endif
+                    _refs[ptr]++;
+                }
+            }
+        }
+
+        private static void RmRef(ref IntPtr ptr)
+        {
+            lock (reflock)
+            {
+                if (_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
+#endif
+                    _refs[ptr]--;
+                    if (_refs[ptr] <= 0)
+                    {
+#if REFDEBUG
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+#endif
+                        _refs.Remove(ptr);
+                        Clear(ptr);
+                        ptr = IntPtr.Zero;
+                    }
+                    return;
+                }
+            }
+        }
+
+        public IntPtr instance
+        {
+            get
+            {
+                if (__instance == IntPtr.Zero)
+                {
+                    Console.WriteLine("UH OH MAKING A NEW INSTANCE IN instance.get!");
+                    __instance = create();
+                    AddRef(__instance);
+                }
+                return __instance;
+            }
+            set
+            {
+                if (value != IntPtr.Zero)
+                {
+                    if (__instance != IntPtr.Zero)
+                        RmRef(ref __instance);
+                    AddRef(value);
+                    __instance = value;
+                }
+            }
+        }
+
+        #endregion
+
+        public XmlRpcValue()
+        {
+            __instance = create();
+            AddRef(__instance);
+        }
+
+        public XmlRpcValue(params object[] initialvalues)
+            : this()
         {
             for (int i = 0; i < initialvalues.Length; i++)
             {
@@ -48,64 +188,78 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public XmlRpcValue()
-        {
-            instance = create();
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
-        }
-
         public XmlRpcValue(bool value)
         {
-            instance = create(value);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
+            __instance = create(value);
+            AddRef(__instance);
         }
 
         public XmlRpcValue(int value)
         {
-            instance = create(value);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
+            __instance = create(value);
+            AddRef(__instance);
         }
 
         public XmlRpcValue(double value)
         {
-            instance = create(value);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
+            __instance = create(value);
+
+            AddRef(__instance);
         }
 
         public XmlRpcValue(string value)
         {
-            instance = create(value);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
+            __instance = create(value);
+            AddRef(__instance);
         }
 
-        public XmlRpcValue(IntPtr value, int nBytes)
+        /*public XmlRpcValue(IntPtr value, int nBytes)
         {
-            instance = create(value, nBytes);
+            __instance = create(value, nBytes);
             if (!_instances.ContainsKey(instance))
                 _instances.Add(instance, this);
         }
 
         public XmlRpcValue(string xml, int offset)
         {
-            instance = create(xml, offset);
+            __instance = create(xml, offset);
             if (!_instances.ContainsKey(instance))
                 _instances.Add(instance, this);
-        }
+        }*/
 
-        public XmlRpcValue(XmlRpcValue value) : this(value.instance)
+        public XmlRpcValue(XmlRpcValue value)
+            : this(value.instance)
         {
         }
 
         public XmlRpcValue(IntPtr existingptr)
         {
-            instance = existingptr;
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
+            if (existingptr == IntPtr.Zero)
+                throw new Exception("SUCK IS CONTAGEOUS!");
+            __instance = existingptr;
+            AddRef(existingptr);
+        }
+
+        public static bool operator ==(XmlRpcValue left, XmlRpcValue right)
+        {
+            return left != null && right != null && (left.__instance == right.__instance);
+        }
+        public static bool operator !=(XmlRpcValue left, XmlRpcValue right)
+        {
+            return left == null || right == null || (left.__instance != right.__instance);
+        }
+        public override bool Equals(object obj)
+        {
+            XmlRpcValue comp = obj as XmlRpcValue;
+            if (comp == null)
+                return false;
+            return ((__instance == comp.__instance) && (__instance != IntPtr.Zero)) || (this != comp);
+        }
+        public override int GetHashCode()
+        {
+            if (__instance != IntPtr.Zero)
+                return __instance.ToInt32();
+            return base.GetHashCode();
         }
 
         #region P/Invoke
@@ -134,7 +288,7 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create8", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create(IntPtr rhs);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Close", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Clear", CallingConvention = CallingConvention.Cdecl)]
         private static extern void clear(IntPtr Target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Valid", CallingConvention = CallingConvention.Cdecl)]
@@ -198,16 +352,13 @@ namespace XmlRpc_Wrapper
         private static extern int getint(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        private static extern string getstring(IntPtr target);
+        private static extern IntPtr getstring(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString1", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        private static extern string getstring(IntPtr target, int key);
+        private static extern IntPtr getstring(IntPtr target, int key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString2", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        private static extern string getstring(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
+        private static extern IntPtr getstring(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool getbool(IntPtr target);
@@ -231,25 +382,14 @@ namespace XmlRpc_Wrapper
         private static extern void dump(IntPtr target);
         #endregion
 
-        public IntPtr instance
-        {
-            get { return __instance; }
-            set
-            {
-                __instance = value;
-                if (ValueRegistry == null)
-                    ValueRegistry = new Dictionary<IntPtr, XmlRpcValue>();
-                if (!ValueRegistry.ContainsKey(__instance))
-                    ValueRegistry.Add(__instance, this);
-            }
-        }
-
         public TypeEnum Type
         {
             get
             {
-                SegFault();
-                return _typearray[gettype(instance)];
+                if (!Initialized)
+                    return TypeEnum.TypeInvalid;
+                int balls = gettype(instance);
+                return ValueTypeHelper._typearray[balls];
             }
         }
 
@@ -258,7 +398,9 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                return valid(instance);
+                if (!Initialized)
+                    return false;
+                return valid(__instance);
             }
         }
 
@@ -267,7 +409,9 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                if (!Valid)
+                if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
+                    return 0;
+                if (Type != TypeEnum.TypeString && Type != TypeEnum.TypeStruct && Type != TypeEnum.TypeArray)
                     return 0;
                 return getsize(instance);
             }
@@ -278,32 +422,12 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            if (instance == IntPtr.Zero) return;
-            clear(instance);
-            instance = IntPtr.Zero;
-        }
-
-        #endregion
-
-        public static XmlRpcValue LookUp(IntPtr ptr)
-        {
-            if (_instances.ContainsKey(ptr))
-                return _instances[ptr];
-            if (ptr != IntPtr.Zero)
-                return new XmlRpcValue(ptr);
-            return null;
-        }
-
-        public new Type GetType()
+        /*public new Type GetType()
         {
             return GetType(Type);
-        }
+        }*/
 
-        public object GetRobust()
+        /*public object GetRobust()
         {
             int iret = 0;
             string sret = "";
@@ -313,7 +437,7 @@ namespace XmlRpc_Wrapper
             if (iret != default(int))
                 return iret;
             sret = Get<string>();
-            if (sret != default(string))
+            if (sret != "")
                 return sret;
             dret = Get<double>();
             if (dret != default(double))
@@ -334,7 +458,7 @@ namespace XmlRpc_Wrapper
             if (iret != default(int))
                 return iret;
             sret = Get<string>(key);
-            if (sret != default(string))
+            if (sret != "")
                 return sret;
             dret = Get<double>(key);
             if (dret != default(double))
@@ -355,7 +479,7 @@ namespace XmlRpc_Wrapper
             if (iret != default(int))
                 return iret;
             sret = Get<string>(key);
-            if (sret != default(string))
+            if (sret != "")
                 return sret;
             dret = Get<double>(key);
             if (dret != default(double))
@@ -364,57 +488,70 @@ namespace XmlRpc_Wrapper
             if (bret != default(bool))
                 return bret;
             return null;
+        }*/
+
+        /*public T GetClass<T>() where T : class, new()
+        {
+            T ret = (T)GetClass(new T());
+            return T;
         }
 
-        public T Get<T>()
+        public object GetClass<T>(T t)
         {
-            T ret = (T)Get(default(T));
-            return ret;
+
+        }*/
+
+        public T Get<T>()// where T : struct
+        {
+            if (!Valid)
+            {
+                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
+            }
+            else if ("" is T)
+            {
+                return (T)(object)GetString();
+            }
+            else if ((int)0 is T)
+            {
+                return (T)(object)GetInt();
+            }
+            else if (this is T)
+            {
+                return (T)(object)this;
+            }
+            else if (true is T)
+            {
+                return (T)(object)GetBool();
+            }
+            else if (0d is T)
+            {
+                return (T)(object)GetDouble();
+            }
+            Console.WriteLine("I DUNNO WHAT THAT IS!");
+            return default(T);
         }
 
         public T Get<T>(int key)
         {
-            T ret = (T)Get(default(T), key);
+            if ("" is T)
+                return Get(key).Get<T>();
+            T ret = Get(key).Get<T>();
+            if (ret == null)
+                throw new Exception("Null return!");
             return ret;
         }
 
         public T Get<T>(string key)
         {
-            T ret = (T)Get(default(T), key);
+            T ret = Get(key).Get<T>();
+            if (ret == null)
+                throw new Exception("Null return!");
             return ret;
         }
 
-        public object Get<T>(T t)
+        /*public object Get<T>(int key)
         {
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t"+this);
-            }
-            else if (t is string)
-            {
-                return GetString();
-            }
-            else if (t is int)
-            {
-                return GetInt();
-            }
-            else if (t is XmlRpcValue)
-            {
-                return this;
-            }
-            else if (t is bool)
-            {
-                return GetBool();
-            }
-            else if (t is double)
-            {
-                return GetDouble();
-            }
-            return default(T);
-        }
-
-        public object Get<T>(T t, int key)
-        {
+            return Get(key).Get<T>();
             if (!Valid)
             {
                 Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
@@ -444,6 +581,7 @@ namespace XmlRpc_Wrapper
 
         public object Get<T>(T t, string key)
         {
+            return Get(key).Get<T>();
             if (!Valid)
             {
                 Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
@@ -469,15 +607,15 @@ namespace XmlRpc_Wrapper
                 return GetDouble(key);
             }
             return default(T);
-        }
+        }*/
 
         public int GetInt()
         {
             SegFault();
-            return getint(instance);
+            return getint(__instance);
         }
 
-        public int GetInt(int key)
+        /*public int GetInt(int key)
         {
             SegFault();
             return getint(instance, key);
@@ -487,100 +625,99 @@ namespace XmlRpc_Wrapper
         {
             SegFault();
             return getint(instance, key);
-        }
+        }*/
 
         public string GetString()
         {
             SegFault();
-            return getstring(instance);
+            return Marshal.PtrToStringAnsi(getstring(__instance));
         }
 
-        public string GetString(int key)
+        /*public string GetString(int key)
         {
             SegFault();
-            return getstring(instance, key);
+            string st =  getstring(instance, key);
+            if (st == null)
+                throw new Exception("Value returned null string!");
+            return st;
         }
 
         public string GetString(string key)
         {
             SegFault();
-            return getstring(instance, key);
-        }
+            string st = getstring(instance, key);
+            if (st == null)
+                throw new Exception("Value returned null string!");
+            return st;
+        }*/
 
         public bool GetBool()
         {
-            return getbool(instance);
+            SegFault();
+            return getbool(__instance);
         }
 
         public bool GetBool(int key)
         {
             SegFault();
-            return getbool(instance, key);
+            return getbool(__instance, key);
         }
 
         public bool GetBool(string key)
         {
             SegFault();
-            return getbool(instance, key);
+            return getbool(__instance, key);
         }
 
         public double GetDouble()
         {
-            return getdouble(instance);
+            SegFault();
+            return getdouble(__instance);
         }
 
         public double GetDouble(int key)
         {
             SegFault();
-            return getdouble(instance, key);
+            return getdouble(__instance, key);
         }
 
         public double GetDouble(string key)
         {
             SegFault();
-            return getdouble(instance, key);
+            return getdouble(__instance, key);
         }
 
         public XmlRpcValue Get(int key)
         {
             SegFault();
-            return Create(get(instance, key));
+            IntPtr othervalue = get(instance, key);
+            return LookUp(othervalue);
         }
 
         public XmlRpcValue Get(string key)
         {
             SegFault();
-            return Create(get(instance, key));
+            IntPtr othervalue = get(instance, key);
+            return LookUp(othervalue);
         }
 
         public override string ToString()
         {
-            if (instance == IntPtr.Zero)
+            if (__instance == IntPtr.Zero)
                 return "this XmlRpcValue == (NULL)";
-            return Dump();
+            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size;
+            return s;
         }
 
-        public static XmlRpcValue Create(IntPtr existingvalue)
+        public static XmlRpcValue Create(ref IntPtr existingvalue)
         {
-            if (ValueRegistry != null && ValueRegistry.ContainsKey(existingvalue))
-                return ValueRegistry[existingvalue];
-            return new XmlRpcValue();
-        }
-        public string Dump()
-        {
-            SegFault();
-            if (Valid)
+            if (existingvalue == IntPtr.Zero)
             {
-                try
-                {
-                    dump(instance);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                XmlRpcValue PSYCHE = new XmlRpcValue();
+                existingvalue = PSYCHE.__instance;
+                return PSYCHE;
             }
-            return "WHOAH DAMN";
+            return new XmlRpcValue(existingvalue);
         }
 
         public void Set(int key, int value)
@@ -649,40 +786,74 @@ namespace XmlRpc_Wrapper
             return hasmember(instance, name);
         }
 
+        public void Dump()
+        {
+            SegFault();
+            dump(__instance);
+        }
+
         public void Clear()
         {
-            if (instance != IntPtr.Zero)
+            if (Clear(__instance)) Dispose();
+        }
+
+        public static bool Clear(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
             {
-                clear(instance);
-                instance = IntPtr.Zero;
+                RmRef(ref ptr);
+                return (ptr == IntPtr.Zero);
             }
+            return true;
         }
 
         public void SegFault()
         {
-            if (instance == IntPtr.Zero)
+            if (__instance == IntPtr.Zero)
             {
-                throw new Exception("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
+                if (!Initialized)
+                {
+                    Console.WriteLine("SAVING YOUR ASS!");
+                    __instance = create();
+                    AddRef(__instance);
+                }
+                else
+                    Console.WriteLine("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
             }
         }
 
         #region myjunk
-
-        public enum TypeEnum
+        /*
+        public Type GetType(TypeEnum t)
         {
-            TypeInvalid,
-            TypeBoolean,
-            TypeInt,
-            TypeDouble,
-            TypeString,
-            TypeDateTime,
-            TypeBase64,
-            TypeArray,
-            TypeStruct,
-            TypeIDFK
-        }
+            switch (t)
+            {
+                case TypeEnum.TypeBoolean:
+                    return typeof(bool);
+                case TypeEnum.TypeInt:
+                    return typeof(int);
+                case TypeEnum.TypeDouble:
+                    return typeof(double);
+                case TypeEnum.TypeString:
+                    return typeof(string);
+                case TypeEnum.TypeDateTime:
+                    return typeof(DateTime);
+                case TypeEnum.TypeBase64:
+                    return typeof(UInt64);
+                case TypeEnum.TypeArray:
+                    return typeof(object[]);
+                case TypeEnum.TypeStruct:
+                    throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
+            }
+            return default(Type);
+        }*/
 
-        private TypeEnum[] _typearray = new[]
+        #endregion
+    }
+
+    public static class ValueTypeHelper
+    {
+        public static TypeEnum[] _typearray = new[]
                                             {
                                                 TypeEnum.TypeInvalid,
                                                 TypeEnum.TypeBoolean,
@@ -696,30 +867,19 @@ namespace XmlRpc_Wrapper
                                                 TypeEnum.TypeIDFK
                                             };
 
-        public Type GetType(TypeEnum t)
-        {
-            switch (t)
-            {
-                case TypeEnum.TypeBoolean:
-                    return typeof (bool);
-                case TypeEnum.TypeInt:
-                    return typeof (int);
-                case TypeEnum.TypeDouble:
-                    return typeof (double);
-                case TypeEnum.TypeString:
-                    return typeof (string);
-                case TypeEnum.TypeDateTime:
-                    return typeof (DateTime);
-                case TypeEnum.TypeBase64:
-                    return typeof (UInt64);
-                case TypeEnum.TypeArray:
-                    return typeof (object[]);
-                case TypeEnum.TypeStruct:
-                    throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
-            }
-            return default(Type);
-        }
+    }
 
-        #endregion
+    public enum TypeEnum
+    {
+        TypeInvalid,
+        TypeBoolean,
+        TypeInt,
+        TypeDouble,
+        TypeString,
+        TypeDateTime,
+        TypeBase64,
+        TypeArray,
+        TypeStruct,
+        TypeIDFK
     }
 }

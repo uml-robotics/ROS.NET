@@ -24,7 +24,7 @@ namespace EricIsAMAZING
             }
             if (uri == "")
                 uri = ROS.ROS_MASTER_URI;
-            if (!network.splitURI(ref uri, ref host, ref port))
+            if (!network.splitURI(uri, ref host, ref port))
             {
                 throw new Exception("FAILED TO SPLIT THE URI!");
             }
@@ -34,7 +34,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, out result, out payload, false);
+            return execute("getPid", args, ref result, ref payload, false);
         }
 
         public static bool getTopics(ref TopicInfo[] topics)
@@ -43,7 +43,7 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, out result, out payload, true))
+            if (!execute("getPublishedTopics", args, ref result, ref payload, true))
                 return false;
             topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
@@ -58,7 +58,7 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, out result, out payload, true))
+            if (!execute("getSystemState", args, ref result, ref payload, true))
             {
                 return false;
             }
@@ -78,9 +78,8 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public static bool execute(string method, XmlRpcValue request, out XmlRpcValue response, out XmlRpcValue payload, bool wait_for_master)
+        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
         {
-            XmlRpcValue resp = null, load = null;
             DateTime startTime = DateTime.Now;
             string master_host = host;
             int master_port = port;
@@ -91,7 +90,7 @@ namespace EricIsAMAZING
             do
             {
                 bool b = false;
-                b = client.Execute(method, request, out resp);
+                b = client.Execute(method, request, ref response);
 
                 ok = !ROS.shutting_down && !XmlRpcManager.Instance().shutting_down;
 
@@ -106,8 +105,6 @@ namespace EricIsAMAZING
                     if (!wait_for_master)
                     {
                         XmlRpcManager.Instance().releaseXMLRPCClient(client);
-                        response = resp;
-                        payload = load;
                         return false;
                     }
 
@@ -115,11 +112,9 @@ namespace EricIsAMAZING
                 }
                 else
                 {
-                    if (!XmlRpcManager.Instance().validateXmlrpcResponse(method, resp, out load))
+                    if (!XmlRpcManager.Instance().validateXmlrpcResponse(method, response, ref payload))
                     {
                         XmlRpcManager.Instance().releaseXMLRPCClient(client);
-                        response = resp;
-                        payload = load;
                         return false;
                     }
                     break;
@@ -131,8 +126,6 @@ namespace EricIsAMAZING
                 Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
             }
             XmlRpcManager.Instance().releaseXMLRPCClient(client);
-            payload = load;
-            response = resp;
             return true;
         }
     }

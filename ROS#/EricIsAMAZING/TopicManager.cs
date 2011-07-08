@@ -190,8 +190,8 @@ namespace EricIsAMAZING
             if (found)
                 sub.addLocalConnection(pub);
 
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = null, payload = null;
-            master.execute("registerPublisher", args, out result, out payload, true);
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            master.execute("registerPublisher", args, ref result, ref payload, true);
             return true;
         }
 
@@ -393,12 +393,12 @@ namespace EricIsAMAZING
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
                 XmlRpcValue proto = protos.Get(proto_idx);
-                if (proto.Type == XmlRpcValue.TypeEnum.TypeArray)
+                if (proto.Type == TypeEnum.TypeArray)
                 {
                     Console.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;
                 }
-                if (proto.Get(0).Type != XmlRpcValue.TypeEnum.TypeString)
+                if (proto.Get(0).Type != TypeEnum.TypeString)
                 {
                     Console.WriteLine("requestTopic received a protocol list in which a sublist did not start with a string");
                     return false;
@@ -432,13 +432,16 @@ namespace EricIsAMAZING
 
         public bool registerSubscriber(Subscription s, string datatype)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, xmlrpc_manager.uri), result = null, payload = null;
-            if (!master.execute("registerSubscriber", args, out result, out payload, true))
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
             {
-                string pubed = payload.Get<string>(i);
+                XmlRpcValue asshole = payload.Get(i);
+                string pubed = asshole.Get<string>();
+                if (pubed == null)
+                    throw new Exception("ZOMG IT'S NULL IN REGISTER!");
                 if (pubed != xmlrpc_manager.uri && !pub_uris.Contains(pubed))
                 {
                     pub_uris.Add(pubed);
@@ -469,15 +472,15 @@ namespace EricIsAMAZING
 
         public bool unregisterSubscriber(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = null, payload = null;
-            master.execute("unregisterSubscriber", args, out result, out payload, false);
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            master.execute("unregisterSubscriber", args, ref result, ref payload, false);
             return true;
         }
 
         public bool unregisterPublisher(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = null, payload = null;
-            master.execute("unregisterPublisher", args, out result, out payload, false);
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            master.execute("unregisterPublisher", args, ref result, ref payload, false);
             return true;
         }
 
@@ -607,7 +610,7 @@ namespace EricIsAMAZING
 
         public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             List<string> pubs = new List<string>();
             for (int idx = 0; idx < parm.Get(2).Size; idx++)
@@ -623,7 +626,7 @@ namespace EricIsAMAZING
 
         public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             if (!requestTopic(parm.Get<string>(1), parm.Get(2), ref res))
             {
@@ -635,7 +638,7 @@ namespace EricIsAMAZING
 
         public void getBusStatusCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             res.Set(0, new XmlRpcValue(1));
             res.Set(1, "");
@@ -646,7 +649,7 @@ namespace EricIsAMAZING
 
         public void getBusInfoCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             res.Set(0, new XmlRpcValue(1));
             res.Set(1, "");
@@ -657,7 +660,7 @@ namespace EricIsAMAZING
 
         public void getSubscriptionsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             res.Set(0, new XmlRpcValue(1));
             res.Set(1, "subscriptions");
@@ -668,7 +671,7 @@ namespace EricIsAMAZING
 
         public void getPublicationsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(result), parm = XmlRpcValue.Create(parms);
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             res.Set(0, new XmlRpcValue(1));
             res.Set(1, "publications");

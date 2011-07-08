@@ -55,6 +55,8 @@
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
       <ExceptionHandling>Async</ExceptionHandling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -94,7 +96,6 @@
     <ClInclude Include="XmlRpcServerMethod.h" />
     <ClInclude Include="XmlRpcServerMethodWrapper.h" />
     <ClInclude Include="XmlRpcSocket.h" />
-    <ClInclude Include="XmlRpcSource.h" />
     <ClInclude Include="XmlRpcUtil.h" />
     <ClInclude Include="XmlRpcValue.h" />
     <ClInclude Include="Callers.h" />

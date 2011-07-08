@@ -18,13 +18,13 @@ namespace EricIsAMAZING
         public static void set(string key, XmlRpcValue val)
         {
             string mapped_key = names.resolve(key);
-            XmlRpcValue parm = new XmlRpcValue(), response = null, payload = null;
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, mapped_key);
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, out response, out payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, val);
@@ -32,32 +32,80 @@ namespace EricIsAMAZING
             }
         }
 
-        public static void set(string key, string s)
+        public static void set(string key, string val)
         {
-            set(key, new XmlRpcValue(s));
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            parm.Set(2, val);
+            lock (parms_mutex)
+            {
+                if (master.execute("setParam", parm, ref response, ref payload, true))
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                        parms.Add(mapped_key, parm);
+                }
+            }
         }
 
-        public static void set(string key, double s)
+        public static void set(string key, double val)
         {
-            set(key, new XmlRpcValue(s));
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            parm.Set(2, val);
+            lock (parms_mutex)
+            {
+                if (master.execute("setParam", parm, ref response, ref payload, true))
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                        parms.Add(mapped_key, parm);
+                }
+            }
         }
 
-        public static void set(string key, int s)
+        public static void set(string key, int val)
         {
-            set(key, new XmlRpcValue(s));
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            parm.Set(2, val);
+            lock (parms_mutex)
+            {
+                if (master.execute("setParam", parm, ref response, ref payload, true))
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                        parms.Add(mapped_key, parm);
+                }
+            }
         }
 
-        public static void set(string key, bool s)
+        public static void set(string key, bool val)
         {
-            set(key, new XmlRpcValue(s));
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            parm.Set(2, val);
+            lock (parms_mutex)
+            {
+                if (master.execute("setParam", parm, ref response, ref payload, true))
+                {
+                    if (subscribed_params.Contains(mapped_key))
+                        parms.Add(mapped_key, parm);
+                }
+            }
         }
 
         public static bool had(string key)
         {
-            XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+            XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, names.resolve(key));
-            if (!master.execute("hasParam", parm, out result, out payload, false))
+            if (!master.execute("hasParam", parm, ref result, ref payload, false))
                 return false;
             return payload.Get<bool>();
         }
@@ -75,10 +123,10 @@ namespace EricIsAMAZING
                 }
             }
 
-            XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+            XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, mapped_key);
-            if (!master.execute("deleteParam", parm, out result, out payload, false))
+            if (!master.execute("deleteParam", parm, ref result, ref payload, false))
                 return false;
             return true;
         }
@@ -164,11 +212,11 @@ namespace EricIsAMAZING
                     else
                     {
                         subscribed_params.Add(mapped_key);
-                        XmlRpcValue parm = new XmlRpcValue(), result = null, payload = null;
+                        XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
                         parm.Set(0, this_node.Name);
                         parm.Set(1, XmlRpcManager.Instance().uri);
                         parm.Set(2, mapped_key);
-                        if (!master.execute("subscribeParam", parm, out result, out payload, false))
+                        if (!master.execute("subscribeParam", parm, ref result, ref payload, false))
                         {
                             subscribed_params.Remove(mapped_key);
                             use_cache = false;
@@ -177,11 +225,11 @@ namespace EricIsAMAZING
                 }
             }
 
-            XmlRpcValue parm2 = new XmlRpcValue(), result2 = null;
+            XmlRpcValue parm2 = new XmlRpcValue(), result2 = new XmlRpcValue();
             parm2.Set(0, this_node.Name);
             parm2.Set(1, mapped_key);
 
-            bool ret = master.execute("getParam", parm2, out result2, out v, false);
+            bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
 
             if (use_cache)
             {
