@@ -1,7 +1,8 @@
 ﻿#region USINGZ
 
+using System;
 using Messages;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -38,8 +39,10 @@ namespace EricIsAMAZING
             Callback = cb;
 
 
-            md5sum = "FUCK";
-            datatype = typeof(T).GetGenericArguments()[0].Name;
+            md5sum = "*";
+            Type msgtype = typeof(T).GetGenericArguments()[0];
+            string[] chunks = msgtype.FullName.Split('.');
+            datatype = chunks[1]+"/"+chunks[2];
         }
     }
 

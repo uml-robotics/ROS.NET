@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Messages;
 using XmlRpc_Wrapper;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -315,7 +315,7 @@ namespace EricIsAMAZING
                 {
                     bool nocopy = false;
                     bool serialize = false;
-                    if (msg != null && msg.type != TypeEnum.Unknown)
+                    if (msg != null && msg.type != MsgTypes.Unknown)
                     {
                         Console.WriteLine("This line is sketchy... TopicManager.cs:254-ish... publish(string, byte, msg)");
                         p.getPublishTypes(ref serialize, ref nocopy, ref msg.type);
@@ -325,7 +325,7 @@ namespace EricIsAMAZING
                     if (!nocopy)
                     {
                         Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
-                        msg.type = TypeEnum.Unknown;
+                        msg.type = MsgTypes.Unknown;
                     }
                     if (serialize)
                     {

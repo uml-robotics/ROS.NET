@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
-using m = Messages.std_messages;
+using Messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -8,7 +9,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class Callback<T> : CallbackInterface where T : m.IRosMessage, new()
+    public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
         public CallbackDelegate<T> func = null;
 

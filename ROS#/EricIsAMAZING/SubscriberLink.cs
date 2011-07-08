@@ -1,7 +1,7 @@
 ﻿#region USINGZ
 
 using Messages;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -58,7 +58,7 @@ namespace EricIsAMAZING
         {
         }
 
-        public virtual void getPublishTypes(ref bool ser, ref bool nocopy, ref TypeEnum type_info)
+        public virtual void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes type_info)
         {
             ser = true;
             nocopy = false;

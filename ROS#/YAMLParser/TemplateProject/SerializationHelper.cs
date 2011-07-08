@@ -76,7 +76,7 @@ namespace Messages
 
         public byte[] Serialized;
         public IDictionary connection_header;
-        public TypeEnum type = TypeEnum.Unknown;
+        public MsgTypes type = MsgTypes.Unknown;
 
         public IRosMessage()
         {

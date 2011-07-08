@@ -206,17 +206,17 @@ namespace YAMLParser
                         backhalf += lines[i] + "\n";
                 }
             }
-            fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static Dictionary<TypeEnum, Type> Types = new Dictionary<TypeEnum, Type>()\n\t\t{";
-            fronthalf += "\n\t\t\t{TypeEnum.Unknown, null},";
+            fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static Dictionary<MsgTypes, Type> Types = new Dictionary<MsgTypes, Type>()\n\t\t{";
+            fronthalf += "\n\t\t\t{MsgTypes.Unknown, null},";
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{TypeEnum." + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
+                fronthalf += "{MsgTypes." + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
             fronthalf += "\n\t\t};\n\t}\n";
-            fronthalf += "\n\tpublic enum TypeEnum\n\t{";
+            fronthalf += "\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
             for (int i = 0; i < types.Count; i++)
             {

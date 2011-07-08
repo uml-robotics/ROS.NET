@@ -1,7 +1,7 @@
 ﻿#region USINGZ
 
 using System;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 

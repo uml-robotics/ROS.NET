@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Messages;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -91,17 +91,17 @@ namespace EricIsAMAZING
                 srv.impl.unadvertise();
         }
 
-        public Publisher<m.TypedMessage<M>> advertise<M>(string topic, int q_size, bool l = false) where M : struct
+        public Publisher<TypedMessage<M>> advertise<M>(string topic, int q_size, bool l = false) where M : struct
         {
             return advertise<M>(new AdvertiseOptions(topic, q_size) {latch = l});
         }
 
-        public Publisher<m.TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
+        public Publisher<TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
         {
             return advertise<M>(new AdvertiseOptions(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
-        public Publisher<m.TypedMessage<M>> advertise<M>(AdvertiseOptions ops)
+        public Publisher<TypedMessage<M>> advertise<M>(AdvertiseOptions ops)
         {
             ops.topic = resolveName(ops.topic);
             if (ops.Callback == null)
@@ -114,7 +114,7 @@ namespace EricIsAMAZING
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
             if (TopicManager.Instance().advertise(ops, callbacks))
             {
-                Publisher<m.TypedMessage<M>> pub = new Publisher<m.TypedMessage<M>>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
+                Publisher<TypedMessage<M>> pub = new Publisher<TypedMessage<M>>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
                 lock (collection.mutex)
                 {
                     collection.publishers.Add(pub);

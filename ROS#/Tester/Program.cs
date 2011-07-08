@@ -3,9 +3,10 @@
 using System;
 using System.Threading;
 using EricIsAMAZING;
+using Messages;
 using XmlRpc_Wrapper;
-using String = Messages.String;
-using m = Messages.std_messages;
+using Messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -28,7 +29,7 @@ namespace ConsoleApplication1
             Console.WriteLine(s);
         }
 
-        public static void chatterCallback(m.TypedMessage<String> msg)
+        public static void chatterCallback(TypedMessage<m.String> msg)
         {
             Console.WriteLine("HOLY FUCKSTICK!");
         }
@@ -53,12 +54,12 @@ namespace ConsoleApplication1
             }
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
-            ROS.Init(args, "ERICRULZ");
+            ROS.Init(args, "A_Subscriber_FROM_Csharp_LAND");
             ROS.start();
             NodeHandle nh = new NodeHandle();
             //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
             //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
-            Subscriber<m.TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
+            Subscriber<TypedMessage<m.String>> sub = nh.subscribe<m.String>("ZOMGNOWAI", 1000, chatterCallback);
             ROS.spin();
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {

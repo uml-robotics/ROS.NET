@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using m = Messages.std_messages;
+using Messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -18,14 +19,14 @@ namespace EricIsAMAZING
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
-        public static IMessageDeserializer MakeDeserializer(m.IRosMessage msg)
+        public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
         {
-            return MakeAndDowncast<MessageDeserializer<m.IRosMessage>, IMessageDeserializer>(m.TypeHelper.Types[msg.type].GetGenericArguments()); 
+            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments()); 
         }
 
-        public static m.IRosMessage MakeMessage<T>(m.TypeEnum type) where T : new()
+        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : new()
         {
-            return MakeAndDowncast<m.TypedMessage<T>, m.IRosMessage>(m.TypeHelper.Types[type].GetGenericArguments());
+            return MakeAndDowncast<TypedMessage<T>, IRosMessage>(TypeHelper.Types[type].GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)

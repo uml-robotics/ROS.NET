@@ -1,7 +1,7 @@
 ﻿#region USINGZ
 
 using Messages;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -13,13 +13,13 @@ namespace EricIsAMAZING
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
 
-        public SubscriptionCallbackHelper(m.TypeEnum t, CallbackDelegate<M> cb)
+        public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
             type = t;
             Callback.addCallback(new Callback<M>(cb));
         }
 
-        public SubscriptionCallbackHelper(TypeEnum t)
+        public SubscriptionCallbackHelper(MsgTypes t)
         {
             type = t;
         }
@@ -34,7 +34,7 @@ namespace EricIsAMAZING
     {
         public CallbackQueueInterface Callback;
 
-        public TypeEnum type;
+        public MsgTypes type;
 
         protected ISubscriptionCallbackHelper()
         {
@@ -54,7 +54,7 @@ namespace EricIsAMAZING
         {
         }
 
-        public virtual TypeEnum getTypeInfo()
+        public virtual MsgTypes getTypeInfo()
         {
             return type;
         }

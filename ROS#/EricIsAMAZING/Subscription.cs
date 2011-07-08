@@ -3,8 +3,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Messages;
 using XmlRpc_Wrapper;
-using m = Messages.std_messages;
+using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 
@@ -29,7 +30,7 @@ namespace EricIsAMAZING
         private bool shutting_down;
         public bool IsDropped { get { return _dropped; } }
         private bool _dropped;
-        public Dictionary<m.TypeEnum, IMessageDeserializer> cached_deserializers = new Dictionary<m.TypeEnum, IMessageDeserializer>();
+        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers = new Dictionary<MsgTypes, IMessageDeserializer>();
         public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
         public Subscription(string n, string md5s, string dt)
         {
@@ -366,7 +367,7 @@ namespace EricIsAMAZING
             }
         }
 
-        internal ulong handleMessage(m.IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header, TransportPublisherLink link)
+        internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header, TransportPublisherLink link)
         {
             lock (callbacks_mutex)
             {
@@ -375,8 +376,8 @@ namespace EricIsAMAZING
                 DateTime receipt_time = DateTime.Now;
                 foreach (ICallbackInfo info in callbacks)
                 {
-                    m.TypeEnum ti = info.helper.type;
-                    if (nocopy && ti != m.TypeEnum.Unknown || ser && (msg.type == m.TypeEnum.Unknown || ti != msg.type))
+                    MsgTypes ti = info.helper.type;
+                    if (nocopy && ti != MsgTypes.Unknown || ser && (msg.type == MsgTypes.Unknown || ti != msg.type))
                     {
                         IMessageDeserializer deserializer = null;
                         if (cached_deserializers.ContainsKey(ti))
@@ -414,17 +415,17 @@ namespace EricIsAMAZING
 
         public class LatchInfo
         {
-            public m.IRosMessage message;
+            public IRosMessage message;
             public PublisherLink link;
             public IDictionary connection_header;
             public DateTime receipt_time;
         }
 
-        public IMessageDeserializer MakeDeserializer(m.TypeEnum type)
+        public IMessageDeserializer MakeDeserializer(MsgTypes type)
         {
-            if (type == m.TypeEnum.Unknown) return null;
-            return ROS.MakeDeserializer(ROS.MakeMessage<m.IRosMessage>(type));
-            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(m.TypeHelper.Types[type].GetGenericArguments()));
+            if (type == MsgTypes.Unknown) return null;
+            return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
+            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
         }
 
         public void ConnectAsync()
@@ -458,7 +459,7 @@ namespace EricIsAMAZING
             Shutdown();
         }
 
-        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : m.IRosMessage, new()
+        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -530,7 +531,7 @@ namespace EricIsAMAZING
             throw new Exception("NO LOCAL CONNECTIONS, BUTTHEAD");
         }
 
-        public void getPublishTypes(ref bool ser, ref bool nocopy, ref m.TypeEnum ti)
+        public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)
         {
             lock (callbacks_mutex)
             {
@@ -553,7 +554,7 @@ namespace EricIsAMAZING
 
         #region Nested type: CallbackInfo
 
-        public class CallbackInfo<M> : ICallbackInfo where M : m.IRosMessage, new()
+        public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
             public new SubscriptionCallbackHelper<M> helper;
         }
