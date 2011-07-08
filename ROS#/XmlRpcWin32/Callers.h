@@ -65,6 +65,18 @@ extern "C" {
 	extern XMLRPC_API void XmlRpcValue_Set8(XmlRpcValue* instance, const char* key, bool *value);
 	extern XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, int key, double *value);
 	extern XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* key, double *value);
+	extern XMLRPC_API int XmlRpcValue_GetInt0(XmlRpcValue* instance);
+	extern XMLRPC_API int XmlRpcValue_GetInt1(XmlRpcValue* instance, int key);
+	extern XMLRPC_API int XmlRpcValue_GetInt2(XmlRpcValue* instance, const char* key);
+	extern XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance);
+	extern XMLRPC_API const char* XmlRpcValue_GetString1(XmlRpcValue* instance, int key);
+	extern XMLRPC_API const char* XmlRpcValue_GetString2(XmlRpcValue* instance, const char* key);
+	extern XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance);
+	extern XMLRPC_API bool XmlRpcValue_GetBool1(XmlRpcValue* instance, int key);
+	extern XMLRPC_API bool XmlRpcValue_GetBool2(XmlRpcValue* instance, const char* key);
+	extern XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance);
+	extern XMLRPC_API double XmlRpcValue_GetDouble1(XmlRpcValue* instance, int key);
+	extern XMLRPC_API double XmlRpcValue_GetDouble2(XmlRpcValue* instance, const char* key);
 	
 	//XmlRpcDispatch
 	extern XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create();

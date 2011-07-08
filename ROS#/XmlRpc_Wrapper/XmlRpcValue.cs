@@ -188,6 +188,41 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Get2", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr get(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
 
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt0", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int getint(IntPtr target);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt1", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int getint(IntPtr target, int key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt2", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int getint(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl)]
+        private static extern string getstring(IntPtr target);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString1", CallingConvention = CallingConvention.Cdecl)]
+        private static extern string getstring(IntPtr target, int key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString2", CallingConvention = CallingConvention.Cdecl)]
+        private static extern string getstring(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool getbool(IntPtr target);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool1", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool getbool(IntPtr target, int key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool2", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool getbool(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double getdouble(IntPtr target);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble1", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double getdouble(IntPtr target, int key);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble2", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double getdouble(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key);
         #endregion
 
         public IntPtr instance
@@ -264,110 +299,113 @@ namespace XmlRpc_Wrapper
 
         public T Get<T>()
         {
-            T ret = default(T);
-            Get(ref ret);
+            T ret = (T)Get(default(T));
             return ret;
         }
 
         public T Get<T>(int key)
         {
-            T ret = default(T);
-            Get(ref ret, key);
+            T ret = (T)Get(default(T), key);
             return ret;
         }
 
         public T Get<T>(string key)
         {
-            T ret = default(T);
-            Get(ref ret, key);
+            T ret = (T)Get(default(T), key);
             return ret;
         }
 
-        public void Get<T>(ref T t)
+        public object Get<T>(T t)
         {
             if (!Valid)
             {
                 Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t"+this);
-                t = default(T);
             }
             else if (t is string)
             {
-
+                return GetString();
             }
             else if (t is int)
             {
-
+                return GetInt();
             }
             else if (t is XmlRpcValue)
             {
-
+                return this;
             }
             else if (t is bool)
             {
-
+                return GetBool();
             }
             else if (t is double)
             {
-
+                return GetDouble();
             }
+            return default(T);
         }
 
-        public void Get<T>(ref T t, int key)
+        public object Get<T>(T t, int key)
         {
             if (!Valid)
             {
                 Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-                t = default(T);
             }
             else if (t is string)
             {
-
+                return GetString(key);
             }
             else if (t is int)
             {
-
+                return GetInt(key);
             }
             else if (t is XmlRpcValue)
             {
-
+                return Get(key);
             }
             else if (t is bool)
             {
-
+                return GetBool(key);
             }
             else if (t is double)
             {
-
+                return GetDouble(key);
             }
+            return default(T);
         }
 
-        public void Get<T>(T t, ref T tout,  string key)
+        public object Get<T>(T t, string key)
         {
             if (!Valid)
             {
                 Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-                tout = default(T);
             }
             else if (t is string)
             {
-                tout = GetString(key);
+                return GetString(key);
             }
             else if (t is int)
             {
-
+                return GetInt(key);
             }
             else if (t is XmlRpcValue)
             {
-
+                return Get(key);
             }
             else if (t is bool)
             {
-
+                return GetBool(key);
             }
             else if (t is double)
             {
-
+                return GetDouble(key);
             }
+            return default(T);
+        }
+
+        public int GetInt()
+        {
+            SegFault();
+            return getint(instance);
         }
 
         public int GetInt(int key)
@@ -382,6 +420,12 @@ namespace XmlRpc_Wrapper
             return getint(instance, key);
         }
 
+        public string GetString()
+        {
+            SegFault();
+            return getstring(instance);
+        }
+
         public string GetString(int key)
         {
             SegFault();
@@ -394,6 +438,11 @@ namespace XmlRpc_Wrapper
             return getstring(instance, key);
         }
 
+        public bool GetBool()
+        {
+            return getbool(instance);
+        }
+
         public bool GetBool(int key)
         {
             SegFault();
@@ -404,6 +453,11 @@ namespace XmlRpc_Wrapper
         {
             SegFault();
             return getbool(instance, key);
+        }
+
+        public double GetDouble()
+        {
+            return getdouble(instance);
         }
 
         public double GetDouble(int key)
