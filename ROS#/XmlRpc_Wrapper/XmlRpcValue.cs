@@ -389,6 +389,8 @@ namespace XmlRpc_Wrapper
                 if (!Initialized)
                     return TypeEnum.TypeInvalid;
                 int balls = gettype(instance);
+                if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
+                    return TypeEnum.TypeIDFK;
                 return ValueTypeHelper._typearray[balls];
             }
         }

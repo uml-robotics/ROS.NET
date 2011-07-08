@@ -49,44 +49,179 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
-        private static Dictionary<IntPtr, XmlRpcDispatch> _instances = new Dictionary<IntPtr, XmlRpcDispatch>();
-
-        internal IntPtr instance;
-
-        public XmlRpcDispatch()
-        {
-            Create();
-        }
-
-        #region IDisposable Members
+        #region Reference Tracking + unmanaged pointer management
+        
+        private IntPtr __instance;
 
         public void Dispose()
         {
-            Close();
+            Shutdown();
+        }
+
+        ~XmlRpcDispatch()
+        {
+            Shutdown();
+        }
+
+        public bool Initialized
+        {
+            get
+            {
+                return __instance != IntPtr.Zero;
+            }
+        }
+
+        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
+        private static object reflock = new object();
+#if REFDEBUG
+        private static Thread refdumper;
+        private static void dumprefs()
+        {
+            while (true)
+            {
+                Dictionary<IntPtr, int> dainbrammage = null;
+                lock (reflock)
+                {
+                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
+                }
+                Console.WriteLine("REF DUMP");
+                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
+                {
+                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
+                }
+                Thread.Sleep(500);
+            }
+        }
+#endif
+
+        public static XmlRpcDispatch LookUp(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                AddRef(ptr);
+                return new XmlRpcDispatch(ptr);
+            }
+            return null;
+        }
+
+
+        private static void AddRef(IntPtr ptr)
+        {
+#if REFDEBUG
+            if (refdumper == null)
+            {
+                refdumper = new Thread(dumprefs);
+                refdumper.IsBackground = true;
+                refdumper.Start();
+            }
+#endif
+            lock (reflock)
+            {
+                if (!_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
+#endif
+                    _refs.Add(ptr, 1);
+                }
+                else
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
+#endif
+                    _refs[ptr]++;
+                }
+            }
+        }
+
+        private static void RmRef(ref IntPtr ptr)
+        {
+            lock (reflock)
+            {
+                if (_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
+#endif
+                    _refs[ptr]--;
+                    if (_refs[ptr] <= 0)
+                    {
+#if REFDEBUG
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+#endif
+                        _refs.Remove(ptr);
+                        Shutdown(ptr);
+                        ptr = IntPtr.Zero;
+                    }
+                    return;
+                }
+            }
+        }
+
+        public IntPtr instance
+        {
+            get
+            {
+                if (__instance == IntPtr.Zero)
+                {
+                    Console.WriteLine("UH OH MAKING A NEW INSTANCE IN instance.get!");
+                    __instance = create();
+                    AddRef(__instance);
+                }
+                return __instance;
+            }
+            set
+            {
+                if (value != IntPtr.Zero)
+                {
+                    if (__instance != IntPtr.Zero)
+                        RmRef(ref __instance);
+                    AddRef(value);
+                    __instance = value;
+                }
+            }
+        }
+
+        public void Shutdown()
+        {
+            if (Shutdown(__instance)) Dispose();
+        }
+
+        public static bool Shutdown(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                RmRef(ref ptr);
+                return (ptr == IntPtr.Zero);
+            }
+            return true;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            XmlRpcDispatch comp = obj as XmlRpcDispatch;
+            if (comp == null)
+                return false;
+            return ((__instance == comp.__instance) && (__instance != IntPtr.Zero)) || (this != comp);
+        }
+        public override int GetHashCode()
+        {
+            if (__instance != IntPtr.Zero)
+                return __instance.ToInt32();
+            return base.GetHashCode();
         }
 
         #endregion
 
-        public static XmlRpcDispatch LookUp(IntPtr ptr)
-        {
-            if (!_instances.ContainsKey(ptr)) return null;
-            return _instances[ptr];
-        }
-
-        public void Create()
+        public XmlRpcDispatch()
         {
             instance = create();
-            if (instance != IntPtr.Zero && !_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
-            else
-                throw new Exception("Dispatch creation failed... either got null pointer returned, or identical pointer already in instances dictionary.");
         }
 
-        public void Close()
+        public XmlRpcDispatch(IntPtr otherref)
         {
-            close(instance);
-            if (_instances.ContainsKey(instance))
-                _instances.Remove(instance);
+            if (otherref != IntPtr.Zero)
+                instance = otherref;
         }
 
         public void AddSource(XmlRpcSource source, int eventMask)

@@ -50,7 +50,6 @@ namespace XmlRpc_Wrapper
                 foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
                 {
                     Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
-                    Console.WriteLine("\t" + new XmlRpcValue(reff.Key));
                 }
                 Thread.Sleep(500);
             }

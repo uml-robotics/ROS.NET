@@ -53,6 +53,11 @@ namespace EricIsAMAZING
         {
             while (!shutting_down)
             {
+                if (server.Dispatch == null)
+                {
+                    Console.WriteLine("FUCKING FUCK STAINS!");
+                    return;
+                }
                 lock (added_connections_mutex)
                 {
                     foreach (AsyncXmlRpcConnection con in added_connections)
