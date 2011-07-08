@@ -215,6 +215,54 @@ extern "C" XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* 
 {
 	instance->operator[](key) = value;
 }
+extern "C" XMLRPC_API int XmlRpcValue_GetInt0(XmlRpcValue* instance)
+{
+	return instance->operator int &();
+}
+extern "C" XMLRPC_API int XmlRpcValue_GetInt1(XmlRpcValue* instance, int key)
+{
+	return (&instance->operator[](key))->operator int &();
+}
+extern "C" XMLRPC_API int XmlRpcValue_GetInt2(XmlRpcValue* instance, const char* key)
+{
+	return (&instance->operator[](key))->operator int &();
+}
+extern "C" XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance)
+{
+	return instance->operator std::string &().c_str();
+}
+extern "C" XMLRPC_API const char* XmlRpcValue_GetString1(XmlRpcValue* instance, int key)
+{
+	return (&instance->operator[](key))->operator std::string &().c_str();
+}
+extern "C" XMLRPC_API const char* XmlRpcValue_GetString2(XmlRpcValue* instance, const char* key)
+{
+	return (&instance->operator[](key))->operator std::string &().c_str();
+}
+extern "C" XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance)
+{
+	return instance->operator bool &();
+}
+extern "C" XMLRPC_API bool XmlRpcValue_GetBool1(XmlRpcValue* instance, int key)
+{
+	return (&instance->operator[](key))->operator bool &();
+}
+extern "C" XMLRPC_API bool XmlRpcValue_GetBool2(XmlRpcValue* instance, const char* key)
+{
+	return (&instance->operator[](key))->operator bool &();
+}
+extern "C" XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance)
+{	
+	return instance->operator double &();
+}
+extern "C" XMLRPC_API double XmlRpcValue_GetDouble1(XmlRpcValue* instance, int key)
+{
+	return (&instance->operator[](key))->operator double &();
+}
+extern "C" XMLRPC_API double XmlRpcValue_GetDouble2(XmlRpcValue* instance, const char* key)
+{
+	return (&instance->operator[](key))->operator double &();
+}
 
 //dispatch
 extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create()
