@@ -1,7 +1,9 @@
 ﻿#region USINGZ
-
+#define REFDEBUG
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #endregion
 
@@ -36,14 +38,172 @@ namespace XmlRpc_Wrapper
     }
 
 
-    public class XmlRpcClient : XmlRpcSource, IDisposable
+    public class XmlRpcClient : /*XmlRpcSource,*/ IDisposable
     {
+         #region Reference Tracking + unmanaged pointer management
+        
+        private IntPtr __instance;
+
+        public void Dispose()
+        {
+            Shutdown();
+        }
+
+        ~XmlRpcClient()
+        {
+            Shutdown();
+        }
+
+        public bool Initialized
+        {
+            get
+            {
+                return __instance != IntPtr.Zero;
+            }
+        }
+
+        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
+        private static object reflock = new object();
+#if REFDEBUG
+        private static Thread refdumper;
+        private static void dumprefs()
+        {
+            while (true)
+            {
+                Dictionary<IntPtr, int> dainbrammage = null;
+                lock (reflock)
+                {
+                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
+                }
+                Console.WriteLine("REF DUMP");
+                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
+                {
+                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
+                }
+                Thread.Sleep(500);
+            }
+        }
+#endif
+
+        public static XmlRpcDispatch LookUp(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                AddRef(ptr);
+                return new XmlRpcDispatch(ptr);
+            }
+            return null;
+        }
+
+
+        private static void AddRef(IntPtr ptr)
+        {
+#if REFDEBUG
+            if (refdumper == null)
+            {
+                refdumper = new Thread(dumprefs);
+                refdumper.IsBackground = true;
+                refdumper.Start();
+            }
+#endif
+            lock (reflock)
+            {
+                if (!_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
+#endif
+                    _refs.Add(ptr, 1);
+                }
+                else
+                {
+#if REFDEBUG
+                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
+#endif
+                    _refs[ptr]++;
+                }
+            }
+        }
+
+        private static void RmRef(ref IntPtr ptr)
+        {
+            lock (reflock)
+            {
+                if (_refs.ContainsKey(ptr))
+                {
+#if REFDEBUG
+                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
+#endif
+                    _refs[ptr]--;
+                    if (_refs[ptr] <= 0)
+                    {
+#if REFDEBUG
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+#endif
+                        _refs.Remove(ptr);
+                        close(ptr);
+                        ptr = IntPtr.Zero;
+                    }
+                    return;
+                }
+            }
+        }
+
+        public IntPtr instance
+        {
+            get
+            {
+                return __instance;
+            }
+            set
+            {
+                if (value != IntPtr.Zero)
+                {
+                    if (__instance != IntPtr.Zero)
+                        RmRef(ref __instance);
+                    AddRef(value);
+                    __instance = value;
+                }
+            }
+        }
+
+        public void Shutdown()
+        {
+            if (Shutdown(__instance)) Dispose();
+        }
+
+        public static bool Shutdown(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                RmRef(ref ptr);
+                return (ptr == IntPtr.Zero);
+            }
+            return true;
+        }
+        
+        
+        public override bool Equals(object obj)
+        {
+            XmlRpcClient comp = obj as XmlRpcClient;
+            if (comp == null)
+                return false;
+            return ((__instance == comp.__instance) && (__instance != IntPtr.Zero)) || (this != comp);
+        }
+        public override int GetHashCode()
+        {
+            if (__instance != IntPtr.Zero)
+                return __instance.ToInt32();
+            return base.GetHashCode();
+        }
+
+        #endregion
+
         public string HostUri = "";
 
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
-            if (!Create(HostName, Port, Uri))
-                Console.WriteLine("Some failure occurred in unmanaged code, and the returned pointer to an XmlRpcClient was null. OWNED!");
+            instance = create(HostName, Port, Uri);
         }
 
         public XmlRpcClient(string HostName, int Port)
@@ -63,10 +223,7 @@ namespace XmlRpc_Wrapper
             string u = "/";
             if (chunks2.Length > 1 && chunks2[1].Length != 0)
                 u = chunks2[1];
-            if (Create(hn, p, u))
-                Console.WriteLine("Successfully Created XmlRpc Client @ http://" + hn + ":" + p + u);
-            else
-                Console.WriteLine("Some failure occurred in unmanaged code, and the returned pointer to an XmlRpcClient was null. OWNED!");
+            instance = create(hn, p, u);
         }
 
         #region public get passthroughs
@@ -171,15 +328,6 @@ namespace XmlRpc_Wrapper
             get { return instance == IntPtr.Zero; }
         }
 
-        #region IDisposable Members
-
-        public new void Dispose()
-        {
-            Console.WriteLine((Close() ? "Successfully disposed Client Instance." : "YOU FUCKING SUCK!"));
-        }
-
-        #endregion
-
         #region P/Invoke
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Create", CallingConvention = CallingConvention.Cdecl)]
@@ -250,27 +398,5 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr getxmlrpcdispatch(IntPtr target);
 
         #endregion
-
-        private bool Create(string HostName, int Port, string Uri)
-        {
-            HostUri = "http://" + HostName + ":" + Port + Uri;
-            IntPtr testcreate = create(HostName, Port, Uri);
-            if (testcreate != IntPtr.Zero)
-            {
-                instance = testcreate;
-                return true;
-            }
-            return false;
-        }
-
-        public bool Close()
-        {
-            if (instance != IntPtr.Zero)
-            {
-                close(instance);
-                return true;
-            }
-            return false;
-        }
     }
 }

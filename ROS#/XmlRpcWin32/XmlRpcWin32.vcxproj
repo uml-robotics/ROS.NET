@@ -63,7 +63,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>"$(VSInstallDir)VC\bin\dumpbin.exe" /EXPORTS "$(TargetPath)"</Command>
+      <Command>"$(VSInstallDir)VC\bin\dumpbin.exe" /EXPORTS "$(ProjectDir)..\XmlRpc_Wrapper\XmlRpcWin32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

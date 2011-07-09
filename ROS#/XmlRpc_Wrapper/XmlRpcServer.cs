@@ -1,5 +1,5 @@
 ﻿#region USINGZ
-#define REFDEBUG
+//#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -112,7 +112,7 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #endif
                         _refs.Remove(ptr);
-                        Shutdown(ptr);
+                        shutdown(ptr);
                         ptr = IntPtr.Zero;
                     }
                     return;

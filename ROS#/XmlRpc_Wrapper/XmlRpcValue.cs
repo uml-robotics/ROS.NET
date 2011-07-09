@@ -116,7 +116,7 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #endif
                         _refs.Remove(ptr);
-                        Clear(ptr);
+                        clear(ptr);
                         ptr = IntPtr.Zero;
                     }
                     return;

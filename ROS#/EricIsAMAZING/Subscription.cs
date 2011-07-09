@@ -451,7 +451,7 @@ namespace EricIsAMAZING
             if (client != null)
             {
                 if (!client.IsNull)
-                    client.Close();
+                    client.Shutdown();
                 client = null;
             }
         }

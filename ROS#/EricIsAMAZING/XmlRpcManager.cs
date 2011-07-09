@@ -140,7 +140,7 @@ namespace EricIsAMAZING
                         }
                         else if (DateTime.Now.Subtract(client.last_use_time).TotalMilliseconds > 30)
                         {
-                            client.client.Close();
+                            client.client.Shutdown();
                             zombies.Add(client);
                         }
                     }
@@ -283,7 +283,7 @@ namespace EricIsAMAZING
                 {
                     Thread.Sleep(10);
                 }
-                c.client.Close();
+                c.client.Shutdown();
             }
             clients.Clear();
             lock (functions_mutex)

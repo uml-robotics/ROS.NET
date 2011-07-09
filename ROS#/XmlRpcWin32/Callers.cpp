@@ -292,20 +292,20 @@ extern "C" XMLRPC_API void XmlRpcDispatch_Close(XmlRpcDispatch *instance)
 	if (!instance) return;
 	instance->~XmlRpcDispatch();
 }
-extern "C" XMLRPC_API void XmlRPcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned int eventMask)
+extern "C" XMLRPC_API void XmlRpcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask)
 {
 	if (!instance) return;
-	instance->addSource(source, eventMask);
+	instance->addSource(source, (unsigned)eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_RemoveSource(XmlRpcDispatch* instance, XmlRpcSource *source)
 {
 	if (!instance) return;
 	instance->removeSource(source);
 }
-extern "C" XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned int eventMask)
+extern "C" XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask)
 {
 	if (!instance) return;
-	instance->setSourceEvents(source, eventMask);
+	instance->setSourceEvents(source, (unsigned)eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Work(XmlRpcDispatch *instance, double msTime)
 {
@@ -317,7 +317,7 @@ extern "C" XMLRPC_API void XmlRpcDispatch_Exit(XmlRpcDispatch *instance)
 	if (!instance) return;
 	instance->exit();
 }
-extern "C" XMLRPC_API void XmlRPcDispatch_Clear(XmlRpcDispatch *instance)
+extern "C" XMLRPC_API void XmlRpcDispatch_Clear(XmlRpcDispatch *instance)
 {
 	if (!instance) return;
 	instance->clear();
@@ -347,7 +347,7 @@ extern "C" XMLRPC_API void XmlRpcSource_SetKeepOpen(XmlRpcSource *instance, bool
 	if (!instance) return;
 	instance->setKeepOpen(b);
 }
-extern "C" XMLRPC_API unsigned XmlRPcSource_HandleEvent(XmlRpcSource *instance, unsigned eventType)
+extern "C" XMLRPC_API unsigned XmlRpcSource_HandleEvent(XmlRpcSource *instance, unsigned eventType)
 {
 	return instance->handleEvent(eventType);
 }

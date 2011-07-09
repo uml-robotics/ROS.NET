@@ -1,5 +1,6 @@
 ﻿#region USINGZ
-
+//#define REFDEBUG
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -150,7 +151,7 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #endif
                         _refs.Remove(ptr);
-                        Shutdown(ptr);
+                        close(ptr);
                         ptr = IntPtr.Zero;
                     }
                     return;
@@ -197,6 +198,7 @@ namespace XmlRpc_Wrapper
             return true;
         }
         
+        
         public override bool Equals(object obj)
         {
             XmlRpcDispatch comp = obj as XmlRpcDispatch;
@@ -224,19 +226,19 @@ namespace XmlRpc_Wrapper
                 instance = otherref;
         }
 
-        public void AddSource(XmlRpcSource source, int eventMask)
+        public void AddSource(XmlRpcClient source, int eventMask)
         {
-            addsource(instance, source.instance, (uint) eventMask);
+            addsource(instance, source.instance, (uint)eventMask);
         }
 
-        public void RemoveSource(XmlRpcSource source)
+        public void RemoveSource(XmlRpcClient source)
         {
             removesource(instance, source.instance);
         }
 
-        public void SetSourceEvents(XmlRpcSource source, int eventMask)
+        public void SetSourceEvents(XmlRpcClient source, int eventMask)
         {
-            setsourceevents(instance, source.instance, (uint) eventMask);
+            setsourceevents(instance, source.instance, (uint)eventMask);
         }
 
         public void Work(double msTime)

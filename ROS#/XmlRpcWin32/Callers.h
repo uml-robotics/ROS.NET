@@ -82,12 +82,12 @@ extern "C" {
 	//XmlRpcDispatch
 	extern XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create();
 	extern XMLRPC_API void XmlRpcDispatch_Close(XmlRpcDispatch *instance);
-	extern XMLRPC_API void XmlRPcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask);
+	extern XMLRPC_API void XmlRpcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask);
 	extern XMLRPC_API void XmlRpcDispatch_RemoveSource(XmlRpcDispatch* instance, XmlRpcSource *source);
 	extern XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask);
 	extern XMLRPC_API void XmlRpcDispatch_Work(XmlRpcDispatch *instance, double msTime);
 	extern XMLRPC_API void XmlRpcDispatch_Exit(XmlRpcDispatch *instance);
-	extern XMLRPC_API void XmlRPcDispatch_Clear(XmlRpcDispatch *instance);
+	extern XMLRPC_API void XmlRpcDispatch_Clear(XmlRpcDispatch *instance);
 
 	//XmlRpcSource
 	extern XMLRPC_API XmlRpcSource *XmlRpcSource_Create(int fd, bool deleteOnClose);
