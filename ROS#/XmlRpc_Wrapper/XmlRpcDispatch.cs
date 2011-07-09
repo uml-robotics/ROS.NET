@@ -1,5 +1,5 @@
 ﻿#region USINGZ
-//#define REFDEBUG
+#define REFDEBUG
 using System.Threading;
 using System;
 using System.Collections.Generic;

@@ -627,6 +627,8 @@ namespace EricIsAMAZING
         public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            Console.WriteLine(parm);
+            parm.Dump();
             result = res.instance;
             if (!requestTopic(parm.Get<string>(1), parm.Get(2), ref res))
             {

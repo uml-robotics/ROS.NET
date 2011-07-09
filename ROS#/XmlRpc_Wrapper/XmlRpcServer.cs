@@ -210,12 +210,18 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                IntPtr ret = getdispatch(instance);
-                if (ret == IntPtr.Zero)
-                    return null;
-                return XmlRpcDispatch.LookUp(ret);
+                if (_dispatch == null)
+                {
+                    IntPtr ret = getdispatch(instance);
+                    if (ret == IntPtr.Zero)
+                        return null;
+                    _dispatch = XmlRpcDispatch.LookUp(ret);
+                }
+                return _dispatch;
             }
         }
+
+        private XmlRpcDispatch _dispatch;
 
         #region P/Invoke
 
