@@ -332,7 +332,7 @@ namespace EricIsAMAZING
             Count--;
             if (walk == tail)
                 tail = walkbehind;
-            if (walk != null)
+            if (walk != null && walkbehind != null)
                 walkbehind.next = walk.next;
             else
                 walkbehind = null;
@@ -371,10 +371,12 @@ namespace EricIsAMAZING
     {
         public virtual void addCallback(CallbackInterface callback, UInt64 owner_id = 0)
         {
+            throw new NotImplementedException();
         }
 
         public virtual void removeByID(UInt64 owner_id)
         {
+            throw new NotImplementedException();
         }
 
         #region Nested type: CallbackInfo
