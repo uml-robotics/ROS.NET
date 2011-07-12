@@ -34,7 +34,7 @@ namespace EricIsAMAZING
             get
             {
                 if (IsValid)
-                    return TopicManager.Instance().getNumPublishers(topic);
+                    return TopicManager.Instance.getNumPublishers(topic);
                 return 0;
             }
         }
