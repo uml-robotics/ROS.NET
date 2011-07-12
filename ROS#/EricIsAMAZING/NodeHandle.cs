@@ -92,7 +92,7 @@ namespace EricIsAMAZING
         public void shutdown()
         {
             foreach (ISubscriber sub in collection.subscribers)
-                sub.impl.unsubscribe();
+                sub.unsubscribe();
             foreach (IPublisher pub in collection.publishers)
                 pub.impl.unadvertise();
             foreach (IServiceClient client in collection.serviceclients)

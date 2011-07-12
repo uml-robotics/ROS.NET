@@ -26,6 +26,7 @@ namespace EricIsAMAZING
 
         public PublisherLink()
         {
+            throw new NotImplementedException();
         }
 
         public string TransportType
@@ -52,10 +53,12 @@ namespace EricIsAMAZING
 
         internal virtual void handleMessage(byte[] serializedmessagekinda, bool ser, bool nocopy)
         {
+            throw new NotImplementedException();
         }
 
         internal virtual void drop()
         {
+            throw new NotImplementedException();
         }
 
         #region Nested type: Stats

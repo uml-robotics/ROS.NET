@@ -12,93 +12,64 @@ namespace EricIsAMAZING
         public Subscriber(string topic, NodeHandle nodeHandle, ISubscriptionCallbackHelper cb)
         {
             // TODO: Complete member initialization
-            impl.topic = topic;
-            impl.nodehandle = new NodeHandle(nodeHandle);
-            impl.helper = cb;
+            this.topic = topic;
+            nodehandle = new NodeHandle(nodeHandle);
+            helper = cb;
         }
 
         public Subscriber(Subscriber<M> s)
         {
-            impl = s.impl;
+            topic = s.topic;
+            nodehandle = new NodeHandle(s.nodehandle);
+            helper = s.helper;
         }
 
         public Subscriber()
         {
+            throw new Exception("EMPTY CONSTRUCTOR CALLED...");
         }
 
         public int NumPublishers
         {
             get
             {
-                if (impl != null && impl.IsValid)
-                {
-                    return TopicManager.Instance.getNumPublishers(impl.topic);
-                }
+                if (IsValid)
+                    return TopicManager.Instance().getNumPublishers(topic);
                 return 0;
             }
         }
 
-        public void shutdown()
+        public override void shutdown()
         {
-            if (impl != null)
-                impl.unsubscribe();
+            unsubscribe();
         }
     }
 
-    public abstract class ISubscriber
+    public class ISubscriber
     {
-        public Impl impl = new Impl();
+        public double constructed = DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).Ticks;
+        public ISubscriptionCallbackHelper helper;
+        public NodeHandle nodehandle;
+        public string topic = "";
+        public bool unsubscribed;
 
-
-        public string Topic
+        public bool IsValid
         {
-            get
+            get { return !unsubscribed; }
+        }
+
+        public virtual void unsubscribe()
+        {
+            if (!unsubscribed)
             {
-                if (impl == null) return "";
-                return impl.topic;
-            }
-        }
-
-        public static bool operator ==(ISubscriber lhs, ISubscriber rhs)
-        {
-            return lhs.impl == rhs.impl;
-        }
-
-        public static bool operator !=(ISubscriber lhs, ISubscriber rhs)
-        {
-            return lhs.impl != rhs.impl;
-        }
-
-        internal void unsubscribe()
-        {
-            impl.unsubscribe();
-        }
-
-        #region Nested type: Impl
-
-        public class Impl
-        {
-            public double constructed = DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).Ticks;
-            public ISubscriptionCallbackHelper helper;
-            public NodeHandle nodehandle;
-            public string topic;
-            public bool unsubscribed;
-
-            public bool IsValid
-            {
-                get { return !unsubscribed; }
-            }
-
-            public void unsubscribe()
-            {
-                if (!unsubscribed)
-                {
-                    unsubscribed = true;
+                unsubscribed = true;
                     TopicManager.Instance.unsubscribe(topic, helper);
-                }
             }
         }
 
-        #endregion
+        public virtual void shutdown()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
