@@ -26,7 +26,6 @@ namespace EricIsAMAZING
 
         public Subscriber()
         {
-            throw new Exception("EMPTY CONSTRUCTOR CALLED...");
         }
 
         public int NumPublishers

@@ -85,7 +85,9 @@ namespace EricIsAMAZING
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
+                    Console.WriteLine("SIZE BEFORE GETINFO = " + info.Size);
                     info.Set(info.Size, curr_info);
+                    Console.WriteLine("SIZE AFTER GETINFO = " + info.Size);
                 }
             }
         }
