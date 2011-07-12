@@ -13,11 +13,11 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class NodeHandle
+    public class NodeHandle : IDisposable
     {
         public string Namespace = "", UnresolvedNamespace = "";
         private CallbackQueue _callback;
-        private bool _ok;
+        private bool _ok = true;
         public NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
         public int nh_refcount;
         public object nh_refcount_mutex = new object();
@@ -36,8 +36,8 @@ namespace EricIsAMAZING
         public NodeHandle(NodeHandle rhs)
         {
             Callback = rhs.Callback;
-            remappings = rhs.remappings;
-            unresolved_remappings = rhs.unresolved_remappings;
+            remappings = new Hashtable(rhs.remappings);
+            unresolved_remappings = new Hashtable(rhs.unresolved_remappings);
             construct(rhs.Namespace, true);
             UnresolvedNamespace = rhs.UnresolvedNamespace;
         }
@@ -46,8 +46,8 @@ namespace EricIsAMAZING
         {
             Namespace = parent.Namespace;
             Callback = parent.Callback;
-            remappings = parent.remappings;
-            unresolved_remappings = parent.unresolved_remappings;
+            remappings = new Hashtable(parent.remappings);
+            unresolved_remappings = new Hashtable(parent.unresolved_remappings);
             construct(ns, false);
         }
 
@@ -55,12 +55,22 @@ namespace EricIsAMAZING
         {
             Namespace = parent.Namespace;
             Callback = parent.Callback;
-            this.remappings = parent.remappings;
-            unresolved_remappings = parent.unresolved_remappings;
+            this.remappings = new Hashtable(remappings);
+            construct(ns, false);
         }
 
-        public NodeHandle()
+        public NodeHandle() : this(ROS.GlobalNodeHandle)
         {
+        }
+
+        public void Dispose()
+        {
+            destruct();
+        }
+
+        ~NodeHandle()
+        {
+            Dispose();
         }
 
         public CallbackQueue Callback
@@ -112,7 +122,7 @@ namespace EricIsAMAZING
                     ops.Callback = ROS.GlobalCallbackQueue;
             }
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
-            if (TopicManager.Instance().advertise(ops, callbacks))
+            if (TopicManager.Instance.advertise(ops, callbacks))
             {
                 Publisher<TypedMessage<M>> pub = new Publisher<TypedMessage<M>>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
                 lock (collection.mutex)
@@ -151,7 +161,7 @@ namespace EricIsAMAZING
                 else
                     ops.Callback = ROS.GlobalCallbackQueue;
             }
-            if (TopicManager.Instance().subscribe(ops))
+            if (TopicManager.Instance.subscribe(ops))
             {
                 Subscriber<TypedMessage<M>> sub = new Subscriber<TypedMessage<M>>(ops.topic, this, new SubscriptionCallbackHelper<TypedMessage<M>>(ops.Callback));
                 lock (collection.mutex)
@@ -178,7 +188,7 @@ namespace EricIsAMAZING
                 else
                     ops.Callback = Callback;
             }
-            if (ServiceManager.Instance().advertiseService(ops))
+            if (ServiceManager.Instance.advertiseService(ops))
             {
                 ServiceServer<T, MReq, MRes> srv = new ServiceServer<T, MReq, MRes>(ops.service, this);
                 lock (collection.mutex)

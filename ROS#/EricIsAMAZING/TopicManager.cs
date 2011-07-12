@@ -28,18 +28,21 @@ namespace EricIsAMAZING
         private object advertised_topics_mutex = new object();
         private List<string> advertised_topics_names = new List<string>();
         private object advertised_topics_names_mutex = new object();
-        private ConnectionManager connection_manager;
-        private PollManager poll_manager;
+        private ConnectionManager connection_manager = ConnectionManager.Instance;
+        private PollManager poll_manager = PollManager.Instance;
         private bool shutting_down;
         private object shutting_down_mutex = new object();
         private object subs_mutex = new object();
         private List<Subscription> subscriptions = new List<Subscription>();
-        private XmlRpcManager xmlrpc_manager;
+        private XmlRpcManager xmlrpc_manager = XmlRpcManager.Instance;
 
-        public static TopicManager Instance()
+        public static TopicManager Instance
         {
-            if (_instance == null) _instance = new TopicManager();
-            return _instance;
+            get
+            {
+                if (_instance == null) _instance = new TopicManager();
+                return _instance;
+            }
         }
 
         public void Start()
@@ -49,9 +52,9 @@ namespace EricIsAMAZING
             {
                 shutting_down = false;
 
-                poll_manager = PollManager.Instance();
-                connection_manager = ConnectionManager.Instance();
-                xmlrpc_manager = XmlRpcManager.Instance();
+                poll_manager = PollManager.Instance;
+                connection_manager = ConnectionManager.Instance;
+                xmlrpc_manager = XmlRpcManager.Instance;
 
                 xmlrpc_manager.bind("publisherUpdate", pubUpdateCallback);
                 xmlrpc_manager.bind("requestTopic", requestTopicCallback);
@@ -408,7 +411,7 @@ namespace EricIsAMAZING
 
                 if (proto_name == "TCPROS")
                 {
-                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int) connection_manager.TCPPort);
+                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int)connection_manager.TCPPort);
                     ret.Set(0, 1);
                     ret.Set(1, "");
                     ret.Set(2, tcp_ros_params);
@@ -432,7 +435,13 @@ namespace EricIsAMAZING
 
         public bool registerSubscriber(Subscription s, string datatype)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            string fuckinguriyo = xmlrpc_manager.uri;
+            XmlRpcValue args, result, payload;
+
+            args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
+            result = new XmlRpcValue();
+            payload = new XmlRpcValue();
+
             if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
@@ -442,7 +451,7 @@ namespace EricIsAMAZING
                 string pubed = asshole.Get<string>();
                 if (pubed == null)
                     throw new Exception("ZOMG IT'S NULL IN REGISTER!");
-                if (pubed != xmlrpc_manager.uri && !pub_uris.Contains(pubed))
+                if (pubed != fuckinguriyo && !pub_uris.Contains(pubed))
                 {
                     pub_uris.Add(pubed);
                 }
@@ -616,11 +625,11 @@ namespace EricIsAMAZING
             for (int idx = 0; idx < parm.Get(2).Size; idx++)
                 pubs.Add(parm.Get(2).Get<string>(idx));
             if (pubUpdate(parm.Get<string>(1), pubs))
-                XmlRpcManager.Instance().responseInt(1, "", 0)(result);
+                XmlRpcManager.Instance.responseInt(1, "", 0)(result);
             else
             {
                 Console.WriteLine("Unknown Error or some shit");
-                XmlRpcManager.Instance().responseInt(0, "Unknown Error or some shit", 0)(result);
+                XmlRpcManager.Instance.responseInt(0, "Unknown Error or some shit", 0)(result);
             }
         }
 
@@ -634,7 +643,7 @@ namespace EricIsAMAZING
             {
                 string last_error = "Unknown error or some shit";
 
-                XmlRpcManager.Instance().responseInt(0, last_error, 0)(result);
+                XmlRpcManager.Instance.responseInt(0, last_error, 0)(result);
             }
         }
 

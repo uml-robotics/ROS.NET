@@ -38,7 +38,9 @@ namespace EricIsAMAZING
 
         public static string clean(string name)
         {
-            return name.Replace("//", "/").TrimEnd('/');
+            while (name.Contains("//"))
+                name = name.Replace("//", "/");
+            return name.TrimEnd('/');
         }
 
         public static string append(string left, string right)

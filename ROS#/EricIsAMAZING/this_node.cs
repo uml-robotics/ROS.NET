@@ -17,7 +17,7 @@ namespace EricIsAMAZING
         public static List<string> AdvertisedTopics()
         {
             List<string> ret = new List<string>();
-            TopicManager.Instance().getAdvertisedTopics(ref ret);
+            TopicManager.Instance.getAdvertisedTopics(ref ret);
             return ret;
         }
 

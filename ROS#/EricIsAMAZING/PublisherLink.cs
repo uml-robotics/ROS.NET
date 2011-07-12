@@ -44,7 +44,7 @@ namespace EricIsAMAZING
                 return false;
             if ((string) h.Values["latching"] == "1")
                 Latched = true;
-            ConnectionID = ConnectionManager.Instance().GetNewConnectionID();
+            ConnectionID = ConnectionManager.Instance.GetNewConnectionID();
             header = h;
             parent.headerReceived(this, header);
             return true;

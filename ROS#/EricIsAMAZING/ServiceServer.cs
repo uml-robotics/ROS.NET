@@ -44,7 +44,7 @@ namespace EricIsAMAZING
                 if (!unadvertised)
                 {
                     unadvertised = true;
-                    ServiceManager.Instance().unadvertiseService(service);
+                    ServiceManager.Instance.unadvertiseService(service);
                 }
             }
         }

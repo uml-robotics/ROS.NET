@@ -18,7 +18,7 @@ namespace EricIsAMAZING
             impl.md5sum = md5sum;
             if (persistent)
             {
-                impl.server_link = ServiceManager.Instance().createServiceServerLink(impl.service, impl.persistent, impl.md5sum, impl.md5sum, impl.header_values);
+                impl.server_link = ServiceManager.Instance.createServiceServerLink(impl.service, impl.persistent, impl.md5sum, impl.md5sum, impl.header_values);
             }
         }
     }

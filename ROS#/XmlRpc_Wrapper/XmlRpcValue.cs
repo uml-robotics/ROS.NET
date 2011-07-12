@@ -328,7 +328,7 @@ namespace XmlRpc_Wrapper
         private static extern void set(IntPtr target, int key, bool value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set8", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string key, bool value);
+        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, bool value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set9", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, int key, double value);
@@ -390,7 +390,10 @@ namespace XmlRpc_Wrapper
                     return TypeEnum.TypeInvalid;
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
-                    return TypeEnum.TypeIDFK;
+                {
+                    Clear();
+                    return TypeEnum.TypeInvalid;
+                }
                 return ValueTypeHelper._typearray[balls];
             }
         }
@@ -412,7 +415,10 @@ namespace XmlRpc_Wrapper
             {
                 SegFault();
                 if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
+                {
+                    //Clear();
                     return 0;
+                }
                 if (Type != TypeEnum.TypeString && Type != TypeEnum.TypeStruct && Type != TypeEnum.TypeArray)
                     return 0;
                 return getsize(instance);

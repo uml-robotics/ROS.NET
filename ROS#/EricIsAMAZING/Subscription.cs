@@ -213,7 +213,7 @@ namespace EricIsAMAZING
 
                 foreach (PublisherLink link in subtractions)
                 {
-                    if (link.XmlRpc_Uri != XmlRpcManager.Instance().uri)
+                    if (link.XmlRpc_Uri != XmlRpcManager.Instance.uri)
                     {
 #if DEBUG
                         Console.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name + "] at [" + link.XmlRpc_Uri + "]");
@@ -230,10 +230,10 @@ namespace EricIsAMAZING
 
                 foreach (string i in additions)
                 {
-                    if (XmlRpcManager.Instance().uri != i)
+                    if (XmlRpcManager.Instance.uri != i)
                         retval &= NegotiateConnection(i);
                     else
-                        Console.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance().uri + ")");
+                        Console.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
                 }
             }
             return retval;
@@ -266,7 +266,7 @@ namespace EricIsAMAZING
             Console.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
-            XmlRpcManager.Instance().addAsyncConnection(conn);
+            XmlRpcManager.Instance.addAsyncConnection(conn);
             lock (pending_connections_mutex)
             {
                 pending_connections.Add(conn);
@@ -286,7 +286,7 @@ namespace EricIsAMAZING
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
             XmlRpcValue proto = new XmlRpcValue();
-            if (!XmlRpcManager.Instance().validateXmlrpcResponse("requestTopic", result, ref proto))
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
                 Console.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
                 return;
@@ -327,16 +327,16 @@ namespace EricIsAMAZING
                 Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port + "]");
 #endif
 
-                TcpTransport transport = new TcpTransport(PollManager.Instance().poll_set);
+                TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set);
                 if (transport.connect(pub_host, pub_port))
                 {
                     Connection connection = new Connection();
                     TransportPublisherLink pub_link = new TransportPublisherLink(this, xmlrpc_uri);
 
-                    connection.initialize(transport, false, headerReceived);
+                    connection.initialize(transport, false, (c, h) => true );
                     pub_link.initialize(connection);
 
-                    ConnectionManager.Instance().addConnection(connection);
+                    ConnectionManager.Instance.addConnection(connection);
 
                     lock (publisher_links_mutex)
                     {

@@ -32,7 +32,7 @@ namespace EricIsAMAZING
             {
                 if (impl != null && impl.IsValid)
                 {
-                    return TopicManager.Instance().getNumPublishers(impl.topic);
+                    return TopicManager.Instance.getNumPublishers(impl.topic);
                 }
                 return 0;
             }
@@ -94,7 +94,7 @@ namespace EricIsAMAZING
                 if (!unsubscribed)
                 {
                     unsubscribed = true;
-                    TopicManager.Instance().unsubscribe(topic, helper);
+                    TopicManager.Instance.unsubscribe(topic, helper);
                 }
             }
         }

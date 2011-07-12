@@ -83,7 +83,7 @@ namespace EricIsAMAZING
             DateTime startTime = DateTime.Now;
             string master_host = host;
             int master_port = port;
-            XmlRpcClient client = XmlRpcManager.Instance().getXMLRPCClient(master_host, master_port, "/");
+            XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
             bool printed = false;
             bool slept = false;
             bool ok = true;
@@ -92,7 +92,7 @@ namespace EricIsAMAZING
                 bool b = false;
                 b = client.Execute(method, request, ref response);
 
-                ok = !ROS.shutting_down && !XmlRpcManager.Instance().shutting_down;
+                ok = !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down;
 
                 if (!b && ok)
                 {
@@ -104,7 +104,7 @@ namespace EricIsAMAZING
 
                     if (!wait_for_master)
                     {
-                        XmlRpcManager.Instance().releaseXMLRPCClient(client);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }
 
@@ -112,9 +112,9 @@ namespace EricIsAMAZING
                 }
                 else
                 {
-                    if (!XmlRpcManager.Instance().validateXmlrpcResponse(method, response, ref payload))
+                    if (!XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
                     {
-                        XmlRpcManager.Instance().releaseXMLRPCClient(client);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }
                     break;
@@ -125,7 +125,7 @@ namespace EricIsAMAZING
             {
                 Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
             }
-            XmlRpcManager.Instance().releaseXMLRPCClient(client);
+            XmlRpcManager.Instance.releaseXMLRPCClient(client);
             return true;
         }
     }

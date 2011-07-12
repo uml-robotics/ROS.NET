@@ -117,7 +117,9 @@ namespace EricIsAMAZING
 
         private bool validateFailed(string method, string errorfmat, params object[] info)
         {
+#if DEBUG
             Console.WriteLine("XML-RPC Call [{0}] {1}", method, string.Format(errorfmat, info));
+#endif
             return false;
         }
 
@@ -243,10 +245,13 @@ namespace EricIsAMAZING
                        };
         }
 
-        public static XmlRpcManager Instance()
+        public static XmlRpcManager Instance
         {
-            if (_instance == null) _instance = new XmlRpcManager();
-            return _instance;
+            get
+            {
+                if (_instance == null) _instance = new XmlRpcManager();
+                return _instance;
+            }
         }
 
         public void Start()

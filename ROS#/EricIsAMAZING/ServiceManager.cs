@@ -14,10 +14,13 @@ namespace EricIsAMAZING
     {
         private static ServiceManager _instance;
 
-        public static ServiceManager Instance()
+        public static ServiceManager Instance
         {
-            if (_instance == null) _instance = new ServiceManager();
-            return _instance;
+            get
+            {
+                if (_instance == null) _instance = new ServiceManager();
+                return _instance;
+            }
         }
 
         public void Start()

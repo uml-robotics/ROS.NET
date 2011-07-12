@@ -75,10 +75,13 @@ namespace EricIsAMAZING
         }
 
 
-        public static PollManager Instance()
+        public static PollManager Instance
         {
-            if (_instance == null) _instance = new PollManager();
-            return _instance;
+            get
+            {
+                if (_instance == null) _instance = new PollManager();
+                return _instance;
+            }
         }
 
         public void Start()

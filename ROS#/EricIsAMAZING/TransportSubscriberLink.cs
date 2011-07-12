@@ -12,7 +12,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public abstract class TransportSubscriberLink : SubscriberLink, IDisposable
+    public class TransportSubscriberLink : SubscriberLink, IDisposable
     {
         public Connection connection;
         private bool header_written;
@@ -55,7 +55,7 @@ namespace EricIsAMAZING
             }
             string topic = (string) header.Values["topic"];
             string client_callerid = (string) header.Values["callerid"];
-            Publication pt = TopicManager.Instance().lookupPublication(topic);
+            Publication pt = TopicManager.Instance.lookupPublication(topic);
             if (pt == null)
             {
                 string msg = "received a connection for a nonexistent topic [" + topic + "] from [" + connection.transport + "] [" + client_callerid + "]";
@@ -71,7 +71,7 @@ namespace EricIsAMAZING
                 return false;
             }
             destination_caller_id = client_callerid;
-            connection_id = ConnectionManager.Instance().GetNewConnectionID();
+            connection_id = ConnectionManager.Instance.GetNewConnectionID();
             topic = pt.Name;
             parent = pt;
 

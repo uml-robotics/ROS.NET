@@ -31,7 +31,8 @@ namespace EricIsAMAZING
         {
             if (callbackInterface == null)
                 callbackInterface = ROS.GlobalCallbackQueue;
-            while (ROS.GlobalNodeHandle.ok)
+            NodeHandle spinnerhandle = new NodeHandle();
+            while (spinnerhandle.ok)
             {
                 callbackInterface.callAvailable(ROS.WallDuration);
             }

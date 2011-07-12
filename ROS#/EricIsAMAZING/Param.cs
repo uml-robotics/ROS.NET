@@ -165,7 +165,7 @@ namespace EricIsAMAZING
                     set(names.resolve(local_name), param);
                 }
             }
-            XmlRpcManager.Instance().bind("paramUpdate", paramUpdateCallback);
+            XmlRpcManager.Instance.bind("paramUpdate", paramUpdateCallback);
         }
 
         public static void update(string key, XmlRpcValue v)
@@ -214,7 +214,7 @@ namespace EricIsAMAZING
                         subscribed_params.Add(mapped_key);
                         XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
                         parm.Set(0, this_node.Name);
-                        parm.Set(1, XmlRpcManager.Instance().uri);
+                        parm.Set(1, XmlRpcManager.Instance.uri);
                         parm.Set(2, mapped_key);
                         if (!master.execute("subscribeParam", parm, ref result, ref payload, false))
                         {

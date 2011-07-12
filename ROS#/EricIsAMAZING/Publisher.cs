@@ -31,7 +31,7 @@ namespace EricIsAMAZING
                 return;
             if (!impl.IsValid)
                 return;
-            TopicManager.Instance().publish(impl.topic, msg);
+            TopicManager.Instance.publish(impl.topic, msg);
         }
     }
 
@@ -60,7 +60,7 @@ namespace EricIsAMAZING
             if (!unadvertised)
             {
                 unadvertised = true;
-                TopicManager.Instance().unadvertise(topic, callbacks);
+                TopicManager.Instance.unadvertise(topic, callbacks);
             }
         }
     }

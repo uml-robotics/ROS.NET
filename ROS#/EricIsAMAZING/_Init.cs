@@ -132,14 +132,14 @@ namespace EricIsAMAZING
                 shutting_down = false;
                 started = true;
                 ok = true;
-                //PollManager.Instance().addPollThreadListener(checkForShutdown);
-                //XmlRpcManager.Instance().bind("shutdown", shutdownCallback);
+                //PollManager.Instance.addPollThreadListener(checkForShutdown);
+                //XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
                 //initInternalTimerManager();
-                TopicManager.Instance().Start();
-                ServiceManager.Instance().Start();
-                ConnectionManager.Instance().Start();
-                PollManager.Instance().Start();
-                XmlRpcManager.Instance().Start();
+                TopicManager.Instance.Start();
+                ServiceManager.Instance.Start();
+                ConnectionManager.Instance.Start();
+                PollManager.Instance.Start();
+                XmlRpcManager.Instance.Start();
                 //Time.Init();
                 internal_queue_thread = new Thread(internalCallbackQueueThreadFunc);
                 internal_queue_thread.IsBackground = true;
@@ -179,10 +179,10 @@ namespace EricIsAMAZING
 
                 if (started)
                 {
-                    TopicManager.Instance().shutdown();
-                    ServiceManager.Instance().shutdown();
-                    PollManager.Instance().shutdown();
-                    XmlRpcManager.Instance().shutdown();
+                    TopicManager.Instance.shutdown();
+                    ServiceManager.Instance.shutdown();
+                    PollManager.Instance.shutdown();
+                    XmlRpcManager.Instance.shutdown();
                 }
 
                 started = false;

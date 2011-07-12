@@ -176,7 +176,7 @@ namespace EricIsAMAZING
                         Connection conn = new Connection();
                         conn.initialize(transport, false, null);
                         initialize(conn);
-                        ConnectionManager.Instance().addConnection(conn);
+                        ConnectionManager.Instance.addConnection(conn);
                     }
                 }
             }

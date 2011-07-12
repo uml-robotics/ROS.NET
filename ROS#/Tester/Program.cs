@@ -55,7 +55,6 @@ namespace ConsoleApplication1
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
-            ROS.start();
             NodeHandle nh = new NodeHandle();
             //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
             //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
