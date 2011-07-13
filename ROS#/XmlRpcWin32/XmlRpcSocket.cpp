@@ -8,15 +8,16 @@
 #ifndef MAKEDEPEND
 
 #if defined(_WINDOWS)
-# include <stdio.h>
-# include <winsock2.h>
-# include <ws2tcpip.h>
 #include <errno.h>
-# pragma lib(WS2_32.lib)
+#include <stdio.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <IPHlpApi.h>
+#pragma comment(lib, "Ws2_32.lib")
 
-# define EINPROGRESS	WSAEINPROGRESS
-# define EWOULDBLOCK	WSAEWOULDBLOCK
-# define ETIMEDOUT	    WSAETIMEDOUT
+#define EINPROGRESS	WSAEINPROGRESS
+#define EWOULDBLOCK	WSAEWOULDBLOCK
+#define ETIMEDOUT	    WSAETIMEDOUT
 #else
 extern "C" {
 # include <unistd.h>

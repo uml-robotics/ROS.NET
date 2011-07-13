@@ -84,7 +84,7 @@ namespace EricIsAMAZING
 
         public bool setNonBlocking()
         {
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
             {
                 try
                 {
@@ -179,7 +179,7 @@ namespace EricIsAMAZING
             if (!IPAddress.TryParse(host, out IPA))
             {
                 foreach (IPAddress ipa in Dns.GetHostAddresses(host))
-                    if (ipa.Address.ToString().Contains(":"))
+                    if (ipa.ToString().Contains(":"))
                         continue;
                     else
                     {
@@ -219,7 +219,7 @@ namespace EricIsAMAZING
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
                 enableRead();
             return true;
         }
@@ -229,7 +229,7 @@ namespace EricIsAMAZING
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[3];
@@ -246,10 +246,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -270,7 +270,7 @@ namespace EricIsAMAZING
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[4];
@@ -287,10 +287,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -312,8 +312,8 @@ namespace EricIsAMAZING
             for (int i = 0; i < b.Length; i++)
             {
                 s += "" + b[i].ToString("x") + " ";
-                if (i%4 == 0) s += "     ";
-                if (i%16 == 0 && i != b.Length - 1) s += "\n";
+                if (i % 4 == 0) s += "     ";
+                if (i % 16 == 0 && i != b.Length - 1) s += "\n";
             }
             Console.WriteLine(s);
         }
@@ -332,7 +332,7 @@ namespace EricIsAMAZING
                     return;
                 }
 
-                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) && !setKeepAlive(sock, (ulong) idle, (ulong) interval))
+                if (!setKeepAlive(sock, (ulong)idle, (ulong)interval, (ulong)count) && !setKeepAlive(sock, (ulong)idle, (ulong)interval))
                     Console.WriteLine("FAIL!");
             }
             else
@@ -429,21 +429,12 @@ namespace EricIsAMAZING
         public TcpTransport accept()
         {
             Socket acc = sock.Accept();
-            if (acc != null)
+            TcpTransport transport = new TcpTransport(poll_set, flags);
+            if (!transport.setSocket(acc))
             {
-                TcpTransport transport = new TcpTransport(poll_set, flags);
-                if (!transport.setSocket(acc))
-                {
-                    throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
-                }
-
-                return transport;
+                throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
             }
-            else
-            {
-                throw new Exception("GOT A NULL SOCKET FROM SERVER SOCKET!");
-            }
-            return null;
+            return transport;
         }
 
         public override string ToString()

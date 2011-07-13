@@ -66,7 +66,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public virtual void drop()
+        public override void drop()
         {
             dropping = true;
             connection.drop(Connection.DropReason.Destructing);

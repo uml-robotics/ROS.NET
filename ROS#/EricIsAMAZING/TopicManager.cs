@@ -545,23 +545,36 @@ namespace EricIsAMAZING
             stats.Set(2, service_stats);
         }
 
-        public void getBusInfo(ref XmlRpcValue info)
+        public void getBusInfo(IntPtr i)
         {
-            info.Size = 0;
+            XmlRpcValue info = XmlRpcValue.LookUp(i);
+            //Console.WriteLine("was " + info.Type);
+            //info.Type = TypeEnum.TypeArray;
+            //Console.WriteLine("now is " + info.Type);
+            //info.Size = 0;
             lock (advertised_topics_mutex)
             {
                 foreach (Publication t in advertised_topics)
                 {
-                    t.getInfo(ref info);
+                    Console.WriteLine("ADDING PUB: " + t.Name + " to BusInfo");
+                    t.getInfo(i);
                 }
             }
             lock (subs_mutex)
             {
                 foreach (Subscription t in subscriptions)
                 {
-                    t.getInfo(ref info);
+                    Console.WriteLine("ADDING SUB: " + t.name + " to BusInfo");
+                    t.getInfo(i);
                 }
             }
+            if (info.Size != 0)
+            {
+                info.Dump();
+                Console.WriteLine("returning non-empty bus info!");
+            }
+            else
+                Console.WriteLine("returning empty bus info!");
         }
 
         public void getSubscriptions(ref XmlRpcValue subs)
@@ -572,10 +585,7 @@ namespace EricIsAMAZING
                 int sidx = 0;
                 foreach (Subscription t in subscriptions)
                 {
-                    XmlRpcValue sub = new XmlRpcValue();
-                    sub.Set(0, t.name);
-                    sub.Set(1, t.datatype);
-                    subs.Set(sidx++, sub);
+                    subs.Set(sidx++, new XmlRpcValue(t.name, t.datatype));
                 }
             }
         }
@@ -651,7 +661,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
-            res.Set(0, new XmlRpcValue(1));
+            res.Set(0, 1);
             res.Set(1, "");
             XmlRpcValue response = new XmlRpcValue();
             getBusStats(ref response);
@@ -660,20 +670,19 @@ namespace EricIsAMAZING
 
         public void getBusInfoCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
-            res.Set(0, new XmlRpcValue(1));
+            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            res.Set(0, 1);
             res.Set(1, "");
             XmlRpcValue response = new XmlRpcValue();
-            getBusInfo(ref response);
+            IntPtr resp = response.instance;
+            getBusInfo(resp);
             res.Set(2, response);
         }
 
         public void getSubscriptionsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
-            res.Set(0, new XmlRpcValue(1));
+            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            res.Set(0, 1);
             res.Set(1, "subscriptions");
             XmlRpcValue response = new XmlRpcValue();
             getSubscriptions(ref response);

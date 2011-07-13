@@ -73,8 +73,10 @@ namespace EricIsAMAZING
             return stats;
         }
 
-        public void getInfo(ref XmlRpcValue info)
+        public void getInfo(IntPtr i)
         {
+            Console.WriteLine("subscription.getInfo");
+            XmlRpcValue info = XmlRpcValue.LookUp(i);
             lock (publisher_links_mutex)
             {
                 foreach (PublisherLink c in publisher_links)
@@ -85,9 +87,8 @@ namespace EricIsAMAZING
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
-                    Console.WriteLine("SIZE BEFORE GETINFO = " + info.Size);
+                    Console.WriteLine("size of curr_info is" + curr_info.Size);
                     info.Set(info.Size, curr_info);
-                    Console.WriteLine("SIZE AFTER GETINFO = " + info.Size);
                 }
             }
         }
@@ -429,7 +430,7 @@ namespace EricIsAMAZING
         {
             if (type == MsgTypes.Unknown) return null;
             return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
-            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
+            //return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
         }
 
         public void ConnectAsync()

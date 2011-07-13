@@ -86,7 +86,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public virtual void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
+        public override void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
         {
             if (!ser) return;
             lock (outbox_mutex)
@@ -116,7 +116,7 @@ namespace EricIsAMAZING
             stats.message_data_sent += msg.Serialize().Length;
         }
 
-        public virtual void drop()
+        public override void drop()
         {
             if (connection.sendingHeaderError)
                 connection.DroppedEvent -= onConnectionDropped;

@@ -56,7 +56,7 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
 
-        internal virtual void drop()
+        public virtual void drop()
         {
             throw new NotImplementedException();
         }

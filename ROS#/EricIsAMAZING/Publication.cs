@@ -177,18 +177,22 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public void getInfo(ref XmlRpcValue info)
+        public void getInfo(IntPtr i)
         {
+            Console.WriteLine("publication.getInfo");
+            XmlRpcValue info = XmlRpcValue.LookUp(i);
             lock (subscriber_links_mutex)
             {
                 foreach (SubscriberLink c in subscriber_links)
                 {
+                    Console.WriteLine("Adding sub link to bus info " + c.topic + "\n" + c.destination_caller_id);
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, c.connection_id);
+                    curr_info.Set(0, (int)c.connection_id);
                     curr_info.Set(1, c.destination_caller_id);
                     curr_info.Set(2, "o");
                     curr_info.Set(3, "TCPROS");
                     curr_info.Set(4, Name);
+                    Console.WriteLine("Dump of subscriberlink xmlrpcvalue being added to businfo");
                     info.Set(info.Size, curr_info);
                 }
             }

@@ -202,7 +202,7 @@ namespace XmlRpc {
       case TypeArray:  return int(_value.asArray->size());
       case TypeStruct: return int(_value.asStruct->size());
       default: break;
-    }
+    }	
 	XmlRpcUtil::log(4, "Trying to get size of something without a size! -- type=%d", _type);
 	throw XmlRpcException("type error");
   }

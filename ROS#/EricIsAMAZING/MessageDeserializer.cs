@@ -22,7 +22,7 @@ namespace EricIsAMAZING
             get { return (M) base.message; }
         }
 
-        public SubscriptionCallbackHelper<M> helper
+        public new SubscriptionCallbackHelper<M> helper
         {
             get { return (SubscriptionCallbackHelper<M>) base.helper; }
         }
