@@ -376,7 +376,16 @@ namespace EricIsAMAZING
             }
             try
             {
-                int num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None);
+                SocketError err = default(SocketError);
+                int num_bytes = 0;
+                try
+                {
+                    num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
+                }
+                catch
+                {
+
+                }
                 return num_bytes;
             }
             catch (Exception e)

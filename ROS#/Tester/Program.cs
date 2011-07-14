@@ -40,10 +40,12 @@ namespace ConsoleApplication1
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
-            //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
             Subscriber<TypedMessage<m.String>> sub = nh.subscribe<m.String>("chatter", 1000, chatterCallback);
             ROS.spin();
+
+
+            //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);
+            //pub.publish(new m.TypedMessage<String>(new String(){ data = "BLAH BLAH BLAH" }));
             /*if (!node.InitSubscriber("/rxconsole_1308702433994048982", "/rosout_agg"))
             {
                 Console.WriteLine("FAILED TO REQUEST TOPIC... FUCK STAINS!");

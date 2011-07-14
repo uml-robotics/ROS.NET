@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 
 #endregion
 
@@ -23,7 +24,7 @@ namespace EricIsAMAZING
         public string CallerID;
         public string RemoteString;
         public bool dropped;
-        public Header header;
+        public Header header = new Header();
         public bool is_server;
         public bool sendingHeaderError;
         public TcpTransport transport;
@@ -138,23 +139,6 @@ namespace EricIsAMAZING
             }
         }
 
-        private void transport_DisconnectCallback(TcpTransport trans, DropReason reason)
-        {
-            drop(DropReason.TransportDisconnect);
-        }
-
-        private void transport_WriteCallback(TcpTransport trans)
-        {
-            if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-            throw new NotImplementedException();
-        }
-
-        private void transport_ReadCallback(TcpTransport trans)
-        {
-            if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-            throw new NotImplementedException();
-        }
-
         private void onReadable(TcpTransport trans)
         {
             if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
@@ -195,6 +179,12 @@ namespace EricIsAMAZING
                 {
                     if (header_func == null) throw new Exception("AMG YOUR HEADERFUNC SUCKS");
                     transport.parseHeader(header);
+                    Console.WriteLine("GOT HEADER!");
+                    foreach (object k in header.Values)
+                    {
+                        string key = (string)k;
+                        Console.WriteLine("" + key + " = " + ((string)header.Values[k]));
+                    }
                     header_func(conn, header);
                 }
             }
