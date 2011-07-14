@@ -115,31 +115,32 @@ typedef XmlRpcValue *Val;
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create1()
 {
 	Val v = new XmlRpcValue();
-	v->_type = XmlRpcValue::TypeInvalid;
 	return v;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create2(bool value)
 {
 	Val v = new XmlRpcValue(value);
-	v->_type = XmlRpcValue::TypeBoolean;
 	return v;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create3(int value)
 {
 	Val v = new XmlRpcValue(value);
-	v->_type = XmlRpcValue::TypeInt;
 	return v;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create4(double value)
 {	
 	Val v = new XmlRpcValue(value);
-	v->_type = XmlRpcValue::TypeDouble;
 	return v;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create5(const char* value)
 {	
 	Val v = new XmlRpcValue(value);
-	v->_type = XmlRpcValue::TypeString;
+	return v;
+}
+
+extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create6(XmlRpcValue *rhs)
+{	
+	Val v = new XmlRpcValue(rhs);	
 	return v;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Clear(XmlRpcValue* instance)
@@ -149,10 +150,6 @@ extern "C" XMLRPC_API void XmlRpcValue_Clear(XmlRpcValue* instance)
 extern "C" XMLRPC_API bool XmlRpcValue_Valid(XmlRpcValue* instance)
 {
 	return instance->valid();
-}
-extern "C" XMLRPC_API void XmlRpcValue_SetType(XmlRpcValue* instance, int t)
-{
-	instance->_type = (XmlRpcValue::Type)t;
 }
 extern "C" XMLRPC_API int XmlRpcValue_Type(XmlRpcValue* instance)
 {
@@ -164,7 +161,6 @@ extern "C" XMLRPC_API int XmlRpcValue_Size(XmlRpcValue* instance)
 }
 extern "C" XMLRPC_API void XmlRpcValue_SetSize(XmlRpcValue* instance, int size)
 {
-	XmlRpcUtil::log(4, "Trying to change size of %d from %d to %d\n", &instance, instance->size(), size);
 	instance->setSize(size);
 }
 extern "C" XMLRPC_API bool XmlRpcValue_HasMember(XmlRpcValue* instance, const char* name)
@@ -179,104 +175,41 @@ extern "C" XMLRPC_API XmlRpcValue* XmlRpcValue_Get2(XmlRpcValue* instance, const
 {
 	return &instance->operator[](key);
 }
-extern "C" XMLRPC_API void XmlRpcValue_Set1(XmlRpcValue* instance, int key, const char *value)
-{
-	
-	instance->operator[](key) = value;
-}
-extern "C" XMLRPC_API void XmlRpcValue_Set2(XmlRpcValue* instance, const char* key, const char *value)
-{
-	
-	instance->operator[](key) = value;
-}
-extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, int key, XmlRpcValue *value)
-{
-	
-	instance->operator[](key) = value;
-}
-extern "C" XMLRPC_API void XmlRpcValue_Set4(XmlRpcValue* instance, const char* key, XmlRpcValue *value)
+extern "C" XMLRPC_API void XmlRpcValue_Set1(XmlRpcValue* instance, const char *value)
 {	
-	
-	instance->operator[](key) = value;
+	*instance = value;
 }
-extern "C" XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int key, int value)
-{
-	
-	instance->operator[](key) = value;
+extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, XmlRpcValue *value)
+{	
+	*instance = value;
 }
-extern "C" XMLRPC_API void XmlRpcValue_Set6(XmlRpcValue* instance, const char* key, int value)
-{
-	
-	instance->operator[](key) = value;
+extern "C" XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int value)
+{	
+	*instance = value;
 }
-extern "C" XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, int key, bool value)
-{
-	
-	instance->operator[](key) = value;
+extern "C" XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, bool value)
+{	
+	*instance = value;
 }
-extern "C" XMLRPC_API void XmlRpcValue_Set8(XmlRpcValue* instance, const char* key, bool value)
+extern "C" XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, double value)
 {
-	
-	instance->operator[](key) = value;
-}
-extern "C" XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, int key, double value)
-{
-	
-	instance->operator[](key) = value;
-}
-extern "C" XMLRPC_API void XmlRpcValue_Set10(XmlRpcValue* instance, const char* key, double value)
-{
-	
-	instance->operator[](key) = value;
+	*instance = value;
 }
 extern "C" XMLRPC_API int XmlRpcValue_GetInt0(XmlRpcValue* instance)
 {
-
 	return (instance->operator int &());
-}
-extern "C" XMLRPC_API int XmlRpcValue_GetInt1(XmlRpcValue* instance, int key)
-{
-	return (&instance->operator[](key))->operator int &();
-}
-extern "C" XMLRPC_API int XmlRpcValue_GetInt2(XmlRpcValue* instance, const char* key)
-{
-	return (&instance->operator[](key))->operator int &();
 }
 extern "C" XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance)
 {
 	return instance->operator std::string &().c_str();
 }
-extern "C" XMLRPC_API const char* XmlRpcValue_GetString1(XmlRpcValue* instance, int key)
-{
-	return (&instance->operator[](key))->operator std::string &().c_str();
-}
-extern "C" XMLRPC_API const char* XmlRpcValue_GetString2(XmlRpcValue* instance, const char* key)
-{
-	return (&instance->operator[](key))->operator std::string &().c_str();
-}
 extern "C" XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance)
 {
 	return instance->operator bool &();
 }
-extern "C" XMLRPC_API bool XmlRpcValue_GetBool1(XmlRpcValue* instance, int key)
-{
-	return (&instance->operator[](key))->operator bool &();
-}
-extern "C" XMLRPC_API bool XmlRpcValue_GetBool2(XmlRpcValue* instance, const char* key)
-{
-	return (&instance->operator[](key))->operator bool &();
-}
 extern "C" XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance)
 {	
 	return instance->operator double &();
-}
-extern "C" XMLRPC_API double XmlRpcValue_GetDouble1(XmlRpcValue* instance, int key)
-{
-	return (&instance->operator[](key))->operator double &();
-}
-extern "C" XMLRPC_API double XmlRpcValue_GetDouble2(XmlRpcValue* instance, const char* key)
-{
-	return (&instance->operator[](key))->operator double &();
 }
 extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
 {
@@ -310,25 +243,21 @@ extern "C" XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instan
 	instance->setSourceEvents(source, (unsigned)eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Work(XmlRpcDispatch *instance, double msTime)
-{
-	
+{	
 	instance->work(msTime);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Exit(XmlRpcDispatch *instance)
-{
-	
+{	
 	instance->exit();
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Clear(XmlRpcDispatch *instance)
-{
-	
+{	
 	instance->clear();
 }
 
 //XmlRpcSource
 extern "C" XMLRPC_API void XmlRpcSource_Close(XmlRpcSource *instance)
-{
-	
+{	
 	instance->close();
 }
 extern "C" XMLRPC_API int XmlRpcSource_GetFd(XmlRpcSource *instance)
@@ -399,8 +328,7 @@ extern "C" XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, in
 	return instance->bindAndListen(port, backlog);
 }
 extern "C" XMLRPC_API void XmlRpcServer_Work(XmlRpcServer *instance, double msTime)
-{
-	
+{	
 	instance->work(msTime);
 }
 extern "C" XMLRPC_API void XmlRpcServer_Exit(XmlRpcServer *instance)

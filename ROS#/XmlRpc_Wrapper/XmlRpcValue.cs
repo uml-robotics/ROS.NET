@@ -2,6 +2,7 @@
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -12,10 +13,20 @@ namespace XmlRpc_Wrapper
     //TODO: OPERATOR GARBAGE?
     public class XmlRpcValue : IDisposable
     {
-
-
         #region Reference Tracking + unmanaged pointer management
-        
+
+        public XmlRpcValue this[int key] 
+        {
+            get { return Get(key); }
+            set { Set(key, value); }
+        }
+
+        public XmlRpcValue this[string key]
+        {
+            get { return Get(key); }
+            set { Set(key, value); }
+        }
+
         private IntPtr __instance;
 
         public void Dispose()
@@ -258,12 +269,6 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr create([In] [MarshalAs(UnmanagedType.LPStr)] string value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create6", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create(IntPtr value, int nBytes);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create7", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create([In] [MarshalAs(UnmanagedType.LPStr)] string xml, int offset);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create8", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create(IntPtr rhs);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Clear", CallingConvention = CallingConvention.Cdecl)]
@@ -285,79 +290,40 @@ namespace XmlRpc_Wrapper
         private static extern void setsize(IntPtr target, int size);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_HasMember", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool hasmember(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
+        private static extern bool hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set1", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, int key, [Out] [MarshalAs(UnmanagedType.LPStr)] string value);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, [In] [MarshalAs(UnmanagedType.LPStr)] string value);
+        private static extern void set(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set3", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, int key, IntPtr value);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set4", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, IntPtr value);
+        private static extern void set(IntPtr target, IntPtr value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set5", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, int key, int value);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set6", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, int value);
+        private static extern void set(IntPtr target, int value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set7", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, int key, bool value);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set8", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, bool value);
+        private static extern void set(IntPtr target, bool value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set9", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, int key, double value);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set10", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key, double value);
+        private static extern void set(IntPtr target, double value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Get1", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr get(IntPtr target, int key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Get2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr get(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
+        private static extern IntPtr get(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt0", CallingConvention = CallingConvention.Cdecl)]
         private static extern int getint(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt1", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getint(IntPtr target, int key);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getint(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
-
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr getstring(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString1", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getstring(IntPtr target, int key);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getstring(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool getbool(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool1", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool getbool(IntPtr target, int key);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool getbool(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
-
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl)]
         private static extern double getdouble(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble1", CallingConvention = CallingConvention.Cdecl)]
-        private static extern double getdouble(IntPtr target, int key);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern double getdouble(IntPtr target, [Out] [MarshalAs(UnmanagedType.LPStr)] string key);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Dump", CallingConvention = CallingConvention.Cdecl)]
         private static extern void dump(IntPtr target);
@@ -365,6 +331,7 @@ namespace XmlRpc_Wrapper
 
         public TypeEnum Type
         {
+            [DebuggerStepThrough]
             get
             {
                 if (!Initialized)
@@ -372,11 +339,12 @@ namespace XmlRpc_Wrapper
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
                 {
-                    Clear();
-                    return TypeEnum.TypeInvalid;
+                    throw new Exception("YOU THOUGHT THIS WAS GOING TO BE WATER BUT IT WASN'T... ROCK AND ROOLLLLL!!!!!!");
+                    //return TypeEnum.TypeInvalid;
                 }
                 return ValueTypeHelper._typearray[balls];
             }
+            [DebuggerStepThrough]
             set
             {
                 SegFault();
@@ -386,6 +354,7 @@ namespace XmlRpc_Wrapper
 
         public bool Valid
         {
+            [DebuggerStepThrough]
             get
             {
                 SegFault();
@@ -397,6 +366,7 @@ namespace XmlRpc_Wrapper
 
         public int Size
         {
+            [DebuggerStepThrough]
             get
             {
                 SegFault();
@@ -409,6 +379,7 @@ namespace XmlRpc_Wrapper
                     return 0;
                 return getsize(instance);
             }
+            [DebuggerStepThrough]
             set
             {
                 SegFault();
@@ -416,85 +387,44 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        /*public new Type GetType()
+        [DebuggerStepThrough]
+        public void Set<T>(T t)
         {
-            return GetType(Type);
-        }*/
-
-        /*public object GetRobust()
-        {
-            int iret = 0;
-            string sret = "";
-            double dret = 0;
-            bool bret = false;
-            iret = Get<int>();
-            if (iret != default(int))
-                return iret;
-            sret = Get<string>();
-            if (sret != "")
-                return sret;
-            dret = Get<double>();
-            if (dret != default(double))
-                return dret;
-            bret = Get<bool>();
-            if (bret != default(bool))
-                return bret;
-            return null;
+            if ("" is T)
+            {
+                set(instance, (string)(object)t);
+            }
+            else if ((int)0 is T)
+            {
+                set(instance, (int)(object)t);
+            }
+            else if (this is T)
+            {
+                set(instance, ((XmlRpcValue)(object)t).instance);
+            }
+            else if (true is T)
+            {
+                set(instance, (bool)(object)t);
+            }
+            else if (0d is T)
+            {
+                set(instance, (double)(object)t);
+            }
         }
 
-        public object GetRobust(int key)
+        [DebuggerStepThrough]
+        public void Set<T>(int key, T t)
         {
-            int iret = 0;
-            string sret = "";
-            double dret = 0;
-            bool bret = false;
-            iret = Get<int>(key);
-            if (iret != default(int))
-                return iret;
-            sret = Get<string>(key);
-            if (sret != "")
-                return sret;
-            dret = Get<double>(key);
-            if (dret != default(double))
-                return dret;
-            bret = Get<bool>(key);
-            if (bret != default(bool))
-                return bret;
-            return null;
+            Get(key).Set(t);
         }
 
-        public object GetRobust(string key)
+        [DebuggerStepThrough]
+        public void Set<T>(string key, T t)
         {
-            int iret = 0;
-            string sret = "";
-            double dret = 0;
-            bool bret = false;
-            iret = Get<int>(key);
-            if (iret != default(int))
-                return iret;
-            sret = Get<string>(key);
-            if (sret != "")
-                return sret;
-            dret = Get<double>(key);
-            if (dret != default(double))
-                return dret;
-            bret = Get<bool>(key);
-            if (bret != default(bool))
-                return bret;
-            return null;
-        }*/
-
-        /*public T GetClass<T>() where T : class, new()
-        {
-            T ret = (T)GetClass(new T());
-            return T;
+            Get(key).Set(t);
         }
 
-        public object GetClass<T>(T t)
-        {
-
-        }*/
-
+        [DebuggerStepThrough]
         public T Get<T>()// where T : struct
         {
             if (!Valid)
@@ -525,212 +455,61 @@ namespace XmlRpc_Wrapper
             return default(T);
         }
 
+        [DebuggerStepThrough]
         public T Get<T>(int key)
         {
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-            }
-            else if ("" is T)
-            {
-                return (T)(object)GetString(key);
-            }
-            else if ((int)0 is T)
-            {
-                return (T)(object)GetInt(key);
-            }
-            else if (this is T)
-            {
-                return (T)(object)Get(key);
-            }
-            else if (true is T)
-            {
-                return (T)(object)GetBool(key);
-            }
-            else if (0d is T)
-            {
-                return (T)(object)GetDouble(key);
-            }
-            Console.WriteLine("I DUNNO WHAT THAT IS!");
-            return default(T);
+            return Get(key).Get<T>();
         }
 
+        [DebuggerStepThrough]
         public T Get<T>(string key)
         {
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-            }
-            else if ("" is T)
-            {
-                return (T)(object)GetString(key);
-            }
-            else if ((int)0 is T)
-            {
-                return (T)(object)GetInt(key);
-            }
-            else if (this is T)
-            {
-                return (T)(object)Get(key);
-            }
-            else if (true is T)
-            {
-                return (T)(object)GetBool(key);
-            }
-            else if (0d is T)
-            {
-                return (T)(object)GetDouble(key);
-            }
-            Console.WriteLine("I DUNNO WHAT THAT IS!");
-            return default(T);
+            return Get(key).Get<T>();
         }
 
-        /*public object Get<T>(int key)
+        [DebuggerStepThrough]
+        public XmlRpcValue Get(int key)
         {
-            return Get(key).Get<T>();
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-            }
-            else if (t is string)
-            {
-                return GetString(key);
-            }
-            else if (t is int)
-            {
-                return GetInt(key);
-            }
-            else if (t is XmlRpcValue)
-            {
-                return Get(key);
-            }
-            else if (t is bool)
-            {
-                return GetBool(key);
-            }
-            else if (t is double)
-            {
-                return GetDouble(key);
-            }
-            return default(T);
+            IntPtr nested = get(instance, key);
+            return LookUp(nested);
         }
 
-        public object Get<T>(T t, string key)
+        [DebuggerStepThrough]
+        public XmlRpcValue Get(string key)
         {
-            return Get(key).Get<T>();
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-            }
-            else if (t is string)
-            {
-                return GetString(key);
-            }
-            else if (t is int)
-            {
-                return GetInt(key);
-            }
-            else if (t is XmlRpcValue)
-            {
-                return Get(key);
-            }
-            else if (t is bool)
-            {
-                return GetBool(key);
-            }
-            else if (t is double)
-            {
-                return GetDouble(key);
-            }
-            return default(T);
-        }*/
+            IntPtr nested = get(instance, key);
+            return LookUp(nested);
+        }
 
+        [DebuggerStepThrough]
         public int GetInt()
         {
             SegFault();
             return getint(__instance);
         }
 
-        public int GetInt(int key)
-        {
-            SegFault();
-            return getint(instance, key);
-        }
-
-        public int GetInt(string key)
-        {
-            SegFault();
-            return getint(instance, key);
-        }
-
+        [DebuggerStepThrough]
         public string GetString()
         {
             SegFault();
             return Marshal.PtrToStringAnsi(getstring(__instance));
         }
 
-        public string GetString(int key)
-        {
-            SegFault();
-            return Marshal.PtrToStringAnsi(getstring(__instance, key));
-        }
-
-        public string GetString(string key)
-        {
-            SegFault();
-            return Marshal.PtrToStringAnsi(getstring(__instance, key));
-        }
-
+        [DebuggerStepThrough]
         public bool GetBool()
         {
             SegFault();
             return getbool(__instance);
         }
 
-        public bool GetBool(int key)
-        {
-            SegFault();
-            return getbool(__instance, key);
-        }
-
-        public bool GetBool(string key)
-        {
-            SegFault();
-            return getbool(__instance, key);
-        }
-
+        [DebuggerStepThrough]
         public double GetDouble()
         {
             SegFault();
             return getdouble(__instance);
         }
 
-        public double GetDouble(int key)
-        {
-            SegFault();
-            return getdouble(__instance, key);
-        }
-
-        public double GetDouble(string key)
-        {
-            SegFault();
-            return getdouble(__instance, key);
-        }
-
-        public XmlRpcValue Get(int key)
-        {
-            SegFault();
-            IntPtr othervalue = get(instance, key);
-            return LookUp(othervalue);
-        }
-
-        public XmlRpcValue Get(string key)
-        {
-            SegFault();
-            IntPtr othervalue = get(instance, key);
-            return LookUp(othervalue);
-        }
-
+        [DebuggerStepThrough]
         public override string ToString()
         {
             if (__instance == IntPtr.Zero)
@@ -739,6 +518,7 @@ namespace XmlRpc_Wrapper
             return s;
         }
 
+        [DebuggerStepThrough]
         public static XmlRpcValue Create(ref IntPtr existingvalue)
         {
             if (existingvalue == IntPtr.Zero)
@@ -751,108 +531,27 @@ namespace XmlRpc_Wrapper
             return new XmlRpcValue(existingvalue);
         }
 
-        public void Set(int key, int value)
-        {
-            SegFault();
-            if (key > Size)
-            {
-                Console.WriteLine("TOO BIG TO FIT IN HERE!");
-                return;
-            }
-            set(instance, key, value);
-            if (Get<int>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(string key, int value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<int>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(int key, bool value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<bool>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(string key, bool value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<bool>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(int key, double value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<double>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(string key, double value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<int>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(int key, string value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<string>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(string key, string value)
-        {
-            SegFault();
-            set(instance, key, value);
-            if (Get<string>(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(int key, XmlRpcValue value)
-        {
-            SegFault();
-            set(instance, key, value.instance);
-            if (Get(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
-        public void Set(string key, XmlRpcValue value)
-        {
-            SegFault();
-            set(instance, key, value.instance);
-            if (Get(key) != value)
-                Console.WriteLine("Set({0},{1}) FAILED", key, value);
-        }
-
+        [DebuggerStepThrough]
         public bool HasMember(string name)
         {
             SegFault();
             return hasmember(instance, name);
         }
 
+        [DebuggerStepThrough]
         public void Dump()
         {
             SegFault();
             dump(__instance);
         }
 
+        [DebuggerStepThrough]
         public void Clear()
         {
             if (Clear(__instance)) Dispose();
         }
 
+        [DebuggerStepThrough]
         public static bool Clear(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -863,6 +562,7 @@ namespace XmlRpc_Wrapper
             return true;
         }
 
+        [DebuggerStepThrough]
         public void SegFault()
         {
             if (__instance == IntPtr.Zero)
@@ -877,36 +577,9 @@ namespace XmlRpc_Wrapper
                     Console.WriteLine("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
             }
         }
-
-        #region myjunk
-        /*
-        public Type GetType(TypeEnum t)
-        {
-            switch (t)
-            {
-                case TypeEnum.TypeBoolean:
-                    return typeof(bool);
-                case TypeEnum.TypeInt:
-                    return typeof(int);
-                case TypeEnum.TypeDouble:
-                    return typeof(double);
-                case TypeEnum.TypeString:
-                    return typeof(string);
-                case TypeEnum.TypeDateTime:
-                    return typeof(DateTime);
-                case TypeEnum.TypeBase64:
-                    return typeof(UInt64);
-                case TypeEnum.TypeArray:
-                    return typeof(object[]);
-                case TypeEnum.TypeStruct:
-                    throw new Exception("STRUCT IN XMLRPCVALUE ZOMFG WTF");
-            }
-            return default(Type);
-        }*/
-
-        #endregion
     }
 
+    [DebuggerStepThrough]
     public static class ValueTypeHelper
     {
         public static TypeEnum[] _typearray = new[]

@@ -74,6 +74,8 @@ XmlRpcDispatch::setSourceEvents(XmlRpcSource* source, unsigned eventMask)
 void
 XmlRpcDispatch::work(double timeout)
 {
+	//XmlRpcUtil::log(4, "And then the dispatch was like \"LEMME WORK IT. LEMME WORK IT... LET ME... *continue Missy Elliot lyrics as needed*\"");
+
   // Compute end time
   _endTime = (timeout < 0.0) ? -1.0 : (getTime() + timeout);
   _doClear = false;

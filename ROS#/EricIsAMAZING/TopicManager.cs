@@ -551,13 +551,13 @@ namespace EricIsAMAZING
             //Console.WriteLine("was " + info.Type);
             //info.Type = TypeEnum.TypeArray;
             //Console.WriteLine("now is " + info.Type);
-            //info.Size = 0;
+            info.Size = 0;
             lock (advertised_topics_mutex)
             {
                 foreach (Publication t in advertised_topics)
                 {
                     Console.WriteLine("ADDING PUB: " + t.Name + " to BusInfo");
-                    t.getInfo(i);
+                    t.getInfo(info);
                 }
             }
             lock (subs_mutex)
@@ -565,16 +565,9 @@ namespace EricIsAMAZING
                 foreach (Subscription t in subscriptions)
                 {
                     Console.WriteLine("ADDING SUB: " + t.name + " to BusInfo");
-                    t.getInfo(i);
+                    t.getInfo(info);
                 }
             }
-            if (info.Size != 0)
-            {
-                info.Dump();
-                Console.WriteLine("returning non-empty bus info!");
-            }
-            else
-                Console.WriteLine("returning empty bus info!");
         }
 
         public void getSubscriptions(ref XmlRpcValue subs)

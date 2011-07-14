@@ -17,7 +17,6 @@ namespace EricIsAMAZING
     {
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
-        private XmlRpcClient client;
         public string datatype = "";
         public string md5sum = "";
         public object md5sum_mutex = new object();
@@ -73,23 +72,23 @@ namespace EricIsAMAZING
             return stats;
         }
 
-        public void getInfo(IntPtr i)
+        public void getInfo(XmlRpcValue info)
         {
-            Console.WriteLine("subscription.getInfo");
-            XmlRpcValue info = XmlRpcValue.LookUp(i);
             lock (publisher_links_mutex)
             {
+                Console.WriteLine("SUB: getInfo with " + publisher_links.Count + " publinks in list");
                 foreach (PublisherLink c in publisher_links)
                 {
+                    Console.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
                     curr_info.Set(0, c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
-                    Console.WriteLine("size of curr_info is" + curr_info.Size);
                     info.Set(info.Size, curr_info);
                 }
+                Console.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
             }
         }
 
@@ -433,30 +432,9 @@ namespace EricIsAMAZING
             //return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
         }
 
-        public void ConnectAsync()
-        {
-            Console.WriteLine("Began asynchronous xmlrpc connection to [" + client.HostUri + "]");
-            new Action
-                (() =>
-                     {
-                         XmlRpcValue result = new XmlRpcValue();
-                         while (!client.ExecuteCheckDone(result))
-                         {
-                             Console.WriteLine("NOT DONE YET!");
-                         }
-                         Console.WriteLine("HOLY SHIT I GOT SOMETHING BACK!");
-                         Console.WriteLine(result);
-                     }).BeginInvoke(null, null);
-        }
-
         public void Shutdown()
         {
-            if (client != null)
-            {
-                if (!client.IsNull)
-                    client.Shutdown();
-                client = null;
-            }
+
         }
 
         public void Dispose()
