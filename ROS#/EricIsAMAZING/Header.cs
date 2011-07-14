@@ -12,12 +12,11 @@ namespace EricIsAMAZING
     {
         public IDictionary Values = new Hashtable();
 
-        public bool Parse(byte[] buffer, ref string error_msg)
+        public bool Parse(byte[] buffer, int size, ref string error_msg)
         {
             int i = 0;
             while (i < buffer.Length)
             {
-                UInt32 size = BitConverter.ToUInt32(buffer, i);
                 i += 4;
                 byte[] line = new byte[size];
                 Array.Copy(buffer, i, line, 0, size);
@@ -59,12 +58,12 @@ namespace EricIsAMAZING
                 throw new Exception("FUCKING EXCEPTION!");
         }
 
-        private static byte[] ByteLength(int num)
+        public static byte[] ByteLength(int num)
         {
             return ByteLength((uint) num);
         }
 
-        private static byte[] ByteLength(uint num)
+        public static byte[] ByteLength(uint num)
         {
             return BitConverter.GetBytes(num);
         }

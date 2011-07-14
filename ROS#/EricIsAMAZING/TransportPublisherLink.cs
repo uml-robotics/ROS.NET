@@ -133,7 +133,7 @@ namespace EricIsAMAZING
                 return;
             }
             if (conn != connection || size != 4) return;
-            uint len = (uint) buffer.Length;
+            int len = BitConverter.ToInt32(buffer,0);
             if (len > 1000000000)
             {
                 Console.WriteLine("1 GB message WTF?!");

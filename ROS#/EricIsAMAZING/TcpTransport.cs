@@ -14,7 +14,7 @@ namespace EricIsAMAZING
 
         public delegate void AcceptCallback(TcpTransport trans);
 
-        public delegate void DisconnectFunc(TcpTransport trans, Connection.DropReason reason);
+        public delegate void DisconnectFunc(TcpTransport trans);
 
         public delegate void HeaderReceivedFunc(TcpTransport trans, Header header);
 
@@ -273,6 +273,18 @@ namespace EricIsAMAZING
             return true;
         }
 
+        public void parseHeader(Header header)
+        {
+            string nodelay = "";
+            if (header.Values.Contains("tcp_nodelay"))
+                nodelay = (string)header.Values["tcp_nodelay"];
+            if (nodelay == "1")
+            {
+                Console.WriteLine("SETTING NODELAY ON THIS SHIZNIT!");
+                setNoDelay(true);
+            }
+        }
+
         private bool setKeepAlive(Socket sock, ulong time, ulong interval, ulong count)
         {
             try
@@ -355,7 +367,7 @@ namespace EricIsAMAZING
                 }
         }
 
-        public int read(ref byte[] buffer)
+        public int read(ref byte[] buffer, int pos, int length)
         {
             lock (close_mutex)
             {
@@ -364,17 +376,7 @@ namespace EricIsAMAZING
             }
             try
             {
-                int num_bytes = sock.Receive(buffer, SocketFlags.None);
-                if (num_bytes < 0)
-                {
-                    Console.WriteLine("I DUNNO WHY THIS IS NEGATIVE, BUT IT'S ZERO NOW!");
-                }
-                else if (num_bytes == 0)
-                {
-                    Console.WriteLine("THE SOCK GOT NO SHIT!");
-                    close();
-                    return -1;
-                }
+                int num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None);
                 return num_bytes;
             }
             catch (Exception e)
@@ -384,7 +386,7 @@ namespace EricIsAMAZING
             return -1;
         }
 
-        public int write(byte[] buffer)
+        public int write(byte[] buffer, int pos, int size)
         {
             lock (close_mutex)
             {
@@ -392,13 +394,7 @@ namespace EricIsAMAZING
                     return -1;
             }
 
-            int num_bytes = sock.Send(buffer);
-            if (num_bytes < 0)
-            {
-                Console.WriteLine("I DUNNO WHY THIS IS NEGATIVE, BUT IT'S ZERO NOW!");
-                num_bytes = 0;
-            }
-
+            int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None);
             return num_bytes;
         }
 
@@ -463,8 +459,8 @@ namespace EricIsAMAZING
                     TcpTransport transport = accept();
                     if (transport != null)
                     {
-                        if (accept_cb != null)
-                            accept_cb(transport);
+                        if (accept_cb == null) throw new Exception("NULL ACCEPT_CB FTL!");
+                        accept_cb(transport);
                     }
                 }
                 else
@@ -502,7 +498,7 @@ namespace EricIsAMAZING
             }
             if (disconnect_cb != null)
             {
-                disconnect_cb(this, Connection.DropReason.Destructing);
+                disconnect_cb(this);
             }
 
             if (closed) return;

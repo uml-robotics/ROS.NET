@@ -50,7 +50,7 @@ namespace EricIsAMAZING
             {
                 string msg = "Header from subscriber did not have the required element: topic";
                 Console.WriteLine(msg);
-                connection.sendHeaderError(msg);
+                connection.sendHeaderError(ref msg);
                 return false;
             }
             string topic = (string) header.Values["topic"];
@@ -60,14 +60,14 @@ namespace EricIsAMAZING
             {
                 string msg = "received a connection for a nonexistent topic [" + topic + "] from [" + connection.transport + "] [" + client_callerid + "]";
                 Console.WriteLine(msg);
-                connection.sendHeaderError(msg);
+                connection.sendHeaderError(ref msg);
                 return false;
             }
             string error_message = "";
             if (!pt.validateHeader(header, ref error_message))
             {
                 Console.WriteLine(error_message);
-                connection.sendHeaderError(error_message);
+                connection.sendHeaderError(ref error_message);
                 return false;
             }
             destination_caller_id = client_callerid;
@@ -160,7 +160,8 @@ namespace EricIsAMAZING
             }
             if (m != null)
             {
-                connection.write(m.Serialize(), onMessageWritten, immediate_write);
+                byte[] M = m.Serialize();
+                connection.write(M, M.Length, onMessageWritten, immediate_write);
             }
         }
     }
