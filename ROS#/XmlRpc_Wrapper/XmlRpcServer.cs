@@ -235,10 +235,10 @@ namespace XmlRpc_Wrapper
         private static extern void removemethod(IntPtr target, IntPtr method);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethodbyname(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string method);
+        private static extern void removemethodbyname(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr findmethod(IntPtr target, [In] [MarshalAs(UnmanagedType.LPStr)] string name);
+        private static extern IntPtr findmethod(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool bindandlisten(IntPtr target, int port, int backlog);

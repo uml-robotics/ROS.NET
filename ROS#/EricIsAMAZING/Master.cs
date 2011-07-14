@@ -34,7 +34,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, ref result, ref payload, false);
+            return execute("getPid", args, result, payload, false);
         }
 
         public static bool getTopics(ref TopicInfo[] topics)
@@ -43,7 +43,7 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, ref result, ref payload, true))
+            if (!execute("getPublishedTopics", args, result, payload, true))
                 return false;
             topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
@@ -58,7 +58,7 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, ref result, ref payload, true))
+            if (!execute("getSystemState", args, result, payload, true))
             {
                 return false;
             }
@@ -78,7 +78,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
+        public static bool execute(string method, XmlRpcValue request, XmlRpcValue response, XmlRpcValue payload, bool wait_for_master)
         {
             DateTime startTime = DateTime.Now;
             string master_host = host;
@@ -90,7 +90,7 @@ namespace EricIsAMAZING
             do
             {
                 bool b = false;
-                b = client.Execute(method, request, ref response);
+                b = client.Execute(method, request, response);
 
                 ok = !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down;
 

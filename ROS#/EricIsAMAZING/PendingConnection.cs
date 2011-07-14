@@ -14,7 +14,7 @@ namespace EricIsAMAZING
         public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
-
+        public XmlRpcValue stickaroundyouwench = null;
         public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
             this.client = client;
@@ -36,11 +36,13 @@ namespace EricIsAMAZING
 
         public override bool check()
         {
-            if (parent == null) return true;
-            XmlRpcValue result = new XmlRpcValue();
-            if (client.ExecuteCheckDone(result))
+            if (parent == null) 
+                return false;
+            if (stickaroundyouwench == null)
+                stickaroundyouwench = new XmlRpcValue();
+            if (client.ExecuteCheckDone(stickaroundyouwench))
             {
-                parent.pendingConnectionDone(this, result);
+                parent.pendingConnectionDone(this, stickaroundyouwench.instance);
                 return true;
             }
             return false;

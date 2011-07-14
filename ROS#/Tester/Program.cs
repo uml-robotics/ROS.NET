@@ -35,22 +35,7 @@ namespace ConsoleApplication1
 
         private static void Main(string[] args)
         {
-            int balls = 0;
-            Console.WriteLine("" + WrapperTest.IntegerEcho(666));
-            BALLS = (val) => Console.WriteLine("" + val.ToString());
-            WrapperTest.IntegerEchoFunctionPtr(BALLS);
             tellmehowawesomeiam = thisishowawesomeyouare;
-            while (WrapperTest.IntegerEchoRepeat(balls++))
-            {
-                string BALLSZOMG = "BALLS ZOMG: " + (balls - 1);
-                WrapperTest.StringTest(BALLSZOMG);
-                if (balls >= 10)
-                {
-                    BALLS = null;
-                    break;
-                }
-                Thread.Sleep(1);
-            }
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");

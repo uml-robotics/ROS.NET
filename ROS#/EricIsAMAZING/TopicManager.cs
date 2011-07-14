@@ -105,7 +105,7 @@ namespace EricIsAMAZING
                     foreach (Subscription s in subscriptions)
                     {
                         unregisterSubscriber(s.name);
-                        s.Shutdown();
+                        s.shutdown();
                     }
                     subscriptions.Clear();
                 }
@@ -194,7 +194,7 @@ namespace EricIsAMAZING
                 sub.addLocalConnection(pub);
 
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, ref result, ref payload, true);
+            master.execute("registerPublisher", args, result, payload, true);
             return true;
         }
 
@@ -219,7 +219,7 @@ namespace EricIsAMAZING
                 if (!registerSubscriber(s, ops.datatype))
                 {
                     Console.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
-                    s.Shutdown();
+                    s.shutdown();
                     return false;
                 }
                 subscriptions.Add(s);
@@ -259,7 +259,7 @@ namespace EricIsAMAZING
                         Console.WriteLine("Couldn't unregister subscriber for topic [" + topic + "]");
                 }
 
-                sub.Shutdown();
+                sub.shutdown();
                 return true;
             }
             return true;
@@ -436,13 +436,12 @@ namespace EricIsAMAZING
         public bool registerSubscriber(Subscription s, string datatype)
         {
             string fuckinguriyo = xmlrpc_manager.uri;
-            XmlRpcValue args, result, payload;
 
-            args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
-            result = new XmlRpcValue();
-            payload = new XmlRpcValue();
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
+            XmlRpcValue result = new XmlRpcValue();
+            XmlRpcValue payload = new XmlRpcValue();
 
-            if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
+            if (!master.execute("registerSubscriber", args, result, payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
@@ -482,14 +481,14 @@ namespace EricIsAMAZING
         public bool unregisterSubscriber(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("unregisterSubscriber", args, ref result, ref payload, false);
+            master.execute("unregisterSubscriber", args, result, payload, false);
             return true;
         }
 
         public bool unregisterPublisher(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, ref result, ref payload, false);
+            master.execute("unregisterPublisher", args, result, payload, false);
             return true;
         }
 
@@ -564,7 +563,7 @@ namespace EricIsAMAZING
             {
                 foreach (Subscription t in subscriptions)
                 {
-                    Console.WriteLine("ADDING SUB: " + t.name + " to BusInfo");
+                    Console.WriteLine("ADDING SUB: " + t.name + " w/ "+t.pending_connections.Count+" pending connections to BusInfo");
                     t.getInfo(info);
                 }
             }
@@ -638,9 +637,8 @@ namespace EricIsAMAZING
 
         public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            Console.WriteLine("REQUEST TOPIC CALLBACK!");
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            Console.WriteLine(parm);
-            parm.Dump();
             result = res.instance;
             if (!requestTopic(parm.Get<string>(1), parm.Get(2), ref res))
             {

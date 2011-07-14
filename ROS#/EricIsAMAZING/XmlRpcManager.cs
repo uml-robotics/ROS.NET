@@ -211,8 +211,6 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (!v.Initialized)
-                               v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);
@@ -224,8 +222,6 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (!v.Initialized)
-                               v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);
@@ -237,8 +233,6 @@ namespace EricIsAMAZING
             return (p) =>
                        {
                            XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           if (!v.Initialized)
-                               v = new XmlRpcValue(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);

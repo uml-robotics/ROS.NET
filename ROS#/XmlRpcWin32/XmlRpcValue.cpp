@@ -260,6 +260,7 @@ namespace XmlRpc {
   // Encode the Value in xml
   std::string XmlRpcValue::toXml() const
   {
+	  std::string ret;
     switch (_type) {
       case TypeBoolean:  return boolToXml();
       case TypeInt:      return intToXml();

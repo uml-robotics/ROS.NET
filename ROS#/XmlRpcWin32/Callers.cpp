@@ -1,6 +1,8 @@
 #include <windows.h>
 #include "Callers.h"
 #include "EricRulz.h"
+#include <errno.h>
+#include <exception>
 using namespace XmlRpc;
 //bullshit check
 extern "C" XMLRPC_API int IntegerEcho(int val)
@@ -33,319 +35,905 @@ extern "C" XMLRPC_API void SetStringOutFunc(EricRulz fptr)
 //client
 extern "C" XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri)
 {	
-	XmlRpcUtil::log(0, "Making new client http://%s:%d%s", host, port, uri);
-	return new XmlRpcClient(host, port, uri);
+	try
+	{		
+		return (new XmlRpcClient(host, port, uri));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance)
 {
-	
-	instance->close();
+	try
+	{		
+		(*instance).close();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
-extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue const& parameters, XmlRpcValue& result)
+extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters, XmlRpcValue *result)
 {
-	return instance->execute(method, parameters, result);
+	try
+	{	
+		XmlRpcUtil::log(1, "Execute...\n", parameters->toXml());
+		return ((*instance).execute(method, *parameters, *result));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue const& parameters)
+extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters)
 {
-	return instance->executeNonBlock(method, parameters);
+	try
+	{	
+		XmlRpcUtil::log(1, "ExecuteNonBlock...\n", parameters->toXml());
+		return ((*instance).executeNonBlock(method, *parameters));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue& result)
+extern "C" XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result)
 {
-	return instance->executeCheckDone(result);
+	try
+	{	
+		return ((*instance).executeCheckDone(*result));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API unsigned XmlRpcClient_HandleEvent(XmlRpcClient* instance, unsigned eventType)
 {
-	return instance->handleEvent(eventType);
+	try
+	{
+		
+	return ((*instance).handleEvent(eventType));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API bool XmlRpcClient_IsFault(XmlRpcClient* instance)
 {
-	return instance->isFault();
+	try
+	{
+		
+	return ((*instance).isFault());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 {
-	return instance->getHost().c_str();
+	try
+	{
+		
+	return ((*instance).getHost().c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "";
 }
 extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 {
-	return instance->getUri().c_str();
+	try
+	{
+		
+	return ((*instance).getUri().c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "EXCEPTIOWNED";
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance)
 {
-	return instance->getPort();
+	try
+	{
+		
+	return ((*instance).getPort());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return -1;
 }
 extern "C" XMLRPC_API const char* XmlRpcClient_GetRequest(XmlRpcClient* instance)
 {
-	return instance->_request.c_str();
+	try
+	{
+		
+	return ((*instance)._request.c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "";
 }
 extern "C" XMLRPC_API const char* XmlRpcClient_GetHeader(XmlRpcClient* instance)
 {
-	return instance->_header.c_str();
+	try
+	{
+		
+	return ((*instance)._header.c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "";
 }
 extern "C" XMLRPC_API const char* XmlRpcClient_GetResponse(XmlRpcClient* instance)
 {
-	return instance->_response.c_str();
+	try
+	{
+		
+	return ((*instance)._response.c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "";
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetSendAttempts(XmlRpcClient* instance)
 {
-	return instance->_sendAttempts;
+	try
+	{
+		
+	return ((*instance)._sendAttempts);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetBytesWritten(XmlRpcClient* instance)
 {
-	return instance->_bytesWritten;
+	try
+	{
+		
+	return ((*instance)._bytesWritten);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API bool XmlRpcClient_GetExecuting(XmlRpcClient* instance)
 {
-	return instance->_executing;
+	try
+	{
+		
+	return ((*instance)._executing);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue& result)
+extern "C" XMLRPC_API bool XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue *result)
 {
-	return instance->_eof;
+	try
+	{
+		
+	return ((*instance)._eof);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetContentLength(XmlRpcClient* instance)
 {
-	return instance->_contentLength;
+	try
+	{		
+		return ((*instance)._contentLength);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API XmlRpcDispatch* XmlRpcClient_GetXmlRpcDispatch(XmlRpcClient* instance)
 {
-	return &instance->_disp;
+	try
+	{		
+		return &((*instance)._disp);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 
 //value
 typedef XmlRpcValue *Val;
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create1()
 {
-	Val v = new XmlRpcValue();
-	return v;
+	try
+	{		
+		return new XmlRpcValue();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create2(bool value)
 {
-	Val v = new XmlRpcValue(value);
-	return v;
+	try
+	{		
+	return new XmlRpcValue(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create3(int value)
 {
-	Val v = new XmlRpcValue(value);
-	return v;
+	try
+	{
+	return new XmlRpcValue(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create4(double value)
 {	
-	Val v = new XmlRpcValue(value);
-	return v;
+	try
+	{
+	return new XmlRpcValue(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create5(const char* value)
 {	
-	Val v = new XmlRpcValue(value);
-	return v;
+	try
+	{
+		return new XmlRpcValue(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 
 extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create6(XmlRpcValue *rhs)
 {	
-	Val v = new XmlRpcValue(rhs);	
-	return v;
+	try
+	{		
+		return new XmlRpcValue(*rhs);	
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Clear(XmlRpcValue* instance)
 {	
-	instance->clear();
+	try
+	{		
+		(*instance).clear();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API bool XmlRpcValue_Valid(XmlRpcValue* instance)
 {
-	return instance->valid();
+	try
+	{
+		
+	return ((*instance).valid());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API int XmlRpcValue_Type(XmlRpcValue* instance)
 {
-	return (int)instance->getType();
+	try
+	{
+		
+	return (int)((*instance).getType());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API int XmlRpcValue_Size(XmlRpcValue* instance)
 {
-	return instance->size();
+	try
+	{
+		
+	return ((*instance).size());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API void XmlRpcValue_SetSize(XmlRpcValue* instance, int size)
 {
-	instance->setSize(size);
+	try
+	{
+		
+	(*instance).setSize(size);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API bool XmlRpcValue_HasMember(XmlRpcValue* instance, const char* name)
 {
-	return instance->hasMember(name);
+	try
+	{
+		
+	return ((*instance).hasMember(name));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API XmlRpcValue* XmlRpcValue_Get1(XmlRpcValue* instance, int key)
 {
-	return &instance->operator[](key);
+	try
+	{		
+		return &((*instance).operator[](key));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
+	//return &instance->operator[](key);
 }
 extern "C" XMLRPC_API XmlRpcValue* XmlRpcValue_Get2(XmlRpcValue* instance, const char* key)
 {
-	return &instance->operator[](key);
+	try
+	{		
+		return &((*instance).operator[](key));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
+	//return &instance->operator[](key);
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set1(XmlRpcValue* instance, const char *value)
 {	
-	*instance = value;
+	try
+	{		
+		(*instance).operator=(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set3(XmlRpcValue* instance, XmlRpcValue *value)
 {	
-	*instance = value;
+	try
+	{		
+		(*instance).operator=(*value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set5(XmlRpcValue* instance, int value)
 {	
-	*instance = value;
+	try
+	{		
+		(*instance).operator=(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set7(XmlRpcValue* instance, bool value)
 {	
-	*instance = value;
+	try
+	{		
+		(*instance).operator=(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcValue_Set9(XmlRpcValue* instance, double value)
 {
-	*instance = value;
+	try
+	{
+		(*instance).operator=(value);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API int XmlRpcValue_GetInt0(XmlRpcValue* instance)
 {
-	return (instance->operator int &());
+	try
+	{
+		
+	return (((*instance).operator int &()));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance)
 {
-	return instance->operator std::string &().c_str();
+	try
+	{
+		
+	return (((*instance).operator std::string &()).c_str());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return "";
 }
 extern "C" XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance)
 {
-	return instance->operator bool &();
+	try
+	{
+	return ((*instance).operator bool &());
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance)
 {	
-	return instance->operator double &();
+	try
+	{
+		
+	return ((*instance).operator double &());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
 {
 	
-	XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d", (int)instance, instance->_type, instance->size());
+	try
+	{		
+		XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d", (int)instance, (*instance)._type, (*instance).size());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	XmlRpcUtil::log(0, "XMLRPCVALUE.DUMP EXPLODEDED IN C+++ LAND IN THE FACE");
 }
 
 //dispatch
 extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create()
 {
+	try
+	{
+		
 	return new XmlRpcDispatch();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Close(XmlRpcDispatch *instance)
 {
+	try
+	{		
+		(*instance).~XmlRpcDispatch();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 	
-	instance->~XmlRpcDispatch();
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_AddSource(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask)
 {
+	try
+	{
+		
 	
-	instance->addSource(source, (unsigned)eventMask);
+	(*instance).addSource(source, (unsigned)eventMask);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_RemoveSource(XmlRpcDispatch* instance, XmlRpcSource *source)
 {
 	
-	instance->removeSource(source);
+	try
+	{
+		
+	(*instance).removeSource(source);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_SetSourceEvents(XmlRpcDispatch* instance, XmlRpcSource *source, unsigned eventMask)
 {
+	try
+	{
+		
+	(*instance).setSourceEvents(source, (unsigned)eventMask);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 	
-	instance->setSourceEvents(source, (unsigned)eventMask);
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Work(XmlRpcDispatch *instance, double msTime)
 {	
-	instance->work(msTime);
+	try
+	{
+	(*instance).work(msTime);
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Exit(XmlRpcDispatch *instance)
 {	
-	instance->exit();
+	try
+	{
+		
+	(*instance).exit();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcDispatch_Clear(XmlRpcDispatch *instance)
 {	
-	instance->clear();
+	try
+	{
+	(*instance).clear();
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 
 //XmlRpcSource
 extern "C" XMLRPC_API void XmlRpcSource_Close(XmlRpcSource *instance)
 {	
-	instance->close();
+	try
+	{
+		
+	(*instance).close();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API int XmlRpcSource_GetFd(XmlRpcSource *instance)
 {
-	return instance->getfd();
+	try
+	{
+		
+	return ((*instance).getfd());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return -1;
 }
 extern "C" XMLRPC_API void XmlRpcSource_SetFd(XmlRpcSource *instance, int fd)
 {
 	
-	instance->setfd(fd);
+	try
+	{
+		
+	(*instance).setfd(fd);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API bool XmlRpcSource_GetKeepOpen(XmlRpcSource *instance)
 {
-	return instance->getKeepOpen();
+	try
+	{
+		
+	return ((*instance).getKeepOpen());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API void XmlRpcSource_SetKeepOpen(XmlRpcSource *instance, bool b)
 {
 	
-	instance->setKeepOpen(b);
+	try
+	{
+	(*instance).setKeepOpen(b);
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API unsigned XmlRpcSource_HandleEvent(XmlRpcSource *instance, unsigned eventType)
 {
-	return instance->handleEvent(eventType);
+	try
+	{
+	return ((*instance).handleEvent(eventType));
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return 0;
 }
 
 //XmlRpcServerMethod
 extern "C" XMLRPC_API XmlRpcServerMethodWrapper *XmlRpcServerMethod_Create(char *name, XmlRpcServer *server)
 {
-	return new XmlRpcServerMethodWrapper(std::string(name), server);
+	try
+	{
+		
+	return (new XmlRpcServerMethodWrapper(std::string(name), server));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API void XmlRpcServerMethod_SetFunc(XmlRpcServerMethodWrapper *instance, XmlRpcServerFUNC func)
 {
 	
-	instance->setFunc(func);
+	try
+	{
+		
+	(*instance).setFunc(func);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcServerMethod_Execute(XmlRpcServerMethodWrapper *instance, XmlRpcValue *parms, XmlRpcValue *res)
 {
 	
-	instance->execute(*parms, *res);
+	try
+	{
+		
+	(*instance).execute(*parms, *res);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 	
 //XmlRpcServer	
 extern "C" XMLRPC_API XmlRpcServer *XmlRpcServer_Create()
 {
-	return new XmlRpcServer();
+	try
+	{
+		
+	return (new XmlRpcServer());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API void XmlRpcServer_AddMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
 {
 	
-	instance->addMethod(method);
+	try
+	{
+	(*instance).addMethod(method);
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcServer_RemoveMethod(XmlRpcServer *instance, XmlRpcServerMethod *method)
 {
 	
-	instance->removeMethod(method);
+	try
+	{
+		
+	(*instance).removeMethod(method);
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcServer_RemoveMethodByName(XmlRpcServer *instance, char *name)
 {
 	
-	instance->removeMethod(std::string(name));
+	try
+	{
+	(*instance).removeMethod(std::string(name));
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API XmlRpcServerMethod *XmlRpcServer_FindMethod(XmlRpcServer *instance, char *name)
 {
-	return instance->findMethod(std::string(name));
+	try
+	{
+		
+	return ((*instance).findMethod(std::string(name)));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }
 extern "C" XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, int port, int backlog)
 {
-	return instance->bindAndListen(port, backlog);
+	try
+	{
+		
+	return ((*instance).bindAndListen(port, backlog));
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return false;
 }
 extern "C" XMLRPC_API void XmlRpcServer_Work(XmlRpcServer *instance, double msTime)
 {	
-	instance->work(msTime);
+	try
+	{
+	(*instance).work(msTime);
+		
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcServer_Exit(XmlRpcServer *instance)
 {
 	
-	instance->exit();
+	try
+	{
+		
+	(*instance).exit();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API void XmlRpcServer_Shutdown(XmlRpcServer *instance)
 {
 	
-	instance->shutdown();
+	try
+	{
+		
+	(*instance).shutdown();
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
 }
 extern "C" XMLRPC_API int XmlRpcServer_GetPort(XmlRpcServer *instance)
 {
-	return instance->get_port();
+	try
+	{
+		
+	return ((*instance).get_port());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return -1;
 }
 extern "C" XMLRPC_API XmlRpcDispatch *XmlRpcServer_GetDispatch(XmlRpcServer *instance)
 {
-	return instance->get_dispatch();
+	try
+	{
+		
+	return ((*instance).get_dispatch());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+	return NULL;
 }

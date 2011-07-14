@@ -34,7 +34,7 @@ namespace XmlRpc_Wrapper
         public static extern void SetAwesomeFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] TellMeHowAwesomeIAm callback);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StringTest([In] [MarshalAs(UnmanagedType.LPStr)] string str);
+        public static extern void StringTest([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string str);
     }
 
 
@@ -181,21 +181,6 @@ namespace XmlRpc_Wrapper
             }
             return true;
         }
-        
-        
-        public override bool Equals(object obj)
-        {
-            XmlRpcClient comp = obj as XmlRpcClient;
-            if (comp == null)
-                return false;
-            return ((__instance == comp.__instance) && (__instance != IntPtr.Zero)) || (this != comp);
-        }
-        public override int GetHashCode()
-        {
-            if (__instance != IntPtr.Zero)
-                return __instance.ToInt32();
-            return base.GetHashCode();
-        }
 
         #endregion
 
@@ -301,13 +286,14 @@ namespace XmlRpc_Wrapper
 
         #region public function passthroughs
 
-        public bool Execute(string method, XmlRpcValue parameters, ref XmlRpcValue result)
+        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
             return execute(instance, method, parameters.instance, result.instance);
         }
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
+            parameters.Dump();
             return executenonblock(instance, method, parameters.instance);
         }
 
@@ -316,7 +302,7 @@ namespace XmlRpc_Wrapper
             return executecheckdone(instance, result.instance);
         }
 
-        public new UInt16 HandleEvent(UInt16 eventType)
+        public UInt16 HandleEvent(UInt16 eventType)
         {
             return handleevent(instance, eventType);
         }
@@ -333,9 +319,9 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create
             (
-            [In] [MarshalAs(UnmanagedType.LPStr)] string host,
+            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host,
             int port,
-            [In] [MarshalAs(UnmanagedType.LPStr)] string uri);
+            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void close(IntPtr target);
@@ -343,17 +329,17 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Execute", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool execute
             (IntPtr target,
-             [In] [MarshalAs(UnmanagedType.LPStr)] string method,
+             [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method,
              IntPtr parameters,
              IntPtr result);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool executenonblock
             (IntPtr target,
-             [In] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
+             [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool executecheckdone(IntPtr target, IntPtr result);
+        private static extern bool executecheckdone([In] [Out] IntPtr target, [In] [Out] IntPtr result);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);

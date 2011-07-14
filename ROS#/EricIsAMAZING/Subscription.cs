@@ -22,9 +22,9 @@ namespace EricIsAMAZING
         public object md5sum_mutex = new object();
         public string name = "";
         public int nonconst_callbacks;
-        private List<PendingConnection> pending_connections = new List<PendingConnection>();
+        public List<PendingConnection> pending_connections = new List<PendingConnection>();
         public object pending_connections_mutex = new object();
-        private List<PublisherLink> publisher_links = new List<PublisherLink>();
+        public List<PublisherLink> publisher_links = new List<PublisherLink>();
         public object publisher_links_mutex = new object(), shutdown_mutex = new object();
         private bool shutting_down;
         public bool IsDropped { get { return _dropped; } }
@@ -268,15 +268,16 @@ namespace EricIsAMAZING
             Console.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
-            XmlRpcManager.Instance.addAsyncConnection(conn);
             lock (pending_connections_mutex)
             {
                 pending_connections.Add(conn);
             }
+            XmlRpcManager.Instance.addAsyncConnection(conn);
             return true;
         }
-        public void pendingConnectionDone(PendingConnection conn, XmlRpcValue result)
+        public void pendingConnectionDone(PendingConnection conn, IntPtr res)
         {
+            XmlRpcValue result = XmlRpcValue.LookUp(res);
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)
@@ -287,21 +288,17 @@ namespace EricIsAMAZING
             string peer_host = conn.client.Host;
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
+            Console.WriteLine("PENDING CONNECTION DONE W/ " + xmlrpc_uri);
             XmlRpcValue proto = new XmlRpcValue();
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
                 Console.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
                 return;
             }
-            if (proto.Initialized)
-            {
-                Console.WriteLine("Got invalid xmlrpcvalue back from validate... ?");
-                return;
-            }
             if (proto.Size == 0)
             {
 #if DEBUG
-                Console.WriteLine("Coulsn't agreeon any common protocols with [" + xmlrpc_uri + "] for topic [" + name + "]");
+                Console.WriteLine("Coudsn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name + "]");
 #endif
                 return;
             }
@@ -432,14 +429,9 @@ namespace EricIsAMAZING
             //return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
         }
 
-        public void Shutdown()
-        {
-
-        }
-
         public void Dispose()
         {
-            Shutdown();
+            shutdown();
         }
 
         internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()

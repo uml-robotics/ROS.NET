@@ -15,36 +15,34 @@ namespace XmlRpc_Wrapper
     {
         #region Reference Tracking + unmanaged pointer management
 
-        public XmlRpcValue this[int key] 
+        public XmlRpcValue this[int key]
         {
+            [DebuggerStepThrough]
             get { return Get(key); }
+            [DebuggerStepThrough]
             set { Set(key, value); }
         }
 
         public XmlRpcValue this[string key]
         {
+            [DebuggerStepThrough]
             get { return Get(key); }
+            [DebuggerStepThrough]
             set { Set(key, value); }
         }
 
         private IntPtr __instance;
 
+            [DebuggerStepThrough]
         public void Dispose()
         {
             Clear();
         }
 
+            [DebuggerStepThrough]
         ~XmlRpcValue()
         {
             Clear();
-        }
-
-        public bool Initialized
-        {
-            get
-            {
-                return __instance != IntPtr.Zero;
-            }
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -71,6 +69,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+            [DebuggerStepThrough]
         public static XmlRpcValue LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -82,6 +81,7 @@ namespace XmlRpc_Wrapper
         }
 
 
+            [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -111,6 +111,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
+            [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -137,6 +138,7 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
+            [DebuggerStepThrough]
             get
             {
                 if (__instance == IntPtr.Zero)
@@ -147,6 +149,7 @@ namespace XmlRpc_Wrapper
                 }
                 return __instance;
             }
+            [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -161,12 +164,14 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+            [DebuggerStepThrough]
         public XmlRpcValue()
         {
             __instance = create();
             AddRef(__instance);
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(params object[] initialvalues)
             : this()
         {
@@ -199,18 +204,21 @@ namespace XmlRpc_Wrapper
             }
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(bool value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(int value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(double value)
         {
             __instance = create(value);
@@ -218,31 +226,20 @@ namespace XmlRpc_Wrapper
             AddRef(__instance);
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(string value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
-        /*public XmlRpcValue(IntPtr value, int nBytes)
-        {
-            __instance = create(value, nBytes);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
-        }
-
-        public XmlRpcValue(string xml, int offset)
-        {
-            __instance = create(xml, offset);
-            if (!_instances.ContainsKey(instance))
-                _instances.Add(instance, this);
-        }*/
-
+            [DebuggerStepThrough]
         public XmlRpcValue(XmlRpcValue value)
             : this(value.instance)
         {
         }
 
+            [DebuggerStepThrough]
         public XmlRpcValue(IntPtr existingptr)
         {
             if (existingptr == IntPtr.Zero)
@@ -266,7 +263,7 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr create(double value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create5", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create([In] [MarshalAs(UnmanagedType.LPStr)] string value);
+        private static extern IntPtr create([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create6", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create(IntPtr rhs);
@@ -334,8 +331,6 @@ namespace XmlRpc_Wrapper
             [DebuggerStepThrough]
             get
             {
-                if (!Initialized)
-                    return TypeEnum.TypeInvalid;
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
                 {
@@ -358,8 +353,6 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                if (!Initialized)
-                    return false;
                 return valid(__instance);
             }
         }
@@ -415,13 +408,13 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public void Set<T>(int key, T t)
         {
-            Get(key).Set(t);
+            this[key].Set(t);
         }
 
         [DebuggerStepThrough]
         public void Set<T>(string key, T t)
         {
-            Get(key).Set(t);
+            this[key].Set(t);
         }
 
         [DebuggerStepThrough]
@@ -458,13 +451,13 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public T Get<T>(int key)
         {
-            return Get(key).Get<T>();
+            return this[key].Get<T>();
         }
 
         [DebuggerStepThrough]
         public T Get<T>(string key)
         {
-            return Get(key).Get<T>();
+            return this[key].Get<T>();
         }
 
         [DebuggerStepThrough]
@@ -567,14 +560,7 @@ namespace XmlRpc_Wrapper
         {
             if (__instance == IntPtr.Zero)
             {
-                if (!Initialized)
-                {
-                    Console.WriteLine("SAVING YOUR ASS!");
-                    __instance = create();
-                    AddRef(__instance);
-                }
-                else
-                    Console.WriteLine("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
+                Console.WriteLine("IF YOU DEREFERENCE A NULL POINTER AGAIN I'LL PUNCH YOU IN THE ASS!");
             }
         }
     }

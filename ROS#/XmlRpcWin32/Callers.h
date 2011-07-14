@@ -20,9 +20,9 @@ extern "C" {
 	//XmlRpcClient
 	extern XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri);
 	extern XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance);
-	extern XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue const& parameterss, XmlRpcValue& result);
-	extern XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue const& parameterss);
-	extern XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue& result);
+	extern XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameterss, XmlRpcValue *result);
+	extern XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameterss);
+	extern XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result);
 	extern XMLRPC_API unsigned XmlRpcClient_HandleEvent(XmlRpcClient* instance, unsigned eventType);
 	extern XMLRPC_API bool XmlRpcClient_IsFault(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance);
@@ -34,7 +34,7 @@ extern "C" {
 	extern XMLRPC_API int XmlRpcClient_GetSendAttempts(XmlRpcClient* instance);
 	extern XMLRPC_API int XmlRpcClient_GetBytesWritten(XmlRpcClient* instance);
 	extern XMLRPC_API bool XmlRpcClient_GetExecuting(XmlRpcClient* instance);
-	extern XMLRPC_API bool XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue& result);
+	extern XMLRPC_API bool XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue *result);
 	extern XMLRPC_API int XmlRpcClient_GetContentLength(XmlRpcClient* instance);
 	extern XMLRPC_API XmlRpcDispatch* XmlRpcClient_GetXmlRpcDispatch(XmlRpcClient* instance);
 
