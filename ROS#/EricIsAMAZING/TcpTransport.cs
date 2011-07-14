@@ -199,12 +199,20 @@ namespace EricIsAMAZING
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
 
-            sock.Connect(ipep);
+            bool done = false;
+            bool result = false;
+            sock.BeginConnect(ipep, (iar) =>
+            {
+                sock.EndConnect(iar);
+                result = initializeSocket();
+                done = true;
+            }, null);
 
-            if (!initializeSocket())
-                return false;
+            while (!done)
+            {
+            }
 
-            return true;
+            return result;
         }
 
         public bool listen(int port, int backlog, AcceptCallback accept_cb)
