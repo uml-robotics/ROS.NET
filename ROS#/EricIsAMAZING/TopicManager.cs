@@ -440,7 +440,6 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
             XmlRpcValue result = new XmlRpcValue();
             XmlRpcValue payload = new XmlRpcValue();
-            args.Dump();
             if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
@@ -598,6 +597,7 @@ namespace EricIsAMAZING
 
         public bool pubUpdate(string topic, List<string> pubs)
         {
+            Console.WriteLine("TopicManager is updating publishers for " + topic);
             Subscription sub = null;
             lock (subs_mutex)
             {

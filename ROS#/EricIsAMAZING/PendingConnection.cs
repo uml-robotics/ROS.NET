@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System;
 using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -9,12 +10,13 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class PendingConnection : AsyncXmlRpcConnection
+    public class PendingConnection : AsyncXmlRpcConnection, IDisposable
     {
         public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
-        public XmlRpcValue stickaroundyouwench = null;
+        public bool NEVERAGAIN;
+        //public XmlRpcValue stickaroundyouwench = null;
         public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
             this.client = client;
@@ -38,14 +40,29 @@ namespace EricIsAMAZING
         {
             if (parent == null) 
                 return false;
-            if (stickaroundyouwench == null)
+            /*if (stickaroundyouwench == null)
                 stickaroundyouwench = new XmlRpcValue();
             if (client.ExecuteCheckDone(stickaroundyouwench))
             {
                 parent.pendingConnectionDone(this, stickaroundyouwench.instance);
                 return true;
             }
+            return false;*/
+            XmlRpcValue chk = new XmlRpcValue();
+            //if (NEVERAGAIN) return true;
+            if (client.ExecuteCheckDone(chk))
+            {
+                //NEVERAGAIN = true;
+                parent.pendingConnectionDone(this, chk.instance);
+                return true;
+            }
             return false;
+        }
+
+        public void Dispose()
+        {
+            //client.Dispose();
+            //client = null;
         }
     }
 }

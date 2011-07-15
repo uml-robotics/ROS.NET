@@ -81,11 +81,13 @@ namespace EricIsAMAZING
                 {
                     Console.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, c.ConnectionID);
+                    curr_info.Set(0, (int)c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
+                    Console.Write("PUB curr_info DUMP:\n\t");
+                    curr_info.Dump();
                     info.Set(info.Size, curr_info);
                 }
                 Console.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
@@ -261,11 +263,6 @@ namespace EricIsAMAZING
                 Console.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
                 return false;
             }
-            lock(pending_connections_mutex)
-            {
-                if (pending_connections.FindAll((p) => p.RemoteUri == xmlrpc_uri).Count > 0)
-                    return true;
-            }
             XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
             if (!c.ExecuteNonBlock("requestTopic", Params))
             {
@@ -291,8 +288,10 @@ namespace EricIsAMAZING
             {
                 if (shutting_down || _dropped)
                     return;
-                lock (pending_connections_mutex)
-                    pending_connections.Remove(conn);
+            }
+            lock (pending_connections_mutex)
+            {
+                pending_connections.Remove(conn);
             }
             string peer_host = conn.client.Host;
             int peer_port = conn.client.Port;
@@ -355,6 +354,7 @@ namespace EricIsAMAZING
 #if DEBUG
                     Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
 #endif
+
                 }
                 else
                 {

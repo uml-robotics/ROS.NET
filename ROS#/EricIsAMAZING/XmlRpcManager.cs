@@ -55,7 +55,6 @@ namespace EricIsAMAZING
             {
                 if (server.Dispatch == null)
                 {
-                    Console.WriteLine("FUCKING FUCK STAINS!");
                     return;
                 }
                 lock (added_connections_mutex)
@@ -91,6 +90,7 @@ namespace EricIsAMAZING
                     foreach (AsyncXmlRpcConnection con in removed_connections)
                     {
                         con.removeFromDispatch(server.Dispatch);
+                        connections.Remove(con);
                     }
                     removed_connections.Clear();
                 }
@@ -109,11 +109,9 @@ namespace EricIsAMAZING
             if (response[1].Type != TypeEnum.TypeString)
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response[1].Get<string>();
-            response.Dump();
             if (status_code != 1)
                 return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string, response);
             payload = response[2];
-            payload.Dump();
             return true;
         }
 

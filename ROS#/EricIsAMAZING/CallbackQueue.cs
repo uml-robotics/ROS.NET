@@ -285,7 +285,17 @@ namespace EricIsAMAZING
 
     public class TLS
     {
-        public int Count;
+        public int Count
+        {
+            get { return _count; }
+            set
+            {
+                //Console.WriteLine("TLS.Count NOW " + value);
+                _count = value;
+            }
+        }
+
+        private int _count;
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         public CallbackInfoNode current;
         public CallbackInfoNode head;
