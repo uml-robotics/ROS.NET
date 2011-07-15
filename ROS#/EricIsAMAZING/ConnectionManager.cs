@@ -31,7 +31,7 @@ namespace EricIsAMAZING
 
         public void poll_conn()
         {
-
+            throw new NotImplementedException();
         }
 
         public static ConnectionManager Instance
@@ -147,7 +147,6 @@ namespace EricIsAMAZING
 
         public void Start()
         {
-            Console.WriteLine("... and connection manager started too.");
             poll_manager = PollManager.Instance;
             poll_manager.addPollThreadListener(removeDroppedConnections);
 

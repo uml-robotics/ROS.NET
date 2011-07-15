@@ -20,6 +20,7 @@ namespace EricIsAMAZING
             {
                 impl.server_link = ServiceManager.Instance.createServiceServerLink(impl.service, impl.persistent, impl.md5sum, impl.md5sum, impl.header_values);
             }
+            throw new NotImplementedException();
         }
     }
 

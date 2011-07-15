@@ -86,7 +86,6 @@ namespace EricIsAMAZING
 
         public void Start()
         {
-            Console.WriteLine("POLEMANAGER STARTED! YOUR MOM MANAGES POLE!");
             shutting_down = false;
             thread = new Thread(threadFunc);
             thread.IsBackground = true;

@@ -29,6 +29,7 @@ namespace EricIsAMAZING
 
         public IServiceServerLink()
         {
+            throw new NotImplementedException();
         }
 
         public static object create(string request, string response)

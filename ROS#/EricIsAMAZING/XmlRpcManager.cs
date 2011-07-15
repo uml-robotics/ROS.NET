@@ -140,7 +140,7 @@ namespace EricIsAMAZING
                             client.last_use_time = DateTime.Now;
                             break;
                         }
-                        else if (DateTime.Now.Subtract(client.last_use_time).TotalMilliseconds > 30)
+                        else if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30)
                         {
                             client.client.Shutdown();
                             zombies.Add(client);
@@ -263,7 +263,7 @@ namespace EricIsAMAZING
                 throw new Exception("RPCServer's port is invalid");
             uri = "http://" + network.host + ":" + port + "/";
 
-            Console.WriteLine("XmlRpc IN THE HIZI (" + uri + " FOR SHIZI");
+            //Console.WriteLine("XmlRpc IN THE HIZI (" + uri + " FOR SHIZI");
             server_thread = new Thread(serverThreadFunc);
             server_thread.IsBackground = true;
             server_thread.Start();

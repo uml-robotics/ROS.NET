@@ -61,8 +61,8 @@ namespace EricIsAMAZING
 
         public void Dispose()
         {
-            //client.Dispose();
-            //client = null;
+            client.Dispose();
+            client = null;
         }
     }
 }

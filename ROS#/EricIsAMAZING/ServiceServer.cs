@@ -17,7 +17,7 @@ namespace EricIsAMAZING
 
         public ServiceServer()
         {
-            // TODO: Complete member initialization
+            throw new NotImplementedException();
         }
     }
 

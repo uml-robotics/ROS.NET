@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using XmlRpc_Wrapper;
 
 #endregion
@@ -14,6 +15,7 @@ namespace EricIsAMAZING
         public static int port;
         public static string host = "";
         public static string uri = "";
+        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(5);
 
         internal static void init(IDictionary remapping_args)
         {
@@ -83,14 +85,15 @@ namespace EricIsAMAZING
             DateTime startTime = DateTime.Now;
             string master_host = host;
             int master_port = port;
-            XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+            XmlRpcClient client = null;
             bool printed = false;
             bool slept = false;
             bool ok = true;
             do
             {
                 bool b = false;
-                b = client.Execute(method, request, response);
+                client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+                b = !client.IsNull && !client.IsFault && client.Execute(method, request, response);
 
                 ok = !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down;
 
@@ -98,7 +101,7 @@ namespace EricIsAMAZING
                 {
                     if (!printed && wait_for_master)
                     {
-                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host, master_port, wait_for_master);
+                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host, master_port, (wait_for_master?"Retrying...":""));
                         printed = true;
                     }
 
@@ -108,12 +111,22 @@ namespace EricIsAMAZING
                         return false;
                     }
 
+                    if (DateTime.Now.Subtract(startTime) > retryTimeout)
+                    {
+                        Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method, retryTimeout.TotalSeconds);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
+                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                    client = null;
+                    Thread.Sleep(50);
                     slept = true;
                 }
                 else
                 {
                     if (!XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
                     {
+                        Console.WriteLine("Received a response? I think?... but it FAILED VALIDATION!");
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }
@@ -124,6 +137,10 @@ namespace EricIsAMAZING
             if (ok && slept)
             {
                 Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+            }
+            else
+            {
+                Console.WriteLine("OK = FALSE, SO SOMEBODY MUST BE DYING!");
             }
             XmlRpcManager.Instance.releaseXMLRPCClient(client);
             return true;

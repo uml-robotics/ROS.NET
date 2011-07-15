@@ -89,10 +89,10 @@ void XmlRpcUtil::log(int level, const char* fmt, ...)
 	  va_start( va, fmt);
 	  vsnprintf(buf,sizeof(buf)-1,fmt,va);
 	  buf[sizeof(buf)-1] = 0;
-	if (level <= 5)
-	{
-	  OUTFN(buf);
-	}
+//	if (level <= 5)
+//	{
+//	  OUTFN(buf);
+//	}
   if (level <= XmlRpcLogHandler::getVerbosity())
   {
     XmlRpcLogHandler::getLogHandler()->log(level, buf);
@@ -107,7 +107,7 @@ void XmlRpcUtil::error(const char* fmt, ...)
   char buf[1024];
   vsnprintf(buf,sizeof(buf)-1,fmt,va);
   buf[sizeof(buf)-1] = 0;
-  OUTFN(buf);
+//  OUTFN(buf);
   XmlRpcErrorHandler::getErrorHandler()->error(buf);
 }
 

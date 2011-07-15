@@ -47,7 +47,7 @@ namespace EricIsAMAZING
 
         public void Start()
         {
-            Console.WriteLine("STARTING TOPICS MANAGER");
+            //Console.WriteLine("STARTING TOPICS MANAGER");
             lock (shutting_down_mutex)
             {
                 shutting_down = false;

@@ -25,7 +25,7 @@ namespace EricIsAMAZING
 
         public void Start()
         {
-            Console.WriteLine("STARTING SERVICEMANAGER... SERVICE DEEZ NUTS!");
+            Console.WriteLine("DA SERVICES. DAY DO NUSSING!");
         }
 
         internal bool advertiseService<MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)

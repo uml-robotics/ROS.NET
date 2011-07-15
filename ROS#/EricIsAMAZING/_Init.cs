@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Messages;
+using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -115,12 +116,45 @@ namespace EricIsAMAZING
             spinner.spin();
         }
 
+        public static void checkForShutdown()
+        {
+            if (shutdown_requested && !shutting_down)
+            {
+                lock (shutting_down_mutex)
+                {
+                    shutdown();
+                }
+                shutdown_requested = false;
+            }
+        }
+
+        public static void shutdownCallback(IntPtr p, IntPtr r)
+        {
+            XmlRpcValue parms = XmlRpcValue.LookUp(p);
+            int num_params = 0;
+            if (parms.Type == TypeEnum.TypeArray)
+                num_params = parms.Size;
+            if (num_params > 1)
+            {
+                string reason = parms[1].Get<string>();
+                Console.WriteLine("Shutdown request received.");
+                Console.WriteLine("Reason given for shutdown: [" + reason + "]");
+                requestShutdown();
+            }
+            XmlRpcManager.Instance.responseInt(1, "", 0)(r);
+        }
+
         public static void waitForShutdown()
         {
+            while (ok)
+            {
+                Thread.Sleep(WallDuration);
+            }
         }
 
         public static void requestShutdown()
         {
+            shutdown_requested = true;
         }
 
         public static void start()
@@ -132,8 +166,8 @@ namespace EricIsAMAZING
                 shutting_down = false;
                 started = true;
                 ok = true;
-                //PollManager.Instance.addPollThreadListener(checkForShutdown);
-                //XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
+                PollManager.Instance.addPollThreadListener(checkForShutdown);
+                XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
                 //initInternalTimerManager();
                 TopicManager.Instance.Start();
                 ServiceManager.Instance.Start();
