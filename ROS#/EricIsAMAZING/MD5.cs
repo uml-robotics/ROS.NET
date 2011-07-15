@@ -1,25 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
+﻿using System.Text;
 
 namespace EricIsAMAZING
 {
     public class MD5
     {
-        public byte[] Hash;
+        public byte[] Sum;
         public MD5(byte[] data)
         {
-            Hash = System.Security.Cryptography.MD5.Create().ComputeHash(data);
+            Sum = System.Security.Cryptography.MD5.Create().ComputeHash(data);
         }
         public MD5(string data) : this(Encoding.ASCII.GetBytes(data))
         {
         }
         public override string ToString()
         {
-            if (Hash == null) return "";
-            return (Encoding.ASCII.GetString(Hash).Replace("-",""));
+            if (Sum == null) return "";
+            return (Encoding.ASCII.GetString(Sum).Replace("-",""));
         }
     }
 }
