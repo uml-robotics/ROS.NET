@@ -35,6 +35,7 @@ namespace ConsoleApplication1
 
         private static void Main(string[] args)
         {
+
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;

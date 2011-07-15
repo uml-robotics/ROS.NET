@@ -2,6 +2,7 @@
 //#define REFDEBUGWrapper
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 #endregion
@@ -27,14 +28,6 @@ namespace XmlRpc_Wrapper
             Dispose();
         }
 
-        public bool Initialized
-        {
-            get
-            {
-                return __instance != IntPtr.Zero;
-            }
-        }
-
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
         private static object reflock = new object();
 #if REFDEBUGWrapper
@@ -58,6 +51,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+    [DebuggerStepThrough]
         public static XMLRPCCallWrapper LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -69,6 +63,7 @@ namespace XmlRpc_Wrapper
         }
 
 
+    [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUGWrapper
@@ -98,6 +93,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
+    [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -123,11 +119,13 @@ namespace XmlRpc_Wrapper
         }
 
         public IntPtr instance
-        {
+    {
+        [DebuggerStepThrough]
             get
             {
                 return __instance;
             }
+        [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -147,6 +145,7 @@ namespace XmlRpc_Wrapper
         public string name;
         public XmlRpcServer server;
 
+    [DebuggerStepThrough]
         public XMLRPCCallWrapper(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
             name = function_name;
@@ -157,14 +156,17 @@ namespace XmlRpc_Wrapper
             FUNC = func;
         }
 
+    [DebuggerStepThrough]
         public XMLRPCCallWrapper(IntPtr ptr)
         {
             instance = ptr;
         }
 
         public XMLRPCFunc FUNC
-        {
-            get { return _FUNC; }
+    {
+        [DebuggerStepThrough]
+        get { return _FUNC; }
+        [DebuggerStepThrough]
             set { SetFunc((_FUNC = value)); }
         }
 

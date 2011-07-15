@@ -386,6 +386,7 @@ namespace EricIsAMAZING
                 {
 
                 }
+                Console.WriteLine("Receive result = " + err);
                 return num_bytes;
             }
             catch (Exception e)

@@ -2,6 +2,7 @@
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -12,7 +13,7 @@ namespace XmlRpc_Wrapper
     public class XmlRpcServer : /*XmlRpcSource,*/ IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
-        
+
         private IntPtr __instance;
 
         public void Dispose()
@@ -23,14 +24,6 @@ namespace XmlRpc_Wrapper
         ~XmlRpcServer()
         {
             Shutdown();
-        }
-
-        public bool Initialized
-        {
-            get
-            {
-                return __instance != IntPtr.Zero;
-            }
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -56,6 +49,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+        [DebuggerStepThrough]
         public static XmlRpcServer LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -67,6 +61,7 @@ namespace XmlRpc_Wrapper
         }
 
 
+        [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -96,6 +91,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
+        [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -122,6 +118,7 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
+            [DebuggerStepThrough]
             get
             {
                 if (__instance == IntPtr.Zero)
@@ -132,6 +129,7 @@ namespace XmlRpc_Wrapper
                 }
                 return __instance;
             }
+            [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -159,35 +157,15 @@ namespace XmlRpc_Wrapper
             return true;
         }
 
-        public static bool operator ==(XmlRpcServer left, XmlRpcServer right)
-        {
-            return left != null && right != null && (left.__instance == right.__instance);
-        }
-        public static bool operator !=(XmlRpcServer left, XmlRpcServer right)
-        {
-            return left == null || right == null || (left.__instance != right.__instance);
-        }
-        public override bool Equals(object obj)
-        {
-            XmlRpcServer comp = obj as XmlRpcServer;
-            if (comp == null)
-                return false;
-            return ((__instance == comp.__instance) && (__instance != IntPtr.Zero)) || (this != comp);
-        }
-        public override int GetHashCode()
-        {
-            if (__instance != IntPtr.Zero)
-                return __instance.ToInt32();
-            return base.GetHashCode();
-        }
-
         #endregion
 
+        [DebuggerStepThrough]
         public XmlRpcServer()
         {
             instance = create();
         }
 
+        [DebuggerStepThrough]
         public XmlRpcServer(IntPtr copy)
         {
             if (copy != IntPtr.Zero)
@@ -198,6 +176,7 @@ namespace XmlRpc_Wrapper
 
         public int Port
         {
+            [DebuggerStepThrough]
             get
             {
                 SegFault();
@@ -207,6 +186,7 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcDispatch Dispatch
         {
+            [DebuggerStepThrough]
             get
             {
                 SegFault();
@@ -305,6 +285,7 @@ namespace XmlRpc_Wrapper
         }
 
 
+        [DebuggerStepThrough]
         public void SegFault()
         {
             if (instance == IntPtr.Zero)

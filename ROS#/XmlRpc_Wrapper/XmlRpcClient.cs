@@ -2,6 +2,7 @@
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -54,14 +55,6 @@ namespace XmlRpc_Wrapper
             Shutdown();
         }
 
-        public bool Initialized
-        {
-            get
-            {
-                return __instance != IntPtr.Zero;
-            }
-        }
-
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
         private static object reflock = new object();
 #if REFDEBUG
@@ -85,6 +78,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+    [DebuggerStepThrough]
         public static XmlRpcDispatch LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -96,6 +90,7 @@ namespace XmlRpc_Wrapper
         }
 
 
+    [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -125,6 +120,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
+    [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -150,11 +146,13 @@ namespace XmlRpc_Wrapper
         }
 
         public IntPtr instance
-        {
+    {
+        [DebuggerStepThrough]
             get
             {
                 return __instance;
             }
+        [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -186,16 +184,19 @@ namespace XmlRpc_Wrapper
 
         public string HostUri = "";
 
+    [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
             instance = create(HostName, Port, Uri);
         }
 
+    [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port)
             : this(HostName, Port, "/")
         {
         }
 
+    [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
         {
             if (!WHOLESHEBANG.Contains("://")) throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
@@ -214,12 +215,14 @@ namespace XmlRpc_Wrapper
         #region public get passthroughs
 
         public bool IsFault
-        {
+    {
+        [DebuggerStepThrough]
             get { return isfault(instance); }
         }
 
         public string Host
         {
+            [DebuggerStepThrough]
             get
             {
                 string ret = gethost(instance);
@@ -229,56 +232,67 @@ namespace XmlRpc_Wrapper
 
         public string Uri
         {
+            [DebuggerStepThrough]
             get { return geturi(instance); }
         }
 
         public int Port
         {
+            [DebuggerStepThrough]
             get { return getport(instance); }
         }
 
         public string Request
         {
+            [DebuggerStepThrough]
             get { return getrequest(instance); }
         }
 
         public string Header
         {
+            [DebuggerStepThrough]
             get { return getheader(instance); }
         }
 
         public string Response
         {
+            [DebuggerStepThrough]
             get { return getresponse(instance); }
         }
 
         public int SendAttempts
         {
+            [DebuggerStepThrough]
             get { return getsendattempts(instance); }
         }
 
         public int BytesWritten
         {
+            [DebuggerStepThrough]
             get { return getbyteswritten(instance); }
         }
 
         public bool Executing
         {
+            [DebuggerStepThrough]
             get { return getexecuting(instance); }
         }
 
         public bool EOF
         {
+            [DebuggerStepThrough]
             get { return geteof(instance); }
         }
 
         public int ContentLength
         {
+            [DebuggerStepThrough]
             get { return getcontentlength(instance); }
         }
 
         public IntPtr XmlRpcDispatch
         {
+            [DebuggerStepThrough]
             get { return getxmlrpcdispatch(instance); }
         }
 
@@ -311,6 +325,7 @@ namespace XmlRpc_Wrapper
 
         public bool IsNull
         {
+            [DebuggerStepThrough]
             get { return instance == IntPtr.Zero; }
         }
 

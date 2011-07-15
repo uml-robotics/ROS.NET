@@ -39,10 +39,10 @@ namespace EricIsAMAZING
             Callback = cb;
 
 
-            md5sum = "*";
             Type msgtype = typeof(T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
-            datatype = chunks[1]+"/"+chunks[2];
+            datatype = chunks[1] + "/" + chunks[2];
+            md5sum = new MD5(datatype).ToString();
         }
     }
 

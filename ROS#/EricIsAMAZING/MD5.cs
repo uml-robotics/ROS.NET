@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace EricIsAMAZING
 {
@@ -15,7 +16,12 @@ namespace EricIsAMAZING
         public override string ToString()
         {
             if (Sum == null) return "";
-            return (Encoding.ASCII.GetString(Sum).Replace("-",""));
+            string s = "";
+            foreach (byte b in Sum)
+            {
+                s += b.ToString("x");
+            }
+            return s;
         }
     }
 }

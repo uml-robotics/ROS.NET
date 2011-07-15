@@ -241,6 +241,7 @@ namespace EricIsAMAZING
 
         public static XmlRpcManager Instance
         {
+            [DebuggerStepThrough]
             get
             {
                 if (_instance == null) _instance = new XmlRpcManager();
