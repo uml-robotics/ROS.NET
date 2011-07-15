@@ -103,15 +103,17 @@ namespace EricIsAMAZING
                 return validateFailed(method, "didn't return an array -- {0}", response);
             if (response.Size != 3)
                 return validateFailed(method, "didn't return a 3-element array -- {0}", response);
-            if (response.Get(0).Type != TypeEnum.TypeInt)
+            if (response[0].Type != TypeEnum.TypeInt)
                 return validateFailed(method, "didn't return an int as the 1st element -- {0}", response);
-            int status_code = response.Get<int>(0);
-            if (response.Get(1).Type != TypeEnum.TypeString)
+            int status_code = response[0].Get<int>();
+            if (response[1].Type != TypeEnum.TypeString)
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
-            string status_string = response.Get<string>(1);
+            string status_string = response[1].Get<string>();
+            response.Dump();
             if (status_code != 1)
                 return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string, response);
-            payload = new XmlRpcValue(response.Get(2));
+            payload = response[2];
+            payload.Dump();
             return true;
         }
 

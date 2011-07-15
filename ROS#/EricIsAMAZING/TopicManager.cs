@@ -194,7 +194,7 @@ namespace EricIsAMAZING
                 sub.addLocalConnection(pub);
 
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, result, payload, true);
+            master.execute("registerPublisher", args, ref result, ref payload, true);
             return true;
         }
 
@@ -395,19 +395,19 @@ namespace EricIsAMAZING
         {
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
-                XmlRpcValue proto = protos.Get(proto_idx);
+                XmlRpcValue proto = protos[proto_idx];
                 if (proto.Type == TypeEnum.TypeArray)
                 {
                     Console.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;
                 }
-                if (proto.Get(0).Type != TypeEnum.TypeString)
+                if (proto[0].Type != TypeEnum.TypeString)
                 {
                     Console.WriteLine("requestTopic received a protocol list in which a sublist did not start with a string");
                     return false;
                 }
 
-                string proto_name = proto.Get<string>(0);
+                string proto_name = proto[0].Get<string>();
 
                 if (proto_name == "TCPROS")
                 {
@@ -440,16 +440,14 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
             XmlRpcValue result = new XmlRpcValue();
             XmlRpcValue payload = new XmlRpcValue();
-
-            if (!master.execute("registerSubscriber", args, result, payload, true))
+            args.Dump();
+            if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
             {
-                XmlRpcValue asshole = payload.Get(i);
+                XmlRpcValue asshole = payload[i];
                 string pubed = asshole.Get<string>();
-                if (pubed == null)
-                    throw new Exception("ZOMG IT'S NULL IN REGISTER!");
                 if (pubed != fuckinguriyo && !pub_uris.Contains(pubed))
                 {
                     pub_uris.Add(pubed);
@@ -481,14 +479,14 @@ namespace EricIsAMAZING
         public bool unregisterSubscriber(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("unregisterSubscriber", args, result, payload, false);
+            master.execute("unregisterSubscriber", args, ref result, ref payload, false);
             return true;
         }
 
         public bool unregisterPublisher(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, result, payload, false);
+            master.execute("unregisterPublisher", args, ref result, ref payload, false);
             return true;
         }
 
@@ -624,9 +622,9 @@ namespace EricIsAMAZING
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             List<string> pubs = new List<string>();
-            for (int idx = 0; idx < parm.Get(2).Size; idx++)
-                pubs.Add(parm.Get(2).Get<string>(idx));
-            if (pubUpdate(parm.Get<string>(1), pubs))
+            for (int idx = 0; idx < parm[2].Size; idx++)
+                pubs.Add(parm[2][idx].Get<string>());
+            if (pubUpdate(parm[1].Get<string>(), pubs))
                 XmlRpcManager.Instance.responseInt(1, "", 0)(result);
             else
             {
@@ -640,7 +638,7 @@ namespace EricIsAMAZING
             Console.WriteLine("REQUEST TOPIC CALLBACK!");
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
-            if (!requestTopic(parm.Get<string>(1), parm.Get(2), ref res))
+            if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
             {
                 string last_error = "Unknown error or some shit";
 

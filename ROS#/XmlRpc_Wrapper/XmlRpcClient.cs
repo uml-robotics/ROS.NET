@@ -307,7 +307,6 @@ namespace XmlRpc_Wrapper
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            parameters.Dump();
             return executenonblock(instance, method, parameters.instance);
         }
 

@@ -33,13 +33,13 @@ namespace XmlRpc_Wrapper
 
         private IntPtr __instance;
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public void Dispose()
         {
             Clear();
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         ~XmlRpcValue()
         {
             Clear();
@@ -69,7 +69,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static XmlRpcValue LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -81,7 +81,7 @@ namespace XmlRpc_Wrapper
         }
 
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -111,7 +111,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -164,14 +164,14 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue()
         {
             __instance = create();
             AddRef(__instance);
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(params object[] initialvalues)
             : this()
         {
@@ -204,21 +204,21 @@ namespace XmlRpc_Wrapper
             }
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(bool value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(int value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(double value)
         {
             __instance = create(value);
@@ -226,20 +226,20 @@ namespace XmlRpc_Wrapper
             AddRef(__instance);
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(string value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(XmlRpcValue value)
             : this(value.instance)
         {
         }
 
-            [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcValue(IntPtr existingptr)
         {
             if (existingptr == IntPtr.Zero)
@@ -273,7 +273,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Valid", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool valid(IntPtr target);
-        
+
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_SetType", CallingConvention = CallingConvention.Cdecl)]
         private static extern int settype(IntPtr target, int type);
 
@@ -449,26 +449,26 @@ namespace XmlRpc_Wrapper
         }
 
         [DebuggerStepThrough]
-        public T Get<T>(int key)
+        private T Get<T>(int key)
         {
             return this[key].Get<T>();
         }
 
         [DebuggerStepThrough]
-        public T Get<T>(string key)
+        private T Get<T>(string key)
         {
             return this[key].Get<T>();
         }
 
         [DebuggerStepThrough]
-        public XmlRpcValue Get(int key)
+        private XmlRpcValue Get(int key)
         {
             IntPtr nested = get(instance, key);
             return LookUp(nested);
         }
 
         [DebuggerStepThrough]
-        public XmlRpcValue Get(string key)
+        private XmlRpcValue Get(string key)
         {
             IntPtr nested = get(instance, key);
             return LookUp(nested);

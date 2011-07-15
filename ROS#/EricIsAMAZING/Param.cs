@@ -24,7 +24,7 @@ namespace EricIsAMAZING
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, response, payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, val);
@@ -41,7 +41,7 @@ namespace EricIsAMAZING
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, response, payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -58,7 +58,7 @@ namespace EricIsAMAZING
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, response, payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -75,7 +75,7 @@ namespace EricIsAMAZING
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, response, payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -92,7 +92,7 @@ namespace EricIsAMAZING
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, response, payload, true))
+                if (master.execute("setParam", parm, ref response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -105,7 +105,7 @@ namespace EricIsAMAZING
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, names.resolve(key));
-            if (!master.execute("hasParam", parm, result, payload, false))
+            if (!master.execute("hasParam", parm, ref result, ref payload, false))
                 return false;
             return payload.Get<bool>();
         }
@@ -126,7 +126,7 @@ namespace EricIsAMAZING
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, mapped_key);
-            if (!master.execute("deleteParam", parm, result, payload, false))
+            if (!master.execute("deleteParam", parm, ref result, ref payload, false))
                 return false;
             return true;
         }
@@ -186,7 +186,7 @@ namespace EricIsAMAZING
             val.Set(0, 1);
             val.Set(1, "");
             val.Set(2, 0);
-            update(XmlRpcValue.LookUp(parm).Get<string>(1), XmlRpcValue.LookUp(parm).Get(2));
+            update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
         }
 
         public static bool getImpl(string key, ref XmlRpcValue v, bool use_cache)
@@ -216,7 +216,7 @@ namespace EricIsAMAZING
                         parm.Set(0, this_node.Name);
                         parm.Set(1, XmlRpcManager.Instance.uri);
                         parm.Set(2, mapped_key);
-                        if (!master.execute("subscribeParam", parm, result, payload, false))
+                        if (!master.execute("subscribeParam", parm, ref result, ref payload, false))
                         {
                             subscribed_params.Remove(mapped_key);
                             use_cache = false;
@@ -229,7 +229,7 @@ namespace EricIsAMAZING
             parm2.Set(0, this_node.Name);
             parm2.Set(1, mapped_key);
 
-            bool ret = master.execute("getParam", parm2, result2, v, false);
+            bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
 
             if (use_cache)
             {

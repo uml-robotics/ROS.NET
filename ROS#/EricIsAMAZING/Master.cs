@@ -34,7 +34,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, result, payload, false);
+            return execute("getPid", args, ref result, ref payload, false);
         }
 
         public static bool getTopics(ref TopicInfo[] topics)
@@ -43,11 +43,11 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, result, payload, true))
+            if (!execute("getPublishedTopics", args, ref result, ref payload, true))
                 return false;
             topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
-                topicss.Add(new TopicInfo(payload.Get(i).Get(0).Get<string>(), payload.Get(i).Get(1).Get<string>()));
+                topicss.Add(new TopicInfo(payload[i][0].Get<string>(), payload[i][1].Get<string>()));
             topics = topicss.ToArray();
             return true;
         }
@@ -58,18 +58,18 @@ namespace EricIsAMAZING
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, result, payload, true))
+            if (!execute("getSystemState", args, ref result, ref payload, true))
             {
                 return false;
             }
             for (int i = 0; i < payload.Size; i++)
             {
-                for (int j = 0; j < payload.Get(i).Size; j++)
+                for (int j = 0; j < payload[i].Size; j++)
                 {
-                    XmlRpcValue val = payload.Get(i).Get(j).Get(1);
+                    XmlRpcValue val = payload[i][j][1];
                     for (int k = 0; k < val.Size; k++)
                     {
-                        string name = val.Get(k).Get<string>();
+                        string name = val[k].Get<string>();
                         names.Add(name);
                     }
                 }
@@ -78,7 +78,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public static bool execute(string method, XmlRpcValue request, XmlRpcValue response, XmlRpcValue payload, bool wait_for_master)
+        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
         {
             DateTime startTime = DateTime.Now;
             string master_host = host;

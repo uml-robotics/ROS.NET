@@ -129,9 +129,9 @@ namespace EricIsAMAZING
             this.header_func = header_func;
             this.is_server = is_server;
 
-            transport.ReadCallback += onReadable;
-            transport.WriteCallback += onWriteable;
-            transport.DisconnectCallback += onDisconnect;
+            transport.read_cb += onReadable;
+            transport.write_cb += onWriteable;
+            transport.disconnect_cb += onDisconnect;
 
             if (header_func != null)
             {

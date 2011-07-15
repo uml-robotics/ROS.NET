@@ -37,13 +37,11 @@ namespace EricIsAMAZING
         private const int bitsperbyte = 8;
 
         public static bool use_keepalive;
-        public AcceptCallback accept_cb;
         public string cached_remote_host;
         public object close_mutex = new object();
         public bool closed;
         public string connected_host;
         public int connected_port;
-        public DisconnectFunc disconnect_cb;
         public int events;
         public bool expecting_read;
         public bool expecting_write;
@@ -51,12 +49,14 @@ namespace EricIsAMAZING
         public bool is_server;
         public bool no_delay;
         public PollSet poll_set;
-        public ReadFinishedFunc read_cb;
         public IPEndPoint server_address;
         public int server_port = -1;
         private Socket sock;
-        public WriteFinishedFunc write_cb;
-
+        public const int POLLERR = 0x008;
+        public const int POLLHUP = 0x010;
+        public const int POLLNVAL = 0x020;
+        public const int POLLIN = 0x001;
+        public const int POLLOUT = 0x004;
         public TcpTransport()
         {
         }
@@ -78,9 +78,10 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public event DisconnectFunc DisconnectCallback;
-        public event WriteFinishedFunc WriteCallback;
-        public event ReadFinishedFunc ReadCallback;
+        public event AcceptCallback accept_cb;
+        public event DisconnectFunc disconnect_cb;
+        public event WriteFinishedFunc write_cb;
+        public event ReadFinishedFunc read_cb;
 
         public bool setNonBlocking()
         {
@@ -122,7 +123,7 @@ namespace EricIsAMAZING
             }
             if (!expecting_read)
             {
-                poll_set.addEvents(sock, 0x001);
+                poll_set.addEvents(sock, POLLIN);
                 expecting_read = true;
             }
         }
@@ -135,7 +136,7 @@ namespace EricIsAMAZING
             }
             if (expecting_read)
             {
-                poll_set.delEvents(sock, 0x001);
+                poll_set.delEvents(sock, POLLIN);
                 expecting_read = false;
             }
         }
@@ -148,7 +149,7 @@ namespace EricIsAMAZING
             }
             if (!expecting_write)
             {
-                poll_set.addEvents(sock, 0x004);
+                poll_set.addEvents(sock, POLLOUT);
                 expecting_write = true;
             }
         }
@@ -161,7 +162,7 @@ namespace EricIsAMAZING
             }
             if (expecting_write)
             {
-                poll_set.delEvents(sock, 0x004);
+                poll_set.delEvents(sock, POLLOUT);
                 expecting_write = false;
             }
         }
@@ -462,7 +463,7 @@ namespace EricIsAMAZING
             {
                 if (closed) return;
             }
-            if ((events & 0x001) != 0 && expecting_read) //POLL IN FLAG
+            if ((events & POLLIN) != 0 && expecting_read) //POLL IN FLAG
             {
                 if (is_server)
                 {
@@ -480,6 +481,28 @@ namespace EricIsAMAZING
                         read_cb(this);
                     }
                 }
+            }
+            if (closed) return;
+            if ((events & POLLOUT) != 0 && expecting_write)
+            {
+                if (write_cb != null)
+                    read_cb(this);
+            }
+            if (closed) return;
+
+            if ((events & POLLERR) != 0 || (events & POLLHUP) != 0 || (events & POLLNVAL) != 0)
+            {
+                try
+                {
+                    int error = (int)sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                    Console.WriteLine("GetSocketOption(error) says socket error = " + error);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("GetSocketOption failed:\t" + e);
+                }
+                Console.WriteLine("Closing socket " + sock.Handle.ToString() + " w/ (ERR|HUP|NVAL) events " + events);
+                close();
             }
         }
 
@@ -509,12 +532,6 @@ namespace EricIsAMAZING
             if (disconnect_cb != null)
             {
                 disconnect_cb(this);
-            }
-
-            if (closed) return;
-            if ((events & 0x008) != 0 || (events & 0x010) != 0 || (events & 0x020) != 0)
-            {
-                close();
             }
         }
     }

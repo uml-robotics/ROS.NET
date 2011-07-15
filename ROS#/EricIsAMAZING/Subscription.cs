@@ -169,6 +169,10 @@ namespace EricIsAMAZING
                 ss += spc.XmlRpc_Uri;
             Console.WriteLine("Publisher update for [" + name + "]: " + ss);
 #endif
+            string tt = "Publisher URIS passed to publisher update = ";
+            foreach (string s in pubs)
+                tt += "\n\t" + s;
+            Console.WriteLine(tt);
             List<string> additions = new List<string>();
             List<PublisherLink> subtractions = new List<PublisherLink>(), to_add = new List<PublisherLink>();
             lock (publisher_links_mutex)
@@ -257,6 +261,10 @@ namespace EricIsAMAZING
                 Console.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
                 return false;
             }
+            lock(pending_connections_mutex)
+            {
+                if (pending_connections.Count(
+            }
             XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
             if (!c.ExecuteNonBlock("requestTopic", Params))
             {
@@ -307,7 +315,7 @@ namespace EricIsAMAZING
                 Console.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
                 return;
             }
-            string proto_name = proto.Get<string>(0);
+            string proto_name = proto[0].Get<string>();
             if (proto_name == "UDPROS")
             {
                 Console.WriteLine("OWNED! Only tcpros is supported right now.");
@@ -315,13 +323,13 @@ namespace EricIsAMAZING
             }
             else if (proto_name == "TCPROS")
             {
-                if (proto.Size != 3 || proto.Get(1).Type != TypeEnum.TypeString || proto.Get(2).Type != TypeEnum.TypeInt)
+                if (proto.Size != 3 || proto[1].Type != TypeEnum.TypeString || proto[2].Type != TypeEnum.TypeInt)
                 {
                     Console.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
                     return;
                 }
-                string pub_host = proto.Get<string>(1);
-                int pub_port = proto.Get<int>(2);
+                string pub_host = proto[1].Get<string>();
+                int pub_port = proto[2].Get<int>();
 #if DEBUG
                 Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port + "]");
 #endif

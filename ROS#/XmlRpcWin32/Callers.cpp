@@ -559,17 +559,15 @@ extern "C" XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance)
 	return 0;
 }
 extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
-{
-	
+{	
 	try
 	{		
-		XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d", (int)instance, (*instance)._type, (*instance).size());
+		XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d\n%s", (int)instance, (*instance)._type, (*instance).size(), ((*instance).getType() != XmlRpcValue::TypeInvalid ? (*instance).toXml().c_str() : "INVALID"));
 	}
 	catch (std::exception& ex)
 	{
 		XmlRpcUtil::error(ex.what());
 	}
-	XmlRpcUtil::log(0, "XMLRPCVALUE.DUMP EXPLODEDED IN C+++ LAND IN THE FACE");
 }
 
 //dispatch
