@@ -263,7 +263,8 @@ namespace EricIsAMAZING
             }
             lock(pending_connections_mutex)
             {
-                if (pending_connections.Count(
+                if (pending_connections.FindAll((p) => p.RemoteUri == xmlrpc_uri).Count > 0)
+                    return true;
             }
             XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
             if (!c.ExecuteNonBlock("requestTopic", Params))
