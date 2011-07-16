@@ -1,10 +1,10 @@
 ﻿#region USINGZ
+
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #endregion
 
@@ -13,6 +13,9 @@ namespace XmlRpc_Wrapper
     public static class WrapperTest
     {
         #region Delegates
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void TellMeHowAwesomeIAm(string s);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void balls(int val);
@@ -28,9 +31,6 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool IntegerEchoRepeat(int val);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void TellMeHowAwesomeIAm(string s);
-
         [DllImport("XmlRpcWin32.dll", EntryPoint = "SetStringOutFunc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetAwesomeFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] TellMeHowAwesomeIAm callback);
 
@@ -41,8 +41,8 @@ namespace XmlRpc_Wrapper
 
     public class XmlRpcClient : /*XmlRpcSource,*/ IDisposable
     {
-         #region Reference Tracking + unmanaged pointer management
-        
+        #region Reference Tracking + unmanaged pointer management
+
         private IntPtr __instance;
 
         public void Dispose()
@@ -78,7 +78,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static XmlRpcDispatch LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -90,7 +90,7 @@ namespace XmlRpc_Wrapper
         }
 
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -120,7 +120,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -146,13 +146,10 @@ namespace XmlRpc_Wrapper
         }
 
         public IntPtr instance
-    {
-        [DebuggerStepThrough]
-            get
-            {
-                return __instance;
-            }
-        [DebuggerStepThrough]
+        {
+            [DebuggerStepThrough]
+            get { return __instance; }
+            [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -184,19 +181,19 @@ namespace XmlRpc_Wrapper
 
         public string HostUri = "";
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
             instance = create(HostName, Port, Uri);
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port)
             : this(HostName, Port, "/")
         {
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
         {
             if (!WHOLESHEBANG.Contains("://")) throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
@@ -362,7 +359,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ClearFault", CallingConvention = CallingConvention.Cdecl)]
         private static extern void clearfault(IntPtr target);
-        
+
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
         private static extern string gethost(IntPtr target);

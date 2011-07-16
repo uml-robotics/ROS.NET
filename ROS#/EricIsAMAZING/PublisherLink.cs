@@ -8,7 +8,12 @@ namespace EricIsAMAZING
 {
     public class PublisherLink
     {
+        #region Delegates
+
         public delegate void HeaderReceivedFunc(PublisherLink link, Header head);
+
+        #endregion
+
         public string CallerID;
         public uint ConnectionID;
         public bool Latched;

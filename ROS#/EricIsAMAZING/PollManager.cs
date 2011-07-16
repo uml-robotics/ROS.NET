@@ -1,6 +1,5 @@
 ﻿#region USINGZ
 
-using System;
 using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -29,6 +28,15 @@ namespace EricIsAMAZING
         public PollManager()
         {
             poll_set = new PollSet();
+        }
+
+        public static PollManager Instance
+        {
+            get
+            {
+                if (_instance == null) _instance = new PollManager();
+                return _instance;
+            }
         }
 
         public event Poll_Signal poll_signal;
@@ -74,15 +82,6 @@ namespace EricIsAMAZING
             }
         }
 
-
-        public static PollManager Instance
-        {
-            get
-            {
-                if (_instance == null) _instance = new PollManager();
-                return _instance;
-            }
-        }
 
         public void Start()
         {

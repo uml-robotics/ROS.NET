@@ -1,10 +1,10 @@
 ﻿#region USINGZ
+
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #endregion
 
@@ -324,6 +324,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Dump", CallingConvention = CallingConvention.Cdecl)]
         private static extern void dump(IntPtr target);
+
         #endregion
 
         public TypeEnum Type
@@ -343,7 +344,7 @@ namespace XmlRpc_Wrapper
             set
             {
                 SegFault();
-                settype(instance, (int)value);
+                settype(instance, (int) value);
             }
         }
 
@@ -385,23 +386,23 @@ namespace XmlRpc_Wrapper
         {
             if ("" is T)
             {
-                set(instance, (string)(object)t);
+                set(instance, (string) (object) t);
             }
-            else if ((int)0 is T)
+            else if (0 is T)
             {
-                set(instance, (int)(object)t);
+                set(instance, (int) (object) t);
             }
             else if (this is T)
             {
-                set(instance, ((XmlRpcValue)(object)t).instance);
+                set(instance, ((XmlRpcValue) (object) t).instance);
             }
             else if (true is T)
             {
-                set(instance, (bool)(object)t);
+                set(instance, (bool) (object) t);
             }
             else if (0d is T)
             {
-                set(instance, (double)(object)t);
+                set(instance, (double) (object) t);
             }
         }
 
@@ -418,7 +419,7 @@ namespace XmlRpc_Wrapper
         }
 
         [DebuggerStepThrough]
-        public T Get<T>()// where T : struct
+        public T Get<T>() // where T : struct
         {
             if (!Valid)
             {
@@ -426,23 +427,23 @@ namespace XmlRpc_Wrapper
             }
             else if ("" is T)
             {
-                return (T)(object)GetString();
+                return (T) (object) GetString();
             }
-            else if ((int)0 is T)
+            else if (0 is T)
             {
-                return (T)(object)GetInt();
+                return (T) (object) GetInt();
             }
             else if (this is T)
             {
-                return (T)(object)this;
+                return (T) (object) this;
             }
             else if (true is T)
             {
-                return (T)(object)GetBool();
+                return (T) (object) GetBool();
             }
             else if (0d is T)
             {
-                return (T)(object)GetDouble();
+                return (T) (object) GetDouble();
             }
             Console.WriteLine("I DUNNO WHAT THAT IS!");
             return default(T);
@@ -569,19 +570,18 @@ namespace XmlRpc_Wrapper
     public static class ValueTypeHelper
     {
         public static TypeEnum[] _typearray = new[]
-                                            {
-                                                TypeEnum.TypeInvalid,
-                                                TypeEnum.TypeBoolean,
-                                                TypeEnum.TypeInt,
-                                                TypeEnum.TypeDouble,
-                                                TypeEnum.TypeString,
-                                                TypeEnum.TypeDateTime,
-                                                TypeEnum.TypeBase64,
-                                                TypeEnum.TypeArray,
-                                                TypeEnum.TypeStruct,
-                                                TypeEnum.TypeIDFK
-                                            };
-
+                                                  {
+                                                      TypeEnum.TypeInvalid,
+                                                      TypeEnum.TypeBoolean,
+                                                      TypeEnum.TypeInt,
+                                                      TypeEnum.TypeDouble,
+                                                      TypeEnum.TypeString,
+                                                      TypeEnum.TypeDateTime,
+                                                      TypeEnum.TypeBase64,
+                                                      TypeEnum.TypeArray,
+                                                      TypeEnum.TypeStruct,
+                                                      TypeEnum.TypeIDFK
+                                                  };
     }
 
     public enum TypeEnum

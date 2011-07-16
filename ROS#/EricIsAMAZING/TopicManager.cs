@@ -411,7 +411,7 @@ namespace EricIsAMAZING
 
                 if (proto_name == "TCPROS")
                 {
-                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, (int)connection_manager.TCPPort);
+                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, connection_manager.TCPPort);
                     ret.Set(0, 1);
                     ret.Set(1, "");
                     ret.Set(2, tcp_ros_params);

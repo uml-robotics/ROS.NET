@@ -63,16 +63,6 @@ namespace EricIsAMAZING
         {
         }
 
-        public void Dispose()
-        {
-            destruct();
-        }
-
-        ~NodeHandle()
-        {
-            Dispose();
-        }
-
         public CallbackQueue Callback
         {
             get
@@ -87,6 +77,20 @@ namespace EricIsAMAZING
         {
             get { return ROS.ok && _ok; }
             set { _ok = value; }
+        }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            destruct();
+        }
+
+        #endregion
+
+        ~NodeHandle()
+        {
+            Dispose();
         }
 
         public void shutdown()

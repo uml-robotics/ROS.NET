@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using Messages;
-using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -14,7 +13,6 @@ namespace EricIsAMAZING
 {
     public class Publisher<M> : IPublisher where M : IRosMessage
     {
-
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
         {
             // TODO: Complete member initialization

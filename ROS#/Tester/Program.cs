@@ -1,10 +1,10 @@
 ﻿#region USINGZ
 
 using System;
-using System.Threading;
 using EricIsAMAZING;
 using Messages;
 using XmlRpc_Wrapper;
+using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -28,20 +28,19 @@ namespace ConsoleApplication1
             Console.WriteLine(s);
         }
 
-        public static void chatterCallback(TypedMessage<m.String> msg)
+        public static void chatterCallback(TypedMessage<String> msg)
         {
             Console.WriteLine("HOLY FUCKSTICK!");
         }
 
         private static void Main(string[] args)
         {
-
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            Subscriber<TypedMessage<m.String>> sub = nh.subscribe<m.String>("chatter", 1000, chatterCallback);
+            Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             ROS.spin();
 
 

@@ -1,9 +1,9 @@
 ﻿#region USINGZ
+
 //#define REFDEBUG
-using System.Diagnostics;
-using System.Threading;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -52,7 +52,7 @@ namespace XmlRpc_Wrapper
         #endregion
 
         #region Reference Tracking + unmanaged pointer management
-        
+
         private IntPtr __instance;
 
         public void Dispose()
@@ -64,7 +64,7 @@ namespace XmlRpc_Wrapper
         {
             Shutdown();
         }
-        
+
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
         private static object reflock = new object();
 #if REFDEBUG
@@ -88,7 +88,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static XmlRpcDispatch LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -100,7 +100,7 @@ namespace XmlRpc_Wrapper
         }
 
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -130,7 +130,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -156,8 +156,8 @@ namespace XmlRpc_Wrapper
         }
 
         public IntPtr instance
-    {
-        [DebuggerStepThrough]
+        {
+            [DebuggerStepThrough]
             get
             {
                 if (__instance == IntPtr.Zero)
@@ -168,7 +168,7 @@ namespace XmlRpc_Wrapper
                 }
                 return __instance;
             }
-        [DebuggerStepThrough]
+            [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -195,16 +195,16 @@ namespace XmlRpc_Wrapper
             }
             return true;
         }
-        
+
         #endregion
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XmlRpcDispatch()
         {
             instance = create();
         }
-        
-    [DebuggerStepThrough]
+
+        [DebuggerStepThrough]
         public XmlRpcDispatch(IntPtr otherref)
         {
             if (otherref != IntPtr.Zero)
@@ -213,7 +213,7 @@ namespace XmlRpc_Wrapper
 
         public void AddSource(XmlRpcClient source, int eventMask)
         {
-            addsource(instance, source.instance, (uint)eventMask);
+            addsource(instance, source.instance, (uint) eventMask);
         }
 
         public void RemoveSource(XmlRpcClient source)
@@ -223,7 +223,7 @@ namespace XmlRpc_Wrapper
 
         public void SetSourceEvents(XmlRpcClient source, int eventMask)
         {
-            setsourceevents(instance, source.instance, (uint)eventMask);
+            setsourceevents(instance, source.instance, (uint) eventMask);
         }
 
         public void Work(double msTime)

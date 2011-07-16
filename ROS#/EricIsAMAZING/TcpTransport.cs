@@ -35,6 +35,11 @@ namespace EricIsAMAZING
 
         private const int bytesperlong = 4; // 32 / 8
         private const int bitsperbyte = 8;
+        public const int POLLERR = 0x008;
+        public const int POLLHUP = 0x010;
+        public const int POLLNVAL = 0x020;
+        public const int POLLIN = 0x001;
+        public const int POLLOUT = 0x004;
 
         public static bool use_keepalive;
         public string cached_remote_host;
@@ -52,11 +57,7 @@ namespace EricIsAMAZING
         public IPEndPoint server_address;
         public int server_port = -1;
         private Socket sock;
-        public const int POLLERR = 0x008;
-        public const int POLLHUP = 0x010;
-        public const int POLLNVAL = 0x020;
-        public const int POLLIN = 0x001;
-        public const int POLLOUT = 0x004;
+
         public TcpTransport()
         {
         }
@@ -85,7 +86,7 @@ namespace EricIsAMAZING
 
         public bool setNonBlocking()
         {
-            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
             {
                 try
                 {
@@ -199,9 +200,9 @@ namespace EricIsAMAZING
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
 
-            if (!sock.ConnectAsync(new SocketAsyncEventArgs{ RemoteEndPoint=ipep }))
+            if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
                 return false;
-            
+
             cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
 
             if (!initializeSocket())
@@ -221,7 +222,7 @@ namespace EricIsAMAZING
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
                 enableRead();
             return true;
         }
@@ -231,7 +232,7 @@ namespace EricIsAMAZING
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[3];
@@ -248,10 +249,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -271,7 +272,7 @@ namespace EricIsAMAZING
         {
             string nodelay = "";
             if (header.Values.Contains("tcp_nodelay"))
-                nodelay = (string)header.Values["tcp_nodelay"];
+                nodelay = (string) header.Values["tcp_nodelay"];
             if (nodelay == "1")
             {
                 Console.WriteLine("SETTING NODELAY ON THIS SHIZNIT!");
@@ -284,7 +285,7 @@ namespace EricIsAMAZING
             try
             {
                 // resulting structure
-                byte[] SIO_KEEPALIVE_VALS = new byte[3 * bytesperlong];
+                byte[] SIO_KEEPALIVE_VALS = new byte[3*bytesperlong];
 
                 // array to hold input values
                 ulong[] input = new ulong[4];
@@ -301,10 +302,10 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 3] = (byte)(input[i] >> ((bytesperlong - 1) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 2] = (byte)(input[i] >> ((bytesperlong - 2) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 1] = (byte)(input[i] >> ((bytesperlong - 3) * bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i * bytesperlong + 0] = (byte)(input[i] >> ((bytesperlong - 4) * bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -326,8 +327,8 @@ namespace EricIsAMAZING
             for (int i = 0; i < b.Length; i++)
             {
                 s += "" + b[i].ToString("x") + " ";
-                if (i % 4 == 0) s += "     ";
-                if (i % 16 == 0 && i != b.Length - 1) s += "\n";
+                if (i%4 == 0) s += "     ";
+                if (i%16 == 0 && i != b.Length - 1) s += "\n";
             }
             Console.WriteLine(s);
         }
@@ -346,7 +347,7 @@ namespace EricIsAMAZING
                     return;
                 }
 
-                if (!setKeepAlive(sock, (ulong)idle, (ulong)interval, (ulong)count) && !setKeepAlive(sock, (ulong)idle, (ulong)interval))
+                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) && !setKeepAlive(sock, (ulong) idle, (ulong) interval))
                     Console.WriteLine("FAIL!");
             }
             /*else
@@ -371,21 +372,21 @@ namespace EricIsAMAZING
             int num_bytes = 0;
             /*if (sock.Poll(1000, SelectMode.SelectRead))
             {*/
-                SocketError err;
-                num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
-                if (num_bytes <= 0)
+            SocketError err;
+            num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
+            if (num_bytes <= 0)
+            {
+                if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
+                    num_bytes = 0;
+                else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
-                        num_bytes = 0;
-                    else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
-                    {
-                        Console.WriteLine("recv() on this socket failed with error [" + err + "]");
-                        close();
-                        return -1;
-                    }
-                    else
-                        return 0;
+                    Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                    close();
+                    return -1;
                 }
+                else
+                    return 0;
+            }
             //}
             return num_bytes;
         }
@@ -485,7 +486,7 @@ namespace EricIsAMAZING
             {
                 try
                 {
-                    int error = (int)sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                    int error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
                     Console.WriteLine("GetSocketOption(error) says socket error = " + error);
                 }
                 catch (Exception e)

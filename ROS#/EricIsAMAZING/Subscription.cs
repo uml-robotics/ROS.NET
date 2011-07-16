@@ -15,9 +15,12 @@ namespace EricIsAMAZING
 {
     public class Subscription
     {
+        private bool _dropped;
+        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers = new Dictionary<MsgTypes, IMessageDeserializer>();
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         public string datatype = "";
+        public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
         public string md5sum = "";
         public object md5sum_mutex = new object();
         public string name = "";
@@ -27,15 +30,27 @@ namespace EricIsAMAZING
         public List<PublisherLink> publisher_links = new List<PublisherLink>();
         public object publisher_links_mutex = new object(), shutdown_mutex = new object();
         private bool shutting_down;
-        public bool IsDropped { get { return _dropped; } }
-        private bool _dropped;
-        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers = new Dictionary<MsgTypes, IMessageDeserializer>();
-        public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
+
         public Subscription(string n, string md5s, string dt)
         {
             name = n;
             md5sum = md5s;
             datatype = dt;
+        }
+
+        public bool IsDropped
+        {
+            get { return _dropped; }
+        }
+
+        public int NumPublishers
+        {
+            get { lock (publisher_links_mutex) return publisher_links.Count; }
+        }
+
+        public int NumCallbacks
+        {
+            get { lock (callbacks_mutex) return callbacks.Count; }
         }
 
         public void shutdown()
@@ -81,7 +96,7 @@ namespace EricIsAMAZING
                 {
                     //Console.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, (int)c.ConnectionID);
+                    curr_info.Set(0, (int) c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
@@ -94,11 +109,6 @@ namespace EricIsAMAZING
             }
         }
 
-        public int NumPublishers
-        {
-            get { lock (publisher_links_mutex) return publisher_links.Count; }
-        }
-
         public void drop()
         {
             if (!_dropped)
@@ -107,6 +117,7 @@ namespace EricIsAMAZING
                 dropAllConnections();
             }
         }
+
         public void dropAllConnections()
         {
             List<PublisherLink> localsubscribers = null;
@@ -122,6 +133,7 @@ namespace EricIsAMAZING
                 //drop it like it's hot, backwards.
             }
         }
+
         public bool urisEqual(string uri1, string uri2)
         {
             if (uri1 == null || uri2 == null)
@@ -152,6 +164,7 @@ namespace EricIsAMAZING
         {
             publisher_links.Add(pub);
         }
+
         public bool pubUpdate(List<string> pubs)
         {
             lock (shutdown_mutex)
@@ -211,7 +224,8 @@ namespace EricIsAMAZING
                             {
                                 if (urisEqual(up_i, pc.RemoteUri))
                                 {
-                                    found = true; break;
+                                    found = true;
+                                    break;
                                 }
                             }
                             if (!found) additions.Add(up_i);
@@ -281,6 +295,7 @@ namespace EricIsAMAZING
             XmlRpcManager.Instance.addAsyncConnection(conn);
             return true;
         }
+
         public void pendingConnectionDone(PendingConnection conn, IntPtr res)
         {
             XmlRpcValue result = XmlRpcValue.LookUp(res);
@@ -340,7 +355,7 @@ namespace EricIsAMAZING
                     Connection connection = new Connection();
                     TransportPublisherLink pub_link = new TransportPublisherLink(this, xmlrpc_uri);
 
-                    connection.initialize(transport, false, (c, h) => true );
+                    connection.initialize(transport, false, (c, h) => true);
                     pub_link.initialize(connection);
 
                     ConnectionManager.Instance.addConnection(connection);
@@ -354,7 +369,6 @@ namespace EricIsAMAZING
 #if DEBUG
                     Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
 #endif
-
                 }
                 else
                 {
@@ -411,7 +425,7 @@ namespace EricIsAMAZING
 
                 if (link.Latched)
                 {
-                    LatchInfo li = new LatchInfo { message = msg, link = link, connection_header = connection_header, receipt_time = receipt_time };
+                    LatchInfo li = new LatchInfo {message = msg, link = link, connection_header = connection_header, receipt_time = receipt_time};
                     if (latched_messages.ContainsKey(link))
                         latched_messages[link] = li;
                     else
@@ -421,14 +435,6 @@ namespace EricIsAMAZING
                 cached_deserializers.Clear();
                 return drops;
             }
-        }
-
-        public class LatchInfo
-        {
-            public IRosMessage message;
-            public PublisherLink link;
-            public IDictionary connection_header;
-            public DateTime receipt_time;
         }
 
         public IMessageDeserializer MakeDeserializer(MsgTypes type)
@@ -481,7 +487,7 @@ namespace EricIsAMAZING
                                     bool was_full = false;
                                     info.subscription_queue.push(info.helper, des, true, ref was_full, latch_info.receipt_time);
                                     if (!was_full)
-                                        info.callback.addCallback(info.subscription_queue, (ulong)info.Get());
+                                        info.callback.addCallback(info.subscription_queue, info.Get());
                                 }
                             }
                         }
@@ -531,11 +537,6 @@ namespace EricIsAMAZING
             }
         }
 
-        public int NumCallbacks
-        {
-            get { lock (callbacks_mutex) return callbacks.Count; }
-        }
-
         #region Nested type: CallbackInfo
 
         public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
@@ -549,15 +550,17 @@ namespace EricIsAMAZING
 
         public class ICallbackInfo
         {
+            private static UInt64 _uid;
+            private UInt64 __uid;
             public CallbackQueueInterface callback;
             public ISubscriptionCallbackHelper helper;
             public SubscriptionQueue subscription_queue;
-            private static UInt64 _uid;
-            private UInt64 __uid;
+
             public ICallbackInfo()
             {
                 __uid = _uid++;
             }
+
             public UInt64 Get()
             {
                 return __uid;
@@ -566,5 +569,16 @@ namespace EricIsAMAZING
 
         #endregion
 
+        #region Nested type: LatchInfo
+
+        public class LatchInfo
+        {
+            public IDictionary connection_header;
+            public PublisherLink link;
+            public IRosMessage message;
+            public DateTime receipt_time;
+        }
+
+        #endregion
     }
 }

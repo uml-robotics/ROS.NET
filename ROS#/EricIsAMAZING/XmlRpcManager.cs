@@ -40,6 +40,16 @@ namespace EricIsAMAZING
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
 
+        public static XmlRpcManager Instance
+        {
+            [DebuggerStepThrough]
+            get
+            {
+                if (_instance == null) _instance = new XmlRpcManager();
+                return _instance;
+            }
+        }
+
         #region IDisposable Members
 
         public void Dispose()
@@ -237,16 +247,6 @@ namespace EricIsAMAZING
                            v.Set(1, msg);
                            v.Set(2, response);
                        };
-        }
-
-        public static XmlRpcManager Instance
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                if (_instance == null) _instance = new XmlRpcManager();
-                return _instance;
-            }
         }
 
         public void Start()

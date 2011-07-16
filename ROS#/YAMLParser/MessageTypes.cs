@@ -9,7 +9,7 @@ namespace Messages
 {
     public static class TypeHelper
     {
-        public static Dictionary<MsgTypes, Type> Types = new Dictionary<MsgTypes, Type> { { MsgTypes.Unknown, null } };
+        public static Dictionary<MsgTypes, Type> Types = new Dictionary<MsgTypes, Type> {{MsgTypes.Unknown, null}};
     }
 
     public enum MsgTypes

@@ -62,7 +62,7 @@ namespace EricIsAMAZING
             if (!unsubscribed)
             {
                 unsubscribed = true;
-                    TopicManager.Instance.unsubscribe(topic, helper);
+                TopicManager.Instance.unsubscribe(topic, helper);
             }
         }
 

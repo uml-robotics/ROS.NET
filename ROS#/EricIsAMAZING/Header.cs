@@ -24,7 +24,7 @@ namespace EricIsAMAZING
                 if (chunks.Length != 2)
                     return false;
                 Values[chunks[0].Trim()] = chunks[1].Trim();
-                i += (int) size;
+                i += size;
             }
             return true;
         }

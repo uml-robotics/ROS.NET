@@ -33,13 +33,13 @@ namespace EricIsAMAZING
             this.topic = topic;
             this.queue_size = queue_size;
             if (CALL != null)
-                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL){ Callback=cb};
+                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL) {Callback = cb};
             else
                 helper = new SubscriptionCallbackHelper<T>(cb);
             Callback = cb;
 
 
-            Type msgtype = typeof(T).GetGenericArguments()[0];
+            Type msgtype = typeof (T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
             md5sum = new MD5(datatype).ToString();

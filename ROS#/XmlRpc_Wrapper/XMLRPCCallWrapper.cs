@@ -1,20 +1,19 @@
 ﻿#region USINGZ
+
 //#define REFDEBUGWrapper
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
+
 #endregion
 
 namespace XmlRpc_Wrapper
 {
     public class XMLRPCCallWrapper : IDisposable
     {
-        
-
         #region Reference Tracking + unmanaged pointer management
-        
+
         private IntPtr __instance;
 
         public void Dispose()
@@ -51,7 +50,7 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static XMLRPCCallWrapper LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -63,7 +62,7 @@ namespace XmlRpc_Wrapper
         }
 
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUGWrapper
@@ -93,7 +92,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -119,13 +118,10 @@ namespace XmlRpc_Wrapper
         }
 
         public IntPtr instance
-    {
-        [DebuggerStepThrough]
-            get
-            {
-                return __instance;
-            }
-        [DebuggerStepThrough]
+        {
+            [DebuggerStepThrough]
+            get { return __instance; }
+            [DebuggerStepThrough]
             set
             {
                 if (value != IntPtr.Zero)
@@ -145,7 +141,7 @@ namespace XmlRpc_Wrapper
         public string name;
         public XmlRpcServer server;
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XMLRPCCallWrapper(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
             name = function_name;
@@ -156,24 +152,24 @@ namespace XmlRpc_Wrapper
             FUNC = func;
         }
 
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
         public XMLRPCCallWrapper(IntPtr ptr)
         {
             instance = ptr;
         }
 
         public XMLRPCFunc FUNC
-    {
-        [DebuggerStepThrough]
-        get { return _FUNC; }
-        [DebuggerStepThrough]
+        {
+            [DebuggerStepThrough]
+            get { return _FUNC; }
+            [DebuggerStepThrough]
             set { SetFunc((_FUNC = value)); }
         }
 
         #region IDisposable Members
 
         #endregion
-        
+
         public void SetFunc(XMLRPCFunc func)
         {
             SegFault();

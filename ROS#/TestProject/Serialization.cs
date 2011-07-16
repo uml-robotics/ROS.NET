@@ -14,7 +14,15 @@ namespace TestProject
         [TestMethod]
         public void SerializationTest()
         {
-            TypedMessage<DummyMsgThing> dmt = new TypedMessage<DummyMsgThing>() { data = new DummyMsgThing() { leftnipple = new Twist { angular = new Vector3 { x = 1, y = 2, z = 3 } }, rightnipple = new Twist { linear = new Vector3 { x = 7, y = 8, z = 9 } } } };
+            TypedMessage<DummyMsgThing> dmt = new TypedMessage<DummyMsgThing>
+                                                  {
+                                                      data =
+                                                          new DummyMsgThing
+                                                              {
+                                                                  leftnipple = new Twist {angular = new Vector3 {x = 1, y = 2, z = 3}},
+                                                                  rightnipple = new Twist {linear = new Vector3 {x = 7, y = 8, z = 9}}
+                                                              }
+                                                  };
             byte[] guts = dmt.Serialize();
             TypedMessage<DummyMsgThing> otherside = new TypedMessage<DummyMsgThing>(guts);
             Assert.AreEqual(dmt.data.leftnipple.angular.x, otherside.data.leftnipple.angular.x);

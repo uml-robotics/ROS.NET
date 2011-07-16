@@ -186,7 +186,7 @@ namespace EricIsAMAZING
                 {
                     //Console.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
-                    curr_info.Set(0, (int)c.connection_id);
+                    curr_info.Set(0, (int) c.connection_id);
                     curr_info.Set(1, c.destination_caller_id);
                     curr_info.Set(2, "o");
                     curr_info.Set(3, "TCPROS");
@@ -244,7 +244,7 @@ namespace EricIsAMAZING
                 byte[] stuff = msg.Serialize();
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);
-                TypedMessage<m.Header> header = new TypedMessage<m.Header>(withoutlength);
+                TypedMessage<Messages.std_msgs.Header> header = new TypedMessage<Messages.std_msgs.Header>(withoutlength);
                 header.data.seq = seq;
                 msg = header;
             }

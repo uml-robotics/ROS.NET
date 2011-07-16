@@ -20,20 +20,6 @@ namespace EricIsAMAZING
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
-        public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
-        {
-            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments()); 
-        }
-
-        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : new()
-        {
-            return MakeAndDowncast<TypedMessage<T>, IRosMessage>(TypeHelper.Types[type].GetGenericArguments());
-        }
-
-        public static G MakeAndDowncast<T, G>(params Type[] types)
-        {
-            return (G)Activator.CreateInstance(typeof(T).MakeGenericType(types));
-        }
 
         public static CallbackQueue GlobalCallbackQueue;
         public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;
@@ -51,6 +37,21 @@ namespace EricIsAMAZING
         public static object shutting_down_mutex = new object();
         private static bool dictinit;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
+
+        public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
+        {
+            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments());
+        }
+
+        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : new()
+        {
+            return MakeAndDowncast<TypedMessage<T>, IRosMessage>(TypeHelper.Types[type].GetGenericArguments());
+        }
+
+        public static G MakeAndDowncast<T, G>(params Type[] types)
+        {
+            return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
+        }
 
         public static void FREAKTHEFUCKOUT()
         {

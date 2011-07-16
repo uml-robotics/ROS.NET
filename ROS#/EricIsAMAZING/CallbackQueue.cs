@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Messages;
-using UInt64 = System.UInt64;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -285,21 +284,11 @@ namespace EricIsAMAZING
 
     public class TLS
     {
-        public int Count
-        {
-            get { return _count; }
-            set
-            {
-                //Console.WriteLine("TLS.Count NOW " + value);
-                _count = value;
-            }
-        }
-
-        private int _count;
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         public CallbackInfoNode current;
         public CallbackInfoNode head;
         public CallbackInfoNode tail;
+        public int Count { get; set; }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
         {

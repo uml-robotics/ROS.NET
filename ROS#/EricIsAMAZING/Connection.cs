@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections;
-using System.Text;
 
 #endregion
 
@@ -23,23 +22,27 @@ namespace EricIsAMAZING
 
         public string CallerID;
         public string RemoteString;
+        public object drop_mutex = new object();
         public bool dropped;
         public Header header = new Header();
+        public HeaderReceivedFunc header_func;
+        public WriteFinishedFunc header_written_callback;
         public bool is_server;
+        public byte[] read_buffer;
+        public ReadFinishedFunc read_callback;
+        public int read_filled;
+        public object read_mutex = new object();
+        public int read_size;
+        public bool reading;
         public bool sendingHeaderError;
         public TcpTransport transport;
-        public HeaderReceivedFunc header_func;
-        public ReadFinishedFunc read_callback;
-        public WriteFinishedFunc write_callback;
-        public WriteFinishedFunc header_written_callback;
-        public event DisconnectFunc DroppedEvent;
-        public byte[] read_buffer;
-        public int read_filled, read_size;
-        public bool reading;
         public byte[] write_buffer;
+        public WriteFinishedFunc write_callback;
+        public object write_callback_mutex = new object();
+        public object write_mutex = new object();
         public int write_sent, write_size;
         public bool writing;
-        public object read_mutex = new object(), write_mutex = new object(),drop_mutex = new object(),write_callback_mutex = new object();
+        public event DisconnectFunc DroppedEvent;
 
         public void sendHeaderError(ref string error_message)
         {
@@ -62,7 +65,7 @@ namespace EricIsAMAZING
             header.Write(key_vals, ref buffer, ref len);
             int msg_len = len + 4;
             byte[] full_msg = new byte[msg_len];
-            int j=0;
+            int j = 0;
             byte[] blen = Header.ByteLength(len);
             for (; j < 4; j++)
                 full_msg[j] = blen[j];
@@ -143,19 +146,19 @@ namespace EricIsAMAZING
         private void onReadable(TcpTransport trans)
         {
             if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-                readTransport();
+            readTransport();
         }
 
         private void onWriteable(TcpTransport trans)
         {
             if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-                writeTransport();
+            writeTransport();
         }
 
         private void onDisconnect(TcpTransport trans)
         {
             if (trans != transport) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-                drop(DropReason.TransportDisconnect);
+            drop(DropReason.TransportDisconnect);
         }
 
         private void onHeaderRead(Connection conn, byte[] data, int size, bool success)
@@ -172,7 +175,7 @@ namespace EricIsAMAZING
                 string error_val = "";
                 if (header.Values.Contains("error"))
                 {
-                    error_val = (string)header.Values["error"];
+                    error_val = (string) header.Values["error"];
                     Console.WriteLine("Received error message in header for connection to [{0}]: [{1}]", "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
                     drop(DropReason.HeaderError);
                 }
@@ -183,8 +186,8 @@ namespace EricIsAMAZING
                     Console.WriteLine("GOT HEADER!");
                     foreach (object k in header.Values)
                     {
-                        string key = (string)k;
-                        Console.WriteLine("" + key + " = " + ((string)header.Values[k]));
+                        string key = (string) k;
+                        Console.WriteLine("" + key + " = " + ((string) header.Values[k]));
                     }
                     header_func(conn, header);
                 }
@@ -230,7 +233,7 @@ namespace EricIsAMAZING
             lock (read_mutex)
             {
                 reading = true;
-                while(!dropped && read_callback != null)
+                while (!dropped && read_callback != null)
                 {
                     if (read_buffer == null || read_callback == null)
                         throw new Exception("YOU SUCK!");
@@ -246,7 +249,7 @@ namespace EricIsAMAZING
                             read_callback = null;
                             read_buffer = null;
                             int size = read_size;
-                            read_size =0;
+                            read_size = 0;
                             read_filled = 0;
                             callback(this, read_buffer, size, false);
                             break;
@@ -277,11 +280,11 @@ namespace EricIsAMAZING
         private void writeTransport()
         {
             if (dropped || writing) return;
-            lock(write_mutex)
+            lock (write_mutex)
             {
                 writing = true;
                 bool can_write_more = true;
-                while(write_callback != null && can_write_more && !dropped)
+                while (write_callback != null && can_write_more && !dropped)
                 {
                     int to_write = write_size - write_sent;
                     int bytes_sent = transport.write(write_buffer, write_sent, to_write);

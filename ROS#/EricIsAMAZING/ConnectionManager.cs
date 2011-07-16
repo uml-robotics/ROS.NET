@@ -14,11 +14,6 @@ namespace EricIsAMAZING
     {
         private static ConnectionManager _instance;
 
-        public int TCPPort
-        {
-            get { return tcpserver_transport.server_port; }
-        }
-        
         private uint connection_id_counter;
         private object connection_id_counter_mutex = new object();
         private List<Connection> connections = new List<Connection>();
@@ -29,9 +24,9 @@ namespace EricIsAMAZING
         private PollManager.Poll_Signal signal;
         public TcpTransport tcpserver_transport;
 
-        public void poll_conn()
+        public int TCPPort
         {
-            throw new NotImplementedException();
+            get { return tcpserver_transport.server_port; }
         }
 
         public static ConnectionManager Instance
@@ -41,6 +36,11 @@ namespace EricIsAMAZING
                 if (_instance == null) _instance = new ConnectionManager();
                 return _instance;
             }
+        }
+
+        public void poll_conn()
+        {
+            throw new NotImplementedException();
         }
 
         public uint GetNewConnectionID()
@@ -127,7 +127,7 @@ namespace EricIsAMAZING
             string val = "";
             if (header.Values.Contains("topic"))
             {
-                val = (string)header.Values["topic"];
+                val = (string) header.Values["topic"];
                 TransportSubscriberLink sub_link = new TransportSubscriberLink();
                 sub_link.initialize(conn);
                 ret = sub_link.handleHeader(header);

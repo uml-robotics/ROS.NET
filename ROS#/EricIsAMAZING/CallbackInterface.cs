@@ -11,7 +11,7 @@ namespace EricIsAMAZING
 {
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
-        public CallbackDelegate<T> func = null;
+        public CallbackDelegate<T> func;
 
         public Callback()
         {
@@ -26,7 +26,7 @@ namespace EricIsAMAZING
     public class CallbackInterface
     {
         #region CallResult enum
-        
+
         public enum CallResult
         {
             Success,

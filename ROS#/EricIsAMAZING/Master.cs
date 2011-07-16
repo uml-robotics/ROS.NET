@@ -99,7 +99,7 @@ namespace EricIsAMAZING
                 {
                     if (!printed && wait_for_master)
                     {
-                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host, master_port, (wait_for_master?"Retrying...":""));
+                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host, master_port, (wait_for_master ? "Retrying..." : ""));
                         printed = true;
                     }
 

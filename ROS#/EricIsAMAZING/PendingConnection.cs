@@ -12,10 +12,10 @@ namespace EricIsAMAZING
 {
     public class PendingConnection : AsyncXmlRpcConnection, IDisposable
     {
+        public bool NEVERAGAIN;
         public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
-        public bool NEVERAGAIN;
         //public XmlRpcValue stickaroundyouwench = null;
         public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
@@ -23,6 +23,16 @@ namespace EricIsAMAZING
             parent = s;
             RemoteUri = uri;
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            client.Dispose();
+            client = null;
+        }
+
+        #endregion
 
         public override void addToDispatch(XmlRpcDispatch disp)
         {
@@ -38,7 +48,7 @@ namespace EricIsAMAZING
 
         public override bool check()
         {
-            if (parent == null) 
+            if (parent == null)
                 return false;
             /*if (stickaroundyouwench == null)
                 stickaroundyouwench = new XmlRpcValue();
@@ -57,12 +67,6 @@ namespace EricIsAMAZING
                 return true;
             }
             return false;
-        }
-
-        public void Dispose()
-        {
-            client.Dispose();
-            client = null;
         }
     }
 }

@@ -339,18 +339,18 @@ namespace YAMLParser
 #endif
             }
             string ret = fronthalf +
-                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct "+
+                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct " +
 #if CLASS
                          "Data"+
 #else
-                         classname+
+                         classname +
 #endif
                          "\n\t\t{\n" +
-                         memoizedcontent + "\t\t}"+
+                         memoizedcontent + "\t\t}" +
 #if CLASS
                          "\n\t}" +
 #endif
-                         "\n"+backhalf;
+                         "\n" + backhalf;
             return ret;
         }
 
@@ -505,7 +505,7 @@ namespace YAMLParser
                     string[] split = othershit.Split('=');
                     othershit = split[0] + " = (" + type + ")" + split[1];
                 }
-                output = "\t\tpublic " + /*(KnownSize ? "" : "m.") +*/ type +  "[] " + name + othershit + ";";
+                output = "\t\tpublic " + /*(KnownSize ? "" : "m.") +*/ type + "[] " + name + othershit + ";";
             }
             Type = type;
             if (name.Length == 0)
