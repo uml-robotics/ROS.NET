@@ -6,7 +6,7 @@ using System;
 
 namespace EricIsAMAZING
 {
-    public abstract class PublisherLink
+    public class PublisherLink
     {
         public delegate void HeaderReceivedFunc(PublisherLink link, Header head);
         public string CallerID;

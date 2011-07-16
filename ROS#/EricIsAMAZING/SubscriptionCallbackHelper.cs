@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -52,6 +53,7 @@ namespace EricIsAMAZING
 
         public virtual void call(SubscriptionCallbackHelperCallParams parms)
         {
+            throw new NotImplementedException();
         }
 
         public virtual MsgTypes getTypeInfo()
@@ -81,7 +83,7 @@ namespace EricIsAMAZING
     {
     }
 
-    public abstract class IParameterAdapter
+    public class IParameterAdapter
     {
     }
 

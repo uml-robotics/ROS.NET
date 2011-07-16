@@ -25,6 +25,7 @@ extern "C" {
 	extern XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result);
 	extern XMLRPC_API unsigned XmlRpcClient_HandleEvent(XmlRpcClient* instance, unsigned eventType);
 	extern XMLRPC_API bool XmlRpcClient_IsFault(XmlRpcClient* instance);
+	extern XMLRPC_API void XmlRpcClient_ClearFault(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance);
 	extern XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance);

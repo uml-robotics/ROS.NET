@@ -76,21 +76,21 @@ namespace EricIsAMAZING
         {
             lock (publisher_links_mutex)
             {
-                Console.WriteLine("SUB: getInfo with " + publisher_links.Count + " publinks in list");
+                //Console.WriteLine("SUB: getInfo with " + publisher_links.Count + " publinks in list");
                 foreach (PublisherLink c in publisher_links)
                 {
-                    Console.WriteLine("PUB: adding a curr_info to info!");
+                    //Console.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
                     curr_info.Set(0, (int)c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
-                    Console.Write("PUB curr_info DUMP:\n\t");
-                    curr_info.Dump();
+                    //Console.Write("PUB curr_info DUMP:\n\t");
+                    //curr_info.Dump();
                     info.Set(info.Size, curr_info);
                 }
-                Console.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
+                //Console.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
             }
         }
 

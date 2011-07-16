@@ -15,7 +15,7 @@ namespace EricIsAMAZING
         public static int port;
         public static string host = "";
         public static string uri = "";
-        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(5);
+        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(0);
 
         internal static void init(IDictionary remapping_args)
         {
@@ -85,15 +85,13 @@ namespace EricIsAMAZING
             DateTime startTime = DateTime.Now;
             string master_host = host;
             int master_port = port;
-            XmlRpcClient client = null;
+            XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
             bool printed = false;
             bool slept = false;
             bool ok = true;
             do
             {
-                bool b = false;
-                client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
-                b = !client.IsNull && !client.IsFault && client.Execute(method, request, response);
+                bool b = client.Execute(method, request, response);
 
                 ok = !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down;
 
@@ -117,10 +115,8 @@ namespace EricIsAMAZING
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }
-                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                    client = null;
-                    Thread.Sleep(50);
                     slept = true;
+                    Thread.Sleep(50);
                 }
                 else
                 {
@@ -137,10 +133,6 @@ namespace EricIsAMAZING
             if (ok && slept)
             {
                 Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
-            }
-            else
-            {
-                Console.WriteLine("OK = FALSE, SO SOMEBODY MUST BE DYING!");
             }
             XmlRpcManager.Instance.releaseXMLRPCClient(client);
             return true;

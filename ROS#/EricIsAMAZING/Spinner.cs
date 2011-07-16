@@ -9,7 +9,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public abstract class Spinner : IDisposable
+    public class Spinner : IDisposable
     {
         #region IDisposable Members
 

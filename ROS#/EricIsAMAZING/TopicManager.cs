@@ -552,7 +552,7 @@ namespace EricIsAMAZING
             {
                 foreach (Publication t in advertised_topics)
                 {
-                    Console.WriteLine("ADDING PUB: " + t.Name + " to BusInfo");
+                    //Console.WriteLine("ADDING PUB: " + t.Name + " to BusInfo");
                     t.getInfo(info);
                 }
             }
@@ -560,7 +560,7 @@ namespace EricIsAMAZING
             {
                 foreach (Subscription t in subscriptions)
                 {
-                    Console.WriteLine("ADDING SUB: " + t.name + " w/ "+t.pending_connections.Count+" pending connections to BusInfo");
+                    //Console.WriteLine("ADDING SUB: " + t.name + " w/ "+t.pending_connections.Count+" pending connections to BusInfo");
                     t.getInfo(info);
                 }
             }
@@ -682,7 +682,7 @@ namespace EricIsAMAZING
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
-            res.Set(0, new XmlRpcValue(1));
+            res.Set(0, 1);
             res.Set(1, "publications");
             XmlRpcValue response = new XmlRpcValue();
             getPublications(ref response);

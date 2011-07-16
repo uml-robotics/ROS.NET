@@ -99,7 +99,6 @@ namespace EricIsAMAZING
                 }
             }
 
-            setNoDelay(true);
             return true;
         }
 
@@ -200,20 +199,14 @@ namespace EricIsAMAZING
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
 
-            bool done = false;
-            bool result = false;
-            sock.BeginConnect(ipep, (iar) =>
-            {
-                sock.EndConnect(iar);
-                result = initializeSocket();
-                done = true;
-            }, null);
+            if (!sock.ConnectAsync(new SocketAsyncEventArgs{ RemoteEndPoint=ipep }))
+                return false;
+            
+            cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
 
-            while (!done)
-            {
-            }
-
-            return result;
+            if (!initializeSocket())
+                return false;
+            return true;
         }
 
         public bool listen(int port, int backlog, AcceptCallback accept_cb)
@@ -222,7 +215,7 @@ namespace EricIsAMAZING
             this.accept_cb = accept_cb;
 
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+            setNonBlocking();
             sock.Bind(new IPEndPoint(IPAddress.Any, port));
             server_port = (sock.LocalEndPoint as IPEndPoint).Port;
             sock.Listen(backlog);
@@ -356,7 +349,7 @@ namespace EricIsAMAZING
                 if (!setKeepAlive(sock, (ulong)idle, (ulong)interval, (ulong)count) && !setKeepAlive(sock, (ulong)idle, (ulong)interval))
                     Console.WriteLine("FAIL!");
             }
-            else
+            /*else
                 try
                 {
                     sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 0);
@@ -365,7 +358,7 @@ namespace EricIsAMAZING
                 {
                     Console.WriteLine(e);
                     return;
-                }
+                }*/
         }
 
         public int read(ref byte[] buffer, int pos, int length)
@@ -375,26 +368,26 @@ namespace EricIsAMAZING
                 if (closed)
                     return -1;
             }
-            try
-            {
-                SocketError err = default(SocketError);
-                int num_bytes = 0;
-                try
+            int num_bytes = 0;
+            /*if (sock.Poll(1000, SelectMode.SelectRead))
+            {*/
+                SocketError err;
+                num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
+                if (num_bytes <= 0)
                 {
-                    num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
+                    if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
+                        num_bytes = 0;
+                    else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
+                    {
+                        Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                        close();
+                        return -1;
+                    }
+                    else
+                        return 0;
                 }
-                catch
-                {
-
-                }
-                Console.WriteLine("Receive result = " + err);
-                return num_bytes;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            return -1;
+            //}
+            return num_bytes;
         }
 
         public int write(byte[] buffer, int pos, int size)
@@ -423,8 +416,6 @@ namespace EricIsAMAZING
                 else
                     cached_remote_host = ClientURI + " on socket " + sock.RemoteEndPoint;
             }
-
-            setNoDelay(true);
 
             if (poll_set != null)
             {

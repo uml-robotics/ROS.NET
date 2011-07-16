@@ -120,6 +120,17 @@ extern "C" XMLRPC_API bool XmlRpcClient_IsFault(XmlRpcClient* instance)
 	}
 	return false;
 }
+extern "C" XMLRPC_API void XmlRpcClient_ClearFault(XmlRpcClient* instance)
+{
+	try
+	{		
+		((*instance).clearFault());
+	}
+	catch (std::exception& ex)
+	{
+		XmlRpcUtil::error(ex.what());
+	}
+}
 extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 {
 	try

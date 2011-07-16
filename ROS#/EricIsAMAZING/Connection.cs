@@ -113,7 +113,8 @@ namespace EricIsAMAZING
             {
                 dropped = true;
                 did_drop = true;
-                DroppedEvent(this, reason);
+                if (DroppedEvent != null)
+                    DroppedEvent(this, reason);
             }
 
             if (did_drop)
@@ -252,7 +253,8 @@ namespace EricIsAMAZING
                         }
                         read_filled += bytes_read;
                     }
-
+                    else
+                        break;
                     if (read_filled == read_size && !dropped)
                     {
                         ReadFinishedFunc callback = read_callback;
@@ -264,8 +266,7 @@ namespace EricIsAMAZING
                         read_size = 0;
                         callback(this, buffer, size, true);
                     }
-                    else
-                        break;
+                    else break;
                 }
                 if (read_callback == null)
                     transport.disableRead();
@@ -284,7 +285,7 @@ namespace EricIsAMAZING
                 {
                     int to_write = write_size - write_sent;
                     int bytes_sent = transport.write(write_buffer, write_sent, to_write);
-                    if (bytes_sent < 0)
+                    if (bytes_sent <= 0)
                     {
                         writing = false;
                         return;

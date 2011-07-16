@@ -62,6 +62,10 @@ namespace XmlRpc {
     //! Returns true if the result of the last execute() was a fault response.
     bool isFault() const { return _isFault; }
 
+	void clearFault()
+	{
+		_isFault = false;
+	}
 
     // XmlRpcSource interface implementation
     //! Close the connection
