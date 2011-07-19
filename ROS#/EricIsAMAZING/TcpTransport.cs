@@ -339,7 +339,7 @@ namespace EricIsAMAZING
             {
                 try
                 {
-                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 1);
+                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 }
                 catch (Exception e)
                 {
@@ -353,7 +353,7 @@ namespace EricIsAMAZING
             /*else
                 try
                 {
-                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 0);
+                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, false);
                 }
                 catch (Exception e)
                 {
@@ -370,8 +370,6 @@ namespace EricIsAMAZING
                     return -1;
             }
             int num_bytes = 0;
-            /*if (sock.Poll(1000, SelectMode.SelectRead))
-            {*/
             SocketError err;
             num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
             if (num_bytes <= 0)
@@ -387,7 +385,6 @@ namespace EricIsAMAZING
                 else
                     return 0;
             }
-            //}
             return num_bytes;
         }
 

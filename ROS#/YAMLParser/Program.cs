@@ -14,6 +14,7 @@ namespace YAMLParser
     {
         public static List<string> types = new List<string>();
         public static List<string> namespaces = new List<string>();
+        public static List<List<string>> MessageDefs = new List<List<string>>();
         public static string backhalf;
         public static string fronthalf;
 
@@ -211,17 +212,29 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
+                fronthalf += "{MsgTypes." + namespaces[i]+"__"+types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
-            fronthalf += "\n\t\t};\n\t}\n";
+            fronthalf += "\n\t\t};";
+            fronthalf += "\n\n\t\t\tpublic static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>\n\t\t{";
+            fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
+            for (int i = 0; i < MessageDefs.Count; i++)
+            {
+                fronthalf += "\t\t\t{MsgTypes." + namespaces[i] + "__" + types[i] + ", \n\t\t\t@\"\n";
+                foreach (string s in MessageDefs[i])
+                    fronthalf += "\t\t\t\t"+s.Trim() + "\n";
+                fronthalf += "\t\t\t\"}";
+                if (i < MessageDefs.Count - 1)
+                     fronthalf += ",\n";
+            }
+            fronthalf += "};\n\t}\n";
             fronthalf += "\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t";
-                fronthalf += types[i];
+                fronthalf += namespaces[i] + "__" + types[i];
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -267,8 +280,10 @@ namespace YAMLParser
             for (int i = 0; i < lines.Count; i++)
                 lines[i] = lines[i].Split('#')[0].Trim();
             lines = lines.Where((st) => (st.Length > 0)).ToList();
+            Program.MessageDefs.Add(new List<string>());
             for (int i = 0; i < lines.Count; i++)
             {
+                Program.MessageDefs[Program.MessageDefs.Count - 1].Add(lines[i]);
                 SingleType test = KnownStuff.WhatItIs(lines[i]);
                 if (test != null)
                     Stuff.Enqueue(test);
@@ -357,7 +372,7 @@ namespace YAMLParser
         public void Write()
         {
             Program.types.Add(classname);
-            Program.namespaces.Add(Namespace);
+            Program.namespaces.Add(Namespace.Replace("Messages.",""));
             string outdir = Program.outputdir;
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)

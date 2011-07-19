@@ -31,7 +31,7 @@ namespace EricIsAMAZING
         ///   general global sleep time in miliseconds
         /// </summary>
         public static int WallDuration = 100;
-
+        public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
         public static Thread internal_queue_thread;
         public static object shutting_down_mutex = new object();
@@ -43,7 +43,7 @@ namespace EricIsAMAZING
             return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments());
         }
 
-        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : new()
+        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : struct
         {
             return MakeAndDowncast<TypedMessage<T>, IRosMessage>(TypeHelper.Types[type].GetGenericArguments());
         }
@@ -56,6 +56,12 @@ namespace EricIsAMAZING
         public static void FREAKTHEFUCKOUT()
         {
             throw new Exception("ROS IS FREAKING THE FUCK OUT!");
+        }
+
+        public static void Log(string msg)
+        {
+            if (initialized)
+                rosoutappender.Write(msg);
         }
 
         public static void Init(string[] args, string name, int options = 0)
@@ -175,6 +181,9 @@ namespace EricIsAMAZING
                 ConnectionManager.Instance.Start();
                 PollManager.Instance.Start();
                 XmlRpcManager.Instance.Start();
+
+                rosoutappender = new RosOutAppender();
+
                 //Time.Init();
                 internal_queue_thread = new Thread(internalCallbackQueueThreadFunc);
                 internal_queue_thread.IsBackground = true;

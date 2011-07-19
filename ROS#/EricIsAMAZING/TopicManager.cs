@@ -137,7 +137,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public bool advertise(AdvertiseOptions ops, SubscriberCallbacks callbacks)
+        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : struct
         {
             if (ops.datatype == "*")
                 throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
@@ -165,9 +165,11 @@ namespace EricIsAMAZING
                              ops.datatype, pub.Md5sum, pub.DataType);
                         return false;
                     }
-                    pub.addCallbacks(callbacks);
-                    advertised_topics.Add(pub);
                 }
+                else
+                    pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size, ops.latch, ops.has_header);
+                pub.addCallbacks(callbacks);
+                advertised_topics.Add(pub);
             }
 
             lock (advertised_topics_names_mutex)
@@ -327,7 +329,7 @@ namespace EricIsAMAZING
                         serialize = true;
                     if (!nocopy)
                     {
-                        Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
+                        //Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
                         msg.type = MsgTypes.Unknown;
                     }
                     if (serialize)
@@ -337,8 +339,8 @@ namespace EricIsAMAZING
 
                     p.publish(msg);
 
-                    if (serialize)
-                        Console.WriteLine("Signal your mom's pollset!");
+                    //if (serialize)
+                    //    Console.WriteLine("Signal your mom's pollset!");
                 }
                 else
                     p.incrementSequence();
@@ -393,10 +395,11 @@ namespace EricIsAMAZING
 
         public bool requestTopic(string topic, XmlRpcValue protos, ref XmlRpcValue ret)
         {
+            protos.Dump();
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
                 XmlRpcValue proto = protos[proto_idx];
-                if (proto.Type == TypeEnum.TypeArray)
+                if (proto.Type != TypeEnum.TypeArray)
                 {
                     Console.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;

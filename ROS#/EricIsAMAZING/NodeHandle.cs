@@ -107,15 +107,15 @@ namespace EricIsAMAZING
 
         public Publisher<TypedMessage<M>> advertise<M>(string topic, int q_size, bool l = false) where M : struct
         {
-            return advertise<M>(new AdvertiseOptions(topic, q_size) {latch = l});
+            return advertise<M>(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
-        public Publisher<TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false)
+        public Publisher<TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false) where M : struct
         {
-            return advertise<M>(new AdvertiseOptions(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
+            return advertise<M>(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
-        public Publisher<TypedMessage<M>> advertise<M>(AdvertiseOptions ops)
+        public Publisher<TypedMessage<M>> advertise<M>(AdvertiseOptions<M> ops) where M : struct
         {
             ops.topic = resolveName(ops.topic);
             if (ops.Callback == null)

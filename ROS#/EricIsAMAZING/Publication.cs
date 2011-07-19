@@ -245,7 +245,9 @@ namespace EricIsAMAZING
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);
                 TypedMessage<Messages.std_msgs.Header> header = new TypedMessage<Messages.std_msgs.Header>(withoutlength);
-                header.data.seq = seq;
+                Messages.std_msgs.Header h = header.data;
+                h.seq = seq;
+                header.data = h;
                 msg = header;
             }
 
@@ -317,7 +319,7 @@ namespace EricIsAMAZING
                 queue = new Queue<IRosMessage>(publish_queue);
                 publish_queue.Clear();
             }
-            if (queue == null || queue.Count == 0)
+            if (queue.Count != 0)
             {
                 foreach (IRosMessage msg in queue)
                     EnqueueMessage(msg);

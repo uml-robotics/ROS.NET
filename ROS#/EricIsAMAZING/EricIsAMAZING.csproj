@@ -62,6 +62,7 @@
     <Compile Include="Publication.cs" />
     <Compile Include="Publisher.cs" />
     <Compile Include="PublisherLink.cs" />
+    <Compile Include="RosOutAppender.cs" />
     <Compile Include="ServiceClient.cs" />
     <Compile Include="ServiceClientOptions.cs" />
     <Compile Include="ServiceManager.cs" />

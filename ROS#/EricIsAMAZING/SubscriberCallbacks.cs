@@ -13,6 +13,10 @@ namespace EricIsAMAZING
         private UInt64 __uid;
         public SubscriberStatusCallback connect, disconnect;
 
+        public SubscriberCallbacks() : this(null, null, null)
+        {
+        }
+
         public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueueInterface Callback)
         {
             __uid = _uid++;

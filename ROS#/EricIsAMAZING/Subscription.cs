@@ -437,11 +437,11 @@ namespace EricIsAMAZING
             }
         }
 
-        public IMessageDeserializer MakeDeserializer(MsgTypes type)
+        public IMessageDeserializer MakeDeserializer(MsgTypes type) 
         {
             if (type == MsgTypes.Unknown) return null;
-            return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
-            //return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
+            //return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
+            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
         }
 
         public void Dispose()

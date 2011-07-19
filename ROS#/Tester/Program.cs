@@ -41,7 +41,11 @@ namespace ConsoleApplication1
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
             Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
-            ROS.spin();
+            while (ROS.ok)
+            {
+                ROS.Log("HOLY FUCKSTICK");
+                ROS.spinOnce();
+            }
 
 
             //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);

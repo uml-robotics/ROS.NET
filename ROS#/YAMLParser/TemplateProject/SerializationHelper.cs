@@ -28,7 +28,7 @@ namespace Messages
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing)];
+            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing.data)];
             GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
 
             // copy the struct into int byte[] mem alloc 
@@ -40,9 +40,34 @@ namespace Messages
         }
     }
 
-    public class TypedMessage<M> : IRosMessage
+    public class TypedMessage<M> : IRosMessage where M : struct
     {
-        public M data;
+        public new M data;
+
+        public new string MessageDefinition 
+        {
+            get
+            {
+                string def =  TypeHelper.MessageDefinitions[type];
+                base.MessageDefinition = def;
+                return def;
+            }
+        }
+
+        public new MsgTypes type
+        {
+            get
+            {
+                string fullName = typeof(M).FullName;
+                if (fullName != null)
+                {
+                    MsgTypes t = (MsgTypes)Enum.Parse(typeof(MsgTypes), fullName.Replace("Messages.","").Replace(".","__"));
+                    base.type = t;
+                    return t;
+                }
+                return MsgTypes.Unknown;
+            }
+        }
 
         public TypedMessage()
         {
@@ -73,6 +98,12 @@ namespace Messages
     {
         public bool HasHeader;
         public bool KnownSize = true;
+
+        public struct data
+        {
+        }
+
+        public string MessageDefinition = "";
 
         public byte[] Serialized;
         public IDictionary connection_header;
