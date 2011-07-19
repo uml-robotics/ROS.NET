@@ -38,13 +38,13 @@ namespace EricIsAMAZING
         }
 
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null) :
-            this(t, q_size, new MD5(t).ToString(), "", "", connectcallback, disconnectcallback)
+            this(t, q_size, new MD5(t).ToString(), new TypedMessage<T>().type.ToString().Replace("__","/"), TypeHelper.MessageDefinitions[new TypedMessage<T>().type], connectcallback, disconnectcallback)
         {
         }
 
-        public static AdvertiseOptions<T> Create<T>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where T : struct
+        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where M : struct
         {
-            return new AdvertiseOptions<T>(topic, q_size, connectcallback, disconnectcallback) {Callback = queue};
+            return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {Callback = queue};
         }
     }
 }

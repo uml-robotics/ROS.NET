@@ -19,7 +19,7 @@ namespace EricIsAMAZING
             {
                 i += 4;
                 byte[] line = new byte[size];
-                Array.Copy(buffer, i, line, 0, size);
+                Array.Copy(buffer, i, line, 0, size-4);
                 string[] chunks = Encoding.ASCII.GetString(line).Split('=');
                 if (chunks.Length != 2)
                     return false;

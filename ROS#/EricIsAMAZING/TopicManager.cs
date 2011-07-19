@@ -614,7 +614,7 @@ namespace EricIsAMAZING
                 }
             }
             if (sub != null)
-                sub.pubUpdate(pubs);
+                return sub.pubUpdate(pubs);
             else
                 Console.WriteLine("got a request for updating publishers of topic " + topic + ", but I don't have any subscribers to that topic.");
             return false;

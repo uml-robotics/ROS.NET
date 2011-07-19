@@ -44,10 +44,13 @@ namespace EricIsAMAZING
 
         public bool initialize(Connection connection)
         {
+            Console.WriteLine("TransportPublisherLink: initialize");
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
             {
+                connection.header_func = onHeaderReceived;
+
                 lock (parent)
                 {
                     IDictionary header = new Hashtable();
@@ -77,6 +80,7 @@ namespace EricIsAMAZING
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
+            Console.WriteLine("TransportPublisherLink: onConnectionDropped");
             if (dropping || conn != connection) return;
             lock (parent)
             {
@@ -96,6 +100,7 @@ namespace EricIsAMAZING
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
+            Console.WriteLine("TransportPublisherLink: onHeaderReceived");
             if (conn != connection) return false;
             if (!setHeader(header))
             {
@@ -110,6 +115,7 @@ namespace EricIsAMAZING
 
         public virtual void handleMessage(IRosMessage m, bool ser, bool nocopy)
         {
+            Console.WriteLine("TransportPublisherLink: handleMessage");
             stats.bytes_received += (ulong) m.Serialize().Length;
             stats.messages_received++;
             if (parent != null)
@@ -119,11 +125,13 @@ namespace EricIsAMAZING
 
         private void onHeaderWritten(Connection conn)
         {
+            Console.WriteLine("TransportPublisherLink: onHeaderWritten");
             //do nothing
         }
 
         private void onMessageLength(Connection conn, byte[] buffer, int size, bool success)
         {
+            Console.WriteLine("TransportPublisherLink: onMessageLength");
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
             if (!success)
@@ -136,7 +144,7 @@ namespace EricIsAMAZING
             int len = BitConverter.ToInt32(buffer, 0);
             if (len > 1000000000)
             {
-                Console.WriteLine("1 GB message WTF?!");
+                Console.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
                 drop();
                 return;
             }
@@ -145,6 +153,7 @@ namespace EricIsAMAZING
 
         private void onMessage(Connection conn, byte[] buffer, int size, bool success)
         {
+            Console.WriteLine("TransportPublisherLink: onMessage");
             if (!success && conn == null || conn != connection) return;
             if (success)
             {
@@ -158,6 +167,7 @@ namespace EricIsAMAZING
 
         private void onRetryTimer(object o)
         {
+            Console.WriteLine("TransportPublisherLink: onRetryTimer");
             if (dropping) return;
             if (needs_retry && DateTime.Now.Subtract(next_retry).TotalMilliseconds < 0)
             {

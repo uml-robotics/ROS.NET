@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
@@ -14,6 +15,11 @@ namespace EricIsAMAZING
         public delegate void SocketUpdateFunc(int stufftodo);
 
         #endregion
+        public const int POLLERR = 0x008;
+        public const int POLLHUP = 0x010;
+        public const int POLLNVAL = 0x020;
+        public const int POLLIN = 0x001;
+        public const int POLLOUT = 0x004;
 
         public List<Socket> just_deleted = new List<Socket>();
         public object just_deleted_mutex = new object();
@@ -83,52 +89,68 @@ namespace EricIsAMAZING
         public void update(int poll_timeout)
         {
             createNativePollSet();
-
             int udfscount = ufds.Count;
-            if (udfscount == 0) return;
-            for (int i = 0; i < udfscount; i++)
+            int ret = 0;
+            for (int i = 0; i < ufds.Count; i++)
             {
-                if (ufds[i].revents == 0)
-                    continue;
-
-                SocketUpdateFunc func = null;
-                TcpTransport trans = null;
-                int events = 0;
-                lock (socket_info_mutex)
+                if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectWrite))
                 {
-                    if (!socket_info.ContainsKey(ufds[i].sock)) continue;
-                    SocketInfo info = socket_info[ufds[i].sock];
-                    func = info.func;
-                    trans = info.transport;
-                    events = info.events;
+                    ufds[i].revents |= POLLOUT;
+                    ret += 1;
                 }
-
-                int revents = ufds[i].events;
-
-                if (func != null && ((events & revents) != 0 || (revents & 0x008) != 0 || (revents & 0x010) != 0 || (revents & 0x020) != 0))
+                if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectRead))
                 {
-                    bool skip = false;
-                    if ((revents & (0x008 | 0x010 | 0x020)) != 0)
+                    ufds[i].revents |= POLLIN;
+                    ret += 1;
+                }
+            }
+            if (ret > 0)
+            {
+                if (udfscount == 0) return;
+                for (int i = 0; i < udfscount; i++)
+                {
+                    if (ufds[i].revents == 0)
+                        continue;
+
+                    SocketUpdateFunc func = null;
+                    TcpTransport trans = null;
+                    int events = 0;
+                    lock (socket_info_mutex)
                     {
-                        lock (just_deleted_mutex)
+                        if (!socket_info.ContainsKey(ufds[i].sock)) continue;
+                        SocketInfo info = socket_info[ufds[i].sock];
+                        func = info.func;
+                        trans = info.transport;
+                        events = info.events;
+                    }
+
+                    int revents = ufds[i].events;
+
+                    if (func != null && ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 || (revents & POLLNVAL) != 0))
+                    {
+                        bool skip = false;
+                        if ((revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
                         {
-                            if (just_deleted.Contains(ufds[i].sock))
-                                skip = true;
+                            lock (just_deleted_mutex)
+                            {
+                                if (just_deleted.Contains(ufds[i].sock))
+                                    skip = true;
+                            }
+                        }
+
+                        if (!skip)
+                        {
+                            func.Invoke(revents & (events | POLLERR | POLLHUP | POLLNVAL));
                         }
                     }
 
-                    if (!skip)
-                    {
-                        func.Invoke(revents & (events | 0x008 | 0x010 | 0x020));
-                    }
+                    ufds[i].revents = 0;
                 }
 
-                ufds[i].revents = 0;
-            }
-
-            lock (just_deleted_mutex)
-            {
-                just_deleted.Clear();
+                lock (just_deleted_mutex)
+                {
+                    just_deleted.Clear();
+                }
             }
         }
 

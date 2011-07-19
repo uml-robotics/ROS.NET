@@ -164,7 +164,8 @@ namespace EricIsAMAZING
         private void onHeaderRead(Connection conn, byte[] data, int size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-            if (!success) return;
+            if (!success)
+                return;
             string error_msg = "";
             if (!header.Parse(data, size, ref error_msg))
             {

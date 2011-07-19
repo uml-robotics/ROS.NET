@@ -71,7 +71,18 @@ namespace EricIsAMAZING
 
         public string ClientURI
         {
-            get { return sock.RemoteEndPoint.ToString(); }
+            get
+            {
+                try
+                {
+                    return ""+((IPEndPoint)sock.RemoteEndPoint).Address+((IPEndPoint)sock.RemoteEndPoint).Port.ToString();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                return "";
+            }
         }
 
         public virtual bool getRequiresHeader()
@@ -200,7 +211,7 @@ namespace EricIsAMAZING
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
 
-            if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
+            if (!sock.ConnectAsync(new SocketAsyncEventArgs() { RemoteEndPoint = ipep }))
                 return false;
 
             cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
@@ -275,7 +286,7 @@ namespace EricIsAMAZING
                 nodelay = (string) header.Values["tcp_nodelay"];
             if (nodelay == "1")
             {
-                Console.WriteLine("SETTING NODELAY ON THIS SHIZNIT!");
+                Console.WriteLine("SETTING NODELAY ON THIS SHIZNIT! JUST KIDDING FUCK YOU!");
                 setNoDelay(true);
             }
         }
@@ -432,7 +443,8 @@ namespace EricIsAMAZING
 
         public TcpTransport accept()
         {
-            Socket acc = sock.Accept();
+            Socket acc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock.AcceptAsync(new SocketAsyncEventArgs() { AcceptSocket = acc });
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {
@@ -448,6 +460,7 @@ namespace EricIsAMAZING
 
         private void socketUpdate(int events)
         {
+            Console.WriteLine("SocketUpdate: "+events);
             lock (close_mutex)
             {
                 if (closed) return;
@@ -475,7 +488,7 @@ namespace EricIsAMAZING
             if ((events & POLLOUT) != 0 && expecting_write)
             {
                 if (write_cb != null)
-                    read_cb(this);
+                    write_cb(this);
             }
             if (closed) return;
 

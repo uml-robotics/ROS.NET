@@ -21,7 +21,6 @@ namespace EricIsAMAZING
         private List<Connection> dropped_connections = new List<Connection>();
         private object dropped_connections_mutex = new object();
         public PollManager poll_manager;
-        private PollManager.Poll_Signal signal;
         public TcpTransport tcpserver_transport;
 
         public int TCPPort
@@ -38,10 +37,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public void poll_conn()
-        {
-            throw new NotImplementedException();
-        }
+        public PollManager.Poll_Signal poll_conn;
 
         public uint GetNewConnectionID()
         {
@@ -148,7 +144,8 @@ namespace EricIsAMAZING
         public void Start()
         {
             poll_manager = PollManager.Instance;
-            poll_manager.addPollThreadListener(removeDroppedConnections);
+            poll_conn = removeDroppedConnections;
+            poll_manager.addPollThreadListener(poll_conn);
 
             tcpserver_transport = new TcpTransport(poll_manager.poll_set);
 
