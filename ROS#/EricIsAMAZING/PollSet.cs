@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.Sockets;
 
 #endregion
@@ -10,6 +12,33 @@ namespace EricIsAMAZING
 {
     public class PollSet
     {
+        ~PollSet()
+        {
+            if (localpipeevents[0] != null)
+            {
+                localpipeevents[0].Close();
+                localpipeevents[0] = null;
+            }
+            if (localpipeevents[1] != null)
+            {
+                localpipeevents[1].Close();
+                localpipeevents[1] = null;
+            }
+        }
+
+        public PollSet()
+        {
+            localpipeevents[0] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[0].Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            localpipeevents[1] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[1].Connect(localpipeevents[0].LocalEndPoint);
+            localpipeevents[0].Connect(localpipeevents[1].LocalEndPoint);
+            localpipeevents[0].Blocking = false;
+            localpipeevents[1].Blocking = false;
+            addSocket(localpipeevents[0], onLocalPipeEvents);
+            addEvents(localpipeevents[0], POLLIN);
+        }
+
         #region Delegates
 
         public delegate void SocketUpdateFunc(int stufftodo);
@@ -24,6 +53,23 @@ namespace EricIsAMAZING
         public List<Socket> just_deleted = new List<Socket>();
         public object just_deleted_mutex = new object();
         public object signal_mutex = new object();
+        public bool signal_locked;
+        private Socket[] localpipeevents = new Socket[2];
+        public void signal()
+        {
+            if (!signal_locked)
+                lock (signal_mutex)
+                {
+                    signal_locked = true;
+                    byte[] b = new byte[] { 0 };
+                    if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
+                    {
+                        Console.WriteLine("W");
+                        localpipeevents[1].Send(b);
+                    }
+                    signal_locked = false;
+                }
+        }
 
         public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
         public object socket_info_mutex = new object();
@@ -45,6 +91,7 @@ namespace EricIsAMAZING
                 socket_info.Add(info.sock, info);
                 sockets_changed = true;
             }
+            signal();
             return true;
         }
 
@@ -61,6 +108,7 @@ namespace EricIsAMAZING
                 }
                 sockets_changed = true;
             }
+            signal();
             return true;
         }
 
@@ -72,6 +120,7 @@ namespace EricIsAMAZING
                     return false;
                 socket_info[s].events |= events;
             }
+            signal();
             return true;
         }
 
@@ -83,6 +132,7 @@ namespace EricIsAMAZING
                     return false;
                 socket_info[sock].events &= ~events;
             }
+            signal();
             return true;
         }
 
@@ -93,6 +143,8 @@ namespace EricIsAMAZING
             int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
+                if (!ufds[i].sock.Connected)
+                    continue;
                 if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectWrite))
                 {
                     ufds[i].revents |= POLLOUT;
@@ -160,10 +212,22 @@ namespace EricIsAMAZING
             {
                 if (!sockets_changed)
                     return;
-                ufds.Clear();
                 foreach (SocketInfo info in socket_info.Values)
                 {
-                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
+                    if (!ufds.Exists((p)=>p.sock == info.sock))
+                        ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
+                }
+            }
+        }
+
+        public void onLocalPipeEvents(int stuff)
+        {
+            if ((stuff & POLLIN) != 0)
+            {
+                byte[] b = new byte[1];
+                while (localpipeevents[0].Poll(1,SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
+                {
+                    Console.WriteLine("R");
                 }
             }
         }

@@ -24,11 +24,12 @@ namespace Messages
             return thestructure;
         }
 
-        public static byte[] Serialize<T>(T outgoing) where T : IRosMessage
+
+        public static byte[] Serialize<T>(TypedMessage<T> outgoing) where T : struct
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing.data)];
+            outgoing.Serialized = new byte[Marshal.SizeOf(new TypedMessage<T>().data)];
             GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
 
             // copy the struct into int byte[] mem alloc 
@@ -44,38 +45,16 @@ namespace Messages
     {
         public new M data;
 
-        public new string MessageDefinition 
-        {
-            get
-            {
-                string def =  TypeHelper.MessageDefinitions[type];
-                base.MessageDefinition = def;
-                return def;
-            }
-        }
-
-        public new MsgTypes type
-        {
-            get
-            {
-                string fullName = typeof(M).FullName;
-                if (fullName != null)
-                {
-                    MsgTypes t = (MsgTypes)Enum.Parse(typeof(MsgTypes), fullName.Replace("Messages.","").Replace(".","__"));
-                    base.type = t;
-                    return t;
-                }
-                return MsgTypes.Unknown;
-            }
-        }
-
         public TypedMessage()
+            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")), TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
         {
         }
 
         public TypedMessage(M d)
         {
             data = d;
+            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -103,14 +82,20 @@ namespace Messages
         {
         }
 
-        public string MessageDefinition = "";
+        public string MessageDefinition;
 
         public byte[] Serialized;
         public IDictionary connection_header;
-        public MsgTypes type = MsgTypes.Unknown;
+        public MsgTypes type;
 
-        public IRosMessage()
+        public IRosMessage() : this(MsgTypes.Unknown, "")
         {
+        }
+
+        public IRosMessage(MsgTypes t, string def)
+        {
+            type = t;
+            MessageDefinition = def;
         }
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)

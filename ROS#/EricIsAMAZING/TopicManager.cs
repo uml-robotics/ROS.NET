@@ -302,7 +302,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public void publish<M>(string topic, M message) where M : IRosMessage
+        public void publish<M>(string topic, TypedMessage<M> message) where M : struct
         {
             publish(topic, message.Serialize, message);
         }
@@ -315,6 +315,7 @@ namespace EricIsAMAZING
                 if (shutting_down) return;
 
                 Publication p = lookupPublicationWithoutLock(topic);
+                
                 if (p == null) return;
                 if (p.HasSubscribers || p.Latch)
                 {
@@ -322,16 +323,17 @@ namespace EricIsAMAZING
                     bool serialize = false;
                     if (msg != null && msg.type != MsgTypes.Unknown)
                     {
-                        Console.WriteLine("This line is sketchy... TopicManager.cs:254-ish... publish(string, byte, msg)");
+                        //Console.WriteLine("BEFORE: " + serialize.ToString() + ", " + nocopy.ToString() + ", " + msg.type.ToString());
                         p.getPublishTypes(ref serialize, ref nocopy, ref msg.type);
+                        //Console.WriteLine("AFTER: " + serialize.ToString() + ", " + nocopy.ToString() + ", " + msg.type.ToString());
                     }
                     else
                         serialize = true;
-                    if (!nocopy)
+                    /*if (!nocopy)
                     {
-                        //Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
+                        Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
                         msg.type = MsgTypes.Unknown;
-                    }
+                    }*/
                     if (serialize)
                     {
                         msg.Serialized = serfunc();
@@ -339,8 +341,8 @@ namespace EricIsAMAZING
 
                     p.publish(msg);
 
-                    //if (serialize)
-                    //    Console.WriteLine("Signal your mom's pollset!");
+                    if (serialize)
+                        poll_manager.poll_set.signal();
                 }
                 else
                     p.incrementSequence();
@@ -595,6 +597,7 @@ namespace EricIsAMAZING
                     pub.Set(1, t.DataType);
                     pubs.Set(sidx++, pub);
                 }
+                pubs.Dump();
             }
         }
 
@@ -622,8 +625,7 @@ namespace EricIsAMAZING
 
         public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
+            XmlRpcValue parm = XmlRpcValue.Create(ref parms);
             List<string> pubs = new List<string>();
             for (int idx = 0; idx < parm[2].Size; idx++)
                 pubs.Add(parm[2][idx].Get<string>());
@@ -651,8 +653,7 @@ namespace EricIsAMAZING
 
         public void getBusStatusCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
+            XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "");
             XmlRpcValue response = new XmlRpcValue();
@@ -683,8 +684,7 @@ namespace EricIsAMAZING
 
         public void getPublicationsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
+            XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "publications");
             XmlRpcValue response = new XmlRpcValue();

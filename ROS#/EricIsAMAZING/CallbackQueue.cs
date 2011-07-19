@@ -261,6 +261,7 @@ namespace EricIsAMAZING
                     //Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
                 }
                 if (callbacks.Count == 0 || !enabled) return;
+                Console.WriteLine("ZOMG CALLBACKS TO CALL!!!");
                 bool wasempty = tls.Count == 0;
                 callbacks.ForEach((cbi) => tls.enqueue(cbi));
                 if (wasempty)

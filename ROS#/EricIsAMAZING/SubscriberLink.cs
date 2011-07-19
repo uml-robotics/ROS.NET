@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -12,10 +13,10 @@ namespace EricIsAMAZING
     public class SubscriberLink
     {
         public uint connection_id;
-        public string destination_caller_id;
+        public string destination_caller_id = "";
         protected Publication parent;
         public Stats stats;
-        public string topic;
+        public string topic = "";
 
         public string Md5sum
         {
@@ -52,10 +53,12 @@ namespace EricIsAMAZING
 
         public virtual void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
         {
+            throw new NotImplementedException();
         }
 
         public virtual void drop()
         {
+            throw new NotImplementedException();
         }
 
         public virtual void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes type_info)

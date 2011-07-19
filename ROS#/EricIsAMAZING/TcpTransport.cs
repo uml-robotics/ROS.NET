@@ -60,13 +60,13 @@ namespace EricIsAMAZING
 
         public TcpTransport()
         {
+            Console.WriteLine("TCP TRANSPORT ZOMG!");
         }
 
-        public TcpTransport(PollSet pollset, int flags = 0)
+        public TcpTransport(PollSet pollset, int flags = 0) : this()
         {
             poll_set = pollset;
             this.flags = flags;
-            Console.WriteLine("Making a fucking socket, MOTHERFUCKER!");
         }
 
         public string ClientURI
@@ -213,6 +213,11 @@ namespace EricIsAMAZING
 
             if (!sock.ConnectAsync(new SocketAsyncEventArgs() { RemoteEndPoint = ipep }))
                 return false;
+
+            while (!sock.Connected)
+            {
+                Console.WriteLine("waiting");
+            }
 
             cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
 
@@ -396,6 +401,8 @@ namespace EricIsAMAZING
                 else
                     return 0;
             }
+            else
+                Console.WriteLine("READ: " + num_bytes);
             return num_bytes;
         }
 
@@ -408,6 +415,8 @@ namespace EricIsAMAZING
             }
 
             int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None);
+            if (num_bytes > 0)
+                Console.WriteLine("WROTE: " + num_bytes);
             return num_bytes;
         }
 
@@ -444,7 +453,7 @@ namespace EricIsAMAZING
         public TcpTransport accept()
         {
             Socket acc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            sock.AcceptAsync(new SocketAsyncEventArgs() { AcceptSocket = acc });
+            acc = sock.Accept();
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {
@@ -460,7 +469,6 @@ namespace EricIsAMAZING
 
         private void socketUpdate(int events)
         {
-            Console.WriteLine("SocketUpdate: "+events);
             lock (close_mutex)
             {
                 if (closed) return;

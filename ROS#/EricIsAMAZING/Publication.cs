@@ -141,7 +141,14 @@ namespace EricIsAMAZING
         public void publish(IRosMessage msg)
         {
             lock (publish_queue_mutex)
+            {
+                byte[] myballs = msg.Serialize();
+                string mystring = "";
+                for (int i = 0; i < myballs.Length; i++)
+                    mystring += myballs[i].ToString("x")+" ";
+                Console.WriteLine("ADDING " + msg.type + " " + mystring + " TO QUEUE!");
                 publish_queue.Enqueue(msg);
+            }
         }
 
         public bool validateHeader(Header header, ref string error_message)

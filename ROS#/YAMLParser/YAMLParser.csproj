@@ -47,9 +47,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MessageTypes.cs" />
-    <Content Include="TemplateProject\SerializationHelper.cs">
+    <Compile Include="TemplateProject\SerializationHelper.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </Compile>
     <Content Include="TemplateProject\PlaceHolder._cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

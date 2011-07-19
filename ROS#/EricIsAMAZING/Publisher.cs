@@ -11,37 +11,28 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class Publisher<M> : IPublisher where M : IRosMessage
+    public class Publisher<M> : IPublisher where M : struct
     {
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
         {
             // TODO: Complete member initialization
-            impl.topic = topic;
-            impl.md5sum = md5sum;
-            impl.datatype = datatype;
-            impl.nodeHandle = nodeHandle;
-            impl.callbacks = callbacks;
+            this.topic = topic;
+            this.md5sum = md5sum;
+            this.datatype = datatype;
+            this.nodeHandle = nodeHandle;
+            this.callbacks = callbacks;
         }
 
         public void publish(M msg)
         {
-            if (impl == null)
-                return;
-            if (!impl.IsValid)
-                return;
-            TopicManager.Instance.publish(impl.topic, msg);
+            TopicManager.Instance.publish(topic, new TypedMessage<M>(msg));
         }
     }
 
     public class IPublisher
     {
-        public Impl impl;
-    }
-
-    public class Impl
-    {
         public SubscriberCallbacks callbacks;
-        public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+        public double constructed = (int)Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
         public string datatype;
         public string md5sum;
         public NodeHandle nodeHandle;

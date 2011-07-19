@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Threading;
 using EricIsAMAZING;
 using Messages;
 using XmlRpc_Wrapper;
@@ -40,11 +41,15 @@ namespace ConsoleApplication1
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
+            NodeHandle nh2 = new NodeHandle();
+            Publisher<m.String> pub = nh.advertise<String>("hollaback", 1000);
             Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             while (ROS.ok)
             {
+                pub.publish(new String { data = "HOLY FUCKSTICK!" });
                 ROS.Log("HOLY FUCKSTICK");
                 ROS.spinOnce();
+                Thread.Sleep(1000);
             }
 
 

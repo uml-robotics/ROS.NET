@@ -98,24 +98,24 @@ namespace EricIsAMAZING
             foreach (ISubscriber sub in collection.subscribers)
                 sub.unsubscribe();
             foreach (IPublisher pub in collection.publishers)
-                pub.impl.unadvertise();
+                pub.unadvertise();
             foreach (IServiceClient client in collection.serviceclients)
                 client.impl.shutdown();
             foreach (IServiceServer srv in collection.serviceservers)
                 srv.impl.unadvertise();
         }
 
-        public Publisher<TypedMessage<M>> advertise<M>(string topic, int q_size, bool l = false) where M : struct
+        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false) where M : struct
         {
             return advertise<M>(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
-        public Publisher<TypedMessage<M>> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false) where M : struct
+        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false) where M : struct
         {
             return advertise<M>(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
-        public Publisher<TypedMessage<M>> advertise<M>(AdvertiseOptions<M> ops) where M : struct
+        public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : struct
         {
             ops.topic = resolveName(ops.topic);
             if (ops.Callback == null)
@@ -128,7 +128,7 @@ namespace EricIsAMAZING
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
             if (TopicManager.Instance.advertise(ops, callbacks))
             {
-                Publisher<TypedMessage<M>> pub = new Publisher<TypedMessage<M>>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
+                Publisher<M> pub = new Publisher<M>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
                 lock (collection.mutex)
                 {
                     collection.publishers.Add(pub);

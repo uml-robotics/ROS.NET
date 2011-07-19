@@ -17,24 +17,21 @@ namespace EricIsAMAZING
             AdvertiseOptions<Messages.rosgraph_msgs.Log> ops = new AdvertiseOptions<Messages.rosgraph_msgs.Log>(names.resolve("/rosout"), 0);
             ops.latch = true;
             SubscriberCallbacks cbs = new SubscriberCallbacks();
-            if (TopicManager.Instance.advertise(ops, cbs))
-                Console.WriteLine("YAY!");
-            else
-                Console.WriteLine("BOO!");
+            TopicManager.Instance.advertise<Messages.rosgraph_msgs.Log>(ops, cbs);
         }
 
         public void Write(string m)
         {
             Messages.rosgraph_msgs.Log l = new Messages.rosgraph_msgs.Log();
             l.msg = m;
-            l.level = 2;
+            l.level = 8;
             l.name = this_node.Name;
             l.file = "*.cs";
             l.function = "SOMECSFUNCTION";
             l.line = 666;
             l.topics = this_node.AdvertisedTopics().ToArray();
             TypedMessage<Messages.rosgraph_msgs.Log> MSG = new TypedMessage<Messages.rosgraph_msgs.Log>(l);
-            TopicManager.Instance.publish<TypedMessage<Messages.rosgraph_msgs.Log>>(names.resolve("/rosout"), MSG);
+            TopicManager.Instance.publish<Messages.rosgraph_msgs.Log>(names.resolve("/rosout"), MSG);
         }
     }
 }
