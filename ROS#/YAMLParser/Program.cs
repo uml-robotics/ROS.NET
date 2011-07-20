@@ -15,6 +15,7 @@ namespace YAMLParser
         public static List<string> types = new List<string>();
         public static List<string> namespaces = new List<string>();
         public static List<List<string>> MessageDefs = new List<List<string>>();
+        public static List<bool> ismetas = new List<bool>();
         public static string backhalf;
         public static string fronthalf;
 
@@ -223,13 +224,23 @@ namespace YAMLParser
             {
                 fronthalf += "\t\t\t{MsgTypes." + namespaces[i] + "__" + types[i] + ", \n\t\t\t@\"\n";
                 foreach (string s in MessageDefs[i])
-                    fronthalf += "\t\t\t\t"+s.Trim() + "\n";
+                    fronthalf += ""+s.Trim() + "\n";
                 fronthalf += "\t\t\t\"}";
                 if (i < MessageDefs.Count - 1)
                      fronthalf += ",\n";
             }
-            fronthalf += "};\n\t}\n";
-            fronthalf += "\n\tpublic enum MsgTypes\n\t{";
+            fronthalf += "};\n";
+            fronthalf += "\n\t\tpublic static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()\n\t\t{";
+            fronthalf += "\n\t\t\t{MsgTypes.Unknown, false},";
+            for (int i = 0; i < types.Count; i++)
+            {
+                fronthalf += "\n\t\t\t";
+                fronthalf += "{MsgTypes." + namespaces[i]+"__"+types[i] + ", "+ismetas[i].ToString().ToLower()+"}";
+                if (i < types.Count - 1)
+                    fronthalf += ",";
+            }
+            fronthalf += "\n\t\t};";
+            fronthalf += "\t}\n\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
             for (int i = 0; i < types.Count; i++)
             {
@@ -248,6 +259,7 @@ namespace YAMLParser
     {
         private bool HasHeader;
         private bool KnownSize = true;
+        private bool meta;
         public string Name;
         public string Namespace = "Messages";
         public Queue<SingleType> Stuff = new Queue<SingleType>();
@@ -329,8 +341,10 @@ namespace YAMLParser
                     SingleType thisthing = Stuff.Dequeue();
                     if (thisthing.Type == "Header") HasHeader = true;
                     if (!thisthing.KnownSize) KnownSize = false;
+                    meta |= thisthing.meta; 
                     memoizedcontent += "\t" + thisthing.output + "\n";
                 }
+                Program.ismetas.Add(meta);
             }
             if (wasnull)
             {
@@ -420,7 +434,10 @@ namespace YAMLParser
             foreach (KeyValuePair<string, string> test in KnownTypes)
             {
                 if (t.Test(test))
+                {
+                    t.rostype = t.Type;
                     return t.Finalize(test);
+                }
             }
             return t.Finalize(t.input.Split(' '), false);
         }
@@ -432,10 +449,11 @@ namespace YAMLParser
         public bool KnownSize;
         public string Name;
         public string Type;
+        public string rostype = "";
         public string input;
         public string lengths = "";
         public string output;
-
+        public bool meta;
         public SingleType(string s)
         {
             if (s.Contains('[') && s.Contains(']'))
@@ -461,6 +479,9 @@ namespace YAMLParser
         public SingleType Finalize(KeyValuePair<string, string> csharptype)
         {
             string[] PARTS = input.Split(' ');
+            rostype = PARTS[0];
+            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
+                meta = true;
             PARTS[0] = csharptype.Value;
             return Finalize(PARTS, true);
         }
@@ -523,6 +544,8 @@ namespace YAMLParser
                 output = "\t\tpublic " + /*(KnownSize ? "" : "m.") +*/ type + "[] " + name + othershit + ";";
             }
             Type = type;
+            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
+                meta = true;
             if (name.Length == 0)
                 Name = othershit.Trim();
             else

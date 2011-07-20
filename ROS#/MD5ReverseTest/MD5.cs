@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using Messages;
 
 #endregion
 
@@ -14,34 +12,9 @@ namespace EricIsAMAZING
 {
     public static class MD5
     {
-        public static string Sum(MsgTypes m)
-        {
-            string hashme = TypeHelper.MessageDefinitions[m].Trim();
-            while (hashme.Contains("  "))
-                hashme = hashme.Replace("  ", " ");
-            IRosMessage irm =  (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.Types[m].GetGenericArguments()));
-            if (irm.IsMeta)
-            {
-                Type t = irm.GetType().GetGenericArguments()[0];
-                Console.WriteLine(t.FullName);
-                FieldInfo[] fields = t.GetFields();
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    Console.WriteLine("\t"+fields[i].FieldType);
-                    MsgTypes T = (MsgTypes)Enum.Parse(typeof(MsgTypes), fields[i].FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
-                    if (!TypeHelper.IsMetaType.ContainsKey(T))
-                        throw new Exception("SOME SHIT BE FUCKED!");
-                    if (!TypeHelper.IsMetaType[T])
-                        hashme = hashme.Replace(fields[i].FieldType.Name, MD5.Sum(T));
-                }
-                Console.WriteLine("Substituted sub-metatype sums?:\n" + hashme+"\n\n");
-            }
-            return Sum(hashme);
-        }
-
         public static string Sum(string str)
         {
-            return Sum(Encoding.ASCII.GetBytes(str));
+            return Sum(Encoding.UTF8.GetBytes(str));
         }
 
         public static string Sum(byte[] data)
@@ -50,14 +23,12 @@ namespace EricIsAMAZING
             byte[] sum = System.Security.Cryptography.MD5.Create().ComputeHash(data);
             foreach (byte b in sum)
             {
-                if (b < 16)
-                    s += "0";
                 s += b.ToString("x");
             }
             return s.TrimEnd(' ','\t','\n');
         }
 
-        /*public static List<char> alphanum = new List<char>();
+        public static List<char> alphanum = new List<char>();
         static object numlock = new object();
         static int numcount = 0;
         static bool abort;
@@ -66,8 +37,34 @@ namespace EricIsAMAZING
             return Reverse(md5, new List<string>());
         }
 
+        static void startprinting()
+        {
+            if (printer == null)
+            {
+                printer = new Thread(() =>
+                                         {
+                                             string offset = "";
+                                             while (!abort)
+                                             {
+                                                 Thread.Sleep(500);
+                                                 lock (numlock)
+                                                 {
+                                                     offset = "";
+                                                     for (int i = thissum1.Length; i < longest; i++)
+                                                         offset += " ";
+                                                     Console.WriteLine(numcount + "\t" + thissum1 + offset + "\t" + thissummaker);
+                                                 }
+                                             }
+                                         });
+                printer.IsBackground = true;
+                printer.Start();
+            }
+        }
+        static Thread printer = null;
+
         public static string Reverse(string md5, List<string> frontier)
         {
+            startprinting();
             abort = false;
             numcount = 0;
             if (alphanum.Count == 0)
@@ -131,11 +128,11 @@ namespace EricIsAMAZING
             return res;
         }
         static int longest = 0;
+        static string thissummaker = "";
+        static string thissum1 = "";
         public static List<string> TestAndExpand(string seeking, List<string> old)
         {
             List<string> res = new List<string>();
-            string thissum1 = "";
-            string offset = "";
             foreach (string s in old)
             {
                 foreach (char ch in alphanum)
@@ -143,42 +140,36 @@ namespace EricIsAMAZING
                     if (abort) break;
                     string news = s + ch;
                     res.Add(news);
-                    lock (numlock)
+                    //lock (numlock)
+                    //{
                         numcount++;
-                    thissum1 = Sum(news);
-                    if (thissum1.Length > longest)
-                        longest = thissum1.Length;
-                    offset = "";
-                    for (int i = thissum1.Length; i < longest; i++)
-                        offset += " ";
-                    Console.WriteLine(numcount + "\t" + thissum1 + offset+"\t" + news);
-                    if (thissum1 == seeking)
-                    {
-                        abort = true;
-                        return new List<string> {news};
-                    }
+                    //}
+                    thissummaker = news;
+                        thissum1 = Sum(news);
+                        if (thissum1.Length > longest)
+                            longest = thissum1.Length;
+                    
                     byte startcount =  (byte)news.Count((c)=>char.IsUpper(c));
                     byte curr = startcount;
                     while (curr > 0)
                     {
                         foreach(List<byte> ind in CombinationsBS.Combinations((byte)(startcount), (byte)(curr)))
                         {
-                            foreach(byte b in ind)
+                            foreach (byte b in ind)
                             {
                                 if (b >= news.Length) continue;
-                                if (char.IsUpper(news[(int)b]))
-                                    news = news.Replace(news[(int)b], char.ToLower(news[(int)b]));
+                                if (char.IsUpper(news[(int) b]))
+                                    news = news.Replace(news[(int) b], char.ToLower(news[(int) b]));
                             }
-                            lock (numlock)
+                            //lock (numlock)
+                            
                                 numcount++;
-                            /*thissum1 = Sum(news);
-                            if (thissum1.Length > longest)
-                                longest = thissum1.Length;
-                            offset = "";
-                            for (int i = thissum1.Length; i < longest; i++)
-                                offset += " ";
-                            Console.WriteLine(numcount + "\t" + thissum1 +offset+ "\t" + news);*/
-        /*                          if (thissum1 == seeking)
+                                /*thissummaker = news;
+                                thissum1 = Sum(news);
+                                if (thissum1.Length > longest)
+                                    longest = thissum1.Length;
+                            */
+                                if (Sum(news) == seeking)
                             {
                                 abort = true;
                                 return new List<string> {news};
@@ -309,6 +300,6 @@ namespace EricIsAMAZING
 
                 return ret;
             }
-        }*/
+        }
     }
 }

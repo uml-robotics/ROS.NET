@@ -46,7 +46,9 @@ namespace Messages
         public new M data;
 
         public TypedMessage()
-            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")), TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
+            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")), 
+            TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))], 
+            TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
         {
         }
 
@@ -55,6 +57,7 @@ namespace Messages
             data = d;
             base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
             base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -77,6 +80,7 @@ namespace Messages
     {
         public bool HasHeader;
         public bool KnownSize = true;
+        public bool IsMeta;
 
         public struct data
         {
@@ -88,14 +92,15 @@ namespace Messages
         public IDictionary connection_header;
         public MsgTypes type;
 
-        public IRosMessage() : this(MsgTypes.Unknown, "")
+        public IRosMessage() : this(MsgTypes.Unknown, "", false)
         {
         }
 
-        public IRosMessage(MsgTypes t, string def)
+        public IRosMessage(MsgTypes t, string def, bool meta)
         {
             type = t;
             MessageDefinition = def;
+            IsMeta = meta;
         }
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)
