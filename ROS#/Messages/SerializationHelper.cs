@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -23,59 +24,98 @@ namespace Messages
             return thestructure;
         }
 
-        public static byte[] Serialize<T>(T outgoing)
+
+        public static byte[] Serialize<T>(TypedMessage<T> outgoing) where T : struct
         {
-            byte[] buffer = new byte[Marshal.SizeOf(outgoing)];
-            GCHandle h = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            if (outgoing.Serialized != null)
+                return outgoing.Serialized;
+            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing.data)];
+            GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
 
             // copy the struct into int byte[] mem alloc 
-            Marshal.StructureToPtr(outgoing, h.AddrOfPinnedObject(), false);
+            Marshal.StructureToPtr(outgoing.data, h.AddrOfPinnedObject(), false);
 
             h.Free(); //Allow GC to do its job 
 
-            return buffer;
+            return outgoing.Serialized;
         }
     }
 
-    /*public class StructTranslator
+    public class TypedMessage<M> : IRosMessage where M : struct
     {
-        public bool Read<T>(byte[] buffer, int index, ref T retval)
+        public new M data;
+
+        public TypedMessage()
+            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")), 
+            TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))], 
+            TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
         {
-            if (index == buffer.Length) return false;
-            int size = Marshal.SizeOf(typeof(T));
-            if (index + size > buffer.Length) throw new IndexOutOfRangeException();
-            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            try
-            {
-                IntPtr addr = (IntPtr)((long)handle.AddrOfPinnedObject() + index);
-                retval = (T)Marshal.PtrToStructure(addr, typeof(T));
-            }
-            finally
-            {
-                handle.Free();
-            }
-            return true;
         }
 
-        public bool Read<T>(Stream stream, ref T retval)
+        public TypedMessage(M d)
         {
-            int size = Marshal.SizeOf(typeof(T));
-            if (buffer == null || size > buffer.Length) buffer = new byte[size];
-            int len = stream.Read(buffer, 0, size);
-            if (len == 0) return false;
-            if (len != size) throw new EndOfStreamException();
-            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            try
-            {
-                retval = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-            }
-            finally
-            {
-                handle.Free();
-            }
-            return true;
+            data = d;
+            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
         }
 
-        private byte[] buffer;
-    }*/
+        public TypedMessage(byte[] SERIALIZEDSTUFF)
+        {
+            Deserialize(SERIALIZEDSTUFF);
+        }
+
+        public override void Deserialize(byte[] SERIALIZEDSTUFF)
+        {
+            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF);
+        }
+
+        public override byte[] Serialize()
+        {
+            return SerializationHelper.Serialize(this);
+        }
+    }
+
+    public class IRosMessage
+    {
+        public bool HasHeader;
+        public bool KnownSize = true;
+        public bool IsMeta;
+
+        public struct data
+        {
+        }
+
+        public string MessageDefinition;
+
+        public byte[] Serialized;
+        public IDictionary connection_header;
+        public MsgTypes type;
+
+        public IRosMessage() : this(MsgTypes.Unknown, "", false)
+        {
+        }
+
+        public IRosMessage(MsgTypes t, string def, bool meta)
+        {
+            type = t;
+            MessageDefinition = def;
+            IsMeta = meta;
+        }
+
+        public IRosMessage(byte[] SERIALIZEDSTUFF)
+        {
+            Deserialize(SERIALIZEDSTUFF);
+        }
+
+        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual byte[] Serialize()
+        {
+            return null;
+        }
+    }
 }

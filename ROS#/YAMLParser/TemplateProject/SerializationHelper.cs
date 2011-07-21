@@ -29,11 +29,11 @@ namespace Messages
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = new byte[Marshal.SizeOf(new TypedMessage<T>().data)];
+            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing.data)];
             GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
 
             // copy the struct into int byte[] mem alloc 
-            Marshal.StructureToPtr(outgoing, h.AddrOfPinnedObject(), false);
+            Marshal.StructureToPtr(outgoing.data, h.AddrOfPinnedObject(), false);
 
             h.Free(); //Allow GC to do its job 
 
@@ -46,18 +46,18 @@ namespace Messages
         public new M data;
 
         public TypedMessage()
-            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")), 
-            TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))], 
-            TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
+            : base((MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
+                   TypeHelper.MessageDefinitions[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))],
+                   TypeHelper.IsMetaType[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))])
         {
         }
 
         public TypedMessage(M d)
         {
             data = d;
-            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
-            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
-            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.type = (MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))];
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -79,12 +79,8 @@ namespace Messages
     public class IRosMessage
     {
         public bool HasHeader;
-        public bool KnownSize = true;
         public bool IsMeta;
-
-        public struct data
-        {
-        }
+        public bool KnownSize = true;
 
         public string MessageDefinition;
 
@@ -117,5 +113,13 @@ namespace Messages
         {
             return null;
         }
+
+        #region Nested type: data
+
+        public struct data
+        {
+        }
+
+        #endregion
     }
 }

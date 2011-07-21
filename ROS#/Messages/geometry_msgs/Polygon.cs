@@ -1,40 +1,20 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.geometry_msgs
 {
-    public class Polygon
-    {
-        public const bool HasHeader = false;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public Polygon()
-        {
-        }
-
-        public Polygon(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Point32.Data[] points;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct Polygon
+		{
+			public Point32[] points;
+		}
 }

@@ -1,41 +1,21 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.geometry_msgs
 {
-    public class TwistWithCovarianceStamped
-    {
-        public const bool HasHeader = true;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public TwistWithCovarianceStamped()
-        {
-        }
-
-        public TwistWithCovarianceStamped(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Header.Data header;
-            public TwistWithCovariance.Data twist;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct TwistWithCovarianceStamped
+		{
+			public Header header;
+			public TwistWithCovariance twist;
+		}
 }

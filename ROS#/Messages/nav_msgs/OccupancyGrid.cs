@@ -1,42 +1,22 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.nav_msgs
 {
-    public class OccupancyGrid
-    {
-        public const bool HasHeader = true;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public OccupancyGrid()
-        {
-        }
-
-        public OccupancyGrid(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Header.Data header;
-            public MapMetaData.Data info;
-            public byte[] data;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct OccupancyGrid
+		{
+			public Header header;
+			public MapMetaData info;
+			public byte[] data;
+		}
 }

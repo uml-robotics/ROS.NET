@@ -42,7 +42,7 @@ namespace EricIsAMAZING
             Type msgtype = typeof (T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
-            md5sum = "*"; //fuckit
+            md5sum = MD5.Sum(new T().type);
         }
     }
 

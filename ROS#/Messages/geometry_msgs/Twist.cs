@@ -1,41 +1,21 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.geometry_msgs
 {
-    public class Twist
-    {
-        public const bool HasHeader = false;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public Twist()
-        {
-        }
-
-        public Twist(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Vector3.Data linear;
-            public Vector3.Data angular;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct Twist
+		{
+			public Vector3  linear;
+			public Vector3  angular;
+		}
 }

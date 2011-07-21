@@ -1,43 +1,23 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.geometry_msgs
 {
-    public class Quaternion
-    {
-        public const bool HasHeader = false;
-        public const bool KnownSize = true;
 
-        public Data data;
-
-        public Quaternion()
-        {
-        }
-
-        public Quaternion(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public double x;
-            public double y;
-            public double z;
-            public double w;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct Quaternion
+		{
+			public double x;
+			public double y;
+			public double z;
+			public double w;
+		}
 }

@@ -1,41 +1,21 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages.geometry_msgs
 {
-    public class Wrench
-    {
-        public const bool HasHeader = false;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public Wrench()
-        {
-        }
-
-        public Wrench(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Vector3.Data force;
-            public Vector3.Data torque;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct Wrench
+		{
+			public Vector3  force;
+			public Vector3  torque;
+		}
 }

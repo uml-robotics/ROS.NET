@@ -21,7 +21,7 @@ namespace YAMLParser
 
         public static string outputdir
         {
-            get { return "YAMLProjectDir"; }
+            get { return "..\\..\\..\\Messages"; }
         }
 
         private static void Main(string[] args)
@@ -213,7 +213,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + namespaces[i]+"__"+types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
+                fronthalf += "{MsgTypes." + namespaces[i] + "__" + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -224,10 +224,10 @@ namespace YAMLParser
             {
                 fronthalf += "\t\t\t{MsgTypes." + namespaces[i] + "__" + types[i] + ", \n\t\t\t@\"\n";
                 foreach (string s in MessageDefs[i])
-                    fronthalf += ""+s.Trim() + "\n";
+                    fronthalf += "" + s.Trim() + "\n";
                 fronthalf += "\t\t\t\"}";
                 if (i < MessageDefs.Count - 1)
-                     fronthalf += ",\n";
+                    fronthalf += ",\n";
             }
             fronthalf += "};\n";
             fronthalf += "\n\t\tpublic static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()\n\t\t{";
@@ -235,7 +235,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + namespaces[i]+"__"+types[i] + ", "+ismetas[i].ToString().ToLower()+"}";
+                fronthalf += "{MsgTypes." + namespaces[i] + "__" + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -259,7 +259,6 @@ namespace YAMLParser
     {
         private bool HasHeader;
         private bool KnownSize = true;
-        private bool meta;
         public string Name;
         public string Namespace = "Messages";
         public Queue<SingleType> Stuff = new Queue<SingleType>();
@@ -267,6 +266,7 @@ namespace YAMLParser
         public string classname;
         public string fronthalf;
         private string memoizedcontent;
+        private bool meta;
 
         public MsgsFile(string filename)
         {
@@ -341,7 +341,7 @@ namespace YAMLParser
                     SingleType thisthing = Stuff.Dequeue();
                     if (thisthing.Type == "Header") HasHeader = true;
                     if (!thisthing.KnownSize) KnownSize = false;
-                    meta |= thisthing.meta; 
+                    meta |= thisthing.meta;
                     memoizedcontent += "\t" + thisthing.output + "\n";
                 }
                 Program.ismetas.Add(meta);
@@ -386,7 +386,7 @@ namespace YAMLParser
         public void Write()
         {
             Program.types.Add(classname);
-            Program.namespaces.Add(Namespace.Replace("Messages.",""));
+            Program.namespaces.Add(Namespace.Replace("Messages.", ""));
             string outdir = Program.outputdir;
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
@@ -449,11 +449,12 @@ namespace YAMLParser
         public bool KnownSize;
         public string Name;
         public string Type;
-        public string rostype = "";
         public string input;
         public string lengths = "";
-        public string output;
         public bool meta;
+        public string output;
+        public string rostype = "";
+
         public SingleType(string s)
         {
             if (s.Contains('[') && s.Contains(']'))

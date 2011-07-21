@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tester", "Tester\Tester.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLParser", "YAMLParser\YAMLParser.csproj", "{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "YAMLParser\bin\Debug\YAMLProjectDir\Messages.csproj", "{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "C:\GitLocal\uml-ros\Frontend\ROS#\Messages\Messages.csproj", "{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution

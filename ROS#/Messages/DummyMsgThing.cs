@@ -1,42 +1,21 @@
-#region USINGZ
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
-using Messages.geometry_msgs;
 
-#endregion
+using Messages.std_msgs;
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
 
 namespace Messages
 {
-    public class DummyMsgThing
-    {
-        public const bool HasHeader = false;
-        public const bool KnownSize = false;
 
-        public Data data;
-
-        public DummyMsgThing()
-        {
-        }
-
-        public DummyMsgThing(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);
-        }
-
-        public byte[] Serialize()
-        {
-            return SerializationHelper.Serialize(data);
-        }
-
-        #region Nested type: Data
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Data
-        {
-            public Twist.Data leftnipple;
-            public Twist.Data rightnipple;
-        }
-
-        #endregion
-    }
+		[StructLayout(LayoutKind.Sequential, Pack = 1)]
+		public struct DummyMsgThing
+		{
+			public Twist leftnipple;
+			public Twist rightnipple;
+		}
 }
