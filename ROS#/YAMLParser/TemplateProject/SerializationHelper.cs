@@ -35,11 +35,12 @@ namespace Messages
 
         public static byte[] SlapChop<T>(T t) where T : struct
         {
-            FieldInfo[] infos = t.GetType().GetFields(BindingFlags.DeclaredOnly);
+            FieldInfo[] infos = t.GetType().GetFields();
             Queue<byte[]> chunks = new Queue<byte[]>();
             int totallength = 0;
             foreach (FieldInfo i in infos)
             {
+                if (i.Name.Contains("(")) continue;
                 byte[] thischunk = null;
                 if (i.FieldType.Namespace.Contains("Message"))
                 {
@@ -47,14 +48,15 @@ namespace Messages
                     IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(), val);
                     thischunk = msg.Serialize();
                 }
-                /*else if (i.FieldType == typeof(string))
+                else if (i.FieldType == typeof(string))
                 {
                     byte[] nolen = Encoding.ASCII.GetBytes((string)i.GetValue(t));
                     thischunk = new byte[nolen.Length+4];
                     byte[] bylen = BitConverter.GetBytes(nolen.Length);
                     Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
                     Array.Copy(bylen, thischunk, 4);
-                }*/
+                    //thischunk[thischunk.Length - 1] = 0;
+                }
                 else
                 {
                     byte[] temp = new byte[Marshal.SizeOf(t)];
@@ -69,10 +71,15 @@ namespace Messages
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
+#if FALSE
+            byte[] wholeshebang = new byte[totallength];
+            int currpos = 0;
+#else
             byte[] wholeshebang = new byte[totallength+4]; //THE WHOLE SHEBANG
             byte[] len = BitConverter.GetBytes(totallength);
             Array.Copy(len, 0, wholeshebang, 0, 4);
             int currpos = 4;
+#endif
             while (chunks.Count > 0)
             {
                 byte[] chunk = chunks.Dequeue();

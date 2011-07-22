@@ -40,7 +40,7 @@ namespace Messages
             int totallength = 0;
             foreach (FieldInfo i in infos)
             {
-                if (infos.ToString().Contains("(")) continue;
+                if (i.Name.Contains("(")) continue;
                 byte[] thischunk = null;
                 if (i.FieldType.Namespace.Contains("Message"))
                 {
@@ -55,6 +55,7 @@ namespace Messages
                     byte[] bylen = BitConverter.GetBytes(nolen.Length);
                     Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
                     Array.Copy(bylen, thischunk, 4);
+                    //thischunk[thischunk.Length - 1] = 0;
                 }
                 else
                 {
@@ -67,10 +68,10 @@ namespace Messages
                     Array.Copy(bylen, 0, thischunk, 0, 4);
                     Array.Copy(temp, 0, thischunk, 4, temp.Length);
                 }
-                totallength += thischunk.Length;
                 chunks.Enqueue(thischunk);
+                totallength += thischunk.Length;
             }
-#if! FALSE
+#if FALSE
             byte[] wholeshebang = new byte[totallength];
             int currpos = 0;
 #else
