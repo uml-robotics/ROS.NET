@@ -118,14 +118,14 @@ namespace EricIsAMAZING
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : struct
         {
             ops.topic = resolveName(ops.topic);
-            if (ops.Callback == null)
+            if (ops.callback_queue == null)
             {
                 if (Callback != null)
-                    ops.Callback = Callback;
+                    ops.callback_queue = Callback;
                 else
-                    ops.Callback = ROS.GlobalCallbackQueue;
+                    ops.callback_queue = ROS.GlobalCallbackQueue;
             }
-            SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.Callback);
+            SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.callback_queue);
             if (TopicManager.Instance.advertise(ops, callbacks))
             {
                 Publisher<M> pub = new Publisher<M>(ops.topic, ops.md5sum, ops.datatype, this, callbacks);
@@ -145,29 +145,24 @@ namespace EricIsAMAZING
 
         public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb) where M : struct
         {
-            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size);
-            ops.Callback.addCallback(cb);
+            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size, (cb2)=>cb.func(cb2)) { callback_queue = _callback };
+            ops.callback_queue.addCallback(cb);
             return subscribe(ops);
-        }
-
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackQueue cb) where M : struct
-        {
-            return subscribe(new SubscribeOptions<TypedMessage<M>>(topic, queue_size, cb));
         }
 
         public Subscriber<TypedMessage<M>> subscribe<M>(SubscribeOptions<TypedMessage<M>> ops) where M : struct
         {
             ops.topic = resolveName(ops.topic);
-            if (ops.Callback == null)
+            if (ops.callback_queue == null)
             {
                 if (Callback != null)
-                    ops.Callback = Callback;
+                    ops.callback_queue = Callback;
                 else
-                    ops.Callback = ROS.GlobalCallbackQueue;
+                    ops.callback_queue = ROS.GlobalCallbackQueue;
             }
             if (TopicManager.Instance.subscribe(ops))
             {
-                Subscriber<TypedMessage<M>> sub = new Subscriber<TypedMessage<M>>(ops.topic, this, new SubscriptionCallbackHelper<TypedMessage<M>>(ops.Callback));
+                Subscriber<TypedMessage<M>> sub = new Subscriber<TypedMessage<M>>(ops.topic, this, ops.helper);
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);
@@ -185,12 +180,12 @@ namespace EricIsAMAZING
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
         {
             ops.service = resolveName(ops.service);
-            if (ops.Callback == null)
+            if (ops.callback_queue == null)
             {
                 if (Callback == null)
-                    ops.Callback = ROS.GlobalCallbackQueue;
+                    ops.callback_queue = ROS.GlobalCallbackQueue;
                 else
-                    ops.Callback = Callback;
+                    ops.callback_queue = Callback;
             }
             if (ServiceManager.Instance.advertiseService(ops))
             {

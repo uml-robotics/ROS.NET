@@ -8,20 +8,14 @@ namespace EricIsAMAZING
 {
     public class PublisherLink
     {
-        #region Delegates
-
-        public delegate void HeaderReceivedFunc(PublisherLink link, Header head);
-
-        #endregion
-
-        public string CallerID;
+        public string CallerID = "";
         public uint ConnectionID;
         public bool Latched;
-        public string XmlRpc_Uri;
+        public string XmlRpc_Uri = "";
         private Header header;
-        public string md5sum;
+        public string md5sum = "";
         public Subscription parent;
-        public Stats stats;
+        public Stats stats = new Stats();
 
         public PublisherLink(Subscription parent, string xmlrpc_uri)
         {

@@ -60,7 +60,7 @@ namespace EricIsAMAZING
 
         public TcpTransport()
         {
-            Console.WriteLine("TCP TRANSPORT ZOMG!");
+            //Console.WriteLine("TCP TRANSPORT ZOMG!");
         }
 
         public TcpTransport(PollSet pollset, int flags = 0) : this()
@@ -73,15 +73,9 @@ namespace EricIsAMAZING
         {
             get
             {
-                try
-                {
+                if (sock.RemoteEndPoint != null)
                     return ""+((IPEndPoint)sock.RemoteEndPoint).Address+((IPEndPoint)sock.RemoteEndPoint).Port.ToString();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-                return "";
+                return "[NOT CONNECTED]";
             }
         }
 
@@ -216,7 +210,7 @@ namespace EricIsAMAZING
 
             while (!sock.Connected)
             {
-                Console.WriteLine("waiting");
+                //Console.WriteLine("waiting");
             }
 
             cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
@@ -394,7 +388,7 @@ namespace EricIsAMAZING
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                    //Console.WriteLine("recv() on this socket failed with error [" + err + "]");
                     close();
                     return -1;
                 }
@@ -453,13 +447,20 @@ namespace EricIsAMAZING
         public TcpTransport accept()
         {
             Socket acc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            acc = sock.Accept();
-            TcpTransport transport = new TcpTransport(poll_set, flags);
-            if (!transport.setSocket(acc))
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            if (!sock.AcceptAsync(args))
+                return null;
+            while (args.AcceptSocket == null)
             {
-                throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
             }
-            return transport;
+            acc = args.AcceptSocket;
+                TcpTransport transport = new TcpTransport(poll_set, flags);
+                if (!transport.setSocket(acc))
+                {
+                    throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
+                }
+                return transport;
+            
         }
 
         public override string ToString()
@@ -528,7 +529,8 @@ namespace EricIsAMAZING
                         closed = true;
                         if (poll_set != null)
                             poll_set.delSocket(sock);
-                        sock.Shutdown(SocketShutdown.Both);
+                        if (sock.Connected)
+                            sock.Shutdown(SocketShutdown.Both);
                         sock.Close();
                         sock = null;
                         disconnect_cb = this.disconnect_cb;

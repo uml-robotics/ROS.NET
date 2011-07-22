@@ -113,7 +113,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public virtual void handleMessage(IRosMessage m, bool ser, bool nocopy)
+        public void handleMessage(IRosMessage m, bool ser, bool nocopy)
         {
             Console.WriteLine("TransportPublisherLink: handleMessage");
             stats.bytes_received += (ulong) m.Serialize().Length;

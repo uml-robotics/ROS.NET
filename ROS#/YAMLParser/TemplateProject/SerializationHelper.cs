@@ -10,7 +10,8 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        public static T Deserialize<T>(byte[] bytes)
+
+        public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : struct
         {
             T thestructure = default(T);
             IntPtr pIP = Marshal.AllocHGlobal(Marshal.SizeOf(thestructure));
@@ -21,7 +22,7 @@ namespace Messages
             T thestructure = default(T);
             if (thisone.Read<T>(bytes, 0, ref thestructure))
                 Console.WriteLine("YAY!");*/
-            return thestructure;
+            return new TypedMessage<T>(thestructure);
         }
 
 
@@ -67,7 +68,7 @@ namespace Messages
 
         public override void Deserialize(byte[] SERIALIZEDSTUFF)
         {
-            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF);
+            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
         }
 
         public override byte[] Serialize()
@@ -113,13 +114,5 @@ namespace Messages
         {
             return null;
         }
-
-        #region Nested type: data
-
-        public struct data
-        {
-        }
-
-        #endregion
     }
 }

@@ -137,7 +137,7 @@ namespace EricIsAMAZING
             transport.write_cb += onWriteable;
             transport.disconnect_cb += onDisconnect;
 
-            if (header_func != null)
+            if (this.header_func != null)
             {
                 read(4, onHeaderLengthRead);
             }

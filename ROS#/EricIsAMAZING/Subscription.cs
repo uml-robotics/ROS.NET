@@ -393,6 +393,7 @@ namespace EricIsAMAZING
 
         internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header, TransportPublisherLink link)
         {
+            Console.WriteLine("Subscription: handleMessage");
             lock (callbacks_mutex)
             {
                 ulong drops = 0;
@@ -465,10 +466,10 @@ namespace EricIsAMAZING
                 info.helper = helper;
                 info.callback = queue;
                 info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
-                if (!helper.isConst())
-                {
+                //if (!helper.isConst())
+                //{
                     ++nonconst_callbacks;
-                }
+                //}
 
                 callbacks.Add(info);
 
@@ -508,7 +509,7 @@ namespace EricIsAMAZING
                         info.subscription_queue.clear();
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
-                        if (!helper.isConst())
+                        //if (!helper.isConst())
                             --nonconst_callbacks;
                         break;
                     }

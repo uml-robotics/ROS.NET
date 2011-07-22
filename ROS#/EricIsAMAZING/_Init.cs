@@ -43,14 +43,14 @@ namespace EricIsAMAZING
             return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments());
         }
 
-        public static IRosMessage MakeMessage<T>(MsgTypes type) where T : struct
+        public static IRosMessage MakeMessage(MsgTypes type)
         {
-            return MakeAndDowncast<TypedMessage<T>, IRosMessage>(TypeHelper.Types[type].GetGenericArguments());
+            return (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>), TypeHelper.Types[type].GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
         {
-            return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
+            return (G)Activator.CreateInstance(typeof(T).MakeGenericType(types));
         }
 
         public static void FREAKTHEFUCKOUT()
@@ -251,7 +251,7 @@ namespace EricIsAMAZING
             if (!dictinit)
             {
                 dictinit = true;
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()}))
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] { Assembly.GetExecutingAssembly() }))
                 {
                     foreach (Type t in a.GetTypes())
                     {

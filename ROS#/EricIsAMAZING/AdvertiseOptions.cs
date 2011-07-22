@@ -2,8 +2,9 @@
 
 namespace EricIsAMAZING
 {
-    public class AdvertiseOptions<T> : StuffOptions where T : struct
+    public class AdvertiseOptions<T> where T : struct
     {
+        public int queue_size;
         public SubscriberStatusCallback connectCB;
         public string datatype = "";
         public SubscriberStatusCallback disconnectCB;
@@ -12,6 +13,7 @@ namespace EricIsAMAZING
         public string md5sum = "";
         public string message_definition = "";
         public string topic = "";
+        public CallbackQueueInterface callback_queue;
 
         public AdvertiseOptions()
         {
@@ -33,6 +35,7 @@ namespace EricIsAMAZING
                 message_definition = TypeHelper.MessageDefinitions[tt.type];
             else
                 message_definition = message_def;
+            has_header = tt.HasHeader;
             connectCB = connectcallback;
             disconnectCB = disconnectcallback;
         }
@@ -44,7 +47,7 @@ namespace EricIsAMAZING
 
         public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where M : struct
         {
-            return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {Callback = queue};
+            return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};
         }
     }
 }

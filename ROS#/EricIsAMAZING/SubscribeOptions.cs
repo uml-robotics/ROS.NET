@@ -10,8 +10,9 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class SubscribeOptions<T> : StuffOptions where T : IRosMessage, new()
+    public class SubscribeOptions<T> where T : IRosMessage, new()
     {
+        public int queue_size;
         public bool allow_concurrent_callbacks;
         public string datatype = "";
         public bool has_header;
@@ -20,36 +21,29 @@ namespace EricIsAMAZING
         public string md5sum = "";
         public string message_definition = "";
         public string topic = "";
+        public CallbackQueueInterface callback_queue;
 
-        public SubscribeOptions(string topic, int queue_size) : this(topic, queue_size, ROS.GlobalCallbackQueue)
+        public SubscribeOptions() : this("", 1)
         {
-            // TODO: Complete member initialization
-            helper = new SubscriptionCallbackHelper<T>(new T().type);
+            allow_concurrent_callbacks = false;
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackQueueInterface cb, CallbackDelegate<T> CALL = null)
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL = null)
         {
             // TODO: Complete member initialization
             this.topic = topic;
             this.queue_size = queue_size;
             if (CALL != null)
-                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL) {Callback = cb};
+                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL);
             else
-                helper = new SubscriptionCallbackHelper<T>(cb);
-            Callback = cb;
-
+                helper = new SubscriptionCallbackHelper<T>(new T().type);
+            
 
             Type msgtype = typeof (T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
             md5sum = MD5.Sum(new T().type);
         }
-    }
-
-    public class StuffOptions
-    {
-        public CallbackQueueInterface Callback;
-        public int queue_size;
     }
 
     public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();

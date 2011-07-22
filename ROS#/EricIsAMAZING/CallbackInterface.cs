@@ -11,13 +11,13 @@ namespace EricIsAMAZING
 {
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
-        public CallbackDelegate<T> func;
+        public new CallbackDelegate<T> func;
 
         public Callback()
         {
         }
 
-        public Callback(CallbackDelegate<T> f)
+        public Callback(CallbackDelegate<T> f) : base((ci)=>f((T)ci))
         {
             func = f;
         }
@@ -25,6 +25,17 @@ namespace EricIsAMAZING
 
     public class CallbackInterface
     {
+        public CallbackDelegate<IRosMessage> func;
+
+        public CallbackInterface()
+        {
+        }
+
+        public CallbackInterface(CallbackDelegate<IRosMessage> f)
+        {
+            func = f;
+        }
+
         #region CallResult enum
 
         public enum CallResult

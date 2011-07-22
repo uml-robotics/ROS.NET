@@ -64,7 +64,6 @@ namespace EricIsAMAZING
                     byte[] b = new byte[] { 0 };
                     if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
                     {
-                        Console.WriteLine("W");
                         localpipeevents[1].Send(b);
                     }
                     signal_locked = false;
@@ -83,7 +82,7 @@ namespace EricIsAMAZING
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
+            SocketInfo info = new SocketInfo { sock = s, func = update_func, transport = trans };
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -144,65 +143,69 @@ namespace EricIsAMAZING
             for (int i = 0; i < ufds.Count; i++)
             {
                 if (!ufds[i].sock.Connected)
-                    continue;
-                if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectWrite))
                 {
-                    ufds[i].revents |= POLLOUT;
-                    ret += 1;
+                    ufds[i].revents |= POLLHUP;
                 }
-                if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectRead))
+                else if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectError))
                 {
-                    ufds[i].revents |= POLLIN;
-                    ret += 1;
+                    ufds[i].revents |= POLLERR;
+                }
+                else
+                {
+                    if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectWrite))
+                    {
+                        ufds[i].revents |= POLLOUT;
+                    }
+                    if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectRead))
+                    {
+                        ufds[i].revents |= POLLIN;
+                    }
                 }
             }
-            if (ret > 0)
+            if (udfscount == 0) return;
+            for (int i = 0; i < udfscount; i++)
             {
-                if (udfscount == 0) return;
-                for (int i = 0; i < udfscount; i++)
+                if (ufds[i].revents == 0)
+                    continue;
+
+                SocketUpdateFunc func = null;
+                TcpTransport trans = null;
+                int events = 0;
+                lock (socket_info_mutex)
                 {
-                    if (ufds[i].revents == 0)
-                        continue;
+                    if (!socket_info.ContainsKey(ufds[i].sock)) continue;
+                    SocketInfo info = socket_info[ufds[i].sock];
+                    func = info.func;
+                    trans = info.transport;
+                    events = info.events;
+                }
 
-                    SocketUpdateFunc func = null;
-                    TcpTransport trans = null;
-                    int events = 0;
-                    lock (socket_info_mutex)
+                int revents = ufds[i].events;
+
+                if (func != null && ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 || (revents & POLLNVAL) != 0))
+                {
+                    bool skip = false;
+                    if ((revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
                     {
-                        if (!socket_info.ContainsKey(ufds[i].sock)) continue;
-                        SocketInfo info = socket_info[ufds[i].sock];
-                        func = info.func;
-                        trans = info.transport;
-                        events = info.events;
-                    }
-
-                    int revents = ufds[i].events;
-
-                    if (func != null && ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 || (revents & POLLNVAL) != 0))
-                    {
-                        bool skip = false;
-                        if ((revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
+                        lock (just_deleted_mutex)
                         {
-                            lock (just_deleted_mutex)
-                            {
-                                if (just_deleted.Contains(ufds[i].sock))
-                                    skip = true;
-                            }
-                        }
-
-                        if (!skip)
-                        {
-                            func.Invoke(revents & (events | POLLERR | POLLHUP | POLLNVAL));
+                            if (just_deleted.Contains(ufds[i].sock))
+                                skip = true;
                         }
                     }
 
-                    ufds[i].revents = 0;
+                    if (!skip)
+                    {
+                        func.Invoke(revents & (events | POLLERR | POLLHUP | POLLNVAL));
+                    }
                 }
 
-                lock (just_deleted_mutex)
-                {
-                    just_deleted.Clear();
-                }
+                ufds[i].revents = 0;
+            }
+
+            lock (just_deleted_mutex)
+            {
+                just_deleted.Clear();
             }
         }
 
@@ -214,9 +217,17 @@ namespace EricIsAMAZING
                     return;
                 foreach (SocketInfo info in socket_info.Values)
                 {
-                    if (!ufds.Exists((p)=>p.sock == info.sock))
-                        ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
+                    if (!ufds.Exists((p) => p.sock == info.sock))
+                        ufds.Add(new PollFD { events = info.events, sock = info.sock, revents = 0 });
                 }
+                List<PollFD> gtfo = new List<PollFD>();
+                foreach (PollFD fd in ufds)
+                {
+                    if (!socket_info.ContainsKey(fd.sock))
+                        gtfo.Add(fd);
+                }
+                foreach (PollFD fd in gtfo)
+                    ufds.Remove(fd);
             }
         }
 
@@ -225,9 +236,8 @@ namespace EricIsAMAZING
             if ((stuff & POLLIN) != 0)
             {
                 byte[] b = new byte[1];
-                while (localpipeevents[0].Poll(1,SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
+                while (localpipeevents[0].Poll(1, SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
                 {
-                    Console.WriteLine("R");
                 }
             }
         }

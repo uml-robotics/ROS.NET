@@ -6,9 +6,11 @@ using System;
 
 namespace EricIsAMAZING
 {
-    public class AdvertiseServiceOptions<MReq, MRes> : StuffOptions
+    public class AdvertiseServiceOptions<MReq, MRes>
     {
-        public string service;
+        public CallbackQueueInterface callback_queue;
+        public int queue_size;
+        public string service = "";
         public Func<MReq, MRes> srv_func;
 
         public AdvertiseServiceOptions(string service, Func<MReq, MRes> srv_func)

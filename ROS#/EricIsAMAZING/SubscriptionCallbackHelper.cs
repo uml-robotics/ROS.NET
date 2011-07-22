@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -13,81 +14,125 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
+        public new Callback<M> callback; 
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
+            Console.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
-            Callback.addCallback(new Callback<M>(cb));
+            callback = new Callback<M>(cb);
+            base.callback = new CallbackInterface((c)=>cb((M)c)); //if you think about this one too hard, you might die.
         }
 
         public SubscriptionCallbackHelper(MsgTypes t)
         {
+            Console.WriteLine("SubscriptionCallbackHelper: type constructor");
             type = t;
         }
 
-        public SubscriptionCallbackHelper(CallbackQueueInterface q)
+        public SubscriptionCallbackHelper(CallbackInterface q)
             : base(q)
         {
+            Console.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
+        }
+
+        public M deserialize(SubscriptionCallbackHelperDeserializeParams parms)
+        {
+            Console.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
+            return deserialize<M>(parms);
+        }
+
+        public override T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms)
+        {
+            Console.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
+            T t = base.deserialize<T>(parms);
+            return t;
+        }
+
+        public override void call(SubscriptionCallbackHelperCallParams parms)
+        {
+            Console.WriteLine("SubscriptionCallbackHelper: call");
+            MessageEvent<M> e = (MessageEvent<M>)parms.Event;
+            callback.func(new ParameterAdapter<M>().getParameter(e));
         }
     }
 
     public class ISubscriptionCallbackHelper
     {
-        public CallbackQueueInterface Callback;
+        public CallbackInterface callback;
 
         public MsgTypes type;
 
         protected ISubscriptionCallbackHelper()
         {
+            Console.WriteLine("ISubscriptionCallbackHelper: 0 arg constructor");
         }
 
-        protected ISubscriptionCallbackHelper(CallbackQueueInterface Callback)
+        protected ISubscriptionCallbackHelper(CallbackInterface Callback)
         {
-            this.Callback = Callback;
+            Console.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
+            //throw new NotImplementedException();
+            this.callback = Callback;
         }
 
-        public virtual byte[] deserialize(SubscriptionCallbackHelperDeserializeParams parms)
+        public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage
         {
-            return null;
+            Console.WriteLine("ISubscriptionCallbackHelper: deserialize");
+            IRosMessage msg = ROS.MakeMessage(type);
+            assignSubscriptionConnectionHeader(ref msg, parms.connection_header);
+            T t = (T)msg;
+            t.Deserialize(parms.buffer);
+            return t;
+            //return SerializationHelper.Deserialize<T>(parms.buffer);
+        }
+
+        private void assignSubscriptionConnectionHeader(ref IRosMessage msg, IDictionary p)
+        {
+            Console.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
+            msg.connection_header = new Hashtable(p);
         }
 
         public virtual void call(SubscriptionCallbackHelperCallParams parms)
         {
+            Console.WriteLine("ISubscriptionCallbackHelper: call");
             throw new NotImplementedException();
-        }
-
-        public virtual MsgTypes getTypeInfo()
-        {
-            return type;
-        }
-
-        public virtual bool isConst()
-        {
-            return true;
         }
     }
 
     public class SubscriptionCallbackHelperDeserializeParams
     {
+        public SubscriptionCallbackHelperDeserializeParams()
+        {
+            throw new NotImplementedException();
+        }
+
         public byte[] buffer;
-        public string connection_header = "";
+        public IDictionary connection_header;
         public int length;
     }
 
     public class SubscriptionCallbackHelperCallParams
     {
         public IMessageEvent Event;
+        public SubscriptionCallbackHelperCallParams()
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class ParameterAdapter<P> : IParameterAdapter where P : IRosMessage
+    public class ParameterAdapter<P> where P : IRosMessage, new()
     {
-    }
 
-    public class IParameterAdapter
-    {
-    }
+        public ParameterAdapter()
+        {
+     /*       Type p = TypeHelper.Types[typeof(P)];       
+            type = ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), p.FullName.Replace("Messages.", "").Replace(".", "__"))).type;*/
+        }
 
-    public class MessageStuff<T>
-    {
+        public P getParameter(MessageEvent<P> Event)
+        {
+            Console.WriteLine("getParameter!");
+            return (P)Event.message;
+        }
     }
 }

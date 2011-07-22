@@ -217,7 +217,7 @@ namespace EricIsAMAZING
                 string md5sum = ops.md5sum;
                 string datatype = ops.datatype;
                 Subscription s = new Subscription(ops.topic, md5sum, datatype);
-                s.addCallback(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks);
+                s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks);
                 if (!registerSubscriber(s, ops.datatype))
                 {
                     Console.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
@@ -390,7 +390,7 @@ namespace EricIsAMAZING
                     ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +
                      sub.md5sum + "]");
             else if (found)
-                if (!sub.addCallback(ops.helper, ops.md5sum, ops.Callback, ops.queue_size, ops.allow_concurrent_callbacks))
+                if (!sub.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks))
                     return false;
             return found;
         }
