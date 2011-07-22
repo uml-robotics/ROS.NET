@@ -17,16 +17,20 @@ namespace EricIsAMAZING
             int i = 0;
             while (i < buffer.Length)
             {
+                int thispiece = BitConverter.ToInt32(buffer, i);
                 i += 4;
-                byte[] line = new byte[size];
-                Array.Copy(buffer, i, line, 0, size-4);
+                byte[] line = new byte[thispiece];
+                Array.Copy(buffer, i, line, 0, thispiece);
                 string[] chunks = Encoding.ASCII.GetString(line).Split('=');
                 if (chunks.Length != 2)
+                {
+                    error_msg = "A LINE DOES NOT CONTAIN TWO CHUNKS!";
                     return false;
+                }
                 Values[chunks[0].Trim()] = chunks[1].Trim();
-                i += size;
+                i += thispiece;
             }
-            return true;
+            return (i == size);
         }
 
         private static byte[] concat(byte[] a, byte[] b)

@@ -146,7 +146,6 @@ namespace EricIsAMAZING
                 string mystring = "";
                 for (int i = 0; i < myballs.Length; i++)
                     mystring += myballs[i].ToString("x")+" ";
-                Console.WriteLine("ADDING " + msg.type + " " + mystring + " TO QUEUE!");
                 publish_queue.Enqueue(msg);
             }
         }
@@ -154,7 +153,7 @@ namespace EricIsAMAZING
         public bool validateHeader(Header header, ref string error_message)
         {
             string md5sum = "", topic = "", client_callerid = "";
-            if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") || !header.Values.Contains("client_callerid"))
+            if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") || !header.Values.Contains("callerid"))
             {
                 string msg = "Header from subscriber did not have the required elements: md5sum, topic, callerid";
                 Console.WriteLine(msg);
@@ -181,6 +180,8 @@ namespace EricIsAMAZING
                 error_message = msg;
                 return false;
             }
+
+            Console.WriteLine("HOLY CRAP! A VALID SUBSCRIBER!");
             return true;
         }
 

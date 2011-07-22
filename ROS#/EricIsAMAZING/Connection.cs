@@ -164,8 +164,12 @@ namespace EricIsAMAZING
         private void onHeaderRead(Connection conn, byte[] data, int size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
+            Console.WriteLine("ONHEADERREAD!");
             if (!success)
+            {
+                Console.WriteLine("BUT NOT SUCCESSFUL?");
                 return;
+            }
             string error_msg = "";
             if (!header.Parse(data, size, ref error_msg))
             {
@@ -185,7 +189,7 @@ namespace EricIsAMAZING
                     if (header_func == null) throw new Exception("AMG YOUR HEADERFUNC SUCKS");
                     transport.parseHeader(header);
                     Console.WriteLine("GOT HEADER!");
-                    foreach (object k in header.Values)
+                    foreach (object k in header.Values.Keys)
                     {
                         string key = (string) k;
                         Console.WriteLine("" + key + " = " + ((string) header.Values[k]));
@@ -199,6 +203,7 @@ namespace EricIsAMAZING
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (header_written_callback == null) throw new Exception("NOBODY CARES ABOUT YOU, YOUR CHILDREN (neither present nor future), NOR YOUR GRANDCHILDREN (neither present nor future)");
+            Console.WriteLine("ONHEADERWRITTEN!");
             header_written_callback(conn);
             header_written_callback = null;
         }
@@ -219,7 +224,12 @@ namespace EricIsAMAZING
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (size != 4) throw new Exception("THAT SIZE ISN'T 4! SDKJSDLKJHSDLKJSHD");
-            if (!success) return;
+            Console.WriteLine("ONHEADERLENGTHREAD!");
+            if (!success)
+            {
+                Console.WriteLine("BUT NOT SUCCESSFUL!");
+                return;
+            }
             int len = BitConverter.ToInt32(data, 0);
             if (len > 1000000000)
             {
