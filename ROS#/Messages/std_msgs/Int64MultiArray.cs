@@ -16,6 +16,6 @@ namespace Messages.std_msgs
 		public struct Int64MultiArray
 		{
 			public MultiArrayLayout  layout;
-			public int[]           data;
+			public long[]           data;
 		}
 }

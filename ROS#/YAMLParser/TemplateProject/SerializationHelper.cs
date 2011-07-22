@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #endregion
 
@@ -18,10 +21,6 @@ namespace Messages
             Marshal.Copy(bytes, 0, pIP, Marshal.SizeOf(thestructure));
             thestructure = (T) Marshal.PtrToStructure(pIP, typeof (T));
             Marshal.FreeHGlobal(pIP);
-            /*StructTranslator thisone = new StructTranslator();
-            T thestructure = default(T);
-            if (thisone.Read<T>(bytes, 0, ref thestructure))
-                Console.WriteLine("YAY!");*/
             return new TypedMessage<T>(thestructure);
         }
 
@@ -30,15 +29,57 @@ namespace Messages
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = new byte[Marshal.SizeOf(outgoing.data)];
-            GCHandle h = GCHandle.Alloc(outgoing.Serialized, GCHandleType.Pinned);
-
-            // copy the struct into int byte[] mem alloc 
-            Marshal.StructureToPtr(outgoing.data, h.AddrOfPinnedObject(), false);
-
-            h.Free(); //Allow GC to do its job 
-
+            outgoing.Serialized = SlapChop(outgoing.data);
             return outgoing.Serialized;
+        }
+
+        public static byte[] SlapChop<T>(T t) where T : struct
+        {
+            FieldInfo[] infos = t.GetType().GetFields(BindingFlags.DeclaredOnly);
+            Queue<byte[]> chunks = new Queue<byte[]>();
+            int totallength = 0;
+            foreach (FieldInfo i in infos)
+            {
+                byte[] thischunk = null;
+                if (i.FieldType.Namespace.Contains("Message"))
+                {
+                    object val = i.GetValue(t);
+                    IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(), val);
+                    thischunk = msg.Serialize();
+                }
+                /*else if (i.FieldType == typeof(string))
+                {
+                    byte[] nolen = Encoding.ASCII.GetBytes((string)i.GetValue(t));
+                    thischunk = new byte[nolen.Length+4];
+                    byte[] bylen = BitConverter.GetBytes(nolen.Length);
+                    Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
+                    Array.Copy(bylen, thischunk, 4);
+                }*/
+                else
+                {
+                    byte[] temp = new byte[Marshal.SizeOf(t)];
+                    GCHandle h = GCHandle.Alloc(temp, GCHandleType.Pinned);
+                    Marshal.StructureToPtr(temp, h.AddrOfPinnedObject(), false);
+                    h.Free();
+                    thischunk = new byte[temp.Length + 4];
+                    byte[] bylen = BitConverter.GetBytes(temp.Length);
+                    Array.Copy(bylen, 0, thischunk, 0, 4);
+                    Array.Copy(temp, 0, thischunk, 4, temp.Length);
+                }
+                chunks.Enqueue(thischunk);
+                totallength += thischunk.Length;
+            }
+            byte[] wholeshebang = new byte[totallength+4]; //THE WHOLE SHEBANG
+            byte[] len = BitConverter.GetBytes(totallength);
+            Array.Copy(len, 0, wholeshebang, 0, 4);
+            int currpos = 4;
+            while (chunks.Count > 0)
+            {
+                byte[] chunk = chunks.Dequeue();
+                Array.Copy(chunk, 0, wholeshebang, currpos, chunk.Length);
+                currpos += chunk.Length;
+            }
+            return wholeshebang;
         }
     }
 

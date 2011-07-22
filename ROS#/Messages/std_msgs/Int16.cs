@@ -15,6 +15,6 @@ namespace Messages.std_msgs
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		public struct Int16
 		{
-			public int data;
+			public short data;
 		}
 }

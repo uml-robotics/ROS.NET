@@ -17,6 +17,6 @@ namespace Messages.nav_msgs
 		{
 			public Header header;
 			public MapMetaData info;
-			public byte[] data;
+			public sbyte[] data;
 		}
 }

@@ -407,9 +407,22 @@ namespace EricIsAMAZING
                 if (closed)
                     return -1;
             }
-
-            int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None);
-            if (num_bytes > 0)
+            SocketError err;
+            int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None, out err);
+            if (num_bytes <= 0)
+            {
+                if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
+                    num_bytes = 0;
+                else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
+                {
+                    //Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                    close();
+                    return -1;
+                }
+                else
+                    return 0;
+            }
+            else
                 Console.WriteLine("WROTE: " + num_bytes);
             return num_bytes;
         }

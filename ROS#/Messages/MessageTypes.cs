@@ -296,7 +296,7 @@ string[] topics
 			"},
 			{MsgTypes.std_msgs__Duration, 
 			@"
-duration data
+uint64 data
 			"},
 			{MsgTypes.std_msgs__Empty, 
 			@"
@@ -378,7 +378,7 @@ string data
 			"},
 			{MsgTypes.std_msgs__Time, 
 			@"
-time data
+uint64 data
 			"},
 			{MsgTypes.std_msgs__UInt16, 
 			@"

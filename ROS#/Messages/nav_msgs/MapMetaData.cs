@@ -15,7 +15,7 @@ namespace Messages.nav_msgs
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		public struct MapMetaData
 		{
-			public DateTime map_load_time;
+			public ulong map_load_time;
 			public double resolution;
 			public uint width;
 			public uint height;

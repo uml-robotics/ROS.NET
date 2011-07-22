@@ -16,9 +16,11 @@ namespace EricIsAMAZING
     {
         public static string Sum(MsgTypes m)
         {
-            string hashme = TypeHelper.MessageDefinitions[m].Trim();
+            string hashme = TypeHelper.MessageDefinitions[m].Trim('\n','\t','\r',' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
+            while (hashme.Contains("\r\n"))
+                hashme = hashme.Replace("\r\n", "\n");
             IRosMessage irm =  (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.Types[m].GetGenericArguments()));
             if (irm.IsMeta)
             {
@@ -28,14 +30,14 @@ namespace EricIsAMAZING
                 for (int i = 0; i < fields.Length; i++)
                 {
                     if (!fields[i].FieldType.Namespace.Contains("Messages")) continue;
-                    Console.WriteLine("\t"+fields[i].FieldType);
+                    Console.WriteLine("\t"+fields[i].FieldType.FullName);
                     MsgTypes T = (MsgTypes)Enum.Parse(typeof(MsgTypes), fields[i].FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
                     if (!TypeHelper.IsMetaType.ContainsKey(T))
                         throw new Exception("SOME SHIT BE FUCKED!");
-                    if (!TypeHelper.IsMetaType[T])
-                        hashme = hashme.Replace(fields[i].FieldType.Name, MD5.Sum(T));
+                    hashme = hashme.Replace(fields[i].FieldType.Name, MD5.Sum(T));
                 }
-                //Console.WriteLine("Substituted sub-metatype sums?:\n" + hashme+"\n\n");
+                Console.WriteLine("Substituted sub-metatype sums?:\n" + hashme+"\n\n");
+                return Sum(hashme);
             }
             return Sum(hashme);
         }

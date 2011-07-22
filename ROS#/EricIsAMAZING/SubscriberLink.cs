@@ -15,7 +15,7 @@ namespace EricIsAMAZING
         public uint connection_id;
         public string destination_caller_id = "";
         protected Publication parent;
-        public Stats stats;
+        public Stats stats = new Stats();
         public string topic = "";
 
         public string Md5sum

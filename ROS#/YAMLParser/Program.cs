@@ -403,19 +403,19 @@ namespace YAMLParser
                                                                   {
                                                                       {"float64", "double"},
                                                                       {"float32", "double"},
-                                                                      {"uint64", "uint"},
+                                                                      {"uint64", "ulong"},
                                                                       {"uint32", "uint"},
-                                                                      {"uint16", "uint"},
+                                                                      {"uint16", "ushort"},
                                                                       {"uint8", "byte"},
-                                                                      {"int64", "int"},
+                                                                      {"int64", "long"},
                                                                       {"int32", "int"},
-                                                                      {"int16", "int"},
-                                                                      {"int8", "byte"},
+                                                                      {"int16", "short"},
+                                                                      {"int8", "sbyte"},
                                                                       {"byte", "byte"},
                                                                       {"bool", "bool"},
                                                                       {"string", "string"},
-                                                                      {"time", "DateTime"},
-                                                                      {"duration", "TimeSpan"},
+                                                                      {"time", "ulong"},
+                                                                      {"duration", "ulong"},
                                                                       {"char", "char"}
                                                                   };
 

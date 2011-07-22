@@ -22,7 +22,7 @@ namespace EricIsAMAZING
 
         public void Write(string m)
         {
-            Messages.rosgraph_msgs.Log l = new Messages.rosgraph_msgs.Log();
+            /*Messages.rosgraph_msgs.Log l = new Messages.rosgraph_msgs.Log();
             l.msg = m;
             l.level = 8;
             l.name = this_node.Name;
@@ -31,7 +31,7 @@ namespace EricIsAMAZING
             l.line = 666;
             l.topics = this_node.AdvertisedTopics().ToArray();
             TypedMessage<Messages.rosgraph_msgs.Log> MSG = new TypedMessage<Messages.rosgraph_msgs.Log>(l);
-            TopicManager.Instance.publish<Messages.rosgraph_msgs.Log>(names.resolve("/rosout"), MSG);
+            TopicManager.Instance.publish<Messages.rosgraph_msgs.Log>(names.resolve("/rosout"), MSG);*/
         }
     }
 }

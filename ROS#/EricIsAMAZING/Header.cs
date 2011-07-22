@@ -50,7 +50,7 @@ namespace EricIsAMAZING
             {
                 int linelength = 0;
                 byte[] key = Encoding.ASCII.GetBytes((string) k);
-                byte[] val = Encoding.ASCII.GetBytes((string) dict[k]);
+                byte[] val = Encoding.ASCII.GetBytes(dict[k].ToString());
                 totallength += val.Length + key.Length + 1 + 4;
                 linelength = val.Length + key.Length + 1;
                 buffer = concat(buffer, ByteLength(linelength));

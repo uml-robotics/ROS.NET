@@ -16,6 +16,6 @@ namespace Messages.std_msgs
 		public struct UInt16MultiArray
 		{
 			public MultiArrayLayout  layout;
-			public uint[]            data;
+			public ushort[]            data;
 		}
 }

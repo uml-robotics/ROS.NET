@@ -41,7 +41,7 @@ namespace EricIsAMAZING
         }
 
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null) :
-            this(t, q_size, MD5.Sum(new TypedMessage<T>().type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.MessageDefinitions[new TypedMessage<T>().type], connectcallback, disconnectcallback)
+            this(t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.MessageDefinitions[new TypedMessage<T>().type], connectcallback, disconnectcallback)
         {
         }
 

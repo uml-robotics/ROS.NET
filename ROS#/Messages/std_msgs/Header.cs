@@ -16,7 +16,7 @@ namespace Messages.std_msgs
 		public struct Header
 		{
 			public uint seq;
-			public DateTime stamp;
+			public ulong stamp;
 			public string frame_id;
 		}
 }

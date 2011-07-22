@@ -142,10 +142,6 @@ namespace EricIsAMAZING
         {
             lock (publish_queue_mutex)
             {
-                byte[] myballs = msg.Serialize();
-                string mystring = "";
-                for (int i = 0; i < myballs.Length; i++)
-                    mystring += myballs[i].ToString("x")+" ";
                 publish_queue.Enqueue(msg);
             }
         }
@@ -249,14 +245,17 @@ namespace EricIsAMAZING
 
             if (HasHeader)
             {
-                byte[] stuff = msg.Serialize();
+                object val = msg.GetType().GetField("data").GetValue(msg);
+                object header = val.GetType().GetField("header").GetValue(val);
+                header.GetType().GetField("seq").SetValue(header, seq);
+                /*byte[] stuff = msg.Serialize();
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);
                 TypedMessage<Messages.std_msgs.Header> header = new TypedMessage<Messages.std_msgs.Header>(withoutlength);
                 Messages.std_msgs.Header h = header.data;
                 h.seq = seq;
                 header.data = h;
-                msg = header;
+                msg = header;*/
             }
 
             foreach (SubscriberLink sub_link in subscriber_links)
