@@ -49,12 +49,20 @@ namespace ConsoleApplication1
             NodeHandle nh = new NodeHandle();
             //NodeHandle nh2 = new NodeHandle();
             Publisher<m.String> pub = nh.advertise<String>("hollaback", 1000);
-            //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
+            Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             string concatme = "HOLY FUCKSTICK!";
+            new Thread(() =>
+                           {
+                               int count = 0;
+                               while (ROS.ok)
+                               {
+                                   ROS.Info("ERIC RULZ! " + (count++));
+                                   Thread.Sleep(100);
+                               }
+                           }).Start();
             while (ROS.ok)
             {
                 pub.publish(new String { data = concatme });
-                concatme += "HOLY FUCKSTICK!";
                 //ROS.Log("HOLY FUCKSTICK");
                 ROS.spinOnce();
                 Thread.Sleep(1000);

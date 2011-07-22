@@ -13,15 +13,37 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : struct
         {
-            T thestructure = default(T);
-            IntPtr pIP = Marshal.AllocHGlobal(Marshal.SizeOf(thestructure));
-            Marshal.Copy(bytes, 0, pIP, Marshal.SizeOf(thestructure));
-            thestructure = (T) Marshal.PtrToStructure(pIP, typeof (T));
-            Marshal.FreeHGlobal(pIP);
-            return new TypedMessage<T>(thestructure);
+            return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
+        }
+
+        public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
+        {
+            object thestructure = Activator.CreateInstance(T);
+            FieldInfo[] infos = T.GetFields();
+            int totallength = BitConverter.ToInt32(bytes, 0);
+            int currpos = iswhole ? 4 : 0;
+            int currinfo = 0;
+            while (currpos < bytes.Length)
+            {
+                int len = BitConverter.ToInt32(bytes, currpos);
+                IntPtr pIP = Marshal.AllocHGlobal(len);
+                Marshal.Copy(bytes, currpos, pIP, len);
+                if (infos[currinfo].FieldType.ToString().Contains("Messages"))
+                {
+                    byte[] smallerpiece = new byte[len + 4];
+                    Array.Copy(bytes, currpos, smallerpiece, 0, len + 4);
+                    infos[currinfo].SetValue(thestructure, deserialize(infos[currinfo].FieldType, smallerpiece));
+                }
+                else
+                    infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
+                currinfo++;
+                currpos += len;
+            }
+            if (iswhole && currpos != totallength + 4)
+                throw new Exception("MATH FAIL LOL!");
+            return thestructure;
         }
 
 
@@ -29,45 +51,19 @@ namespace Messages
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = SlapChop(outgoing.data);
+            outgoing.Serialized = SlapChop(outgoing.data.GetType(), outgoing.data);
             return outgoing.Serialized;
         }
 
-        public static byte[] SlapChop<T>(T t) where T : struct
+        public static byte[] SlapChop(Type T, object t)
         {
             FieldInfo[] infos = t.GetType().GetFields();
             Queue<byte[]> chunks = new Queue<byte[]>();
             int totallength = 0;
-            foreach (FieldInfo i in infos)
+            foreach (FieldInfo info in infos)
             {
-                if (i.Name.Contains("(")) continue;
-                byte[] thischunk = null;
-                if (i.FieldType.Namespace.Contains("Message"))
-                {
-                    object val = i.GetValue(t);
-                    IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(), val);
-                    thischunk = msg.Serialize();
-                }
-                else if (i.FieldType == typeof(string))
-                {
-                    byte[] nolen = Encoding.ASCII.GetBytes((string)i.GetValue(t));
-                    thischunk = new byte[nolen.Length+4];
-                    byte[] bylen = BitConverter.GetBytes(nolen.Length);
-                    Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
-                    Array.Copy(bylen, thischunk, 4);
-                    //thischunk[thischunk.Length - 1] = 0;
-                }
-                else
-                {
-                    byte[] temp = new byte[Marshal.SizeOf(t)];
-                    GCHandle h = GCHandle.Alloc(temp, GCHandleType.Pinned);
-                    Marshal.StructureToPtr(temp, h.AddrOfPinnedObject(), false);
-                    h.Free();
-                    thischunk = new byte[temp.Length + 4];
-                    byte[] bylen = BitConverter.GetBytes(temp.Length);
-                    Array.Copy(bylen, 0, thischunk, 0, 4);
-                    Array.Copy(temp, 0, thischunk, 4, temp.Length);
-                }
+                if (info.Name.Contains("(")) continue;
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t));
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -75,7 +71,7 @@ namespace Messages
             byte[] wholeshebang = new byte[totallength];
             int currpos = 0;
 #else
-            byte[] wholeshebang = new byte[totallength+4]; //THE WHOLE SHEBANG
+            byte[] wholeshebang = new byte[totallength + 4]; //THE WHOLE SHEBANG
             byte[] len = BitConverter.GetBytes(totallength);
             Array.Copy(len, 0, wholeshebang, 0, 4);
             int currpos = 4;
@@ -88,6 +84,73 @@ namespace Messages
             }
             return wholeshebang;
         }
+
+        public static byte[] NeedsMoreChunks(Type T, object val)
+        {
+            byte[] thischunk = null;
+            if (!T.IsArray)
+            {
+                if (T.Namespace.Contains("Message"))
+                {
+                    IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                    thischunk = msg.Serialize();
+                }
+                else if (val is string || T == typeof(string))
+                {
+                    if (val == null)
+                        val = "";
+                    byte[] nolen = Encoding.ASCII.GetBytes((string)val);
+                    thischunk = new byte[nolen.Length + 4];
+                    byte[] bylen2 = BitConverter.GetBytes(nolen.Length);
+                    Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
+                    Array.Copy(bylen2, thischunk, 4);
+                }
+                else
+                {
+                    byte[] temp = new byte[Marshal.SizeOf(T)];
+                    GCHandle h = GCHandle.Alloc(temp, GCHandleType.Pinned);
+                    Marshal.StructureToPtr(val, h.AddrOfPinnedObject(), false);
+                    h.Free();
+                    thischunk = new byte[temp.Length + 4];
+                    byte[] bylen = BitConverter.GetBytes(temp.Length);
+                    Array.Copy(bylen, 0, thischunk, 0, 4);
+                    Array.Copy(temp, 0, thischunk, 4, temp.Length);
+
+                }
+            }
+            else
+            {
+                int arraylength = 0;
+                object[] vals = (object[])val;
+                Queue<byte[]> arraychunks = new Queue<byte[]>();
+                for (int i = 0; i < vals.Length; i++)
+                {
+                    Type TT = vals[i].GetType(); ;
+#if arraypiecesneedlengthtoo
+                    byte[] chunkwithoutlen = NeedsMoreChunks(TT, vals[i]);
+                    byte[] chunklen = BitConverter.GetBytes(chunkwithoutlen.Length);
+                    byte[] chunk = new byte[chunkwithoutlen.Length + 4];
+                    Array.Copy(chunklen, 0, chunk, 0, 4);
+                    Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
+#else
+                    byte[] chunk = NeedsMoreChunks(TT, vals[i]);
+#endif
+                    arraychunks.Enqueue(chunk);
+                    arraylength += chunk.Length;
+                }
+                thischunk = new byte[arraylength + 4];
+                byte[] bylen = BitConverter.GetBytes(thischunk.Length);
+                Array.Copy(bylen, 0, thischunk, 0, 4);
+                int arraypos = 4;
+                while (arraychunks.Count > 0)
+                {
+                    byte[] chunk = arraychunks.Dequeue();
+                    Array.Copy(chunk, 0, thischunk, arraypos, chunk.Length);
+                    arraypos += chunk.Length;
+                }
+            }
+            return thischunk;
+        }
     }
 
     public class TypedMessage<M> : IRosMessage where M : struct
@@ -95,18 +158,18 @@ namespace Messages
         public new M data;
 
         public TypedMessage()
-            : base((MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
-                   TypeHelper.MessageDefinitions[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))],
-                   TypeHelper.IsMetaType[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))])
+            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")),
+                   TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))],
+                   TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))])
         {
         }
 
         public TypedMessage(M d)
         {
             data = d;
-            base.type = (MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
-            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))];
-            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.MessageDefinitions[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
+            base.IsMeta = TypeHelper.IsMetaType[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))];
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -137,7 +200,8 @@ namespace Messages
         public IDictionary connection_header;
         public MsgTypes type;
 
-        public IRosMessage() : this(MsgTypes.Unknown, "", false)
+        public IRosMessage()
+            : this(MsgTypes.Unknown, "", false)
         {
         }
 

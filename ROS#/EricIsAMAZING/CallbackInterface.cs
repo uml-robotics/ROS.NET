@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -19,7 +20,11 @@ namespace EricIsAMAZING
 
         public Callback(CallbackDelegate<T> f) : base((ci)=>f((T)ci))
         {
-            func = f;
+            func = (r) =>
+            {
+                f(r);
+                Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<"+typeof(T).Name+">!");
+            };
         }
     }
 
@@ -33,7 +38,11 @@ namespace EricIsAMAZING
 
         public CallbackInterface(CallbackDelegate<IRosMessage> f)
         {
-            func = f;
+            func = (r) =>
+                       {
+                           f(r);
+                           Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<IRosMessage>!");
+                       };
         }
 
         #region CallResult enum

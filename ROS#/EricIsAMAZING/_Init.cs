@@ -58,10 +58,10 @@ namespace EricIsAMAZING
             throw new Exception("ROS IS FREAKING THE FUCK OUT!");
         }
 
-        public static void Log(string msg)
+        public static void Info(string msg)
         {
             if (initialized)
-                rosoutappender.Write(msg);
+                rosoutappender.Append(msg);
         }
 
         public static void Init(string[] args, string name, int options = 0)

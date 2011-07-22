@@ -307,6 +307,11 @@ namespace EricIsAMAZING
             publish(topic, message.Serialize, message);
         }
 
+        public void publish(string topic, IRosMessage message)
+        {
+            publish(topic, message.Serialize, message);
+        }
+
         public void publish(string topic, SerializeFunc serfunc, IRosMessage msg)
         {
             if (msg == null) return;
