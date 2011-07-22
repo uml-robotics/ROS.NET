@@ -36,13 +36,12 @@ namespace ConsoleApplication1
 
         private static void Main(string[] args)
         {
-            //TypedMessage<Messages.geometry_msgs.Twist> md5test = new TypedMessage<gm.Twist>();
-            //string teststr = TypeHelper.MessageDefinitions[md5test.type].Trim();
-            ////string combined = "" + MD5.Sum(teststr) + " linear\n" + MD5.Sum(teststr) + " angular";
-            ////Console.WriteLine("combined = \n" + combined + "\n\n\n");
-            //Console.WriteLine(MD5.Sum(md5test.type));
-            //Console.ReadLine();
-            //return;
+            /*TypedMessage<Messages.rosgraph_msgs.Log> md5test = new TypedMessage<Messages.rosgraph_msgs.Log>();
+            string teststr = TypeHelper.MessageDefinitions[md5test.type].Trim();
+            Console.WriteLine("DEF = \n" + teststr + "\n\n\n");
+            Console.WriteLine(MD5.Sum(md5test.type));
+            Console.ReadLine();
+            return;*/
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
