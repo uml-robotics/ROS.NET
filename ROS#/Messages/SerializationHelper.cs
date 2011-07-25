@@ -64,7 +64,7 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), (info.GetValue(Activator.CreateInstance(T)) != null));
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), info, t, (info.GetValue(Activator.CreateInstance(T)) != null));
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -86,7 +86,7 @@ namespace Messages
             return wholeshebang;
         }
 
-        public static byte[] NeedsMoreChunks(Type T, object val, bool knownlength)
+        public static byte[] NeedsMoreChunks(Type T, object val, FieldInfo fi, object topmost, bool knownlength)
         {
             byte[] thischunk = null;
             if (!T.IsArray)
@@ -140,13 +140,15 @@ namespace Messages
                 {
                     Type TT = vals[i].GetType();
 #if arraypiecesneedlengthtoo
-                    byte[] chunkwithoutlen = NeedsMoreChunks(TT, vals[i]);
+                    bool pieceknownlength = ;
+                    byte[] chunkwithoutlen = NeedsMoreChunks(TT, vals[i], fi, topmost, pieceknownlength);
                     byte[] chunklen = BitConverter.GetBytes(chunkwithoutlen.Length);
-                    byte[] chunk = new byte[chunkwithoutlen.Length + 4];
-                    Array.Copy(chunklen, 0, chunk, 0, 4);
-                    Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
+                    byte[] chunk = new byte[chunkwithoutlen.Length + (pieceknownlength ? 0 : 4)];
+                    if (!pieceknownlength)
+                        Array.Copy(chunklen, 0, chunk, 0, 4);
+                    Array.Copy(chunkwithoutlen, 0, chunk, (pieceknownlength ? 0 : 4), chunkwithoutlen.Length);
 #else
-                    byte[] chunk = NeedsMoreChunks(TT, vals[i], true);
+                    byte[] chunk = NeedsMoreChunks(TT, vals[i], fi, topmost, true);
 #endif
                     arraychunks.Enqueue(chunk);
                     arraylength += chunk.Length;
