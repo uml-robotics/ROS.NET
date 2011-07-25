@@ -9,13 +9,13 @@ using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
 
-namespace Messages
+namespace Messages.custom_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct DummyMsgThing
+		public class arraytest
 		{
-			public Twist leftnipple;
-			public Twist rightnipple;
+            
+			public readonly int[] integers = new int[2];
+			public int[] lengthlessintegers;
 		}
 }

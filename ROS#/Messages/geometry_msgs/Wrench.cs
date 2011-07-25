@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Wrench
+		public class Wrench
 		{
 			public Vector3  force;
 			public Vector3  torque;

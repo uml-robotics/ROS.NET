@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.std_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct UInt64
+		public class UInt64
 		{
 			public ulong data;
 		}

@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.std_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct ConnectionHeader
+		public class ConnectionHeader
 		{
 			public const byte DEBUG = 1;
 			public const byte INFO = 2;

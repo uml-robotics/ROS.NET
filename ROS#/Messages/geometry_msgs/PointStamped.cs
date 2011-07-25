@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct PointStamped
+		public class PointStamped
 		{
 			public Header header;
 			public Point point;

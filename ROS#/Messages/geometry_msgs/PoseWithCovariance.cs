@@ -12,10 +12,9 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct PoseWithCovariance
+		public class PoseWithCovariance
 		{
 			public Pose pose;
-			public double[] covariance;
+			public double[] covariance = new double[36];
 		}
 }

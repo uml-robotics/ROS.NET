@@ -1,2 +1,0 @@
-geometry_msgs/Twist leftnipple
-geometry_msgs/Twist rightnipple

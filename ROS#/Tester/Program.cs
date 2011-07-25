@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using EricIsAMAZING;
 using Messages;
+using Messages.custom_msgs;
 using XmlRpc_Wrapper;
 using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
@@ -48,10 +49,10 @@ namespace ConsoleApplication1
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
             //NodeHandle nh2 = new NodeHandle();
-            Publisher<m.String> pub = nh.advertise<String>("hollaback", 1000);
-            Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
+            Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
+            //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             string concatme = "HOLY FUCKSTICK!";
-            new Thread(() =>
+            /*new Thread(() =>
                            {
                                int count = 0;
                                while (ROS.ok)
@@ -59,10 +60,14 @@ namespace ConsoleApplication1
                                    ROS.Info("ERIC RULZ! " + (count++));
                                    Thread.Sleep(100);
                                }
-                           }).Start();
+                           }).Start();*/
             while (ROS.ok)
             {
-                pub.publish(new String { data = concatme });
+                arraytest test = new arraytest { lengthlessintegers = new[] { 2,3,4 } };
+                test.integers[0] = 0;
+                test.integers[1] = 1;
+                pub.publish(test);
+                //pub.publish(new String { data = concatme });
                 //ROS.Log("HOLY FUCKSTICK");
                 ROS.spinOnce();
                 Thread.Sleep(1000);

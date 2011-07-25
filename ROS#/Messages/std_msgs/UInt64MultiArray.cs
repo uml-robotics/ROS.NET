@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.std_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct UInt64MultiArray
+		public class UInt64MultiArray
 		{
 			public MultiArrayLayout  layout;
 			public ulong[]          data;

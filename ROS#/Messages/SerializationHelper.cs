@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : struct
+        public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
@@ -47,7 +48,7 @@ namespace Messages
         }
 
 
-        public static byte[] Serialize<T>(TypedMessage<T> outgoing) where T : struct
+        public static byte[] Serialize<T>(TypedMessage<T> outgoing) where T : class, new()
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
@@ -63,7 +64,7 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t));
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), (info.GetValue(Activator.CreateInstance(T)) != null));
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -85,14 +86,18 @@ namespace Messages
             return wholeshebang;
         }
 
-        public static byte[] NeedsMoreChunks(Type T, object val)
+        public static byte[] NeedsMoreChunks(Type T, object val, bool knownlength)
         {
             byte[] thischunk = null;
             if (!T.IsArray)
             {
                 if (T.Namespace.Contains("Message"))
                 {
-                    IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                    IRosMessage msg = null;
+                    if (val != null)
+                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                    else
+                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
                     thischunk = msg.Serialize();
                 }
                 else if (val is string || T == typeof(string))
@@ -111,21 +116,29 @@ namespace Messages
                     GCHandle h = GCHandle.Alloc(temp, GCHandleType.Pinned);
                     Marshal.StructureToPtr(val, h.AddrOfPinnedObject(), false);
                     h.Free();
-                    thischunk = new byte[temp.Length + 4];
-                    byte[] bylen = BitConverter.GetBytes(temp.Length);
-                    Array.Copy(bylen, 0, thischunk, 0, 4);
-                    Array.Copy(temp, 0, thischunk, 4, temp.Length);
+                    thischunk = new byte[temp.Length + (knownlength?0:4)];
+                    if (!knownlength)
+                    {
+                        byte[] bylen = BitConverter.GetBytes(temp.Length);
+                        Array.Copy(bylen, 0, thischunk, 0, 4);
+                    }
+                    Array.Copy(temp, 0, thischunk, (knownlength?0:4), temp.Length);
 
                 }
             }
             else
             {
                 int arraylength = 0;
-                object[] vals = (object[])val;
+                List<object> valslist = new List<object>();
+                foreach (object o in (val as Array))
+                {
+                    valslist.Add(o);
+                }
+                object[] vals = valslist.ToArray();
                 Queue<byte[]> arraychunks = new Queue<byte[]>();
                 for (int i = 0; i < vals.Length; i++)
                 {
-                    Type TT = vals[i].GetType(); ;
+                    Type TT = vals[i].GetType();
 #if arraypiecesneedlengthtoo
                     byte[] chunkwithoutlen = NeedsMoreChunks(TT, vals[i]);
                     byte[] chunklen = BitConverter.GetBytes(chunkwithoutlen.Length);
@@ -133,15 +146,18 @@ namespace Messages
                     Array.Copy(chunklen, 0, chunk, 0, 4);
                     Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
 #else
-                    byte[] chunk = NeedsMoreChunks(TT, vals[i]);
+                    byte[] chunk = NeedsMoreChunks(TT, vals[i], true);
 #endif
                     arraychunks.Enqueue(chunk);
                     arraylength += chunk.Length;
                 }
-                thischunk = new byte[arraylength + 4];
-                byte[] bylen = BitConverter.GetBytes(thischunk.Length);
-                Array.Copy(bylen, 0, thischunk, 0, 4);
-                int arraypos = 4;
+                thischunk = new byte[knownlength?arraylength:(arraylength + 4)];
+                if (!knownlength)
+                {
+                    byte[] bylen = BitConverter.GetBytes(vals.Length);
+                    Array.Copy(bylen, 0, thischunk, 0, 4);
+                }
+                int arraypos = knownlength?0:4;
                 while (arraychunks.Count > 0)
                 {
                     byte[] chunk = arraychunks.Dequeue();
@@ -153,9 +169,9 @@ namespace Messages
         }
     }
 
-    public class TypedMessage<M> : IRosMessage where M : struct
+    public class TypedMessage<M> : IRosMessage where M : class, new()
     {
-        public new M data;
+        public M data = new M();
 
         public TypedMessage()
             : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")),
@@ -225,6 +241,41 @@ namespace Messages
         public virtual byte[] Serialize()
         {
             return null;
+        }
+    }
+
+    public class Dimensions
+    {
+        public Dictionary<string, Dimension> dimensions = new Dictionary<string, Dimension>();
+        public Dimensions(List<string> membernames, List<string> lengths)
+        {
+            if (membernames.Count != lengths.Count)
+                throw new Exception("There should be as many membernames as there are lengths!");
+            for (int i = 0; i < membernames.Count; i++)
+                dimensions.Add(membernames[i], new Dimension(lengths[i]));
+        }
+    }
+
+    public class Dimension
+    {
+        public bool IsArray;
+        public List<int> Lengths = new List<int>();
+        public Dimension()
+        {
+        }
+        public Dimension(string S)
+        {
+            if (S == null) return;
+            if (S.Length > 0)
+            {
+                IsArray = true;
+                string[] chunks = S.Split(',');
+                foreach (string s in chunks)
+                {
+                    string trimmed = s.Trim();
+                    if (trimmed.Length > 0) Lengths.Add(int.Parse(trimmed));
+                }
+            }
         }
     }
 }

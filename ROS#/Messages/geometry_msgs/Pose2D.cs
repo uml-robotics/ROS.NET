@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Pose2D
+		public class Pose2D
 		{
 			public double x;
 			public double y;

@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct PoseWithCovarianceStamped
+		public class PoseWithCovarianceStamped
 		{
 			public Header header;
 			public PoseWithCovariance pose;

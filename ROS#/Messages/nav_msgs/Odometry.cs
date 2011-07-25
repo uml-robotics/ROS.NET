@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.nav_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Odometry
+		public class Odometry
 		{
 			public Header header;
 			public string child_frame_id;

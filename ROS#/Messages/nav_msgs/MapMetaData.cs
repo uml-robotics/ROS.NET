@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.nav_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct MapMetaData
+		public class MapMetaData
 		{
 			public ulong map_load_time;
 			public double resolution;

@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct WrenchStamped
+		public class WrenchStamped
 		{
 			public Header header;
 			public Wrench wrench;

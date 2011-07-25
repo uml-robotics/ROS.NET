@@ -419,7 +419,7 @@ namespace XmlRpc_Wrapper
         }
 
         [DebuggerStepThrough]
-        public T Get<T>() // where T : struct
+        public T Get<T>() // where T : class, new()
         {
             if (!Valid)
             {

@@ -137,7 +137,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : struct
+        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : class, new()
         {
             if (ops.datatype == "*")
                 throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
@@ -200,7 +200,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool subscribe<T>(SubscribeOptions<TypedMessage<T>> ops) where T : struct
+        public bool subscribe<T>(SubscribeOptions<TypedMessage<T>> ops) where T : class, new()
         {
             lock (subs_mutex)
             {
@@ -229,7 +229,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public Exception subscribeFail<T>(SubscribeOptions<TypedMessage<T>> ops, string reason) where T : struct
+        public Exception subscribeFail<T>(SubscribeOptions<TypedMessage<T>> ops, string reason) where T : class, new()
         {
             return new Exception("Subscribing to topic [" + ops.topic + "] " + reason);
         }
@@ -302,7 +302,7 @@ namespace EricIsAMAZING
             }
         }
 
-        public void publish<M>(string topic, TypedMessage<M> message) where M : struct
+        public void publish<M>(string topic, TypedMessage<M> message) where M : class, new()
         {
             publish(topic, message.Serialize, message);
         }

@@ -16,6 +16,7 @@ namespace Messages
 		public static Dictionary<MsgTypes, Type> Types = new Dictionary<MsgTypes, Type>()
 		{
 			{MsgTypes.Unknown, null},
+			{MsgTypes.custom_msgs__arraytest, typeof(TypedMessage<custom_msgs.arraytest>)},
 			{MsgTypes.geometry_msgs__Point, typeof(TypedMessage<geometry_msgs.Point>)},
 			{MsgTypes.geometry_msgs__Point32, typeof(TypedMessage<geometry_msgs.Point32>)},
 			{MsgTypes.geometry_msgs__PointStamped, typeof(TypedMessage<geometry_msgs.PointStamped>)},
@@ -77,13 +78,17 @@ namespace Messages
 			{MsgTypes.std_msgs__UInt64, typeof(TypedMessage<std_msgs.UInt64>)},
 			{MsgTypes.std_msgs__UInt64MultiArray, typeof(TypedMessage<std_msgs.UInt64MultiArray>)},
 			{MsgTypes.std_msgs__UInt8, typeof(TypedMessage<std_msgs.UInt8>)},
-			{MsgTypes.std_msgs__UInt8MultiArray, typeof(TypedMessage<std_msgs.UInt8MultiArray>)},
-			{MsgTypes.Messages__DummyMsgThing, typeof(TypedMessage<Messages.DummyMsgThing>)}
+			{MsgTypes.std_msgs__UInt8MultiArray, typeof(TypedMessage<std_msgs.UInt8MultiArray>)}
 		};
 
 			public static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>
 		{
 			{MsgTypes.Unknown, "IDFK"},
+			{MsgTypes.custom_msgs__arraytest, 
+			@"
+int32[2] integers
+int32[] lengthlessintegers
+			"},
 			{MsgTypes.geometry_msgs__Point, 
 			@"
 float64 x
@@ -415,16 +420,12 @@ uint8 data
 			@"
 MultiArrayLayout  layout
 uint8[]           data
-			"},
-			{MsgTypes.Messages__DummyMsgThing, 
-			@"
-geometry_msgs/Twist leftnipple
-geometry_msgs/Twist rightnipple
 			"}};
 
 		public static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()
 		{
 			{MsgTypes.Unknown, false},
+			{MsgTypes.custom_msgs__arraytest, false},
 			{MsgTypes.geometry_msgs__Point, false},
 			{MsgTypes.geometry_msgs__Point32, false},
 			{MsgTypes.geometry_msgs__PointStamped, true},
@@ -486,13 +487,13 @@ geometry_msgs/Twist rightnipple
 			{MsgTypes.std_msgs__UInt64, false},
 			{MsgTypes.std_msgs__UInt64MultiArray, true},
 			{MsgTypes.std_msgs__UInt8, false},
-			{MsgTypes.std_msgs__UInt8MultiArray, true},
-			{MsgTypes.Messages__DummyMsgThing, true}
+			{MsgTypes.std_msgs__UInt8MultiArray, true}
 		};	}
 
 	public enum MsgTypes
 	{
 		Unknown,
+		custom_msgs__arraytest,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,
 		geometry_msgs__PointStamped,
@@ -554,7 +555,6 @@ geometry_msgs/Twist rightnipple
 		std_msgs__UInt64,
 		std_msgs__UInt64MultiArray,
 		std_msgs__UInt8,
-		std_msgs__UInt8MultiArray,
-		Messages__DummyMsgThing
+		std_msgs__UInt8MultiArray
 	}
 }

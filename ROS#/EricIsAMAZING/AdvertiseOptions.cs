@@ -2,7 +2,7 @@
 
 namespace EricIsAMAZING
 {
-    public class AdvertiseOptions<T> where T : struct
+    public class AdvertiseOptions<T> where T : class, new()
     {
         public int queue_size;
         public SubscriberStatusCallback connectCB;
@@ -45,7 +45,7 @@ namespace EricIsAMAZING
         {
         }
 
-        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where M : struct
+        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where M : class, new()
         {
             return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};
         }

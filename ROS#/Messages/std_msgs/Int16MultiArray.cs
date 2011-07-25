@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.std_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Int16MultiArray
+		public class Int16MultiArray
 		{
 			public MultiArrayLayout  layout;
 			public short[]           data;

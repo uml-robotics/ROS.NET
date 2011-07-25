@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Twist
+		public class Twist
 		{
 			public Vector3  linear;
 			public Vector3  angular;

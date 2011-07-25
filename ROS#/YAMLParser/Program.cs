@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Messages;
 
 #endregion
 
@@ -213,7 +214,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + namespaces[i] + "__" + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
+                fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -222,7 +223,7 @@ namespace YAMLParser
             fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
             for (int i = 0; i < MessageDefs.Count; i++)
             {
-                fronthalf += "\t\t\t{MsgTypes." + namespaces[i] + "__" + types[i] + ", \n\t\t\t@\"\n";
+                fronthalf += "\t\t\t{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") +  types[i] + ", \n\t\t\t@\"\n";
                 foreach (string s in MessageDefs[i])
                     fronthalf += "" + s.Trim() + "\n";
                 fronthalf += "\t\t\t\"}";
@@ -235,7 +236,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + namespaces[i] + "__" + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
+                fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -245,7 +246,7 @@ namespace YAMLParser
             for (int i = 0; i < types.Count; i++)
             {
                 fronthalf += "\n\t\t";
-                fronthalf += namespaces[i] + "__" + types[i];
+                fronthalf += (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i];
                 if (i < types.Count - 1)
                     fronthalf += ",";
             }
@@ -267,6 +268,7 @@ namespace YAMLParser
         public string fronthalf;
         private string memoizedcontent;
         private bool meta;
+        public string dimensions = "";
 
         public MsgsFile(string filename)
         {
@@ -339,6 +341,12 @@ namespace YAMLParser
                 while (Stuff.Count > 0)
                 {
                     SingleType thisthing = Stuff.Dequeue();
+                    dimensions += "\t\t\t" + thisthing.dim;
+                    if (Stuff.Count > 1)
+                    {
+                        dimensions += ",";
+                    }
+                    dimensions += "\n";
                     if (thisthing.Type == "Header") HasHeader = true;
                     if (!thisthing.KnownSize) KnownSize = false;
                     meta |= thisthing.meta;
@@ -368,7 +376,8 @@ namespace YAMLParser
 #endif
             }
             string ret = fronthalf +
-                         "\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct " +
+                         //"\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct " +
+                         "\n\t\tpublic class " +
 #if CLASS
                          "Data"+
 #else
@@ -386,7 +395,10 @@ namespace YAMLParser
         public void Write()
         {
             Program.types.Add(classname);
-            Program.namespaces.Add(Namespace.Replace("Messages.", ""));
+            string ns = Namespace.Replace("Messages.", "");
+            if (ns == "Messages")
+                ns = "";
+            Program.namespaces.Add(ns);
             string outdir = Program.outputdir;
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
@@ -454,7 +466,7 @@ namespace YAMLParser
         public bool meta;
         public string output;
         public string rostype = "";
-
+        public string dim;
         public SingleType(string s)
         {
             if (s.Contains('[') && s.Contains(']'))
@@ -535,14 +547,15 @@ namespace YAMLParser
                     KnownSize = true;
                     string commas = "";
                     for (int i = 0; i < lengths.Count((c) => c == ','); i++) commas += ",";
-                    output = "\t\tpublic " + type + "[" + commas + "] " + name + " = new " + type + "[" + lengths + "];";
+                    output = "\t\tpublic " + type + "[" + commas + "] " + name+" = new "+type+"["+lengths+"];";
                 }
+                else
+                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
                 if (othershit.Contains('='))
                 {
                     string[] split = othershit.Split('=');
                     othershit = split[0] + " = (" + type + ")" + split[1];
                 }
-                output = "\t\tpublic " + /*(KnownSize ? "" : "m.") +*/ type + "[] " + name + othershit + ";";
             }
             Type = type;
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
@@ -551,6 +564,7 @@ namespace YAMLParser
                 Name = othershit.Trim();
             else
                 Name = name;
+            dim = "{ " +Name+", new Dimension(\""+lengths+"\"}";
             return this;
         }
     }

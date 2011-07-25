@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct TransformStamped
+		public class TransformStamped
 		{
 			public Header header;
 			public string child_frame_id;

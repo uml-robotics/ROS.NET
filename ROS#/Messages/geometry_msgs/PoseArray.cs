@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct PoseArray
+		public class PoseArray
 		{
 			public Header header;
 			public Pose[] poses;

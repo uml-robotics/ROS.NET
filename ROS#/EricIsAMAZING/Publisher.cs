@@ -11,7 +11,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class Publisher<M> : IPublisher where M : struct
+    public class Publisher<M> : IPublisher where M : class, new()
     {
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
         {

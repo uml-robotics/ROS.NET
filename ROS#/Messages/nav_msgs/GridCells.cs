@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.nav_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct GridCells
+		public class GridCells
 		{
 			public Header header;
 			public double cell_width;

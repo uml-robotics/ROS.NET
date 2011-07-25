@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.nav_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct OccupancyGrid
+		public class OccupancyGrid
 		{
 			public Header header;
 			public MapMetaData info;

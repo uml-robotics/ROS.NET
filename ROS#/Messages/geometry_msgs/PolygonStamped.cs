@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.geometry_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct PolygonStamped
+		public class PolygonStamped
 		{
 			public Header header;
 			public Polygon polygon;

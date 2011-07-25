@@ -12,8 +12,7 @@ using Messages.nav_msgs;
 namespace Messages.nav_msgs
 {
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1)]
-		public struct Path
+		public class Path
 		{
 			public Header header;
 			public PoseStamped[] poses;
