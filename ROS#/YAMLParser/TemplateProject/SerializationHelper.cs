@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using YAMLParser;
 
 #endregion
 
@@ -17,6 +16,16 @@ namespace Messages
 {
     public static class SerializationHelper
     {
+        public static MsgTypes GetMessageType(Type t)
+        {
+            return GetMessageType(t.FullName);
+        }
+        public static MsgTypes GetMessageType(string s)
+        {
+            if (!s.Contains("Messages")) return MsgTypes.Unknown;
+            return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
+        }
+
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
@@ -149,7 +158,9 @@ namespace Messages
                     Array.Copy(chunklen, 0, chunk, 0, 4);
                     Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
 #else
-                    byte[] chunk = NeedsMoreChunks(TT, vals[i], true);
+                    MsgTypes mt = GetMessageType(TT);
+                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof(string));
+                    byte[] chunk = NeedsMoreChunks(TT, vals[i], piecelengthknown);
 #endif
                     arraychunks.Enqueue(chunk);
                     arraylength += chunk.Length;
@@ -249,11 +260,11 @@ namespace Messages
 
     public class TypeInfo
     {
-        public MsgTypes Type = MsgTypes.Unknown;
+        public Type Type;
         public string MessageDefinition = "";
         public bool IsMetaType;
         public Dictionary<string, MsgFieldInfo> Fields;
-        public TypeInfo(MsgTypes t, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
+        public TypeInfo(Type t, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
         {
             Type = t;
             MessageDefinition = def;
@@ -265,7 +276,7 @@ namespace Messages
             string def = "";
             foreach (string d in defs) def += d+"\n";
             def = def.Trim('\n');
-            string ret = string.Format("MsgTypes.{0}{1}, new TypeInfo(MsgTypes.{0}{1}, {2}, \n@\"{3}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name, meta.ToString().ToLower(), def);
+            string ret = string.Format("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, \n@\"{4}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name, "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)", meta.ToString().ToLower(), def);
             for (int i = 0; i < types.Count; i++)
             {
                 ret += "\t\t\t\t\t{\"" + types[i].Name + "\", " + MsgFieldInfo.Generate(types[i]) + "}";
@@ -426,9 +437,9 @@ namespace Messages
             return ret;
         }
 
-        public void Write()
+
+        public void Write(string outdir)
         {
-            string outdir = Program.outputdir;
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
                 outdir += "\\" + chunks[i];

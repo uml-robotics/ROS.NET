@@ -98,7 +98,7 @@ namespace YAMLParser
         {
             foreach (MsgsFile m in files)
             {
-                m.Write();
+                m.Write(outputdir);
             }
 
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
@@ -196,7 +196,7 @@ namespace YAMLParser
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages;\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }

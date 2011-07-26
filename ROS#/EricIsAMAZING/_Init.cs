@@ -40,12 +40,12 @@ namespace EricIsAMAZING
 
         public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
         {
-            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.Types[msg.type].GetGenericArguments());
+            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.TypeInformation[msg.type].Type.GetGenericArguments());
         }
 
         public static IRosMessage MakeMessage(MsgTypes type)
         {
-            return (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>), TypeHelper.Types[type].GetGenericArguments());
+            return (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>), TypeHelper.TypeInformation[type].Type.GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)

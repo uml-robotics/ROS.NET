@@ -442,7 +442,7 @@ namespace EricIsAMAZING
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
-            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.Types[type].GetGenericArguments()));
+            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
         }
 
         public void Dispose()

@@ -16,12 +16,12 @@ namespace EricIsAMAZING
     {
         public static string Sum(MsgTypes m)
         {
-            string hashme = TypeHelper.MessageDefinitions[m].Trim('\n','\t','\r',' ');
+            string hashme = TypeHelper.TypeInformation[m].MessageDefinition.Trim('\n','\t','\r',' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
             while (hashme.Contains("\r\n"))
                 hashme = hashme.Replace("\r\n", "\n");
-            IRosMessage irm =  (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.Types[m].GetGenericArguments()));
+            IRosMessage irm =  (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[m].Type.GetGenericArguments()));
             if (irm.IsMeta)
             {
                 Type t = irm.GetType().GetGenericArguments()[0];
@@ -32,7 +32,7 @@ namespace EricIsAMAZING
                     if (!fields[i].FieldType.Namespace.Contains("Messages")) continue;
                     Console.WriteLine("\t"+fields[i].FieldType.FullName);
                     MsgTypes T = (MsgTypes)Enum.Parse(typeof(MsgTypes), fields[i].FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
-                    if (!TypeHelper.IsMetaType.ContainsKey(T))
+                    if (!TypeHelper.TypeInformation.ContainsKey(T))
                         throw new Exception("SOME SHIT BE FUCKED!");
                     hashme = hashme.Replace(fields[i].FieldType.Name, MD5.Sum(T));
                 }

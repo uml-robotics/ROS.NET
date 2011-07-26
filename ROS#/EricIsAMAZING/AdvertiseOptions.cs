@@ -32,7 +32,7 @@ namespace EricIsAMAZING
                 datatype = tt.type.ToString().Replace("__", "/");
             }
             if (message_def.Length == 0)
-                message_definition = TypeHelper.MessageDefinitions[tt.type];
+                message_definition = TypeHelper.TypeInformation[tt.type].MessageDefinition;
             else
                 message_definition = message_def;
             has_header = tt.HasHeader;
@@ -41,7 +41,7 @@ namespace EricIsAMAZING
         }
 
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null) :
-            this(t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.MessageDefinitions[new TypedMessage<T>().type], connectcallback, disconnectcallback)
+            this(t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition, connectcallback, disconnectcallback)
         {
         }
 
