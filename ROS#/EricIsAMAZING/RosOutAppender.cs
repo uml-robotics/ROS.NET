@@ -46,8 +46,8 @@ namespace EricIsAMAZING
             l.level = 8;
             l.name = this_node.Name;
             l.file = "*.cs";
-            l.function = "SOMECSFUNCTION";
-            l.line = 666;
+            l.function = "main";
+            l.line = 28;
             l.topics = this_node.AdvertisedTopics().ToArray();
             TypedMessage<Log> MSG = new TypedMessage<Log>(l);
             lock (queue_mutex)

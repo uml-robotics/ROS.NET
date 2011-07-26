@@ -260,26 +260,27 @@ namespace Messages
     public class TypeInfo
     {
         public Dictionary<string, MsgFieldInfo> Fields;
-        public bool IsMetaType;
+        public bool IsMetaType, HasHeader;
         public string MessageDefinition = "";
         public Type Type;
 
-        public TypeInfo(Type t, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
+        public TypeInfo(Type t, bool hasheader, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
         {
             Type = t;
+            HasHeader = hasheader;
             MessageDefinition = def;
             IsMetaType = meta;
             Fields = fields;
         }
 
-        public static string Generate(string name, string ns, bool meta, List<string> defs, List<SingleType> types)
+        public static string Generate(string name, string ns, bool HasHeader, bool meta, List<string> defs, List<SingleType> types)
         {
             string def = "";
             foreach (string d in defs) def += d + "\n";
             def = def.Trim('\n');
             string ret = string.Format
-                ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, \n@\"{4}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name,
-                 "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)", meta.ToString().ToLower(), def);
+                ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, {4},\n@\"{5}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name,
+                 "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)", HasHeader.ToString().ToLower(), meta.ToString().ToLower(), def);
             for (int i = 0; i < types.Count; i++)
             {
                 ret += "\t\t\t\t\t{\"" + types[i].Name + "\", " + MsgFieldInfo.Generate(types[i]) + "}";
@@ -435,7 +436,7 @@ namespace Messages
                 string ns = Namespace.Replace("Messages.", "");
                 if (ns == "Messages")
                     ns = "";
-                GeneratedDictHelper = TypeInfo.Generate(classname, ns, meta, def, Stuff);
+                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
             }
             if (wasnull)
             {
