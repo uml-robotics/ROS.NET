@@ -1,8 +1,6 @@
 ﻿#region USINGZ
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -12,19 +10,28 @@ namespace EricIsAMAZING
 {
     public class PollSet
     {
-        ~PollSet()
-        {
-            if (localpipeevents[0] != null)
-            {
-                localpipeevents[0].Close();
-                localpipeevents[0] = null;
-            }
-            if (localpipeevents[1] != null)
-            {
-                localpipeevents[1].Close();
-                localpipeevents[1] = null;
-            }
-        }
+        #region Delegates
+
+        public delegate void SocketUpdateFunc(int stufftodo);
+
+        #endregion
+
+        public const int POLLERR = 0x008;
+        public const int POLLHUP = 0x010;
+        public const int POLLNVAL = 0x020;
+        public const int POLLIN = 0x001;
+        public const int POLLOUT = 0x004;
+
+        public List<Socket> just_deleted = new List<Socket>();
+        public object just_deleted_mutex = new object();
+        private Socket[] localpipeevents = new Socket[2];
+        public bool signal_locked;
+        public object signal_mutex = new object();
+
+        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
+        public object socket_info_mutex = new object();
+        public bool sockets_changed;
+        public List<PollFD> ufds = new List<PollFD>();
 
         public PollSet()
         {
@@ -39,29 +46,27 @@ namespace EricIsAMAZING
             addEvents(localpipeevents[0], POLLIN);
         }
 
-        #region Delegates
+        ~PollSet()
+        {
+            if (localpipeevents[0] != null)
+            {
+                localpipeevents[0].Close();
+                localpipeevents[0] = null;
+            }
+            if (localpipeevents[1] != null)
+            {
+                localpipeevents[1].Close();
+                localpipeevents[1] = null;
+            }
+        }
 
-        public delegate void SocketUpdateFunc(int stufftodo);
-
-        #endregion
-        public const int POLLERR = 0x008;
-        public const int POLLHUP = 0x010;
-        public const int POLLNVAL = 0x020;
-        public const int POLLIN = 0x001;
-        public const int POLLOUT = 0x004;
-
-        public List<Socket> just_deleted = new List<Socket>();
-        public object just_deleted_mutex = new object();
-        public object signal_mutex = new object();
-        public bool signal_locked;
-        private Socket[] localpipeevents = new Socket[2];
         public void signal()
         {
             if (!signal_locked)
                 lock (signal_mutex)
                 {
                     signal_locked = true;
-                    byte[] b = new byte[] { 0 };
+                    byte[] b = new byte[] {0};
                     if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
                     {
                         localpipeevents[1].Send(b);
@@ -70,11 +75,6 @@ namespace EricIsAMAZING
                 }
         }
 
-        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
-        public object socket_info_mutex = new object();
-        public bool sockets_changed;
-        public List<PollFD> ufds = new List<PollFD>();
-
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
             return addSocket(s, update_func, null);
@@ -82,7 +82,7 @@ namespace EricIsAMAZING
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo { sock = s, func = update_func, transport = trans };
+            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -218,7 +218,7 @@ namespace EricIsAMAZING
                 foreach (SocketInfo info in socket_info.Values)
                 {
                     if (!ufds.Exists((p) => p.sock == info.sock))
-                        ufds.Add(new PollFD { events = info.events, sock = info.sock, revents = 0 });
+                        ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
                 }
                 List<PollFD> gtfo = new List<PollFD>();
                 foreach (PollFD fd in ufds)

@@ -14,14 +14,14 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
-        public new Callback<M> callback; 
+        public new Callback<M> callback;
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
             Console.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
             callback = new Callback<M>(cb);
-            base.callback = new CallbackInterface((c)=>cb((M)c)); //if you think about this one too hard, you might die.
+            base.callback = new CallbackInterface((c) => cb((M) c)); //if you think about this one too hard, you might die.
         }
 
         public SubscriptionCallbackHelper(MsgTypes t)
@@ -52,7 +52,7 @@ namespace EricIsAMAZING
         public override void call(SubscriptionCallbackHelperCallParams parms)
         {
             Console.WriteLine("SubscriptionCallbackHelper: call");
-            MessageEvent<M> e = (MessageEvent<M>)parms.Event;
+            MessageEvent<M> e = (MessageEvent<M>) parms.Event;
             callback.func(new ParameterAdapter<M>().getParameter(e));
         }
     }
@@ -72,7 +72,7 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
             //throw new NotImplementedException();
-            this.callback = Callback;
+            callback = Callback;
         }
 
         public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage
@@ -80,7 +80,7 @@ namespace EricIsAMAZING
             Console.WriteLine("ISubscriptionCallbackHelper: deserialize");
             IRosMessage msg = ROS.MakeMessage(type);
             assignSubscriptionConnectionHeader(ref msg, parms.connection_header);
-            T t = (T)msg;
+            T t = (T) msg;
             t.Deserialize(parms.buffer);
             return t;
             //return SerializationHelper.Deserialize<T>(parms.buffer);
@@ -101,19 +101,20 @@ namespace EricIsAMAZING
 
     public class SubscriptionCallbackHelperDeserializeParams
     {
+        public byte[] buffer;
+        public IDictionary connection_header;
+        public int length;
+
         public SubscriptionCallbackHelperDeserializeParams()
         {
             throw new NotImplementedException();
         }
-
-        public byte[] buffer;
-        public IDictionary connection_header;
-        public int length;
     }
 
     public class SubscriptionCallbackHelperCallParams
     {
         public IMessageEvent Event;
+
         public SubscriptionCallbackHelperCallParams()
         {
             throw new NotImplementedException();
@@ -122,17 +123,10 @@ namespace EricIsAMAZING
 
     public class ParameterAdapter<P> where P : IRosMessage, new()
     {
-
-        public ParameterAdapter()
-        {
-     /*       Type p = TypeHelper.Types[typeof(P)];       
-            type = ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), p.FullName.Replace("Messages.", "").Replace(".", "__"))).type;*/
-        }
-
         public P getParameter(MessageEvent<P> Event)
         {
             Console.WriteLine("getParameter!");
-            return (P)Event.message;
+            return (P) Event.message;
         }
     }
 }

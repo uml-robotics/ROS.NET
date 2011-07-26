@@ -320,7 +320,7 @@ namespace EricIsAMAZING
                 if (shutting_down) return;
 
                 Publication p = lookupPublicationWithoutLock(topic);
-                
+
                 if (p == null) return;
                 if (p.HasSubscribers || p.Latch)
                 {

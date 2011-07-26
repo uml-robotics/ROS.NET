@@ -20,6 +20,7 @@ namespace EricIsAMAZING
         private object connections_mutex = new object();
         private List<Connection> dropped_connections = new List<Connection>();
         private object dropped_connections_mutex = new object();
+        public PollManager.Poll_Signal poll_conn;
         public PollManager poll_manager;
         public TcpTransport tcpserver_transport;
 
@@ -36,8 +37,6 @@ namespace EricIsAMAZING
                 return _instance;
             }
         }
-
-        public PollManager.Poll_Signal poll_conn;
 
         public uint GetNewConnectionID()
         {

@@ -52,18 +52,19 @@ namespace ConsoleApplication1
             Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
             //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             string concatme = "HOLY FUCKSTICK!";
-            new Thread(() =>
-                           {
-                               int count = 0;
-                               while (ROS.ok)
-                               {
-                                   ROS.Info("ERIC RULZ! " + (count++));
-                                   Thread.Sleep(1000);
-                               }
-                           }).Start();
+            new Thread
+                (() =>
+                     {
+                         int count = 0;
+                         while (ROS.ok)
+                         {
+                             ROS.Info("ERIC RULZ! " + (count++));
+                             Thread.Sleep(1000);
+                         }
+                     }).Start();
             while (ROS.ok)
             {
-                arraytest test = new arraytest { lengthlessintegers = new[] { 2,3,4 } };
+                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 pub.publish(test);

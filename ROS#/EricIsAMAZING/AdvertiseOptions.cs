@@ -1,10 +1,14 @@
-﻿using Messages;
+﻿#region USINGZ
+
+using Messages;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class AdvertiseOptions<T> where T : class, new()
     {
-        public int queue_size;
+        public CallbackQueueInterface callback_queue;
         public SubscriberStatusCallback connectCB;
         public string datatype = "";
         public SubscriberStatusCallback disconnectCB;
@@ -12,8 +16,8 @@ namespace EricIsAMAZING
         public bool latch;
         public string md5sum = "";
         public string message_definition = "";
+        public int queue_size;
         public string topic = "";
-        public CallbackQueueInterface callback_queue;
 
         public AdvertiseOptions()
         {
@@ -41,11 +45,14 @@ namespace EricIsAMAZING
         }
 
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null) :
-            this(t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition, connectcallback, disconnectcallback)
+            this(
+            t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition,
+            connectcallback, disconnectcallback)
         {
         }
 
-        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue) where M : class, new()
+        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
+            where M : class, new()
         {
             return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};
         }

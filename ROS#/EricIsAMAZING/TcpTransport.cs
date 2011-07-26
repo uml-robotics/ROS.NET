@@ -74,7 +74,7 @@ namespace EricIsAMAZING
             get
             {
                 if (sock.RemoteEndPoint != null)
-                    return ""+((IPEndPoint)sock.RemoteEndPoint).Address+((IPEndPoint)sock.RemoteEndPoint).Port.ToString();
+                    return "" + ((IPEndPoint) sock.RemoteEndPoint).Address + ((IPEndPoint) sock.RemoteEndPoint).Port.ToString();
                 return "[NOT CONNECTED]";
             }
         }
@@ -205,7 +205,7 @@ namespace EricIsAMAZING
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
 
-            if (!sock.ConnectAsync(new SocketAsyncEventArgs() { RemoteEndPoint = ipep }))
+            if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
                 return false;
 
             while (!sock.Connected)
@@ -467,13 +467,12 @@ namespace EricIsAMAZING
             {
             }
             acc = args.AcceptSocket;
-                TcpTransport transport = new TcpTransport(poll_set, flags);
-                if (!transport.setSocket(acc))
-                {
-                    throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
-                }
-                return transport;
-            
+            TcpTransport transport = new TcpTransport(poll_set, flags);
+            if (!transport.setSocket(acc))
+            {
+                throw new Exception("FAILED TO ADD SOCKET TO TRANSPORT ZOMG!");
+            }
+            return transport;
         }
 
         public override string ToString()

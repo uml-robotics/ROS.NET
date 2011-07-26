@@ -163,7 +163,7 @@ namespace EricIsAMAZING
                 byte[] M = m.Serialize();
                 string s = m.type.ToString() + ":\t";
                 for (int i = 0; i < M.Length; i++)
-                    s += (M[i] < 16 ? "0" : "") + M[i].ToString("x")+" ";
+                    s += (M[i] < 16 ? "0" : "") + M[i].ToString("x") + " ";
                 Console.WriteLine(s);
                 connection.write(M, M.Length, onMessageWritten, immediate_write);
             }

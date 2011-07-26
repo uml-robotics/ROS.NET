@@ -32,7 +32,7 @@ namespace EricIsAMAZING
     public class IPublisher
     {
         public SubscriberCallbacks callbacks;
-        public double constructed = (int)Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+        public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
         public string datatype;
         public string md5sum;
         public NodeHandle nodeHandle;

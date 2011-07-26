@@ -107,12 +107,12 @@ namespace EricIsAMAZING
 
         public Publisher<M> advertise<M>(string topic, int q_size, bool l = false) where M : class, new()
         {
-            return advertise<M>(new AdvertiseOptions<M>(topic, q_size) {latch = l});
+            return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false) where M : class, new()
         {
-            return advertise<M>(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
+            return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : class, new()
@@ -145,7 +145,7 @@ namespace EricIsAMAZING
 
         public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb) where M : class, new()
         {
-            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size, (cb2)=>cb.func(cb2)) { callback_queue = _callback };
+            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size, (cb2) => cb.func(cb2)) {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);
         }

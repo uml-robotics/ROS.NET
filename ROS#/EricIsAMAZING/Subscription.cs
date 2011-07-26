@@ -438,11 +438,11 @@ namespace EricIsAMAZING
             }
         }
 
-        public IMessageDeserializer MakeDeserializer(MsgTypes type) 
+        public IMessageDeserializer MakeDeserializer(MsgTypes type)
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
-            return (IMessageDeserializer)Activator.CreateInstance(typeof(MessageDeserializer<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+            return (IMessageDeserializer) Activator.CreateInstance(typeof (MessageDeserializer<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
         }
 
         public void Dispose()
@@ -468,7 +468,7 @@ namespace EricIsAMAZING
                 info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
                 //if (!helper.isConst())
                 //{
-                    ++nonconst_callbacks;
+                ++nonconst_callbacks;
                 //}
 
                 callbacks.Add(info);
@@ -510,7 +510,7 @@ namespace EricIsAMAZING
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
                         //if (!helper.isConst())
-                            --nonconst_callbacks;
+                        --nonconst_callbacks;
                         break;
                     }
                 }

@@ -31,6 +31,7 @@ namespace EricIsAMAZING
         ///   general global sleep time in miliseconds
         /// </summary>
         public static int WallDuration = 100;
+
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
         public static Thread internal_queue_thread;
@@ -45,12 +46,12 @@ namespace EricIsAMAZING
 
         public static IRosMessage MakeMessage(MsgTypes type)
         {
-            return (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>), TypeHelper.TypeInformation[type].Type.GetGenericArguments());
+            return (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>), TypeHelper.TypeInformation[type].Type.GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
         {
-            return (G)Activator.CreateInstance(typeof(T).MakeGenericType(types));
+            return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
         }
 
         public static void FREAKTHEFUCKOUT()
@@ -251,7 +252,7 @@ namespace EricIsAMAZING
             if (!dictinit)
             {
                 dictinit = true;
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] { Assembly.GetExecutingAssembly() }))
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()}))
                 {
                     foreach (Type t in a.GetTypes())
                     {

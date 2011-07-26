@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,21 +19,22 @@ namespace Messages
         {
             return GetMessageType(t.FullName);
         }
+
         public static MsgTypes GetMessageType(string s)
         {
             if (!s.Contains("Messages")) return MsgTypes.Unknown;
-            return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
+            return (MsgTypes) Enum.Parse(typeof (MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
         }
 
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
-            return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
+            return new TypedMessage<T>((T) deserialize(typeof (T), bytes, true));
         }
 
         public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
         {
             object thestructure = Activator.CreateInstance(T);
-            System.Reflection.FieldInfo[] infos = T.GetFields();
+            FieldInfo[] infos = T.GetFields();
             int totallength = BitConverter.ToInt32(bytes, 0);
             int currpos = iswhole ? 4 : 0;
             int currinfo = 0;
@@ -70,10 +70,10 @@ namespace Messages
 
         public static byte[] SlapChop(Type T, object t)
         {
-            System.Reflection.FieldInfo[] infos = t.GetType().GetFields();
+            FieldInfo[] infos = t.GetType().GetFields();
             Queue<byte[]> chunks = new Queue<byte[]>();
             int totallength = 0;
-            foreach (System.Reflection.FieldInfo info in infos)
+            foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
                 byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), (info.GetValue(Activator.CreateInstance(T)) != null));
@@ -107,16 +107,16 @@ namespace Messages
                 {
                     IRosMessage msg = null;
                     if (val != null)
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T), val);
                     else
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
+                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T));
                     thischunk = msg.Serialize();
                 }
-                else if (val is string || T == typeof(string))
+                else if (val is string || T == typeof (string))
                 {
                     if (val == null)
                         val = "";
-                    byte[] nolen = Encoding.ASCII.GetBytes((string)val);
+                    byte[] nolen = Encoding.ASCII.GetBytes((string) val);
                     thischunk = new byte[nolen.Length + 4];
                     byte[] bylen2 = BitConverter.GetBytes(nolen.Length);
                     Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
@@ -135,7 +135,6 @@ namespace Messages
                         Array.Copy(bylen, 0, thischunk, 0, 4);
                     }
                     Array.Copy(temp, 0, thischunk, (knownlength ? 0 : 4), temp.Length);
-
                 }
             }
             else
@@ -159,7 +158,7 @@ namespace Messages
                     Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
 #else
                     MsgTypes mt = GetMessageType(TT);
-                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof(string));
+                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof (string));
                     byte[] chunk = NeedsMoreChunks(TT, vals[i], piecelengthknown);
 #endif
                     arraychunks.Enqueue(chunk);
@@ -188,18 +187,18 @@ namespace Messages
         public M data = new M();
 
         public TypedMessage()
-            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")),
-                   TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition,
-                   TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType)
+            : base((MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
+                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition,
+                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType)
         {
         }
 
         public TypedMessage(M d)
         {
             data = d;
-            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
-            base.MessageDefinition = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition;
-            base.IsMeta = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType;
+            base.type = (MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition;
+            base.IsMeta = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType;
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -260,10 +259,11 @@ namespace Messages
 
     public class TypeInfo
     {
-        public Type Type;
-        public string MessageDefinition = "";
-        public bool IsMetaType;
         public Dictionary<string, MsgFieldInfo> Fields;
+        public bool IsMetaType;
+        public string MessageDefinition = "";
+        public Type Type;
+
         public TypeInfo(Type t, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
         {
             Type = t;
@@ -271,12 +271,15 @@ namespace Messages
             IsMetaType = meta;
             Fields = fields;
         }
+
         public static string Generate(string name, string ns, bool meta, List<string> defs, List<SingleType> types)
         {
             string def = "";
-            foreach (string d in defs) def += d+"\n";
+            foreach (string d in defs) def += d + "\n";
             def = def.Trim('\n');
-            string ret = string.Format("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, \n@\"{4}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name, "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)", meta.ToString().ToLower(), def);
+            string ret = string.Format
+                ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, \n@\"{4}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n", (ns.Length > 0 ? (ns + "__") : ""), name,
+                 "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)", meta.ToString().ToLower(), def);
             for (int i = 0; i < types.Count; i++)
             {
                 ret += "\t\t\t\t\t{\"" + types[i].Name + "\", " + MsgFieldInfo.Generate(types[i]) + "}";
@@ -289,14 +292,15 @@ namespace Messages
 
     public class MsgFieldInfo
     {
-        public string Name;
-        public Type Type;
+        public string ConstVal;
         public bool IsArray;
+        public bool IsConst;
         public bool IsLiteral;
         public bool IsMetaType;
-        public bool IsConst;
-        public string ConstVal;
         public List<int> Lengths = new List<int>();
+        public string Name;
+        public Type Type;
+
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray, string lengths, bool meta)
         {
             Name = name;
@@ -322,35 +326,37 @@ namespace Messages
                 }
             }
         }
+
         public static string Generate(SingleType members)
         {
-            return string.Format("new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
-                members.Name,
-                members.IsLiteral.ToString().ToLower(),
-                (members.IsLiteral ? ("typeof(" + members.Type + ")") : ("typeof(TypedMessage<" + members.Type + ">)")),
-                members.Const.ToString().ToLower(),
-                members.ConstValue,
-                members.IsArray.ToString().ToLower(),
-                members.lengths,
-                //FIX MEEEEEEEE
-                members.meta.ToString().ToLower());
+            return string.Format
+                ("new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
+                 members.Name,
+                 members.IsLiteral.ToString().ToLower(),
+                 (members.IsLiteral ? ("typeof(" + members.Type + ")") : ("typeof(TypedMessage<" + members.Type + ">)")),
+                 members.Const.ToString().ToLower(),
+                 members.ConstValue,
+                 members.IsArray.ToString().ToLower(),
+                 members.lengths,
+                 //FIX MEEEEEEEE
+                 members.meta.ToString().ToLower());
         }
     }
 
     public class MsgsFile
     {
         public string GeneratedDictHelper;
-        List<string> def = new List<string>();
         private bool HasHeader;
         public string Name;
         public string Namespace = "Messages";
         public List<SingleType> Stuff = new List<SingleType>();
         public string backhalf;
         public string classname;
+        private List<string> def = new List<string>();
+        public string dimensions = "";
         public string fronthalf;
         private string memoizedcontent;
         private bool meta;
-        public string dimensions = "";
 
         public MsgsFile(string filename)
         {
@@ -385,6 +391,7 @@ namespace Messages
                     Stuff.Add(test);
             }
         }
+
         public override string ToString()
         {
             bool wasnull = false;
@@ -433,7 +440,7 @@ namespace Messages
             if (wasnull)
             {
             }
-            string ret = fronthalf +"\n\t\tpublic class " +classname +"\n\t\t{\n" +memoizedcontent + "\t\t}" +"\n" + backhalf;
+            string ret = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t{\n" + memoizedcontent + "\t\t}" + "\n" + backhalf;
             return ret;
         }
 
@@ -497,10 +504,10 @@ namespace Messages
 
     public class SingleType
     {
-        public bool IsArray;
-        public bool IsLiteral;
         public bool Const;
         public string ConstValue = "";
+        public bool IsArray;
+        public bool IsLiteral;
         public string Name;
         public string Type;
         public string input;
@@ -508,6 +515,7 @@ namespace Messages
         public bool meta;
         public string output;
         public string rostype = "";
+
         public SingleType(string s)
         {
             if (s.Contains('[') && s.Contains(']'))
@@ -579,7 +587,8 @@ namespace Messages
                 if (othershit.Contains("="))
                 {
                     string[] chunks = othershit.Split('=');
-                    ConstValue = chunks[chunks.Length - 1].Trim(); ;
+                    ConstValue = chunks[chunks.Length - 1].Trim();
+                    ;
                 }
             }
             else

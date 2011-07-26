@@ -1,32 +1,33 @@
-﻿using System;
+﻿#region USINGZ
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Messages;
-using XmlRpc_Wrapper;
+using Messages.rosgraph_msgs;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+
+#endregion
 
 namespace EricIsAMAZING
 {
     public class RosOutAppender
     {
-        public bool shutting_down;
+        public Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
         public Thread publish_thread;
         public object queue_mutex = new object();
-        public Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
+        public bool shutting_down;
 
         public RosOutAppender()
         {
             publish_thread = new Thread(logThread);
             publish_thread.IsBackground = true;
             publish_thread.Start();
-            AdvertiseOptions<Messages.rosgraph_msgs.Log> ops = new AdvertiseOptions<Messages.rosgraph_msgs.Log>(names.resolve("/rosout"), 0);
+            AdvertiseOptions<Log> ops = new AdvertiseOptions<Log>(names.resolve("/rosout"), 0);
             ops.latch = true;
             SubscriberCallbacks cbs = new SubscriberCallbacks();
-            TopicManager.Instance.advertise<Messages.rosgraph_msgs.Log>(ops, cbs);
+            TopicManager.Instance.advertise(ops, cbs);
         }
 
         public void shutdown()
@@ -40,7 +41,7 @@ namespace EricIsAMAZING
 
         public void Append(string m)
         {
-            Messages.rosgraph_msgs.Log l = new Messages.rosgraph_msgs.Log();
+            Log l = new Log();
             l.msg = m;
             l.level = 8;
             l.name = this_node.Name;
@@ -48,8 +49,8 @@ namespace EricIsAMAZING
             l.function = "SOMECSFUNCTION";
             l.line = 666;
             l.topics = this_node.AdvertisedTopics().ToArray();
-            TypedMessage<Messages.rosgraph_msgs.Log> MSG = new TypedMessage<Messages.rosgraph_msgs.Log>(l);
-            lock(queue_mutex)
+            TypedMessage<Log> MSG = new TypedMessage<Log>(l);
+            lock (queue_mutex)
                 log_queue.Enqueue(MSG);
         }
 

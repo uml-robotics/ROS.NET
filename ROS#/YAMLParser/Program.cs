@@ -1,11 +1,9 @@
 ﻿#region USINGZ
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Messages;
 
 #endregion
@@ -196,7 +194,8 @@ namespace YAMLParser
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf +=
+                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }
@@ -208,14 +207,15 @@ namespace YAMLParser
             }
             fronthalf += "\tpublic static class TypeHelper\n\t{";
 
-            GenDict("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, msgsFiles.Count,
-                (i) => string.Format("{0}", msgsFiles[i].GeneratedDictHelper));
+            GenDict
+                ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, msgsFiles.Count,
+                 (i) => string.Format("{0}", msgsFiles[i].GeneratedDictHelper));
 
             //GenDict("Types", "MsgTypes", "Type", ref fronthalf, 0, types.Count,
             //    (i) => string.Format("MsgTypes.{0}{1}", (namespaces[i].Length > 0 ? (namespaces[i] + "__") : ""), types[i]),
             //    (i) => string.Format("typeof(TypedMessage<{0}{1}>)", (namespaces[i].Length > 0 ? namespaces[i] + "." : ""), types[i]));
 
-           
+
             //fronthalf += "\n\n\t\t\tpublic static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>\n\t\t{";
             //fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
             //for (int i = 0; i < MessageDefs.Count; i++)
@@ -252,11 +252,12 @@ namespace YAMLParser
             return ret;
         }
 
-        public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end, Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT=null)
+        public static void GenDict
+            (string dictname, string keytype, string valuetype, ref string appendto, int start, int end, Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT = null)
         {
             appendto += string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{", dictname, keytype, valuetype);
             if (DEFAULT != null)
-                appendto += "\n\t\t\t{"+DEFAULT+",\n";
+                appendto += "\n\t\t\t{" + DEFAULT + ",\n";
             for (int i = start; i < end; i++)
             {
                 if (genVal != null)

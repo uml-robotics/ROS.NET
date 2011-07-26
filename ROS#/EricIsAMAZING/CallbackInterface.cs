@@ -18,18 +18,29 @@ namespace EricIsAMAZING
         {
         }
 
-        public Callback(CallbackDelegate<T> f) : base((ci)=>f((T)ci))
+        public Callback(CallbackDelegate<T> f) : base((ci) => f((T) ci))
         {
             func = (r) =>
-            {
-                f(r);
-                Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<"+typeof(T).Name+">!");
-            };
+                       {
+                           f(r);
+                           Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<" + typeof (T).Name + ">!");
+                       };
         }
     }
 
     public class CallbackInterface
     {
+        #region CallResult enum
+
+        public enum CallResult
+        {
+            Success,
+            TryAgain,
+            Invalid
+        }
+
+        #endregion
+
         public CallbackDelegate<IRosMessage> func;
 
         public CallbackInterface()
@@ -44,17 +55,6 @@ namespace EricIsAMAZING
                            Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<IRosMessage>!");
                        };
         }
-
-        #region CallResult enum
-
-        public enum CallResult
-        {
-            Success,
-            TryAgain,
-            Invalid
-        }
-
-        #endregion
 
         internal virtual CallResult Call()
         {
