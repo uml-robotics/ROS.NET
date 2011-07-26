@@ -14,8 +14,7 @@ namespace Messages.custom_msgs
 
 		public class arraytest
 		{
-            
-			public readonly int[] integers = new int[2];
+			public int[] integers = new int[2];
 			public int[] lengthlessintegers;
 		}
 }

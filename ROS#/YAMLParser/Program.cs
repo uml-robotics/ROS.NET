@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,10 +14,7 @@ namespace YAMLParser
 {
     internal class Program
     {
-        public static List<string> types = new List<string>();
-        public static List<string> namespaces = new List<string>();
-        public static List<List<string>> MessageDefs = new List<List<string>>();
-        public static List<bool> ismetas = new List<bool>();
+        public static List<MsgsFile> msgsFiles = new List<MsgsFile>();
         public static string backhalf;
         public static string fronthalf;
 
@@ -55,7 +53,6 @@ namespace YAMLParser
                     }
                 }
             }
-            List<MsgsFile> msgsFiles = new List<MsgsFile>();
             foreach (string path in std)
             {
                 msgsFiles.Add(new MsgsFile(path));
@@ -199,7 +196,7 @@ namespace YAMLParser
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "using Messages;\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }
@@ -209,363 +206,65 @@ namespace YAMLParser
                         backhalf += lines[i] + "\n";
                 }
             }
-            fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static Dictionary<MsgTypes, Type> Types = new Dictionary<MsgTypes, Type>()\n\t\t{";
-            fronthalf += "\n\t\t\t{MsgTypes.Unknown, null},";
-            for (int i = 0; i < types.Count; i++)
-            {
-                fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", typeof(TypedMessage<" + (namespaces[i].Length > 0 ? namespaces[i] + "." : "") + types[i] + ">)}";
-                if (i < types.Count - 1)
-                    fronthalf += ",";
-            }
-            fronthalf += "\n\t\t};";
-            fronthalf += "\n\n\t\t\tpublic static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>\n\t\t{";
-            fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
-            for (int i = 0; i < MessageDefs.Count; i++)
-            {
-                fronthalf += "\t\t\t{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") +  types[i] + ", \n\t\t\t@\"\n";
-                foreach (string s in MessageDefs[i])
-                    fronthalf += "" + s.Trim() + "\n";
-                fronthalf += "\t\t\t\"}";
-                if (i < MessageDefs.Count - 1)
-                    fronthalf += ",\n";
-            }
-            fronthalf += "};\n";
-            fronthalf += "\n\t\tpublic static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()\n\t\t{";
-            fronthalf += "\n\t\t\t{MsgTypes.Unknown, false},";
-            for (int i = 0; i < types.Count; i++)
-            {
-                fronthalf += "\n\t\t\t";
-                fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
-                if (i < types.Count - 1)
-                    fronthalf += ",";
-            }
-            fronthalf += "\n\t\t};";
+            fronthalf += "\tpublic static class TypeHelper\n\t{";
+
+            GenDict("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, msgsFiles.Count,
+                (i) => string.Format("{0}", msgsFiles[i].GeneratedDictHelper));
+
+            //GenDict("Types", "MsgTypes", "Type", ref fronthalf, 0, types.Count,
+            //    (i) => string.Format("MsgTypes.{0}{1}", (namespaces[i].Length > 0 ? (namespaces[i] + "__") : ""), types[i]),
+            //    (i) => string.Format("typeof(TypedMessage<{0}{1}>)", (namespaces[i].Length > 0 ? namespaces[i] + "." : ""), types[i]));
+
+           
+            //fronthalf += "\n\n\t\t\tpublic static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>\n\t\t{";
+            //fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
+            //for (int i = 0; i < MessageDefs.Count; i++)
+            //{
+            //    fronthalf += "\t\t\t{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") +  types[i] + ", \n\t\t\t@\"\n";
+            //    foreach (string s in MessageDefs[i])
+            //        fronthalf += "" + s.Trim() + "\n";
+            //    fronthalf += "\t\t\t\"}";
+            //    if (i < MessageDefs.Count - 1)
+            //        fronthalf += ",\n";
+            //}
+            //fronthalf += "};\n";
+            //fronthalf += "\n\t\tpublic static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()\n\t\t{";
+            //fronthalf += "\n\t\t\t{MsgTypes.Unknown, false},";
+            //for (int i = 0; i < types.Count; i++)
+            //{
+            //    fronthalf += "\n\t\t\t";
+            //    fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
+            //    if (i < types.Count - 1)
+            //        fronthalf += ",";
+            //}
+            //fronthalf += "\n\t\t};";
             fronthalf += "\t}\n\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
-            for (int i = 0; i < types.Count; i++)
+            for (int i = 0; i < msgsFiles.Count; i++)
             {
                 fronthalf += "\n\t\t";
-                fronthalf += (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i];
-                if (i < types.Count - 1)
+                fronthalf += msgsFiles[i].Name.Replace(".", "__");
+                if (i < msgsFiles.Count - 1)
                     fronthalf += ",";
             }
             fronthalf += "\n\t}\n";
             string ret = fronthalf + backhalf;
             return ret;
         }
-    }
 
-    public class MsgsFile
-    {
-        private bool HasHeader;
-        private bool KnownSize = true;
-        public string Name;
-        public string Namespace = "Messages";
-        public Queue<SingleType> Stuff = new Queue<SingleType>();
-        public string backhalf;
-        public string classname;
-        public string fronthalf;
-        private string memoizedcontent;
-        private bool meta;
-        public string dimensions = "";
-
-        public MsgsFile(string filename)
+        public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end, Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT=null)
         {
-            if (!filename.Contains(".msg"))
-                throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            Namespace = Namespace.Trim('.');
-            List<string> lines = new List<string>(File.ReadAllLines(filename));
-            lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
-            for (int i = 0; i < lines.Count; i++)
-                lines[i] = lines[i].Split('#')[0].Trim();
-            lines = lines.Where((st) => (st.Length > 0)).ToList();
-            Program.MessageDefs.Add(new List<string>());
-            for (int i = 0; i < lines.Count; i++)
+            appendto += string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{", dictname, keytype, valuetype);
+            if (DEFAULT != null)
+                appendto += "\n\t\t\t{"+DEFAULT+",\n";
+            for (int i = start; i < end; i++)
             {
-                Program.MessageDefs[Program.MessageDefs.Count - 1].Add(lines[i]);
-                SingleType test = KnownStuff.WhatItIs(lines[i]);
-                if (test != null)
-                    Stuff.Enqueue(test);
-            }
-        }
-
-        public override string ToString()
-        {
-            bool wasnull = false;
-            if (fronthalf == null)
-            {
-                wasnull = true;
-                fronthalf = "";
-                backhalf = "";
-                //"\t\tpublic byte[] Serialize()\n\t\t{\n\t\t\treturn SerializationHelper.Serialize<Data>(data);\n\t}\n}\n";
-                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
-                bool hitvariablehole = false;
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
-                    {
-                        hitvariablehole = true;
-                        continue;
-                    }
-                    if (lines[i].Contains("namespace"))
-                    {
-                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
-                        fronthalf += "namespace " + Namespace + "\n";
-                        continue;
-                    }
-                    if (!hitvariablehole)
-                        fronthalf += lines[i] + "\n";
-                    else
-                        backhalf += lines[i] + "\n";
-                }
-            }
-
-            if (memoizedcontent == null)
-            {
-                memoizedcontent = "";
-                while (Stuff.Count > 0)
-                {
-                    SingleType thisthing = Stuff.Dequeue();
-                    dimensions += "\t\t\t" + thisthing.dim;
-                    if (Stuff.Count > 1)
-                    {
-                        dimensions += ",";
-                    }
-                    dimensions += "\n";
-                    if (thisthing.Type == "Header") HasHeader = true;
-                    if (!thisthing.KnownSize) KnownSize = false;
-                    meta |= thisthing.meta;
-                    memoizedcontent += "\t" + thisthing.output + "\n";
-                }
-                Program.ismetas.Add(meta);
-            }
-            if (wasnull)
-            {
-#if CLASS
-                fronthalf += "\tpublic class " + classname + " : TypedMessage<"+classname+".Data>\n\t{"/*+"\n\t\tpublic Data data;"*/+"\n\n\t\t" +
-                             "public  " + classname + "()\n\t\t{ type = TypeEnum." + classname + "; }\n\n\t\t"
-                             + "public " + classname + "(" + classname + ".Data d) : this()\n\t\t{\n" + (HasHeader
-                                                                                                             ? "\t\t\tHasHeader = true;\n"
-                                                                                                             : "\t\t\tHasHeader = false;\n") +
-                             (KnownSize
-                                  ? "\t\t\tKnownSize = true;\n"
-                                  : "\t\t\tKnownSize = false;\n") + "\t\t\tdata = d;\n\t\t}\n" +
-                             "\n\t\tpublic " + classname +
-                             "(byte[] SERIALIZEDSTUFF)\n\t\t\t : this()\n\t\t{\n" + (HasHeader
-                                                                                         ? "\t\t\tHasHeader = true;\n"
-                                                                                         : "\t\t\tHasHeader = false;\n") +
-                             (KnownSize
-                                  ? "\t\t\tKnownSize = true;\n"
-                                  : "\t\t\tKnownSize = false;\n") + "\t\t\tDeserialize(SERIALIZEDSTUFF);\n\t\t}\n\n\t\t" +
-                             "public override void Deserialize(byte[] SERIALIZEDSTUFF)\n\t\t{\n\t\t\tdata = SerializationHelper.Deserialize<Data>(SERIALIZEDSTUFF);\n\t\t}\n";
-#endif
-            }
-            string ret = fronthalf +
-                         //"\n\t\t[StructLayout(LayoutKind.Sequential, Pack = 1)]\n\t\tpublic struct " +
-                         "\n\t\tpublic class " +
-#if CLASS
-                         "Data"+
-#else
-                         classname +
-#endif
-                         "\n\t\t{\n" +
-                         memoizedcontent + "\t\t}" +
-#if CLASS
-                         "\n\t}" +
-#endif
-                         "\n" + backhalf;
-            return ret;
-        }
-
-        public void Write()
-        {
-            Program.types.Add(classname);
-            string ns = Namespace.Replace("Messages.", "");
-            if (ns == "Messages")
-                ns = "";
-            Program.namespaces.Add(ns);
-            string outdir = Program.outputdir;
-            string[] chunks = Name.Split('.');
-            for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
-            if (!Directory.Exists(outdir))
-                Directory.CreateDirectory(outdir);
-            File.WriteAllText(outdir + "\\" + classname + ".cs", ToString());
-        }
-    }
-
-    public static class KnownStuff
-    {
-        public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
-                                                                  {
-                                                                      {"float64", "double"},
-                                                                      {"float32", "double"},
-                                                                      {"uint64", "ulong"},
-                                                                      {"uint32", "uint"},
-                                                                      {"uint16", "ushort"},
-                                                                      {"uint8", "byte"},
-                                                                      {"int64", "long"},
-                                                                      {"int32", "int"},
-                                                                      {"int16", "short"},
-                                                                      {"int8", "sbyte"},
-                                                                      {"byte", "byte"},
-                                                                      {"bool", "bool"},
-                                                                      {"string", "string"},
-                                                                      {"time", "ulong"},
-                                                                      {"duration", "ulong"},
-                                                                      {"char", "char"}
-                                                                  };
-
-        public static SingleType WhatItIs(string s)
-        {
-            string[] pieces = s.Split('/');
-            if (pieces.Length > 1)
-            {
-                s = pieces[pieces.Length - 1];
-            }
-            return WhatItIs(new SingleType(s));
-        }
-
-        public static SingleType WhatItIs(SingleType t)
-        {
-            foreach (KeyValuePair<string, string> test in KnownTypes)
-            {
-                if (t.Test(test))
-                {
-                    t.rostype = t.Type;
-                    return t.Finalize(test);
-                }
-            }
-            return t.Finalize(t.input.Split(' '), false);
-        }
-    }
-
-    public class SingleType
-    {
-        public bool IsArray;
-        public bool KnownSize;
-        public string Name;
-        public string Type;
-        public string input;
-        public string lengths = "";
-        public bool meta;
-        public string output;
-        public string rostype = "";
-        public string dim;
-        public SingleType(string s)
-        {
-            if (s.Contains('[') && s.Contains(']'))
-            {
-                string front = "";
-                string back = "";
-                string[] parts = s.Split('[');
-                front = parts[0];
-                parts = parts[1].Split(']');
-                lengths = parts[0];
-                back = parts[1];
-                IsArray = true;
-                s = front + back;
-            }
-            input = s;
-        }
-
-        public bool Test(KeyValuePair<string, string> candidate)
-        {
-            return (input.Split(' ')[0].ToLower().Equals(candidate.Key));
-        }
-
-        public SingleType Finalize(KeyValuePair<string, string> csharptype)
-        {
-            string[] PARTS = input.Split(' ');
-            rostype = PARTS[0];
-            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
-                meta = true;
-            PARTS[0] = csharptype.Value;
-            return Finalize(PARTS, true);
-        }
-
-        public SingleType Finalize(string[] s, bool knownsize)
-        {
-            bool isconst = false;
-            KnownSize = knownsize;
-            string type = s[0];
-            string name = s[1];
-            string othershit = "";
-            if (name.Contains('='))
-            {
-                string[] parts = name.Split('=');
-                isconst = true;
-                name = parts[0];
-                othershit = " = " + parts[1];
-            }
-            for (int i = 2; i < s.Length; i++)
-                othershit += " " + s[i];
-            if (othershit.Contains('=')) isconst = true;
-            if (!IsArray)
-            {
-                if (othershit.Contains('=') && type == "string")
-                {
-                    othershit = othershit.Replace("\\", "\\\\");
-                    othershit = othershit.Replace("\"", "\\\"");
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = \"" + split[1] + "\"";
-                }
-                if (othershit.Contains('=') && type == "bool")
-                {
-                    othershit = othershit.Replace("0", "false").Replace("1", "true");
-                }
-                if (othershit.Contains('=') && type == "byte")
-                {
-                    othershit = othershit.Replace("-1", "255");
-                }
-                /*if (othershit.Contains('='))
-                {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
-                }*/
-                output = "\t\tpublic " + (isconst ? "const " : "") + /*(KnownSize ? "" : "m.") +*/ type + " " + name + othershit + ";";
-            }
-            else
-            {
-                if (lengths.Length > 0)
-                {
-                    KnownSize = true;
-                    string commas = "";
-                    for (int i = 0; i < lengths.Count((c) => c == ','); i++) commas += ",";
-                    output = "\t\tpublic " + type + "[" + commas + "] " + name+" = new "+type+"["+lengths+"];";
-                }
+                if (genVal != null)
+                    appendto += string.Format("\t\t\t{{{0}, {1}}}{2}", genKey(i), genVal(i), (i < end - 1 ? ",\n" : ""));
                 else
-                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
-                if (othershit.Contains('='))
-                {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
-                }
+                    appendto += string.Format("\t\t\t{{{0}}}{1}", genKey(i), (i < end - 1 ? ",\n" : ""));
             }
-            Type = type;
-            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
-                meta = true;
-            if (name.Length == 0)
-                Name = othershit.Trim();
-            else
-                Name = name;
-            dim = "{ " +Name+", new Dimension(\""+lengths+"\"}";
-            return this;
+            appendto += "\n\t\t};";
         }
     }
 }
