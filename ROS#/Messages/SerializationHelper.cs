@@ -189,6 +189,7 @@ namespace Messages
         public TypedMessage()
             : base((MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
                    TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition,
+                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].HasHeader,
                    TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType)
         {
         }
@@ -198,6 +199,7 @@ namespace Messages
             data = d;
             base.type = (MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
             base.MessageDefinition = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition;
+            base.HasHeader = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].HasHeader;
             base.IsMeta = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType;
         }
 
@@ -221,7 +223,6 @@ namespace Messages
     {
         public bool HasHeader;
         public bool IsMeta;
-        public bool KnownSize = true;
 
         public string MessageDefinition;
 
@@ -230,14 +231,15 @@ namespace Messages
         public MsgTypes type;
 
         public IRosMessage()
-            : this(MsgTypes.Unknown, "", false)
+            : this(MsgTypes.Unknown, "", false, false)
         {
         }
 
-        public IRosMessage(MsgTypes t, string def, bool meta)
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta)
         {
             type = t;
             MessageDefinition = def;
+            HasHeader = hasheader;
             IsMeta = meta;
         }
 
