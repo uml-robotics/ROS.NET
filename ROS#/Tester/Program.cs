@@ -58,13 +58,13 @@ namespace ConsoleApplication1
                          int count = 0;
                          while (ROS.ok)
                          {
-                             ROS.Info("ERIC RULZ! " + (count++));
+                             ROS.Info("ERIC RULZ! 8");
                              Thread.Sleep(1000);
                          }
                      }).Start();
             while (ROS.ok)
             {
-                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}};
+                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, fuckass = "FUCKASS", fuckasses = new[]{"FUCKASS1","FUCKASS2"}};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 pub.publish(test);

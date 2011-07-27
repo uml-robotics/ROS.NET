@@ -76,7 +76,7 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), (info.GetValue(Activator.CreateInstance(T)) != null));
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count == 0 || TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(string));
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }

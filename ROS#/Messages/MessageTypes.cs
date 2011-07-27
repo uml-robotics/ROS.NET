@@ -19,10 +19,14 @@ namespace Messages
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
 		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
 @"int32[2] integers
-int32[] lengthlessintegers",
+int32[] lengthlessintegers
+string fuckass
+string[] fuckasses",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
-					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)}
+					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
+					{"fuckass", new MsgFieldInfo("fuckass", true, typeof(string), false, "", false, "", false)},
+					{"fuckasses", new MsgFieldInfo("fuckasses", true, typeof(string), false, "", true, "", false)}
 			})},
 			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x
