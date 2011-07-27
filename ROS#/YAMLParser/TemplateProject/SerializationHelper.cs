@@ -476,9 +476,9 @@ namespace Messages
                                                                       {"byte", "byte"},
                                                                       {"bool", "bool"},
                                                                       {"string", "string"},
-                                                                      {"time", "ulong"},
-                                                                      {"duration", "ulong"},
-                                                                      {"char", "char"}
+                                                                      {"char", "char"},
+                                                                      {"time", "Time"},
+                                                                      {"duration", "Duration"}
                                                                   };
 
         public static SingleType WhatItIs(string s)

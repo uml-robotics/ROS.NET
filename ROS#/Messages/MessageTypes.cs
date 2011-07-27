@@ -215,7 +215,7 @@ uint32 width
 uint32 height
 geometry_msgs/Pose origin",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"map_load_time", new MsgFieldInfo("map_load_time", true, typeof(ulong), false, "", false, "", false)},
+					{"map_load_time", new MsgFieldInfo("map_load_time", true, typeof(Time), false, "", false, "", false)},
 					{"resolution", new MsgFieldInfo("resolution", true, typeof(double), false, "", false, "", false)},
 					{"width", new MsgFieldInfo("width", true, typeof(uint), false, "", false, "", false)},
 					{"height", new MsgFieldInfo("height", true, typeof(uint), false, "", false, "", false)},
@@ -379,7 +379,7 @@ time stamp
 string frame_id",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"seq", new MsgFieldInfo("seq", true, typeof(uint), false, "", false, "", false)},
-					{"stamp", new MsgFieldInfo("stamp", true, typeof(ulong), false, "", false, "", false)},
+					{"stamp", new MsgFieldInfo("stamp", true, typeof(Time), false, "", false, "", false)},
 					{"frame_id", new MsgFieldInfo("frame_id", true, typeof(string), false, "", false, "", false)}
 			})},
 			{MsgTypes.std_msgs__Int16, new TypeInfo(typeof(TypedMessage<std_msgs.Int16>), false, false,

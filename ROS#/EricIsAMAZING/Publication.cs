@@ -246,8 +246,19 @@ namespace EricIsAMAZING
             if (HasHeader)
             {
                 object val = msg.GetType().GetField("data").GetValue(msg);
-                object header = val.GetType().GetField("header").GetValue(val);
-                header.GetType().GetField("seq").SetValue(header, seq);
+                object h = val.GetType().GetField("header").GetValue(val);
+                m.Header header = null;
+                if (h == null)
+                    h = (header = new m.Header());
+                else
+                    header = (m.Header)h;
+                header.seq = seq;
+                TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
+                uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
+                m.Time stamp = new m.Time{ data = ((ulong)(((seconds << 32) | (((uint)Math.Floor((timestamp.TotalSeconds - seconds))  << 32) & 0xFFFFFFFF))))};
+                header.stamp = stamp;
+                val.GetType().GetField("header").SetValue(val, (h = header));
+                msg.GetType().GetField("data").SetValue(msg, val);
                 /*byte[] stuff = msg.Serialize();
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);

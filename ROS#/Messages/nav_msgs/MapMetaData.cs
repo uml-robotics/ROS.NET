@@ -14,7 +14,7 @@ namespace Messages.nav_msgs
 
 		public class MapMetaData
 		{
-			public ulong map_load_time;
+			public Time map_load_time;
 			public double resolution;
 			public uint width;
 			public uint height;
