@@ -18,6 +18,7 @@ namespace ConsoleApplication1
     public class Program
     {
         private const string ROS_MASTER_URI = "http://robot-lab8:11311/";
+        //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 
         public static WrapperTest.balls BALLS;
@@ -32,7 +33,7 @@ namespace ConsoleApplication1
 
         public static void chatterCallback(TypedMessage<String> msg)
         {
-            Console.WriteLine("HOLY FUCKSTICK!");
+            Console.WriteLine("CALLBACK ZOMG!!");
         }
 
         private static void Main(string[] args)
@@ -51,8 +52,7 @@ namespace ConsoleApplication1
             //NodeHandle nh2 = new NodeHandle();
             Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
             //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
-            string concatme = "HOLY FUCKSTICK!";
-            new Thread
+            /*new Thread
                 (() =>
                      {
                          int count = 0;
@@ -61,10 +61,10 @@ namespace ConsoleApplication1
                              ROS.Info("ERIC RULZ! 8");
                              Thread.Sleep(1000);
                          }
-                     }).Start();
+                     }).Start();*/
             while (ROS.ok)
             {
-                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, fuckass = "FUCKASS", fuckasses = new[]{"FUCKASS1","FUCKASS2"}};
+                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 pub.publish(test);

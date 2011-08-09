@@ -16,7 +16,5 @@ namespace Messages.custom_msgs
 		{
 			public int[] integers = new int[2];
 			public int[] lengthlessintegers;
-			public string fuckass;
-			public string[] fuckasses;
 		}
 }
