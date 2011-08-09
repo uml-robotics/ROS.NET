@@ -79,7 +79,7 @@ namespace Messages
                 if (info.Name.Contains("(")) continue;
 
                 bool knownlength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
-                knownlength = knownlength && !(TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(String));
+                //knownlength = knownlength && !(TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(String));
                 byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), knownlength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
@@ -120,11 +120,12 @@ namespace Messages
                 {
                     if (val == null)
                         val = "";
-                    byte[] nolen = Encoding.ASCII.GetBytes((string) val);
+                    /*byte[] nolen = Encoding.ASCII.GetBytes((string) val);
                     thischunk = new byte[nolen.Length + 4];
                     byte[] bylen2 = BitConverter.GetBytes(nolen.Length);
                     Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
-                    Array.Copy(bylen2, thischunk, 4);
+                    Array.Copy(bylen2, thischunk, 4);*/
+                    thischunk = Encoding.ASCII.GetBytes((string)val);
                 }
                 else
                 {
@@ -162,7 +163,7 @@ namespace Messages
                     Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
 #else
                     MsgTypes mt = GetMessageType(TT);
-                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof (string));
+                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof (String));
                     byte[] chunk = NeedsMoreChunks(TT, vals[i], piecelengthknown);
 #endif
                     arraychunks.Enqueue(chunk);

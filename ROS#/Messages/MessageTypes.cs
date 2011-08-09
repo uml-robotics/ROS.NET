@@ -21,11 +21,13 @@ namespace Messages
 		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
 @"int32[2] integers
 int32[] lengthlessintegers
-string teststring",
+string teststring
+string[2] teststringarray",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
 					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
-					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)}
+					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)},
+					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)}
 			})},
 			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x

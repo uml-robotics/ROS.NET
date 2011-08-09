@@ -67,6 +67,8 @@ namespace ConsoleApplication1
                 arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX")};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
+                test.teststringarray[0] = new String("string 1");
+                test.teststringarray[1] = new String("string 2");
                 pub.publish(test);
                 //pub.publish(new String { data = concatme });
                 //ROS.Log("HOLY FUCKSTICK");
