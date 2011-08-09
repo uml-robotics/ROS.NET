@@ -19,5 +19,6 @@ namespace Messages.custom_msgs
 			public int[] lengthlessintegers;
 			public String teststring;
 			public String[] teststringarray = new String[2];
+			public String[] teststringarraylengthless;
 		}
 }

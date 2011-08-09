@@ -64,7 +64,7 @@ namespace ConsoleApplication1
                      }).Start();*/
             while (ROS.ok)
             {
-                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX")};
+                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new []{new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3")}};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 test.teststringarray[0] = new String("string 1");
