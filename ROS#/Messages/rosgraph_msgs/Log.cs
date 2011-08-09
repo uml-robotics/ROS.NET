@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.rosgraph_msgs
 {
@@ -21,11 +22,11 @@ namespace Messages.rosgraph_msgs
 			public const byte FATAL = 16;
 			public Header header;
 			public byte level;
-			public string name;
-			public string msg;
-			public string file;
-			public string function;
+			public String name;
+			public String msg;
+			public String file;
+			public String function;
 			public uint line;
-			public string[] topics;
+			public String[] topics;
 		}
 }

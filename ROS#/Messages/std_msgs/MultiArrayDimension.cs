@@ -8,13 +8,14 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.std_msgs
 {
 
 		public class MultiArrayDimension
 		{
-			public string label;
+			public String label;
 			public uint size;
 			public uint stride;
 		}

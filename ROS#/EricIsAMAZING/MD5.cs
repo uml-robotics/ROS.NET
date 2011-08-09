@@ -26,12 +26,24 @@ namespace EricIsAMAZING
                 FieldInfo[] fields = t.GetFields();
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    if (!fields[i].FieldType.Namespace.Contains("Messages")) continue;
-                    Console.WriteLine("\t" + fields[i].FieldType.FullName);
-                    MsgTypes T = (MsgTypes) Enum.Parse(typeof (MsgTypes), fields[i].FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
+                    Type FieldType = fields[i].FieldType;
+                    if (!FieldType.Namespace.Contains("Messages")) continue;
+                    Console.WriteLine("\t" + FieldType.FullName);
+                    while (FieldType.IsArray || FieldType.Name.Contains("["))
+                    {
+                        object[] o;
+                        if (FieldType.Name.Contains("String"))
+                            FieldType = typeof(Messages.std_msgs.String);
+                        else
+                        {
+                            o = (object[])Activator.CreateInstance(FieldType);
+                            FieldType = o.GetType();
+                        }
+                    }
+                    MsgTypes T = (MsgTypes)Enum.Parse(typeof(MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
                     if (!TypeHelper.TypeInformation.ContainsKey(T))
                         throw new Exception("SOME SHIT BE FUCKED!");
-                    hashme = hashme.Replace(fields[i].FieldType.Name, Sum(T));
+                    hashme = hashme.Replace(FieldType.Name, Sum(T));
                 }
                 Console.WriteLine("Substituted sub-metatype sums?:\n" + hashme + "\n\n");
                 return Sum(hashme);

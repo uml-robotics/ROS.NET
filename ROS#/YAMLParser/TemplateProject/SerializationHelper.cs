@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using String=Messages.std_msgs.String;
 
 #endregion
 
@@ -76,7 +77,10 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count == 0 || TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(string));
+
+                bool knownlength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
+                knownlength = knownlength && !(TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(String));
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), knownlength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -389,6 +393,8 @@ namespace Messages
             for (int i = 0; i < lines.Count; i++)
             {
                 def.Add(lines[i]);
+                if (Name.ToLower() == "string")
+                    lines[i].Replace("String", "string");
                 SingleType test = KnownStuff.WhatItIs(lines[i]);
                 if (test != null)
                     Stuff.Add(test);
@@ -414,7 +420,7 @@ namespace Messages
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                        fronthalf += "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -432,8 +438,18 @@ namespace Messages
                 {
                     SingleType thisthing = Stuff[i];
                     if (thisthing.Type == "Header") HasHeader = true;
+                    if (classname == "String")
+                    {
+                        thisthing.input = thisthing.input.Replace("String", "string");
+                        thisthing.Type = thisthing.Type.Replace("String", "string");
+                        thisthing.output = thisthing.output.Replace("String", "string");
+                    }
                     meta |= thisthing.meta;
                     memoizedcontent += "\t" + thisthing.output + "\n";
+                }
+                if (classname.ToLower() == "string")
+                {
+                    memoizedcontent += "\n\n\t\t\tpublic String(string s){ data = s; }\n\t\t\tpublic String(){ data = \"\"; }\n\n";
                 }
                 string ns = Namespace.Replace("Messages.", "");
                 if (ns == "Messages")
@@ -475,9 +491,9 @@ namespace Messages
                                                                       {"int8", "sbyte"},
                                                                       {"byte", "byte"},
                                                                       {"bool", "bool"},
-                                                                      {"string", "string"},
                                                                       {"char", "char"},
                                                                       {"time", "Time"},
+                                                                      {"string", "String"},
                                                                       {"duration", "Duration"}
                                                                   };
 

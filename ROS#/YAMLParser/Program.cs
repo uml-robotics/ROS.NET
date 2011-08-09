@@ -195,7 +195,7 @@ namespace YAMLParser
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n";
+                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }

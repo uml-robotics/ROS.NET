@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.std_msgs
 {
@@ -16,6 +17,6 @@ namespace Messages.std_msgs
 		{
 			public uint seq;
 			public Time stamp;
-			public string frame_id;
+			public String frame_id;
 		}
 }

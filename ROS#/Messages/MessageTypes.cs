@@ -11,6 +11,7 @@ using Messages.rosgraph_msgs;
 using Messages.custom_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages
 {
@@ -19,10 +20,12 @@ namespace Messages
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
 		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
 @"int32[2] integers
-int32[] lengthlessintegers",
+int32[] lengthlessintegers
+string teststring",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
-					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)}
+					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
+					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)}
 			})},
 			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x
@@ -136,7 +139,7 @@ string child_frame_id
 Transform transform",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
-					{"child_frame_id", new MsgFieldInfo("child_frame_id", true, typeof(string), false, "", false, "", false)},
+					{"child_frame_id", new MsgFieldInfo("child_frame_id", true, typeof(String), false, "", false, "", false)},
 					{"transform", new MsgFieldInfo("transform", false, typeof(TypedMessage<Transform>), false, "", false, "", true)}
 			})},
 			{MsgTypes.geometry_msgs__Twist, new TypeInfo(typeof(TypedMessage<geometry_msgs.Twist>), false, true,
@@ -237,7 +240,7 @@ geometry_msgs/PoseWithCovariance pose
 geometry_msgs/TwistWithCovariance twist",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
-					{"child_frame_id", new MsgFieldInfo("child_frame_id", true, typeof(string), false, "", false, "", false)},
+					{"child_frame_id", new MsgFieldInfo("child_frame_id", true, typeof(String), false, "", false, "", false)},
 					{"pose", new MsgFieldInfo("pose", false, typeof(TypedMessage<PoseWithCovariance>), false, "", false, "", true)},
 					{"twist", new MsgFieldInfo("twist", false, typeof(TypedMessage<TwistWithCovariance>), false, "", false, "", true)}
 			})},
@@ -270,12 +273,12 @@ string[] topics",
 					{"FATAL", new MsgFieldInfo("FATAL", true, typeof(byte), true, "16", false, "", false)},
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
 					{"level", new MsgFieldInfo("level", true, typeof(byte), false, "", false, "", false)},
-					{"name", new MsgFieldInfo("name", true, typeof(string), false, "", false, "", false)},
-					{"msg", new MsgFieldInfo("msg", true, typeof(string), false, "", false, "", false)},
-					{"file", new MsgFieldInfo("file", true, typeof(string), false, "", false, "", false)},
-					{"function", new MsgFieldInfo("function", true, typeof(string), false, "", false, "", false)},
+					{"name", new MsgFieldInfo("name", true, typeof(String), false, "", false, "", false)},
+					{"msg", new MsgFieldInfo("msg", true, typeof(String), false, "", false, "", false)},
+					{"file", new MsgFieldInfo("file", true, typeof(String), false, "", false, "", false)},
+					{"function", new MsgFieldInfo("function", true, typeof(String), false, "", false, "", false)},
 					{"line", new MsgFieldInfo("line", true, typeof(uint), false, "", false, "", false)},
-					{"topics", new MsgFieldInfo("topics", true, typeof(string), false, "", true, "", false)}
+					{"topics", new MsgFieldInfo("topics", true, typeof(String), false, "", true, "", false)}
 			})},
 			{MsgTypes.std_msgs__Bool, new TypeInfo(typeof(TypedMessage<std_msgs.Bool>), false, false,
 @"bool data",
@@ -332,12 +335,12 @@ string[] topics",
 					{"FATAL", new MsgFieldInfo("FATAL", true, typeof(byte), true, "16", false, "", false)},
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
 					{"level", new MsgFieldInfo("level", true, typeof(byte), false, "", false, "", false)},
-					{"name", new MsgFieldInfo("name", true, typeof(string), false, "", false, "", false)},
-					{"msg", new MsgFieldInfo("msg", true, typeof(string), false, "", false, "", false)},
-					{"file", new MsgFieldInfo("file", true, typeof(string), false, "", false, "", false)},
-					{"function", new MsgFieldInfo("function", true, typeof(string), false, "", false, "", false)},
+					{"name", new MsgFieldInfo("name", true, typeof(String), false, "", false, "", false)},
+					{"msg", new MsgFieldInfo("msg", true, typeof(String), false, "", false, "", false)},
+					{"file", new MsgFieldInfo("file", true, typeof(String), false, "", false, "", false)},
+					{"function", new MsgFieldInfo("function", true, typeof(String), false, "", false, "", false)},
 					{"line", new MsgFieldInfo("line", true, typeof(uint), false, "", false, "", false)},
-					{"topics", new MsgFieldInfo("topics", true, typeof(string), false, "", true, "", false)}
+					{"topics", new MsgFieldInfo("topics", true, typeof(String), false, "", true, "", false)}
 			})},
 			{MsgTypes.std_msgs__Duration, new TypeInfo(typeof(TypedMessage<std_msgs.Duration>), false, false,
 @"uint64 data",
@@ -380,7 +383,7 @@ string frame_id",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"seq", new MsgFieldInfo("seq", true, typeof(uint), false, "", false, "", false)},
 					{"stamp", new MsgFieldInfo("stamp", true, typeof(Time), false, "", false, "", false)},
-					{"frame_id", new MsgFieldInfo("frame_id", true, typeof(string), false, "", false, "", false)}
+					{"frame_id", new MsgFieldInfo("frame_id", true, typeof(String), false, "", false, "", false)}
 			})},
 			{MsgTypes.std_msgs__Int16, new TypeInfo(typeof(TypedMessage<std_msgs.Int16>), false, false,
 @"int16 data",
@@ -435,7 +438,7 @@ int8[]            data",
 uint32 size
 uint32 stride",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"label", new MsgFieldInfo("label", true, typeof(string), false, "", false, "", false)},
+					{"label", new MsgFieldInfo("label", true, typeof(String), false, "", false, "", false)},
 					{"size", new MsgFieldInfo("size", true, typeof(uint), false, "", false, "", false)},
 					{"stride", new MsgFieldInfo("stride", true, typeof(uint), false, "", false, "", false)}
 			})},

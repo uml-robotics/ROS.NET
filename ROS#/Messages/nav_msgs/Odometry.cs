@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.nav_msgs
 {
@@ -15,7 +16,7 @@ namespace Messages.nav_msgs
 		public class Odometry
 		{
 			public Header header;
-			public string child_frame_id;
+			public String child_frame_id;
 			public PoseWithCovariance pose;
 			public TwistWithCovariance twist;
 		}

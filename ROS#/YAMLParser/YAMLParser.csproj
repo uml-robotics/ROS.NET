@@ -51,6 +51,7 @@
     <Compile Include="TemplateProject\SerializationHelper.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="TemplateProject\String.cs" />
     <Content Include="TemplateProject\PlaceHolder._cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

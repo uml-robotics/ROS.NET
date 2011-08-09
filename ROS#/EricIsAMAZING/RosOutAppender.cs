@@ -42,13 +42,16 @@ namespace EricIsAMAZING
         public void Append(string m)
         {
             Log l = new Log();
-            l.msg = m;
+            l.msg = new m.String(m);
             l.level = 8;
-            l.name = this_node.Name;
-            l.file = "*.cs";
-            l.function = "main";
+            l.name = new m.String(this_node.Name);
+            l.file = new m.String("*.cs");
+            l.function = new m.String("main");
             l.line = 28;
-            l.topics = this_node.AdvertisedTopics().ToArray();
+            string[] advert = this_node.AdvertisedTopics().ToArray();
+            l.topics = new m.String[advert.Length];
+            for (int i = 0; i < advert.Length; i++)
+                l.topics[i] = new m.String(advert[i]);
             TypedMessage<Log> MSG = new TypedMessage<Log>(l);
             lock (queue_mutex)
                 log_queue.Enqueue(MSG);

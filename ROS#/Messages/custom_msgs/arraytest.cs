@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.custom_msgs
 {
@@ -16,5 +17,6 @@ namespace Messages.custom_msgs
 		{
 			public int[] integers = new int[2];
 			public int[] lengthlessintegers;
+			public String teststring;
 		}
 }

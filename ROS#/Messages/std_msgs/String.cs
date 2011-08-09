@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Messages.std_msgs;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.std_msgs
 {
@@ -15,5 +16,10 @@ namespace Messages.std_msgs
 		public class String
 		{
 			public string data;
+
+
+			public String(string s){ data = s; }
+			public String(){ data = ""; }
+
 		}
 }
