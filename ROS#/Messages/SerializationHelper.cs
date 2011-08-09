@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using String=Messages.std_msgs.String;
+using String = Messages.std_msgs.String;
 
 #endregion
 
@@ -24,12 +24,12 @@ namespace Messages
         public static MsgTypes GetMessageType(string s)
         {
             if (!s.Contains("Messages")) return MsgTypes.Unknown;
-            return (MsgTypes) Enum.Parse(typeof (MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
+            return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
         }
 
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
-            return new TypedMessage<T>((T) deserialize(typeof (T), bytes, true));
+            return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
 
         public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
@@ -77,10 +77,9 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-
-                bool knownlength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
-                //knownlength = knownlength && !(TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type == typeof(String));
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), knownlength);
+                if (TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsConst) continue;
+                bool needslength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref needslength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -102,7 +101,7 @@ namespace Messages
             return wholeshebang;
         }
 
-        public static byte[] NeedsMoreChunks(Type T, object val, bool knownlength)
+        public static byte[] NeedsMoreChunks(Type T, object val, ref bool knownlength)
         {
             byte[] thischunk = null;
             if (!T.IsArray)
@@ -111,12 +110,12 @@ namespace Messages
                 {
                     IRosMessage msg = null;
                     if (val != null)
-                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T), val);
+                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
                     else
-                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T));
+                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
                     thischunk = msg.Serialize();
                 }
-                else if (val is string || T == typeof (string))
+                else if (val is string || T == typeof(string))
                 {
                     if (val == null)
                         val = "";
@@ -125,6 +124,7 @@ namespace Messages
                     byte[] bylen2 = BitConverter.GetBytes(nolen.Length);
                     Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
                     Array.Copy(bylen2, thischunk, 4);*/
+                    knownlength = false;
                     thischunk = Encoding.ASCII.GetBytes((string)val);
                 }
                 else
@@ -144,6 +144,7 @@ namespace Messages
             }
             else
             {
+                bool oldknownlength = knownlength;
                 int arraylength = 0;
                 List<object> valslist = new List<object>();
                 foreach (object o in (val as Array))
@@ -155,27 +156,20 @@ namespace Messages
                 for (int i = 0; i < vals.Length; i++)
                 {
                     Type TT = vals[i].GetType();
-#if arraypiecesneedlengthtoo
-                    byte[] chunkwithoutlen = NeedsMoreChunks(TT, vals[i]);
-                    byte[] chunklen = BitConverter.GetBytes(chunkwithoutlen.Length);
-                    byte[] chunk = new byte[chunkwithoutlen.Length + 4];
-                    Array.Copy(chunklen, 0, chunk, 0, 4);
-                    Array.Copy(chunkwithoutlen, 0, chunk, 4, chunkwithoutlen.Length);
-#else
                     MsgTypes mt = GetMessageType(TT);
-                    bool piecelengthknown = (mt == MsgTypes.Unknown && TT != typeof (String));
-                    byte[] chunk = NeedsMoreChunks(TT, vals[i], piecelengthknown);
-#endif
+                    bool piecelengthknown = mt != MsgTypes.std_msgs__String;
+                    byte[] chunk = NeedsMoreChunks(TT, vals[i], ref piecelengthknown);
+                    knownlength = piecelengthknown;
                     arraychunks.Enqueue(chunk);
                     arraylength += chunk.Length;
                 }
-                thischunk = new byte[knownlength ? arraylength : (arraylength + 4)];
-                if (!knownlength)
+                thischunk = new byte[oldknownlength ? arraylength : (arraylength + 4)];
+                if (!oldknownlength)
                 {
                     byte[] bylen = BitConverter.GetBytes(vals.Length);
                     Array.Copy(bylen, 0, thischunk, 0, 4);
                 }
-                int arraypos = knownlength ? 0 : 4;
+                int arraypos = oldknownlength ? 0 : 4;
                 while (arraychunks.Count > 0)
                 {
                     byte[] chunk = arraychunks.Dequeue();
@@ -192,20 +186,20 @@ namespace Messages
         public M data = new M();
 
         public TypedMessage()
-            : base((MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
-                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition,
-                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].HasHeader,
-                   TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType)
+            : base((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")),
+                   TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition,
+                   TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].HasHeader,
+                   TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType)
         {
         }
 
         public TypedMessage(M d)
         {
             data = d;
-            base.type = (MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
-            base.MessageDefinition = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition;
+            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
+            base.MessageDefinition = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].MessageDefinition;
             base.HasHeader = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].HasHeader;
-            base.IsMeta = TypeHelper.TypeInformation[(MsgTypes) Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType;
+            base.IsMeta = TypeHelper.TypeInformation[(MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].IsMetaType;
         }
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
@@ -346,7 +340,7 @@ namespace Messages
                  members.ConstValue,
                  members.IsArray.ToString().ToLower(),
                  members.lengths,
-                 //FIX MEEEEEEEE
+                //FIX MEEEEEEEE
                  members.meta.ToString().ToLower());
         }
     }

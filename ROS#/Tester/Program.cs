@@ -58,7 +58,7 @@ namespace ConsoleApplication1
                          int count = 0;
                          while (ROS.ok)
                          {
-                             ROS.Info("ERIC RULZ! 8");
+                             ROS.Info("ERIC RULZ! "+(count++));
                              Thread.Sleep(1000);
                          }
                      }).Start();*/
