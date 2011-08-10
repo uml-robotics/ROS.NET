@@ -120,7 +120,8 @@ namespace EricIsAMAZING
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response[1].Get<string>();
             if (status_code != 1)
-                return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string, response);
+                return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string,
+                                      response);
             payload = response[2];
             return true;
         }
@@ -200,7 +201,13 @@ namespace EricIsAMAZING
             {
                 if (functions.ContainsKey(function_name))
                     return false;
-                functions.Add(function_name, new FunctionInfo {name = function_name, function = cb, wrapper = new XMLRPCCallWrapper(function_name, cb, server)});
+                functions.Add(function_name,
+                              new FunctionInfo
+                                  {
+                                      name = function_name,
+                                      function = cb,
+                                      wrapper = new XMLRPCCallWrapper(function_name, cb, server)
+                                  });
             }
             return true;
         }

@@ -253,9 +253,12 @@ namespace YAMLParser
         }
 
         public static void GenDict
-            (string dictname, string keytype, string valuetype, ref string appendto, int start, int end, Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT = null)
+            (string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
+             Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT = null)
         {
-            appendto += string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{", dictname, keytype, valuetype);
+            appendto +=
+                string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{",
+                              dictname, keytype, valuetype);
             if (DEFAULT != null)
                 appendto += "\n\t\t\t{" + DEFAULT + ",\n";
             for (int i = start; i < end; i++)

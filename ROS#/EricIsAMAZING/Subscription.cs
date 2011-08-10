@@ -16,7 +16,10 @@ namespace EricIsAMAZING
     public class Subscription
     {
         private bool _dropped;
-        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers = new Dictionary<MsgTypes, IMessageDeserializer>();
+
+        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers =
+            new Dictionary<MsgTypes, IMessageDeserializer>();
+
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         public string datatype = "";
@@ -238,7 +241,8 @@ namespace EricIsAMAZING
                     if (link.XmlRpc_Uri != XmlRpcManager.Instance.uri)
                     {
 #if DEBUG
-                        Console.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name + "] at [" + link.XmlRpc_Uri + "]");
+                        Console.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
+                                          "] at [" + link.XmlRpc_Uri + "]");
                         link.drop();
 #endif
                     }
@@ -280,7 +284,8 @@ namespace EricIsAMAZING
             XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
             if (!c.ExecuteNonBlock("requestTopic", Params))
             {
-                Console.WriteLine("Failed to contact publisher [" + peer_host + ":" + peer_port + "] for topic [" + name + "]");
+                Console.WriteLine("Failed to contact publisher [" + peer_host + ":" + peer_port + "] for topic [" + name +
+                                  "]");
                 c.Dispose();
                 return false;
             }
@@ -321,7 +326,8 @@ namespace EricIsAMAZING
             if (proto.Size == 0)
             {
 #if DEBUG
-                Console.WriteLine("Coudsn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name + "]");
+                Console.WriteLine("Coudsn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name +
+                                  "]");
 #endif
                 return;
             }
@@ -346,7 +352,8 @@ namespace EricIsAMAZING
                 string pub_host = proto[1].Get<string>();
                 int pub_port = proto[2].Get<int>();
 #if DEBUG
-                Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port + "]");
+                Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port +
+                                  "]");
 #endif
 
                 TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set);
@@ -367,12 +374,14 @@ namespace EricIsAMAZING
 
 
 #if DEBUG
-                    Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
+                    Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port +
+                                      "]");
 #endif
                 }
                 else
                 {
-                    Console.WriteLine("Failed to connect to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port + "]");
+                    Console.WriteLine("Failed to connect to publisher of topic [" + name + "] at  [" + pub_host + ":" +
+                                      pub_port + "]");
                 }
             }
             else
@@ -391,7 +400,8 @@ namespace EricIsAMAZING
             }
         }
 
-        internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header, TransportPublisherLink link)
+        internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header,
+                                     TransportPublisherLink link)
         {
             Console.WriteLine("Subscription: handleMessage");
             lock (callbacks_mutex)
@@ -416,7 +426,8 @@ namespace EricIsAMAZING
                         bool nonconst_need_copy = false;
                         if (callbacks.Count > 1)
                             nonconst_need_copy = true;
-                        info.subscription_queue.push(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+                        info.subscription_queue.push(info.helper, deserializer, nonconst_need_copy, ref was_full,
+                                                     receipt_time);
                         if (was_full)
                             ++drops;
                         else
@@ -426,7 +437,13 @@ namespace EricIsAMAZING
 
                 if (link.Latched)
                 {
-                    LatchInfo li = new LatchInfo {message = msg, link = link, connection_header = connection_header, receipt_time = receipt_time};
+                    LatchInfo li = new LatchInfo
+                                       {
+                                           message = msg,
+                                           link = link,
+                                           connection_header = connection_header,
+                                           receipt_time = receipt_time
+                                       };
                     if (latched_messages.ContainsKey(link))
                         latched_messages[link] = li;
                     else
@@ -442,7 +459,11 @@ namespace EricIsAMAZING
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
-            return (IMessageDeserializer) Activator.CreateInstance(typeof (MessageDeserializer<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+            return
+                (IMessageDeserializer)
+                Activator.CreateInstance(
+                    typeof (MessageDeserializer<>).MakeGenericType(
+                        TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
         }
 
         public void Dispose()
@@ -450,7 +471,8 @@ namespace EricIsAMAZING
             shutdown();
         }
 
-        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue, int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()
+        internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue,
+                                     int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -484,9 +506,11 @@ namespace EricIsAMAZING
                                 if (latched_messages.ContainsKey(link))
                                 {
                                     LatchInfo latch_info = latched_messages[link];
-                                    IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message, latch_info.connection_header);
+                                    IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
+                                                                                        latch_info.connection_header);
                                     bool was_full = false;
-                                    info.subscription_queue.push(info.helper, des, true, ref was_full, latch_info.receipt_time);
+                                    info.subscription_queue.push(info.helper, des, true, ref was_full,
+                                                                 latch_info.receipt_time);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }

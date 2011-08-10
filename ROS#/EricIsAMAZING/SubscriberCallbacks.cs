@@ -17,7 +17,8 @@ namespace EricIsAMAZING
         {
         }
 
-        public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB, CallbackQueueInterface Callback)
+        public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB,
+                                   CallbackQueueInterface Callback)
         {
             __uid = _uid++;
             connect = connectCB;

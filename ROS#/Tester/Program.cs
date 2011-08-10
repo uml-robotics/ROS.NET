@@ -5,7 +5,9 @@ using System.Threading;
 using EricIsAMAZING;
 using Messages;
 using Messages.custom_msgs;
+using Messages.std_msgs;
 using XmlRpc_Wrapper;
+using Header = Messages.std_msgs.Header;
 using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -51,8 +53,8 @@ namespace ConsoleApplication1
             NodeHandle nh = new NodeHandle();
             //NodeHandle nh2 = new NodeHandle();
             Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
-            Publisher<m.Header> pub2 = nh.advertise<m.Header>("headertest", 1000);
-            Publisher<m.Time> pub3 = nh.advertise<m.Time>("timetest", 1000);
+            Publisher<Header> pub2 = nh.advertise<Header>("headertest", 1000);
+            Publisher<Time> pub3 = nh.advertise<Time>("timetest", 1000);
             //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             while (ROS.ok)
             {
@@ -62,10 +64,10 @@ namespace ConsoleApplication1
                 test.teststringarray[0] = new String("string 1");
                 test.teststringarray[1] = new String("string 2");
                 pub.publish(test);*/
-            //    ROS.Info("ERIC RULZ! 8");
+                //    ROS.Info("ERIC RULZ! 8");
                 /*m.Header ht = new m.Header { seq = 0, frame_id = new m.String(""), stamp = new m.Time() };
                 pub2.publish(ht);*/
-                m.Time t = new m.Time { data = 0 };
+                Time t = new Time {data = 0};
                 pub3.publish(t);
                 ROS.spinOnce();
                 Thread.Sleep(1000);

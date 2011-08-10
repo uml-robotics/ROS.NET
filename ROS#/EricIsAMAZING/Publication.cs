@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Messages;
 using XmlRpc_Wrapper;
+using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -32,7 +33,8 @@ namespace EricIsAMAZING
         public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
         public object subscriber_links_mutex = new object();
 
-        public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue, bool latch, bool has_header)
+        public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue,
+                           bool latch, bool has_header)
         {
             Name = name;
             DataType = datatype;
@@ -149,7 +151,8 @@ namespace EricIsAMAZING
         public bool validateHeader(Header header, ref string error_message)
         {
             string md5sum = "", topic = "", client_callerid = "";
-            if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") || !header.Values.Contains("callerid"))
+            if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") ||
+                !header.Values.Contains("callerid"))
             {
                 string msg = "Header from subscriber did not have the required elements: md5sum, topic, callerid";
                 Console.WriteLine(msg);
@@ -161,7 +164,8 @@ namespace EricIsAMAZING
             client_callerid = (string) header.Values["callerid"];
             if (Dropped)
             {
-                string msg = "received a tcpros connection for a nonexistent topic [" + topic + "] from [" + client_callerid + "].";
+                string msg = "received a tcpros connection for a nonexistent topic [" + topic + "] from [" +
+                             client_callerid + "].";
                 Console.WriteLine(msg);
                 error_message = msg;
                 return false;
@@ -170,7 +174,8 @@ namespace EricIsAMAZING
             if (Md5sum != md5sum && (md5sum != "*") && Md5sum != "*")
             {
                 string datatype = header.Values.Contains("type") ? (string) header.Values["type"] : "unknown";
-                string msg = "Client [" + client_callerid + "] wants topic [" + topic + "] to hava datatype/md5sum [" + datatype + "/" + md5sum + "], but our version has [" + DataType + "/" + Md5sum +
+                string msg = "Client [" + client_callerid + "] wants topic [" + topic + "] to hava datatype/md5sum [" +
+                             datatype + "/" + md5sum + "], but our version has [" + DataType + "/" + Md5sum +
                              "]. Dropping connection";
                 Console.WriteLine(msg);
                 error_message = msg;
@@ -238,7 +243,7 @@ namespace EricIsAMAZING
         {
             string s = "";
             for (int i = 0; i < test.Length; i++)
-                s += (test[i] < 16 ? "0":"")+test[i].ToString("x") + " ";
+                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
             return s;
         }
 
@@ -255,15 +260,15 @@ namespace EricIsAMAZING
             {
                 object val = msg.GetType().GetField("data").GetValue(msg);
                 object h = val.GetType().GetField("header").GetValue(val);
-                m.Header header;
+                Messages.std_msgs.Header header;
                 if (h == null)
-                    header = new m.Header();
+                    header = new Messages.std_msgs.Header();
                 else
-                    header = (m.Header)h;
+                    header = (Messages.std_msgs.Header) h;
                 header.seq = seq;
                 header.stamp = ROS.GetTime();
-                header.frame_id = new m.String();
-                Console.WriteLine("Header = " + dumphex(new TypedMessage<m.Header>(header).Serialize()));
+                header.frame_id = new String();
+                Console.WriteLine("Header = " + dumphex(new TypedMessage<Messages.std_msgs.Header>(header).Serialize()));
                 val.GetType().GetField("header").SetValue(val, header);
                 msg.GetType().GetField("data").SetValue(msg, val);
                 //Console.WriteLine("Message w/ mangled header = "+dumphex(msg.Serialize()));

@@ -13,7 +13,8 @@ namespace EricIsAMAZING
 {
     public class Publisher<M> : IPublisher where M : class, new()
     {
-        public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle, SubscriberCallbacks callbacks)
+        public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle,
+                         SubscriberCallbacks callbacks)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -32,7 +33,10 @@ namespace EricIsAMAZING
     public class IPublisher
     {
         public SubscriberCallbacks callbacks;
-        public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+
+        public double constructed =
+            (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+
         public string datatype;
         public string md5sum;
         public NodeHandle nodeHandle;

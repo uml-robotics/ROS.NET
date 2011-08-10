@@ -1,10 +1,10 @@
 ﻿#region USINGZ
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Messages;
 using Messages.rosgraph_msgs;
+using Messages.std_msgs;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -43,16 +43,16 @@ namespace EricIsAMAZING
         public void Append(string m)
         {
             Log l = new Log();
-            l.msg = new m.String(m);
+            l.msg = new String(m);
             l.level = 8;
-            l.name = new m.String(this_node.Name);
-            l.file = new m.String("*.cs");
-            l.function = new m.String("main");
+            l.name = new String(this_node.Name);
+            l.file = new String("*.cs");
+            l.function = new String("main");
             l.line = 28;
             string[] advert = this_node.AdvertisedTopics().ToArray();
-            l.topics = new m.String[advert.Length];
+            l.topics = new String[advert.Length];
             for (int i = 0; i < advert.Length; i++)
-                l.topics[i] = new m.String(advert[i]);
+                l.topics[i] = new String(advert[i]);
             TypedMessage<Log> MSG = new TypedMessage<Log>(l);
             lock (queue_mutex)
                 log_queue.Enqueue(MSG);

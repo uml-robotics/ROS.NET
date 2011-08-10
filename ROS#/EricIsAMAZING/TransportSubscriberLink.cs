@@ -58,7 +58,8 @@ namespace EricIsAMAZING
             Publication pt = TopicManager.Instance.lookupPublication(topic);
             if (pt == null)
             {
-                string msg = "received a connection for a nonexistent topic [" + topic + "] from [" + connection.transport + "] [" + client_callerid + "]";
+                string msg = "received a connection for a nonexistent topic [" + topic + "] from [" +
+                             connection.transport + "] [" + client_callerid + "]";
                 Console.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
                 return false;

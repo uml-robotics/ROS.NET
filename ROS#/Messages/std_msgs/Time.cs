@@ -1,25 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.InteropServices;
-
-using Messages.std_msgs;
-using Messages.geometry_msgs;
-using Messages.nav_msgs;
-using String=Messages.std_msgs.String;
-
 namespace Messages.std_msgs
 {
+    public class Time
+    {
+        public ulong data;
 
-		public class Time
-		{
-			public ulong data;
 
+        public Time(ulong s)
+        {
+            data = s;
+        }
 
-			public Time(ulong s){ data = s; }
-			public Time(){ data = 0; }
-
-		}
+        public Time()
+        {
+            data = 0;
+        }
+    }
 }

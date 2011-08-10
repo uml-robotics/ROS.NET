@@ -80,7 +80,8 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload, bool wait_for_master)
+        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
+                                   bool wait_for_master)
         {
             DateTime startTime = DateTime.Now;
             string master_host = host;
@@ -99,7 +100,8 @@ namespace EricIsAMAZING
                 {
                     if (!printed && wait_for_master)
                     {
-                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host, master_port, (wait_for_master ? "Retrying..." : ""));
+                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                                          master_port, (wait_for_master ? "Retrying..." : ""));
                         printed = true;
                     }
 
@@ -111,7 +113,8 @@ namespace EricIsAMAZING
 
                     if (DateTime.Now.Subtract(startTime) > retryTimeout)
                     {
-                        Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method, retryTimeout.TotalSeconds);
+                        Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                                          retryTimeout.TotalSeconds);
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Messages.std_msgs
+﻿namespace Messages.std_msgs
 {
-    class String
+    internal class String
     {
         //placeholder
     }

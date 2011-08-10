@@ -38,7 +38,8 @@ namespace EricIsAMAZING
             throw new NotImplementedException();
         }
 
-        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2, IDictionary header_values)
+        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
+                                                            IDictionary header_values)
         {
             return new IServiceServerLink(name, persistent, md5sum, md5sum_2, header_values);
         }

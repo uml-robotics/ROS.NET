@@ -1,21 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.InteropServices;
+#region USINGZ
 
 using Messages.std_msgs;
-using Messages.geometry_msgs;
-using Messages.nav_msgs;
-using String=Messages.std_msgs.String;
+
+#endregion
 
 namespace Messages.geometry_msgs
 {
-
-		public class TwistWithCovarianceStamped
-		{
-			public Header header;
-			public TwistWithCovariance twist;
-		}
+    public class TwistWithCovarianceStamped
+    {
+        public Header header;
+        public TwistWithCovariance twist;
+    }
 }

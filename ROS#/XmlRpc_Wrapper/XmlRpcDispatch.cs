@@ -25,19 +25,23 @@ namespace XmlRpc_Wrapper
 
         #region P/Invoke
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_Create", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_Create", CallingConvention = CallingConvention.Cdecl)
+        ]
         private static extern IntPtr create();
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_Close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void close(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_AddSource", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_AddSource",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void addsource(IntPtr target, IntPtr source, uint eventMask);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_RemoveSource", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_RemoveSource",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void removesource(IntPtr target, IntPtr source);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_SetSourceEvents", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_SetSourceEvents",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void setsourceevents(IntPtr target, IntPtr source, uint eventMask);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcDispatch_Work", CallingConvention = CallingConvention.Cdecl)]

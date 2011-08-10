@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Messages;
+using Messages.std_msgs;
 using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -26,17 +27,12 @@ namespace EricIsAMAZING
         public static int init_options;
         public static string ROS_MASTER_URI;
         public static object start_mutex = new object();
+
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
         public static int WallDuration = 100;
-        public static m.Time GetTime()
-        {
-            TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
-            uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            m.Time stamp = new m.Time { data = ((ulong)(((seconds << 32) | (((uint)Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF)))) };
-            return stamp;
-        }
+
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
         public static Thread internal_queue_thread;
@@ -44,14 +40,32 @@ namespace EricIsAMAZING
         private static bool dictinit;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
+        public static Time GetTime()
+        {
+            TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
+            uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
+            Time stamp = new Time
+                             {
+                                 data =
+                                     ((((seconds << 32) |
+                                        (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF))))
+                             };
+            return stamp;
+        }
+
         public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
         {
-            return MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(TypeHelper.TypeInformation[msg.type].Type.GetGenericArguments());
+            return
+                MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(
+                    TypeHelper.TypeInformation[msg.type].Type.GetGenericArguments());
         }
 
         public static IRosMessage MakeMessage(MsgTypes type)
         {
-            return (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>), TypeHelper.TypeInformation[type].Type.GetGenericArguments());
+            return
+                (IRosMessage)
+                Activator.CreateInstance(typeof (TypedMessage<>),
+                                         TypeHelper.TypeInformation[type].Type.GetGenericArguments());
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
@@ -257,7 +271,9 @@ namespace EricIsAMAZING
             if (!dictinit)
             {
                 dictinit = true;
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()}))
+                foreach (
+                    Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()})
+                    )
                 {
                     foreach (Type t in a.GetTypes())
                     {

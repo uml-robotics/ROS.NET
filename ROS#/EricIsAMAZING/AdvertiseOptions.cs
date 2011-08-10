@@ -23,7 +23,9 @@ namespace EricIsAMAZING
         {
         }
 
-        public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null)
+        public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def,
+                                SubscriberStatusCallback connectcallback = null,
+                                SubscriberStatusCallback disconnectcallback = null)
         {
             topic = t;
             queue_size = q_size;
@@ -44,14 +46,18 @@ namespace EricIsAMAZING
             disconnectCB = disconnectcallback;
         }
 
-        public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null, SubscriberStatusCallback disconnectcallback = null) :
-            this(
-            t, q_size, MD5.Sum((new TypedMessage<T>()).type), new TypedMessage<T>().type.ToString().Replace("__", "/"), TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition,
-            connectcallback, disconnectcallback)
+        public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null,
+                                SubscriberStatusCallback disconnectcallback = null) :
+                                    this(
+                                    t, q_size, MD5.Sum((new TypedMessage<T>()).type),
+                                    new TypedMessage<T>().type.ToString().Replace("__", "/"),
+                                    TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition,
+                                    connectcallback, disconnectcallback)
         {
         }
 
-        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
+        public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback,
+                                                    SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
             where M : class, new()
         {
             return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};

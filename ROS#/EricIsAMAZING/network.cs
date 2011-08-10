@@ -31,7 +31,8 @@ namespace EricIsAMAZING
 
         public static bool isPrivateIp(string ip)
         {
-            bool b = (string.Compare("192.168", ip) >= 7) || (string.Compare("10.", ip) > 3) || (string.Compare("169.253", ip) > 7);
+            bool b = (string.Compare("192.168", ip) >= 7) || (string.Compare("10.", ip) > 3) ||
+                     (string.Compare("169.253", ip) > 7);
             return b;
         }
 

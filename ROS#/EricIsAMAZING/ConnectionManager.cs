@@ -133,7 +133,8 @@ namespace EricIsAMAZING
             }
             else
             {
-                Console.WriteLine("got a connection for a type other than topic or service from [" + conn.RemoteString + "]. Fail.");
+                Console.WriteLine("got a connection for a type other than topic or service from [" + conn.RemoteString +
+                                  "]. Fail.");
                 return false;
             }
             return ret;

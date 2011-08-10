@@ -110,7 +110,9 @@ namespace EricIsAMAZING
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
-        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback, SubscriberStatusCallback disconnectcallback, bool l = false) where M : class, new()
+        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
+                                         SubscriberStatusCallback disconnectcallback, bool l = false)
+            where M : class, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
@@ -138,14 +140,18 @@ namespace EricIsAMAZING
             return null;
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackDelegate<TypedMessage<M>> cb) where M : class, new()
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size,
+                                                        CallbackDelegate<TypedMessage<M>> cb) where M : class, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<TypedMessage<M>>(cb));
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb) where M : class, new()
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
+            where M : class, new()
         {
-            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size, (cb2) => cb.func(cb2)) {callback_queue = _callback};
+            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size,
+                                                                                          (cb2) => cb.func(cb2))
+                                                        {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);
         }
@@ -199,7 +205,8 @@ namespace EricIsAMAZING
             return new ServiceServer<T, MReq, MRes>();
         }
 
-        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent = false, IDictionary header_values = null)
+        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent = false,
+                                                                   IDictionary header_values = null)
         {
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, header_values));
         }
@@ -207,7 +214,8 @@ namespace EricIsAMAZING
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(ServiceClientOptions ops)
         {
             ops.service = resolveName(ops.service);
-            ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
+            ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent,
+                                                                             ops.header_values, ops.md5sum);
             if (client != null)
             {
                 lock (collection.mutex)

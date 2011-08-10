@@ -22,14 +22,16 @@ namespace EricIsAMAZING
             if (name == "") return true;
             if (!Char.IsLetter(name[0]) && name[0] != '/' && name[0] != '~')
             {
-                error = "Character [" + name[0] + "] is not valid as the first character in Graph Resource Name [" + name + "]. valid characters are a-z, A-Z, /, and ~";
+                error = "Character [" + name[0] + "] is not valid as the first character in Graph Resource Name [" +
+                        name + "]. valid characters are a-z, A-Z, /, and ~";
                 return false;
             }
             for (int i = 1; i < name.Length; i++)
             {
                 if (!isValidCharInName(name[i]))
                 {
-                    error = "Character [" + name[i] + "] at element [" + i + "] is not valid in Graph Resource Name [" + name + "]. valid characters are a-z, A-Z, 0-9, /, and _";
+                    error = "Character [" + name[i] + "] at element [" + i + "] is not valid in Graph Resource Name [" +
+                            name + "]. valid characters are a-z, A-Z, 0-9, /, and _";
                     return false;
                 }
             }

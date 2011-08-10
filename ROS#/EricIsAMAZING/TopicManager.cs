@@ -149,7 +149,8 @@ namespace EricIsAMAZING
                 throw new Exception("Advertising on topic [" + ops.topic + "] with an empty datatype");
             if (ops.message_definition == "")
                 Console.WriteLine
-                    ("Danger, Will Robinson... Advertising on topic [" + ops.topic + "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
+                    ("Danger, Will Robinson... Advertising on topic [" + ops.topic +
+                     "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
@@ -161,13 +162,15 @@ namespace EricIsAMAZING
                     if (pub.Md5sum != ops.md5sum)
                     {
                         Console.WriteLine
-                            ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]", ops.topic, ops.md5sum,
+                            ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]",
+                             ops.topic, ops.md5sum,
                              ops.datatype, pub.Md5sum, pub.DataType);
                         return false;
                     }
                 }
                 else
-                    pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size, ops.latch, ops.has_header);
+                    pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size,
+                                          ops.latch, ops.has_header);
                 pub.addCallbacks(callbacks);
                 advertised_topics.Add(pub);
             }
@@ -195,7 +198,9 @@ namespace EricIsAMAZING
             if (found)
                 sub.addLocalConnection(pub);
 
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri),
+                        result = new XmlRpcValue(),
+                        payload = new XmlRpcValue();
             master.execute("registerPublisher", args, ref result, ref payload, true);
             return true;
         }
@@ -392,10 +397,13 @@ namespace EricIsAMAZING
             }
             if (found_topic && !found)
                 throw new Exception
-                    ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" + ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +
+                    ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" +
+                     ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +
                      sub.md5sum + "]");
             else if (found)
-                if (!sub.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks))
+                if (
+                    !sub.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size,
+                                     ops.allow_concurrent_callbacks))
                     return false;
             return found;
         }
@@ -412,7 +420,8 @@ namespace EricIsAMAZING
                 }
                 if (proto[0].Type != TypeEnum.TypeString)
                 {
-                    Console.WriteLine("requestTopic received a protocol list in which a sublist did not start with a string");
+                    Console.WriteLine(
+                        "requestTopic received a protocol list in which a sublist did not start with a string");
                     return false;
                 }
 
@@ -486,14 +495,18 @@ namespace EricIsAMAZING
 
         public bool unregisterSubscriber(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri),
+                        result = new XmlRpcValue(),
+                        payload = new XmlRpcValue();
             master.execute("unregisterSubscriber", args, ref result, ref payload, false);
             return true;
         }
 
         public bool unregisterPublisher(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri),
+                        result = new XmlRpcValue(),
+                        payload = new XmlRpcValue();
             master.execute("unregisterPublisher", args, ref result, ref payload, false);
             return true;
         }
@@ -525,7 +538,9 @@ namespace EricIsAMAZING
 
         public void getBusStats(ref XmlRpcValue stats)
         {
-            XmlRpcValue publish_stats = new XmlRpcValue(), subscribe_stats = new XmlRpcValue(), service_stats = new XmlRpcValue();
+            XmlRpcValue publish_stats = new XmlRpcValue(),
+                        subscribe_stats = new XmlRpcValue(),
+                        service_stats = new XmlRpcValue();
             publish_stats.Size = 0;
             subscribe_stats.Size = 0;
             service_stats.Size = 0;
@@ -623,7 +638,8 @@ namespace EricIsAMAZING
             if (sub != null)
                 return sub.pubUpdate(pubs);
             else
-                Console.WriteLine("got a request for updating publishers of topic " + topic + ", but I don't have any subscribers to that topic.");
+                Console.WriteLine("got a request for updating publishers of topic " + topic +
+                                  ", but I don't have any subscribers to that topic.");
             return false;
         }
 

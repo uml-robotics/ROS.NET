@@ -181,7 +181,8 @@ namespace EricIsAMAZING
                 if (header.Values.Contains("error"))
                 {
                     error_val = (string) header.Values["error"];
-                    Console.WriteLine("Received error message in header for connection to [{0}]: [{1}]", "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
+                    Console.WriteLine("Received error message in header for connection to [{0}]: [{1}]",
+                                      "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
                     drop(DropReason.HeaderError);
                 }
                 else
@@ -202,7 +203,9 @@ namespace EricIsAMAZING
         private void onHeaderWritten(Connection conn)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
-            if (header_written_callback == null) throw new Exception("NOBODY CARES ABOUT YOU, YOUR CHILDREN (neither present nor future), NOR YOUR GRANDCHILDREN (neither present nor future)");
+            if (header_written_callback == null)
+                throw new Exception(
+                    "NOBODY CARES ABOUT YOU, YOUR CHILDREN (neither present nor future), NOR YOUR GRANDCHILDREN (neither present nor future)");
             Console.WriteLine("ONHEADERWRITTEN!");
             header_written_callback(conn);
             header_written_callback = null;

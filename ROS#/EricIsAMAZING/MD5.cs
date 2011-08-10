@@ -4,6 +4,7 @@ using System;
 using System.Reflection;
 using System.Text;
 using Messages;
+using String = Messages.std_msgs.String;
 
 #endregion
 
@@ -18,7 +19,10 @@ namespace EricIsAMAZING
                 hashme = hashme.Replace("  ", " ");
             while (hashme.Contains("\r\n"))
                 hashme = hashme.Replace("\r\n", "\n");
-            IRosMessage irm = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[m].Type.GetGenericArguments()));
+            IRosMessage irm =
+                (IRosMessage)
+                Activator.CreateInstance(
+                    typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[m].Type.GetGenericArguments()));
             if (irm.IsMeta)
             {
                 Type t = irm.GetType().GetGenericArguments()[0];
@@ -33,14 +37,16 @@ namespace EricIsAMAZING
                     {
                         object[] o;
                         if (FieldType.Name.Contains("String"))
-                            FieldType = typeof(Messages.std_msgs.String);
+                            FieldType = typeof (String);
                         else
                         {
-                            o = (object[])Activator.CreateInstance(FieldType);
+                            o = (object[]) Activator.CreateInstance(FieldType);
                             FieldType = o.GetType();
                         }
                     }
-                    MsgTypes T = (MsgTypes)Enum.Parse(typeof(MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
+                    MsgTypes T =
+                        (MsgTypes)
+                        Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
                     if (!TypeHelper.TypeInformation.ContainsKey(T))
                         throw new Exception("SOME SHIT BE FUCKED!");
                     hashme = hashme.Replace(FieldType.Name, Sum(T));

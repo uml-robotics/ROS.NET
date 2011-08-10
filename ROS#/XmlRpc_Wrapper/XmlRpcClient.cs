@@ -25,14 +25,16 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int IntegerEcho(int val);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl
+            )]
         public static extern void IntegerEchoFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] balls callback);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool IntegerEchoRepeat(int val);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "SetStringOutFunc", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetAwesomeFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] TellMeHowAwesomeIAm callback);
+        public static extern void SetAwesomeFunctionPtr(
+            [MarshalAs(UnmanagedType.FunctionPtr)] TellMeHowAwesomeIAm callback);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
         public static extern void StringTest([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string str);
@@ -343,21 +345,25 @@ namespace XmlRpc_Wrapper
              IntPtr parameters,
              IntPtr result);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern bool executenonblock
             (IntPtr target,
              [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern bool executecheckdone([In] [Out] IntPtr target, [In] [Out] IntPtr result);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_HandleEvent",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool isfault(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ClearFault", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ClearFault",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void clearfault(IntPtr target);
 
 
@@ -370,31 +376,39 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
         private static extern int getport(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern string getrequest(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl
+            )]
         private static extern string getheader(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern string getresponse(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetSendAttempts", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetSendAttempts",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern int getsendattempts(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetBytesWritten", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetBytesWritten",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern int getbyteswritten(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetExecuting", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetExecuting",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern bool getexecuting(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetEOF", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool geteof(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern int getcontentlength(IntPtr Target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetXmlRpcDispatch", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetXmlRpcDispatch",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr getxmlrpcdispatch(IntPtr target);
 
         #endregion

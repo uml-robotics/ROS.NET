@@ -14,7 +14,8 @@ namespace EricIsAMAZING
         public bool persistent;
         public string service;
 
-        public ServiceClientOptions(string service, bool persistent, IDictionary header_values) : this(service, persistent, header_values, "")
+        public ServiceClientOptions(string service, bool persistent, IDictionary header_values)
+            : this(service, persistent, header_values, "")
         {
             throw new NotImplementedException();
         }

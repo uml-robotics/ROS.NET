@@ -286,7 +286,8 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_SetSize", CallingConvention = CallingConvention.Cdecl)]
         private static extern void setsize(IntPtr target, int size);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_HasMember", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_HasMember", CallingConvention = CallingConvention.Cdecl)
+        ]
         private static extern bool hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set1", CallingConvention = CallingConvention.Cdecl)]
@@ -313,13 +314,15 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetInt0", CallingConvention = CallingConvention.Cdecl)]
         private static extern int getint(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetString0", CallingConvention = CallingConvention.Cdecl
+            )]
         private static extern IntPtr getstring(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool getbool(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl
+            )]
         private static extern double getdouble(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Dump", CallingConvention = CallingConvention.Cdecl)]
@@ -335,7 +338,8 @@ namespace XmlRpc_Wrapper
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
                 {
-                    throw new Exception("YOU THOUGHT THIS WAS GOING TO BE WATER BUT IT WASN'T... ROCK AND ROOLLLLL!!!!!!");
+                    throw new Exception(
+                        "YOU THOUGHT THIS WAS GOING TO BE WATER BUT IT WASN'T... ROCK AND ROOLLLLL!!!!!!");
                     //return TypeEnum.TypeInvalid;
                 }
                 return ValueTypeHelper._typearray[balls];

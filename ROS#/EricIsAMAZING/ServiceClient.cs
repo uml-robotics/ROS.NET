@@ -18,7 +18,9 @@ namespace EricIsAMAZING
             impl.md5sum = md5sum;
             if (persistent)
             {
-                impl.server_link = ServiceManager.Instance.createServiceServerLink(impl.service, impl.persistent, impl.md5sum, impl.md5sum, impl.header_values);
+                impl.server_link = ServiceManager.Instance.createServiceServerLink(impl.service, impl.persistent,
+                                                                                   impl.md5sum, impl.md5sum,
+                                                                                   impl.header_values);
             }
             throw new NotImplementedException();
         }
@@ -32,7 +34,9 @@ namespace EricIsAMAZING
 
         public class Impl
         {
-            public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+            public double constructed =
+                (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+
             public IDictionary header_values;
             public bool is_shutdown;
             public string md5sum;

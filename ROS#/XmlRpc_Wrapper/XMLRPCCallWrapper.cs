@@ -191,13 +191,16 @@ namespace XmlRpc_Wrapper
 
         #region P/Invoke
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Create", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Create",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name, IntPtr server);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_SetFunc", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_SetFunc",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void setfunc(IntPtr target, [MarshalAs(UnmanagedType.FunctionPtr)] XMLRPCFunc cb);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Execute", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Execute",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void execute(IntPtr target, [In] [Out] IntPtr parms, [In] [Out] IntPtr res);
 
         #endregion

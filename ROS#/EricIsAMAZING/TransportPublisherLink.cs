@@ -91,7 +91,8 @@ namespace EricIsAMAZING
                     next_retry = DateTime.Now.Add(retry_period);
                     if (retry_timer == null)
                         retry_period = TimeSpan.FromMilliseconds(100);
-                    ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer, (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
+                    ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer,
+                                                 (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
                 }
                 else
                     drop();
@@ -171,7 +172,8 @@ namespace EricIsAMAZING
             if (dropping) return;
             if (needs_retry && DateTime.Now.Subtract(next_retry).TotalMilliseconds < 0)
             {
-                retry_period = TimeSpan.FromSeconds((retry_period.TotalSeconds > 20) ? 20 : (2*retry_period.TotalSeconds));
+                retry_period =
+                    TimeSpan.FromSeconds((retry_period.TotalSeconds > 20) ? 20 : (2*retry_period.TotalSeconds));
                 needs_retry = false;
                 lock (parent)
                 {

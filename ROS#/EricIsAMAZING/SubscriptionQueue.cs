@@ -32,7 +32,8 @@ namespace EricIsAMAZING
             this.queue_size = 0;
         }
 
-        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, DateTime receipt_time = default(DateTime))
+        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,
+                         ref bool was_full, DateTime receipt_time = default(DateTime))
         {
             if (receipt_time == default(DateTime)) receipt_time = DateTime.Now;
             lock (queue_mutex)
@@ -52,7 +53,13 @@ namespace EricIsAMAZING
                     _full = false;
             }
 
-            Item i = new Item {helper = helper, deserializer = deserializer, nonconst_need_copy = nonconst_need_copy, receipt_time = receipt_time};
+            Item i = new Item
+                         {
+                             helper = helper,
+                             deserializer = deserializer,
+                             nonconst_need_copy = nonconst_need_copy,
+                             receipt_time = receipt_time
+                         };
             queue.Enqueue(i);
             ++queue_size;
         }
@@ -90,7 +97,8 @@ namespace EricIsAMAZING
             if (i == null)
                 return CallResult.Invalid;
             SubscriptionCallbackHelperCallParams parms = new SubscriptionCallbackHelperCallParams();
-            parms.Event = new IMessageEvent(i.deserializer.message, i.deserializer.connection_header, i.receipt_time, i.nonconst_need_copy, IMessageEvent.DefaultCreator);
+            parms.Event = new IMessageEvent(i.deserializer.message, i.deserializer.connection_header, i.receipt_time,
+                                            i.nonconst_need_copy, IMessageEvent.DefaultCreator);
             i.helper.call(parms);
             callback_mutex = false;
             return CallResult.Success;

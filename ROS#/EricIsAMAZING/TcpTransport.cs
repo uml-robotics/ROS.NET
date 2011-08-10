@@ -74,7 +74,8 @@ namespace EricIsAMAZING
             get
             {
                 if (sock.RemoteEndPoint != null)
-                    return "" + ((IPEndPoint) sock.RemoteEndPoint).Address + ((IPEndPoint) sock.RemoteEndPoint).Port.ToString();
+                    return "" + ((IPEndPoint) sock.RemoteEndPoint).Address +
+                           ((IPEndPoint) sock.RemoteEndPoint).Port.ToString();
                 return "[NOT CONNECTED]";
             }
         }
@@ -259,10 +260,14 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] =
+                        (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] =
+                        (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] =
+                        (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] =
+                        (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -312,10 +317,14 @@ namespace EricIsAMAZING
                 // pack input into byte struct
                 for (int i = 0; i < input.Length; i++)
                 {
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] = (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] = (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] = (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
-                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] = (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 3] =
+                        (byte) (input[i] >> ((bytesperlong - 1)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 2] =
+                        (byte) (input[i] >> ((bytesperlong - 2)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 1] =
+                        (byte) (input[i] >> ((bytesperlong - 3)*bitsperbyte) & 0xff);
+                    SIO_KEEPALIVE_VALS[i*bytesperlong + 0] =
+                        (byte) (input[i] >> ((bytesperlong - 4)*bitsperbyte) & 0xff);
                 }
                 // create bytestruct for result (bytes pending on server socket)
                 byte[] result = BitConverter.GetBytes(0);
@@ -357,7 +366,8 @@ namespace EricIsAMAZING
                     return;
                 }
 
-                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) && !setKeepAlive(sock, (ulong) idle, (ulong) interval))
+                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) &&
+                    !setKeepAlive(sock, (ulong) idle, (ulong) interval))
                     Console.WriteLine("FAIL!");
             }
             /*else

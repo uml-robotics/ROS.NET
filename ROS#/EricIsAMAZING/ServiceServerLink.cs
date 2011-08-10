@@ -17,7 +17,8 @@ namespace EricIsAMAZING
         private string name;
         private bool persistent;
 
-        public IServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2, IDictionary header_values)
+        public IServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
+                                  IDictionary header_values)
         {
             // TODO: Complete member initialization
             this.name = name;
@@ -34,7 +35,8 @@ namespace EricIsAMAZING
 
         public static object create(string request, string response)
         {
-            Type gen = Type.GetType("ServiceServerLink").MakeGenericType(ROS.GetDataType(request), ROS.GetDataType(response));
+            Type gen = Type.GetType("ServiceServerLink").MakeGenericType(ROS.GetDataType(request),
+                                                                         ROS.GetDataType(response));
             return gen.GetConstructor(null).Invoke(null);
         }
     }

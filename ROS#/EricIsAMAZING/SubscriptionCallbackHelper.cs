@@ -21,7 +21,8 @@ namespace EricIsAMAZING
             Console.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
             callback = new Callback<M>(cb);
-            base.callback = new CallbackInterface((c) => cb((M) c)); //if you think about this one too hard, you might die.
+            base.callback = new CallbackInterface((c) => cb((M) c));
+                //if you think about this one too hard, you might die.
         }
 
         public SubscriptionCallbackHelper(MsgTypes t)

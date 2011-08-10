@@ -208,19 +208,25 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create();
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_AddMethod", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_AddMethod", CallingConvention = CallingConvention.Cdecl
+            )]
         private static extern void addmethod(IntPtr target, IntPtr method);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethod", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethod",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern void removemethod(IntPtr target, IntPtr method);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethodbyname(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern void removemethodbyname(IntPtr target,
+                                                      [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr findmethod(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern bool bindandlisten(IntPtr target, int port, int backlog);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Work", CallingConvention = CallingConvention.Cdecl)]
@@ -229,13 +235,15 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Exit", CallingConvention = CallingConvention.Cdecl)]
         private static extern void exit(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Shutdown", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Shutdown", CallingConvention = CallingConvention.Cdecl)
+        ]
         private static extern void shutdown(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetPort", CallingConvention = CallingConvention.Cdecl)]
         private static extern int getport(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetDispatch", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetDispatch",
+            CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr getdispatch(IntPtr target);
 
         #endregion

@@ -182,7 +182,9 @@ namespace EricIsAMAZING
 
                 int revents = ufds[i].events;
 
-                if (func != null && ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 || (revents & POLLNVAL) != 0))
+                if (func != null &&
+                    ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 ||
+                     (revents & POLLNVAL) != 0))
                 {
                     bool skip = false;
                     if ((revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)

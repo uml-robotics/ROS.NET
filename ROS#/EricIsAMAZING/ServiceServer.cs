@@ -29,7 +29,9 @@ namespace EricIsAMAZING
 
         public class Impl
         {
-            public double constructed = (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+            public double constructed =
+                (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
+
             public NodeHandle nodeHandle;
             public string service;
             public bool unadvertised;
