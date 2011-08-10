@@ -88,7 +88,7 @@ namespace Messages
                         info.SetValue(t, Activator.CreateInstance(info.FieldType));
 
                 }
-                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
+                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type != typeof(Messages.std_msgs.String) && (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsArray || TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0);
                 byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref knownpiecelength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
