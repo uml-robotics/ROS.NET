@@ -46,6 +46,7 @@ namespace ConsoleApplication1
             Console.WriteLine(MD5.Sum(md5test.type));
             Console.ReadLine();
             return;*/
+            uint count = 0;
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
@@ -66,8 +67,8 @@ namespace ConsoleApplication1
                 test.teststringarray[1] = new String("string 2");
                 pub.publish(test);
                 //    ROS.Info("ERIC RULZ! 8");
-                //m.Header ht = new m.Header { seq = 0, frame_id = new m.String("00"), stamp = new m.Time() };
-                //pub2.publish(ht);
+                m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
+                pub2.publish(ht);
                 Time t = new Time {data = new TimeData(1,1)};
                 pub3.publish(t);
                 pub4.publish(new String("UGH!"));
