@@ -268,7 +268,6 @@ namespace EricIsAMAZING
                 header.seq = seq;
                 header.stamp = ROS.GetTime();
                 header.frame_id = new String();
-                Console.WriteLine("Header = " + dumphex(new TypedMessage<Messages.std_msgs.Header>(header).Serialize()));
                 val.GetType().GetField("header").SetValue(val, header);
                 msg.GetType().GetField("data").SetValue(msg, val);
                 //Console.WriteLine("Message w/ mangled header = "+dumphex(msg.Serialize()));

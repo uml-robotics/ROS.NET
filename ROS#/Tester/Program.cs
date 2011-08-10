@@ -66,7 +66,7 @@ namespace ConsoleApplication1
                 test.teststringarray[0] = new String("string 1");
                 test.teststringarray[1] = new String("string 2");
                 pub.publish(test);
-                //    ROS.Info("ERIC RULZ! 8");
+                ROS.Info("ERIC RULZ! "+count);
                 m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
                 pub2.publish(ht);
                 Time t = new Time {data = new TimeData(1,1)};

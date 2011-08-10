@@ -159,7 +159,7 @@ namespace EricIsAMAZING
                     m = outbox.Dequeue();
                 }
             }
-            if (m != null)
+            /*if (m != null)
             {
                 byte[] M = m.Serialize();
                 string s = m.type.ToString() + ":\t";
@@ -167,7 +167,7 @@ namespace EricIsAMAZING
                     s += (M[i] < 16 ? "0" : "") + M[i].ToString("x") + " ";
                 Console.WriteLine(s);
                 connection.write(M, M.Length, onMessageWritten, immediate_write);
-            }
+            }*/
         }
     }
 }
