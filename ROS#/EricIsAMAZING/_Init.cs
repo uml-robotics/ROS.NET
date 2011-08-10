@@ -44,12 +44,7 @@ namespace EricIsAMAZING
         {
             TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
             uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            Time stamp = new Time
-                             {
-                                 data =
-                                     ((((seconds << 32) |
-                                        (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF))))
-                             };
+            Time stamp = new Time(seconds, (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF));
             return stamp;
         }
 

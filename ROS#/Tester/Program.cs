@@ -55,20 +55,22 @@ namespace ConsoleApplication1
             Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
             Publisher<Header> pub2 = nh.advertise<Header>("headertest", 1000);
             Publisher<Time> pub3 = nh.advertise<Time>("timetest", 1000);
+            Publisher<String> pub4 = nh.advertise<String>("juststringtest", 1000);
             //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
             while (ROS.ok)
             {
-                /*arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new []{new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3")}};
+                arraytest test = new arraytest { lengthlessintegers = new[] { 2, 3, 4 }, teststring = new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new[] { new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3") } };
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 test.teststringarray[0] = new String("string 1");
                 test.teststringarray[1] = new String("string 2");
-                pub.publish(test);*/
+                pub.publish(test);
                 //    ROS.Info("ERIC RULZ! 8");
-                /*m.Header ht = new m.Header { seq = 0, frame_id = new m.String(""), stamp = new m.Time() };
-                pub2.publish(ht);*/
-                Time t = new Time {data = 0};
+                //m.Header ht = new m.Header { seq = 0, frame_id = new m.String("00"), stamp = new m.Time() };
+                //pub2.publish(ht);
+                Time t = new Time {data = new TimeData(1,1)};
                 pub3.publish(t);
+                pub4.publish(new String("UGH!"));
                 ROS.spinOnce();
                 Thread.Sleep(1000);
             }

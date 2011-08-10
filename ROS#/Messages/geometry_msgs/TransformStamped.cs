@@ -1,15 +1,22 @@
-#region USINGZ
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Runtime.InteropServices;
 
 using Messages.std_msgs;
-
-#endregion
+using Messages.geometry_msgs;
+using Messages.nav_msgs;
+using String=Messages.std_msgs.String;
 
 namespace Messages.geometry_msgs
 {
-    public class TransformStamped
-    {
-        public String child_frame_id;
-        public Header header;
-        public Transform transform;
-    }
+
+		public class TransformStamped
+		{
+			public Header header;
+			public String child_frame_id;
+			public Transform transform;
+		}
 }
