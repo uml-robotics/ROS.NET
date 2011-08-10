@@ -51,27 +51,22 @@ namespace ConsoleApplication1
             NodeHandle nh = new NodeHandle();
             //NodeHandle nh2 = new NodeHandle();
             Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
+            Publisher<m.Header> pub2 = nh.advertise<m.Header>("headertest", 1000);
+            Publisher<m.Time> pub3 = nh.advertise<m.Time>("timetest", 1000);
             //Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter", 1000, chatterCallback);
-            /*new Thread
-                (() =>
-                     {
-                         int count = 0;
-                         while (ROS.ok)
-                         {
-                             ROS.Info("ERIC RULZ! "+(count++));
-                             Thread.Sleep(1000);
-                         }
-                     }).Start();*/
             while (ROS.ok)
             {
-                arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new []{new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3")}};
+                /*arraytest test = new arraytest {lengthlessintegers = new[] {2, 3, 4}, teststring=new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new []{new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3")}};
                 test.integers[0] = 0;
                 test.integers[1] = 1;
                 test.teststringarray[0] = new String("string 1");
                 test.teststringarray[1] = new String("string 2");
-                pub.publish(test);
-                //pub.publish(new String { data = concatme });
-                //ROS.Log("HOLY FUCKSTICK");
+                pub.publish(test);*/
+            //    ROS.Info("ERIC RULZ! 8");
+                /*m.Header ht = new m.Header { seq = 0, frame_id = new m.String(""), stamp = new m.Time() };
+                pub2.publish(ht);*/
+                m.Time t = new m.Time { data = 0 };
+                pub3.publish(t);
                 ROS.spinOnce();
                 Thread.Sleep(1000);
             }

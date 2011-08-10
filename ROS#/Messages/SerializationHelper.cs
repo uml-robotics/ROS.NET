@@ -61,15 +61,15 @@ namespace Messages
         }
 
 
-        public static byte[] Serialize<T>(TypedMessage<T> outgoing) where T : class, new()
+        public static byte[] Serialize<T>(TypedMessage<T> outgoing, bool partofsomethingelse=false) where T : class, new()
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = SlapChop(outgoing.data.GetType(), outgoing.data);
+            outgoing.Serialized = SlapChop(outgoing.data.GetType(), outgoing.data, partofsomethingelse);
             return outgoing.Serialized;
         }
 
-        public static byte[] SlapChop(Type T, object t)
+        public static byte[] SlapChop(Type T, object t, bool partofsomethingelse = false)
         {
             FieldInfo[] infos = t.GetType().GetFields();
             Queue<byte[]> chunks = new Queue<byte[]>();
@@ -78,20 +78,30 @@ namespace Messages
             {
                 if (info.Name.Contains("(")) continue;
                 if (TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsConst) continue;
-                bool needslength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0;
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref needslength);
+                if (info.GetValue(t) == null)
+                {
+                    if (info.FieldType == typeof(string))
+                        info.SetValue(t, "");
+                    else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
+                        info.SetValue(t, 0);
+                    else
+                        info.SetValue(t, Activator.CreateInstance(info.FieldType));
+
+                }
+                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type != typeof(Messages.std_msgs.String) && (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsArray || TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count != 0);
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref knownpiecelength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
-#if FALSE
             byte[] wholeshebang = new byte[totallength];
             int currpos = 0;
-#else
-            byte[] wholeshebang = new byte[totallength + 4]; //THE WHOLE SHEBANG
-            byte[] len = BitConverter.GetBytes(totallength);
-            Array.Copy(len, 0, wholeshebang, 0, 4);
-            int currpos = 4;
-#endif
+            if (!partofsomethingelse)
+            {
+                wholeshebang = new byte[totallength + 4]; //THE WHOLE SHEBANG
+                byte[] len = BitConverter.GetBytes(totallength);
+                Array.Copy(len, 0, wholeshebang, 0, 4);
+                currpos = 4;
+            }
             while (chunks.Count > 0)
             {
                 byte[] chunk = chunks.Dequeue();
@@ -113,7 +123,7 @@ namespace Messages
                         msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
                     else
                         msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
-                    thischunk = msg.Serialize();
+                    thischunk = msg.Serialize(true);
                 }
                 else if (val is string || T == typeof(string))
                 {
@@ -159,7 +169,7 @@ namespace Messages
                     MsgTypes mt = GetMessageType(TT);
                     bool piecelengthknown = mt != MsgTypes.std_msgs__String;
                     byte[] chunk = NeedsMoreChunks(TT, vals[i], ref piecelengthknown);
-                    knownlength = piecelengthknown;
+                    knownlength &= !piecelengthknown;
                     arraychunks.Enqueue(chunk);
                     arraylength += chunk.Length;
                 }
@@ -212,9 +222,10 @@ namespace Messages
             data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
         }
 
-        public override byte[] Serialize()
+        public override byte[] Serialize() { return Serialize(false); }
+        public override byte[] Serialize(bool partofsomethingelse=false)
         {
-            return SerializationHelper.Serialize(this);
+            return SerializationHelper.Serialize(this,partofsomethingelse);
         }
     }
 
@@ -252,7 +263,8 @@ namespace Messages
             throw new NotImplementedException();
         }
 
-        public virtual byte[] Serialize()
+        public virtual byte[] Serialize() { return Serialize(false); }
+        public virtual byte[] Serialize(bool partofsomethingelse = false)
         {
             return null;
         }
@@ -439,12 +451,32 @@ namespace Messages
                         thisthing.Type = thisthing.Type.Replace("String", "string");
                         thisthing.output = thisthing.output.Replace("String", "string");
                     }
+                    else if (classname == "Time")
+                    {
+                        thisthing.input = thisthing.input.Replace("Time", "ulong");
+                        thisthing.Type = thisthing.Type.Replace("Time", "ulong");
+                        thisthing.output = thisthing.output.Replace("Time", "ulong");
+                    }
+                    else if (classname == "Duration")
+                    {
+                        thisthing.input = thisthing.input.Replace("Duration", "ulong");
+                        thisthing.Type = thisthing.Type.Replace("Duration", "ulong");
+                        thisthing.output = thisthing.output.Replace("Duration", "ulong");
+                    }
                     meta |= thisthing.meta;
                     memoizedcontent += "\t" + thisthing.output + "\n";
                 }
                 if (classname.ToLower() == "string")
                 {
                     memoizedcontent += "\n\n\t\t\tpublic String(string s){ data = s; }\n\t\t\tpublic String(){ data = \"\"; }\n\n";
+                }
+                else if (classname == "Time")
+                {
+                    memoizedcontent += "\n\n\t\t\tpublic Time(ulong s){ data = s; }\n\t\t\tpublic Time(){ data = 0; }\n\n";
+                }
+                else if (classname == "Duration")
+                {
+                    memoizedcontent += "\n\n\t\t\tpublic Duration(ulong s){ data = s; }\n\t\t\tpublic Duration(){ data = 0; }\n\n";
                 }
                 string ns = Namespace.Replace("Messages.", "");
                 if (ns == "Messages")

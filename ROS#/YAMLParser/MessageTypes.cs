@@ -18,6 +18,7 @@ namespace Messages
     public enum MsgTypes
     {
         Unknown,
-        std_msgs__String
+        std_msgs__String,
+        std_msgs__Header
     }
 }

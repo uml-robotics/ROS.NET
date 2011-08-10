@@ -402,7 +402,6 @@ namespace EricIsAMAZING
 
         public bool requestTopic(string topic, XmlRpcValue protos, ref XmlRpcValue ret)
         {
-            protos.Dump();
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
                 XmlRpcValue proto = protos[proto_idx];

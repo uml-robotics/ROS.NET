@@ -347,7 +347,7 @@ string[] topics",
 					{"topics", new MsgFieldInfo("topics", true, typeof(String), false, "", true, "", false)}
 			})},
 			{MsgTypes.std_msgs__Duration, new TypeInfo(typeof(TypedMessage<std_msgs.Duration>), false, false,
-@"uint64 data",
+@"duration data",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"data", new MsgFieldInfo("data", true, typeof(ulong), false, "", false, "", false)}
 			})},
@@ -459,7 +459,7 @@ uint32 data_offset",
 					{"data", new MsgFieldInfo("data", true, typeof(string), false, "", false, "", false)}
 			})},
 			{MsgTypes.std_msgs__Time, new TypeInfo(typeof(TypedMessage<std_msgs.Time>), false, false,
-@"uint64 data",
+@"time data",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"data", new MsgFieldInfo("data", true, typeof(ulong), false, "", false, "", false)}
 			})},

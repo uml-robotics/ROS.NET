@@ -234,6 +234,14 @@ namespace EricIsAMAZING
             }
         }
 
+        public string dumphex(byte[] test)
+        {
+            string s = "";
+            for (int i = 0; i < test.Length; i++)
+                s += (test[i] < 16 ? "0":"")+test[i].ToString("x") + " ";
+            return s;
+        }
+
         public bool EnqueueMessage(IRosMessage msg)
         {
             lock (subscriber_links_mutex)
@@ -247,18 +255,18 @@ namespace EricIsAMAZING
             {
                 object val = msg.GetType().GetField("data").GetValue(msg);
                 object h = val.GetType().GetField("header").GetValue(val);
-                m.Header header = null;
+                m.Header header;
                 if (h == null)
-                    h = (header = new m.Header());
+                    header = new m.Header();
                 else
                     header = (m.Header)h;
                 header.seq = seq;
-                TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
-                uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-                m.Time stamp = new m.Time{ data = ((ulong)(((seconds << 32) | (((uint)Math.Floor((timestamp.TotalSeconds - seconds))  << 32) & 0xFFFFFFFF))))};
-                header.stamp = stamp;
-                val.GetType().GetField("header").SetValue(val, (h = header));
+                header.stamp = ROS.GetTime();
+                header.frame_id = new m.String();
+                Console.WriteLine("Header = " + dumphex(new TypedMessage<m.Header>(header).Serialize()));
+                val.GetType().GetField("header").SetValue(val, header);
                 msg.GetType().GetField("data").SetValue(msg, val);
+                //Console.WriteLine("Message w/ mangled header = "+dumphex(msg.Serialize()));
                 /*byte[] stuff = msg.Serialize();
                 byte[] withoutlength = new byte[stuff.Length - 4];
                 Array.Copy(stuff, 4, withoutlength, 0, withoutlength.Length);

@@ -1,1 +1,1 @@
-uint64 data
+duration data
