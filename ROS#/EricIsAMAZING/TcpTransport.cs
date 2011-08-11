@@ -432,8 +432,8 @@ namespace EricIsAMAZING
                 else
                     return 0;
             }
-            else
-                Console.WriteLine("WROTE: " + num_bytes);
+            /*else
+                System.Diagnostics.Debug.WriteLine("WROTE: " + num_bytes);*/
             return num_bytes;
         }
 
