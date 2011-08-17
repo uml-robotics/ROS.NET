@@ -167,9 +167,6 @@ namespace EricIsAMAZING
                 return CallOneResult.Empty;
             ICallbackInfo info = tls.current.info;
             CallbackInterface cb = info.Callback;
-            var queue = info.Callback as SubscriptionQueue;
-            if (queue != null)
-                throw new Exception("FUCK");
             IDInfo idinfo = getIDInfo(info.removal_id);
             if (idinfo != null)
             {

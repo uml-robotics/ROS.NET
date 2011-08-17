@@ -426,8 +426,8 @@ namespace EricIsAMAZING
                         bool nonconst_need_copy = false;
                         if (callbacks.Count > 1)
                             nonconst_need_copy = true;
-                        info.subscription_queue.push(info.helper, deserializer, nonconst_need_copy, ref was_full,
-                                                     receipt_time);
+                        info.helper.callback().func(msg);/* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
+                                                      receipt_time);*/
                         if (was_full)
                             ++drops;
                         else
@@ -487,7 +487,7 @@ namespace EricIsAMAZING
                 CallbackInfo<M> info = new CallbackInfo<M>();
                 info.helper = helper;
                 info.callback = queue;
-                info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
+                //info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
                 //if (!helper.isConst())
                 //{
                 ++nonconst_callbacks;
@@ -509,7 +509,7 @@ namespace EricIsAMAZING
                                     IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
                                                                                         latch_info.connection_header);
                                     bool was_full = false;
-                                    info.subscription_queue.push(info.helper, des, true, ref was_full,
+                                    ((Callback<TypedMessage<M>>)info.subscription_queue).push(info.helper, des, true, ref was_full,
                                                                  latch_info.receipt_time);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
@@ -530,7 +530,7 @@ namespace EricIsAMAZING
                 {
                     if (info.helper == helper)
                     {
-                        info.subscription_queue.clear();
+                       // ((Callback<M>)info.subscription_queue).clear();
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
                         //if (!helper.isConst())
@@ -566,12 +566,9 @@ namespace EricIsAMAZING
 
         public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
-            public new SubscriptionCallbackHelper<M> helper;
-
             public CallbackInfo()
             {
-                helper = new SubscriptionCallbackHelper<M>(new M().type);
-                base.helper = helper;
+                base.helper = new SubscriptionCallbackHelper<M>(new M().type);
             }
         }
 
@@ -583,7 +580,7 @@ namespace EricIsAMAZING
         {
             public CallbackQueueInterface callback;
             public ISubscriptionCallbackHelper helper;
-            public SubscriptionQueue subscription_queue;
+            public CallbackInterface subscription_queue;
 
             public UInt64 Get()
             {

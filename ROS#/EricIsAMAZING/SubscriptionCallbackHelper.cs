@@ -14,24 +14,12 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
-        public Callback<M> callback
-        {
-            get
-            {
-                return (Callback<M>)base.callback;
-            }
-            set
-            {
-                base.callback = value;
-            }
-        }
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
             Console.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
-            callback = new Callback<M>(cb);
-            base.callback = new CallbackInterface((c) => cb((M) c));
+            base.callback(new Callback<M>(cb));
                 //if you think about this one too hard, you might die.
         }
 
@@ -64,13 +52,22 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("SubscriptionCallbackHelper: call");
             MessageEvent<M> e = (MessageEvent<M>) parms.Event;
-            callback.func(new ParameterAdapter<M>().getParameter(e));
+            //((Callback<M>)callback()).func(new ParameterAdapter<M>().getParameter(e));
         }
     }
 
     public class ISubscriptionCallbackHelper
     {
-        public CallbackInterface callback;
+        private CallbackInterface _callback;
+        public virtual CallbackInterface callback()
+        {
+            return _callback;
+        }
+        public virtual CallbackInterface callback(CallbackInterface cb)
+        {
+            _callback = cb;
+            return _callback;
+        }
 
         public MsgTypes type;
 
@@ -83,7 +80,7 @@ namespace EricIsAMAZING
         {
             Console.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
             //throw new NotImplementedException();
-            callback = Callback;
+            _callback = Callback;
         }
 
         public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage

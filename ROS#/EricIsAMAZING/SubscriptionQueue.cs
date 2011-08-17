@@ -10,7 +10,7 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
-    public class SubscriptionQueue : CallbackInterface
+    /*public class SubscriptionQueue : CallbackInterface
     {
         public bool _full;
         public bool allow_concurrent_callbacks;
@@ -133,5 +133,5 @@ namespace EricIsAMAZING
         }
 
         #endregion
-    }
+    }*/
 }

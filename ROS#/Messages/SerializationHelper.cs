@@ -29,10 +29,11 @@ namespace Messages
 
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
+            if (bytes == null) return null;
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
 
-        public static object deserialize(Type T, byte[] bytes, bool iswhole = true)
+        public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
         {
             object thestructure = Activator.CreateInstance(T);
             FieldInfo[] infos = T.GetFields();
@@ -286,9 +287,16 @@ namespace Messages
             Deserialize(SERIALIZEDSTUFF);
         }
 
-        public override void Deserialize(byte[] SERIALIZEDSTUFF)
+        public override void Deserialize(byte[] SERIALIZEDSTUFF) t
         {
-            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
+            try
+            {
+                data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
         }
 
         public override byte[] Serialize()
