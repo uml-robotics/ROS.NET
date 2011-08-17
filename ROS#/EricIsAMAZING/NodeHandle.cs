@@ -150,7 +150,8 @@ namespace EricIsAMAZING
             where M : class, new()
         {
             SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size,
-                                                                                          (cb2) => ((Callback<TypedMessage<M>>)cb).func(cb2))
+                                                                                          cb.func
+                                                                                          )
                                                         {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);

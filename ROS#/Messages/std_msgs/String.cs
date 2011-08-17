@@ -17,8 +17,9 @@ namespace Messages.std_msgs
 		{
 			public string data;
 
-
-			public String(string s){ data = s; }
+            [System.Diagnostics.DebuggerStepThrough]
+            public String(string s) { data = s; }
+            [System.Diagnostics.DebuggerStepThrough]
 			public String(){ data = ""; }
 
 		}

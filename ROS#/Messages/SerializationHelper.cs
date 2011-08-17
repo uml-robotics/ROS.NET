@@ -16,23 +16,25 @@ namespace Messages
 {
     public static class SerializationHelper
     {
+        [System.Diagnostics.DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
             return GetMessageType(t.FullName);
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
             if (!s.Contains("Messages")) return MsgTypes.Unknown;
             return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
             if (bytes == null) return null;
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
         {
             object thestructure = Activator.CreateInstance(T);
@@ -235,11 +237,12 @@ namespace Messages
             return thischunk;
         }
     }
-
+    [System.Diagnostics.DebuggerStepThrough]
     public class TypedMessage<M> : IRosMessage where M : class, new()
     {
         public M data = new M();
-
+        
+        [System.Diagnostics.DebuggerStepThrough]
         public TypedMessage()
             : base(
                 (MsgTypes)
@@ -258,7 +261,7 @@ namespace Messages
                     IsMetaType)
         {
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         public TypedMessage(M d)
         {
             data = d;
@@ -284,11 +287,18 @@ namespace Messages
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
         {
-            Deserialize(SERIALIZEDSTUFF);
+            if (SERIALIZEDSTUFF != null)
+                this.Deserialize(SERIALIZEDSTUFF);
         }
 
-        public override void Deserialize(byte[] SERIALIZEDSTUFF) t
+        [System.Diagnostics.DebuggerStepThrough]
+        public override sealed void Deserialize(byte[] SERIALIZEDSTUFF)
         {
+            if (SERIALIZEDSTUFF == null)
+            {
+                data = null;
+                return;
+            }
             try
             {
                 data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
@@ -321,11 +331,13 @@ namespace Messages
         public IDictionary connection_header;
         public MsgTypes type;
 
+        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage()
             : this(MsgTypes.Unknown, "", false, false)
         {
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta)
         {
             type = t;
@@ -334,21 +346,25 @@ namespace Messages
             IsMeta = meta;
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
             Deserialize(SERIALIZEDSTUFF);
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
         {
             throw new NotImplementedException();
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public virtual byte[] Serialize()
         {
             return Serialize(false);
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public virtual byte[] Serialize(bool partofsomethingelse = false)
         {
             return null;

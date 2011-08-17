@@ -117,9 +117,34 @@ namespace EricIsAMAZING
 
         #endregion
 
-        public Callback(CallbackDelegate<T> f) : base((ci) => { T t = new T(); t.Deserialize(ci.Serialized); f(t); })
+        public Callback(CallbackDelegate<T> f)
+            : base()
         {
-            Event += f;
+            Event += func;
+            /*{
+                T t = new T();
+                t.Deserialize(ci.Serialized);
+                //if (ci == null || ci.Serialized == null) return;
+                //byte[] data = new byte[ci.Serialized.Length];
+                //Array.Copy(ci.Serialized, data, data.Length);
+                //T t = new T();
+                //t.Deserialize(data);
+                //f(t);
+            };*/
+            base.Event +=
+            (b) =>
+            {
+                if (b.Serialized != null)
+                {
+                    T t = new T();
+                    byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
+                    Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
+                    t.Deserialize(FUCKNOZZLE);
+                    f(t);
+                }
+                else
+                    f(b as T);
+            };
             //func = f;
         }
 
@@ -152,10 +177,12 @@ namespace EricIsAMAZING
 
     public class CallbackInterface
     {
-        public void func(IRosMessage msg)
+        public void func<T>(T msg) where T : IRosMessage, new()
         {
             if (Event != null)
+            {
                 Event(msg);
+            }
         }
 
         #region CallResult enum
@@ -169,13 +196,14 @@ namespace EricIsAMAZING
 
         #endregion
 
-        public event CallbackDelegate<IRosMessage> Event;
+        public delegate void ICallbackDelegate(IRosMessage msg);
+        public event ICallbackDelegate Event;
 
         public CallbackInterface()
         {
         }
 
-        public CallbackInterface(CallbackDelegate<IRosMessage> f)
+        public CallbackInterface(ICallbackDelegate f)
         {
             Event += f;
         }

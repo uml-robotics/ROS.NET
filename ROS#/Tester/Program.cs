@@ -36,9 +36,9 @@ namespace ConsoleApplication1
         public static void chatterCallback(TypedMessage<String> msg)
         {
             if (msg != null && msg.data != null)
-                Console.WriteLine(msg.data);
+                Console.WriteLine(msg.data.data);
             else
-                Console.WriteLine("CHATTER CALLBACK!");
+                Console.WriteLine("MESSAGE IS NULL IN THE FUCKING NODE'S CALLBACK FUNCTION!!!!");
         }
 
         private static void Main(string[] args)
