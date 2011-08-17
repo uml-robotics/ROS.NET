@@ -22,11 +22,7 @@ namespace EricIsAMAZING
 
         public Callback(CallbackDelegate<T> f) : base((ci) => f((T) ci))
         {
-            func = (r) =>
-                       {
-                           f(r);
-                           Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<" + typeof (T).Name + ">!");
-                       };
+            func = f;
         }
 
         internal override CallResult Call()
@@ -62,11 +58,7 @@ namespace EricIsAMAZING
 
         public CallbackInterface(CallbackDelegate<IRosMessage> f)
         {
-            func = (r) =>
-                       {
-                           f(r);
-                           Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<IRosMessage>!");
-                       };
+            func = f;
         }
 
         internal virtual CallResult Call()

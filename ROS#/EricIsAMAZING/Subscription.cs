@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Messages;
 using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
@@ -580,20 +581,13 @@ namespace EricIsAMAZING
 
         public class ICallbackInfo
         {
-            private static UInt64 _uid;
-            private UInt64 __uid;
             public CallbackQueueInterface callback;
             public ISubscriptionCallbackHelper helper;
             public SubscriptionQueue subscription_queue;
 
-            public ICallbackInfo()
-            {
-                __uid = _uid++;
-            }
-
             public UInt64 Get()
             {
-                return __uid;
+                return (UInt64)System.Diagnostics.Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
             }
         }
 

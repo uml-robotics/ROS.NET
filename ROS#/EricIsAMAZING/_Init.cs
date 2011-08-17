@@ -291,7 +291,6 @@ namespace EricIsAMAZING
                         if (!typedict.ContainsKey(t.ToString()))
                         {
                             typedict.Add(t.ToString(), t);
-                            Console.WriteLine(t.ToString());
                         }
                     }
                 }

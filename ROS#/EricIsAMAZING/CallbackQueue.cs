@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
@@ -17,7 +18,7 @@ namespace EricIsAMAZING
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public int calling;
         private bool enabled;
-        public Dictionary<UInt64, IDInfo> id_info = new Dictionary<ulong, IDInfo>();
+        public Dictionary<UInt64, IDInfo> id_info = new Dictionary<UInt64, IDInfo>();
         private object id_info_mutex = new object();
         private object mutex = new object();
         private Semaphore sem = new Semaphore(0, int.MaxValue);
@@ -54,7 +55,7 @@ namespace EricIsAMAZING
         public void setupTLS()
         {
             if (tls == null)
-                tls = new TLS {calling_in_this_thread = (UInt64) Thread.CurrentThread.ManagedThreadId};
+                tls = new TLS {calling_in_this_thread = (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id};
         }
 
         internal void notify_all()
@@ -71,7 +72,7 @@ namespace EricIsAMAZING
         {
             lock (id_info_mutex)
             {
-                if (id_info != null && id_info.ContainsKey(id))
+                if (id_info.ContainsKey(id))
                     return id_info[id];
             }
             return null;
@@ -85,6 +86,13 @@ namespace EricIsAMAZING
             {
                 if (!enabled) return;
                 callbacks.Add(info);
+            }
+            lock (id_info_mutex)
+            {
+                if (!id_info.ContainsKey(owner_id))
+                {
+                    id_info.Add(owner_id, new IDInfo { calling_rw_mutex = new object(), id = owner_id });
+                }
             }
             notify_one();
         }
@@ -159,13 +167,16 @@ namespace EricIsAMAZING
                 return CallOneResult.Empty;
             ICallbackInfo info = tls.current.info;
             CallbackInterface cb = info.Callback;
-            IDInfo id_info = getIDInfo(info.removal_id);
-            if (id_info != null)
+            var queue = info.Callback as SubscriptionQueue;
+            if (queue != null)
+                throw new Exception("FUCK");
+            IDInfo idinfo = getIDInfo(info.removal_id);
+            if (idinfo != null)
             {
-                lock (id_info.calling_rw_mutex)
+                lock (idinfo.calling_rw_mutex)
                 {
                     UInt64 last_calling = tls.calling_in_this_thread;
-                    tls.calling_in_this_thread = id_info.id;
+                    tls.calling_in_this_thread = idinfo.id;
                     CallbackInterface.CallResult result = CallbackInterface.CallResult.Invalid;
                     tls.spliceout(info);
                     if (!info.marked_for_removal)

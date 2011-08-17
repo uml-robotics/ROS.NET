@@ -49,7 +49,6 @@ namespace EricIsAMAZING
             if (!header.Values.Contains("topic"))
             {
                 string msg = "Header from subscriber did not have the required element: topic";
-                Console.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
                 return false;
             }
@@ -60,14 +59,12 @@ namespace EricIsAMAZING
             {
                 string msg = "received a connection for a nonexistent topic [" + topic + "] from [" +
                              connection.transport + "] [" + client_callerid + "]";
-                Console.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
                 return false;
             }
             string error_message = "";
             if (!pt.validateHeader(header, ref error_message))
             {
-                Console.WriteLine(error_message);
                 connection.sendHeaderError(ref error_message);
                 return false;
             }

@@ -86,9 +86,6 @@ namespace EricIsAMAZING
                 xmlrpc_manager.unbind("getSubscriptions");
                 xmlrpc_manager.unbind("getPublications");
 
-                Console.WriteLine("shutting down topics...");
-
-                Console.WriteLine("\tshutting down publishers");
                 lock (advertised_topics_mutex)
                 {
                     foreach (Publication p in advertised_topics)
@@ -99,7 +96,7 @@ namespace EricIsAMAZING
                     }
                     advertised_topics.Clear();
                 }
-                Console.WriteLine("\tshutting down subscribers");
+
                 lock (subs_mutex)
                 {
                     foreach (Subscription s in subscriptions)
@@ -333,9 +330,7 @@ namespace EricIsAMAZING
                     bool serialize = false;
                     if (msg != null && msg.type != MsgTypes.Unknown)
                     {
-                        //Console.WriteLine("BEFORE: " + serialize.ToString() + ", " + nocopy.ToString() + ", " + msg.type.ToString());
                         p.getPublishTypes(ref serialize, ref nocopy, ref msg.type);
-                        //Console.WriteLine("AFTER: " + serialize.ToString() + ", " + nocopy.ToString() + ", " + msg.type.ToString());
                     }
                     else
                         serialize = true;
