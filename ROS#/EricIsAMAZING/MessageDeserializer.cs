@@ -12,19 +12,35 @@ namespace EricIsAMAZING
 {
     public class MessageDeserializer<M> : IMessageDeserializer where M : IRosMessage, new()
     {
-        public MessageDeserializer(SubscriptionCallbackHelper<M> helper, M m, IDictionary connection_header)
+        public MessageDeserializer(SubscriptionCallbackHelper<M> helper, IRosMessage m, IDictionary connection_header)
             : base(helper, m, connection_header)
         {
         }
 
-        public new M message
+        public IRosMessage message
         {
-            get { return (M) base.message; }
+            get { return base.message; }
         }
 
         public new SubscriptionCallbackHelper<M> helper
         {
-            get { return (SubscriptionCallbackHelper<M>) base.helper; }
+            get { return ((SubscriptionCallbackHelper<M>) base.helper); }
+        }
+
+        public override IRosMessage deserialize()
+        {
+            if (message.Serialized != null)
+            {
+                message.Deserialize(message.Serialized);
+                message.Serialized = null;
+            }
+            if (message != null)
+            {
+                SubscriptionCallbackHelperCallParams cpms = new SubscriptionCallbackHelperCallParams();
+                cpms.Event = new IMessageEvent(new MessageEvent<M>((M)message));
+                helper.call(cpms);
+            }
+            return message;
         }
     }
 
@@ -39,6 +55,11 @@ namespace EricIsAMAZING
             this.helper = helper;
             message = m;
             this.connection_header = connection_header;
+        }
+
+        public virtual IRosMessage deserialize()
+        {
+            return new IRosMessage() { type = MsgTypes.Unknown };
         }
     }
 }

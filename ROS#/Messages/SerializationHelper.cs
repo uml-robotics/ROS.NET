@@ -32,28 +32,64 @@ namespace Messages
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
 
-        public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
+        public static object deserialize(Type T, byte[] bytes, bool iswhole = true)
         {
             object thestructure = Activator.CreateInstance(T);
             FieldInfo[] infos = T.GetFields();
             int totallength = BitConverter.ToInt32(bytes, 0);
             int currpos = iswhole ? 4 : 0;
             int currinfo = 0;
-            while (currpos < bytes.Length)
+            while (currpos < bytes.Length && currinfo < infos.Length)
             {
-                int len = BitConverter.ToInt32(bytes, currpos);
-                IntPtr pIP = Marshal.AllocHGlobal(len);
-                Marshal.Copy(bytes, currpos, pIP, len);
-                if (infos[currinfo].FieldType.ToString().Contains("Messages"))
+                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type !=
+                                        typeof(string) &&
+                                        (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].IsArray ||
+                                         TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths.Count !=
+                                         0);
+                int len=iswhole?totallength:0;
+                if (knownpiecelength)
                 {
-                    byte[] smallerpiece = new byte[len + 4];
-                    Array.Copy(bytes, currpos, smallerpiece, 0, len + 4);
-                    infos[currinfo].SetValue(thestructure, deserialize(infos[currinfo].FieldType, smallerpiece));
+                    if (len == 0)
+                    len = Marshal.SizeOf(infos[currpos].GetValue(thestructure));
+                    IntPtr pIP = Marshal.AllocHGlobal(len);
+                    Marshal.Copy(bytes, currpos+4, pIP, len);
+                    infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
+                    currpos += len;
                 }
                 else
-                    infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
+                {
+                    var fullName = infos[currinfo].FieldType.FullName;
+                    if (fullName != null && fullName.Contains("Message."))
+                    {
+                        IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.GetGenericArguments()));
+                        if (len == 0)
+                        len = BitConverter.ToInt32(bytes, currpos);
+                        IntPtr pIP = Marshal.AllocHGlobal(len);
+                        Marshal.Copy(bytes, currpos, pIP, len);
+                        byte[] smallerpiece = new byte[len];
+                        Array.Copy(bytes, currpos, smallerpiece, 0, len + 4);
+                        msg.Deserialize(smallerpiece);
+                        object data = msg.GetType().GetField("data").GetValue(msg);
+                        infos[currinfo].SetValue(thestructure, data);
+                        currpos += len+4;
+                    }
+                    else
+                    {
+                        if (infos[currinfo].FieldType == typeof(string))
+                        {
+                             if (len == 0)
+                                len = BitConverter.ToInt32(bytes, currpos);
+                             byte[] piece = new byte[len];
+                             Array.Copy(bytes, currpos, piece, 0, len);
+                             string str = Encoding.ASCII.GetString(piece);
+                            infos[currinfo].SetValue(thestructure, str);
+                            currpos += len;
+                        }
+                        else
+                            Console.WriteLine("ZOMG HANDLE: " + infos[currinfo].FieldType.FullName);
+                    }
+                }
                 currinfo++;
-                currpos += len;
             }
             if (iswhole && currpos != totallength + 4)
                 throw new Exception("MATH FAIL LOL!");

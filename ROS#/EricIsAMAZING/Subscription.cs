@@ -362,7 +362,7 @@ namespace EricIsAMAZING
                     Connection connection = new Connection();
                     TransportPublisherLink pub_link = new TransportPublisherLink(this, xmlrpc_uri);
 
-                    connection.initialize(transport, false, (c, h) => true);
+                    connection.initialize(transport, false, null);
                     pub_link.initialize(connection);
 
                     ConnectionManager.Instance.addConnection(connection);
@@ -403,7 +403,6 @@ namespace EricIsAMAZING
         internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header,
                                      TransportPublisherLink link)
         {
-            Console.WriteLine("Subscription: handleMessage");
             lock (callbacks_mutex)
             {
                 ulong drops = 0;
@@ -419,7 +418,7 @@ namespace EricIsAMAZING
                             deserializer = cached_deserializers[ti];
                         else
                         {
-                            deserializer = MakeDeserializer(ti);
+                            deserializer = MakeDeserializer(ti, info.helper, msg, connection_header);
                             cached_deserializers.Add(ti, deserializer);
                         }
                         bool was_full = false;
@@ -455,15 +454,15 @@ namespace EricIsAMAZING
             }
         }
 
-        public IMessageDeserializer MakeDeserializer(MsgTypes type)
+        public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m, IDictionary connection_header)
         {
             if (type == MsgTypes.Unknown) return null;
-            //return ROS.MakeDeserializer(ROS.MakeMessage<IRosMessage>(type));
+            //return ROS.MakeDeserializer(ROS.MakeMessage(type));
             return
                 (IMessageDeserializer)
                 Activator.CreateInstance(
                     typeof (MessageDeserializer<>).MakeGenericType(
-                        TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+                        ROS.MakeMessage(type).GetType()), helper, m, connection_header);
         }
 
         public void Dispose()
@@ -567,6 +566,12 @@ namespace EricIsAMAZING
         public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
             public new SubscriptionCallbackHelper<M> helper;
+
+            public CallbackInfo()
+            {
+                helper = new SubscriptionCallbackHelper<M>(new M().type);
+                base.helper = helper;
+            }
         }
 
         #endregion

@@ -44,6 +44,7 @@ namespace EricIsAMAZING
 
         public void Write(IDictionary dict, ref byte[] buffer, ref int totallength)
         {
+            Values = new Hashtable(dict);
             buffer = new byte[0];
             totallength = 0;
             foreach (object k in dict.Keys)

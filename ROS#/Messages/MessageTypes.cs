@@ -17,6 +17,10 @@ namespace Messages
 {
 	public static class TypeHelper
 	{
+        public static Type GetType(string name)
+        {
+            return Type.GetType(name, true, true);
+        }
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
 		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
 @"int32[2] integers

@@ -26,13 +26,11 @@ namespace EricIsAMAZING
             if (irm.IsMeta)
             {
                 Type t = irm.GetType().GetGenericArguments()[0];
-                Console.WriteLine(t.FullName);
                 FieldInfo[] fields = t.GetFields();
                 for (int i = 0; i < fields.Length; i++)
                 {
                     Type FieldType = fields[i].FieldType;
                     if (!FieldType.Namespace.Contains("Messages")) continue;
-                    Console.WriteLine("\t" + FieldType.FullName);
                     while (FieldType.IsArray || FieldType.Name.Contains("["))
                     {
                         object[] o;
@@ -51,7 +49,6 @@ namespace EricIsAMAZING
                         throw new Exception("SOME SHIT BE FUCKED!");
                     hashme = hashme.Replace(FieldType.Name, Sum(T));
                 }
-                Console.WriteLine("Substituted sub-metatype sums?:\n" + hashme + "\n\n");
                 return Sum(hashme);
             }
             return Sum(hashme);

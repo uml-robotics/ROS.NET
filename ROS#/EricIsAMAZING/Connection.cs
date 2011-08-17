@@ -20,7 +20,15 @@ namespace EricIsAMAZING
 
         #endregion
 
-        public string CallerID;
+        public string CallerID
+        {
+            get
+            {
+                if (header != null && header.Values.Contains("callerid"))
+                    return (string)header.Values["callerid"];
+                return "";
+            }
+        }
         public string RemoteString;
         public object drop_mutex = new object();
         public bool dropped;
@@ -88,6 +96,7 @@ namespace EricIsAMAZING
                 read_buffer = new byte[size];
                 read_size = size;
                 read_filled = 0;
+                transport.enableRead();
                 readTransport();
             }
         }
@@ -114,6 +123,7 @@ namespace EricIsAMAZING
             bool did_drop = false;
             if (!dropped)
             {
+                Console.WriteLine("Connection - Dropping: " + reason);
                 dropped = true;
                 did_drop = true;
                 if (DroppedEvent != null)
@@ -243,6 +253,7 @@ namespace EricIsAMAZING
 
         private void readTransport()
         {
+            EDB.WriteLine("READ - "+transport.poll_set);
             if (dropped || reading) return;
             lock (read_mutex)
             {

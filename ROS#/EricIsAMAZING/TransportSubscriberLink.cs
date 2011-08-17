@@ -165,7 +165,7 @@ namespace EricIsAMAZING
                 string s = m.type.ToString() + ":\t";
                 for (int i = 0; i < M.Length; i++)
                     s += (M[i] < 16 ? "0" : "") + M[i].ToString("x") + " ";
-                System.Diagnostics.Debug.WriteLine(s);
+                EDB.WriteLine(s);
                 connection.write(M, M.Length, onMessageWritten, immediate_write);
             }
         }

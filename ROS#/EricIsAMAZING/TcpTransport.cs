@@ -2,7 +2,9 @@
 
 using System;
 using System.Net;
+using EricIsAMAZING.CustomSocket;
 using System.Net.Sockets;
+using Socket = EricIsAMAZING.CustomSocket.Socket;
 
 #endregion
 
@@ -73,10 +75,9 @@ namespace EricIsAMAZING
         {
             get
             {
-                if (sock.RemoteEndPoint != null)
-                    return "" + ((IPEndPoint) sock.RemoteEndPoint).Address +
-                           ((IPEndPoint) sock.RemoteEndPoint).Port.ToString();
-                return "[NOT CONNECTED]";
+                if (connected_host == null || connected_port == 0)
+                    return "[NOT CONNECTED]";
+                return "http://" + connected_host + ":" + connected_port + "/";
             }
         }
 
@@ -233,8 +234,8 @@ namespace EricIsAMAZING
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-                enableRead();
+            //if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+            //    enableRead();
             return true;
         }
 
@@ -398,7 +399,7 @@ namespace EricIsAMAZING
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    //Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                    EDB.WriteLine("recv() on this socket failed with error [" + err + "]");
                     close();
                     return -1;
                 }
@@ -406,7 +407,7 @@ namespace EricIsAMAZING
                     return 0;
             }
             else
-                Console.WriteLine("READ: " + num_bytes);
+                EDB.WriteLine("READ: " + num_bytes);
             return num_bytes;
         }
 
@@ -425,15 +426,13 @@ namespace EricIsAMAZING
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    //Console.WriteLine("recv() on this socket failed with error [" + err + "]");
+                    EDB.WriteLine("Write failed -- "+err);
                     close();
                     return -1;
                 }
                 else
                     return 0;
             }
-            /*else
-                System.Diagnostics.Debug.WriteLine("WROTE: " + num_bytes);*/
             return num_bytes;
         }
 
@@ -469,14 +468,14 @@ namespace EricIsAMAZING
 
         public TcpTransport accept()
         {
-            Socket acc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            if (!sock.AcceptAsync(args))
-                return null;
-            while (args.AcceptSocket == null)
-            {
-            }
-            acc = args.AcceptSocket;
+            Socket acc = null;
+                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+                if (!sock.AcceptAsync(args))
+                    return null;
+                while (args.AcceptSocket == null)
+                {
+                }
+                acc = new Socket(args.AcceptSocket);
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {
@@ -544,6 +543,7 @@ namespace EricIsAMAZING
             DisconnectFunc disconnect_cb = null;
             if (!closed)
             {
+                Console.WriteLine("Transport - closing");
                 lock (close_mutex)
                 {
                     if (!closed)

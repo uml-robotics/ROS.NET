@@ -78,7 +78,7 @@ namespace EricIsAMAZING
             callback_mutex = false;
         }
 
-        public virtual CallResult call()
+        internal override CallResult Call()
         {
             if (!allow_concurrent_callbacks)
             {
@@ -97,7 +97,7 @@ namespace EricIsAMAZING
             if (i == null)
                 return CallResult.Invalid;
             SubscriptionCallbackHelperCallParams parms = new SubscriptionCallbackHelperCallParams();
-            parms.Event = new IMessageEvent(i.deserializer.message, i.deserializer.connection_header, i.receipt_time,
+            parms.Event = new IMessageEvent(i.deserializer.deserialize(), i.deserializer.connection_header, i.receipt_time,
                                             i.nonconst_need_copy, IMessageEvent.DefaultCreator);
             i.helper.call(parms);
             callback_mutex = false;

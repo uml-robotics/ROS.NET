@@ -8,6 +8,10 @@ namespace Messages
 {
     public static class TypeHelper
     {
+        public static System.Type GetType(string name)
+        {
+            return System.Type.GetType(name, true, true);
+        }
         public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>
                                                                            {{MsgTypes.Unknown, null}};
 

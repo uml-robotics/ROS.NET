@@ -70,6 +70,7 @@
     <Compile Include="ServiceServer.cs" />
     <Compile Include="ServiceServerLink.cs" />
     <Compile Include="SingleSubscriberPublisher.cs" />
+    <Compile Include="Socket.cs" />
     <Compile Include="Spinner.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="Subscriber.cs" />

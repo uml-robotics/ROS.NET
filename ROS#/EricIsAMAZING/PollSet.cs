@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Net;
+using EricIsAMAZING.CustomSocket;
 using System.Net.Sockets;
+using Socket = EricIsAMAZING.CustomSocket.Socket;
 
 #endregion
 
@@ -28,7 +30,7 @@ namespace EricIsAMAZING
         public bool signal_locked;
         public object signal_mutex = new object();
 
-        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
+        public Dictionary<uint, SocketInfo> socket_info = new Dictionary<uint, SocketInfo>();
         public object socket_info_mutex = new object();
         public bool sockets_changed;
         public List<PollFD> ufds = new List<PollFD>();
@@ -82,7 +84,7 @@ namespace EricIsAMAZING
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
+            SocketInfo info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -98,9 +100,9 @@ namespace EricIsAMAZING
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(s))
+                if (!socket_info.ContainsKey(s.FD))
                     return false;
-                socket_info.Remove(s);
+                socket_info.Remove(s.FD);
                 lock (just_deleted_mutex)
                 {
                     just_deleted.Add(s);
@@ -115,9 +117,9 @@ namespace EricIsAMAZING
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(s))
+                if (!socket_info.ContainsKey(s.FD))
                     return false;
-                socket_info[s].events |= events;
+                socket_info[s.FD].events |= events;
             }
             signal();
             return true;
@@ -127,9 +129,9 @@ namespace EricIsAMAZING
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(sock))
+                if (!socket_info.ContainsKey(sock.FD))
                     return false;
-                socket_info[sock].events &= ~events;
+                socket_info[sock.FD].events &= ~events;
             }
             signal();
             return true;
@@ -142,21 +144,22 @@ namespace EricIsAMAZING
             int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
-                if (!ufds[i].sock.Connected)
+                Socket sock = Socket.Get(ufds[i].sock);
+                if (!sock.Connected)
                 {
                     ufds[i].revents |= POLLHUP;
                 }
-                else if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectError))
+                else if (sock.Poll(poll_timeout, SelectMode.SelectError))
                 {
                     ufds[i].revents |= POLLERR;
                 }
                 else
                 {
-                    if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectWrite))
+                    if (sock.Poll(poll_timeout, SelectMode.SelectWrite))
                     {
                         ufds[i].revents |= POLLOUT;
                     }
-                    if (ufds[i].sock.Poll(poll_timeout, SelectMode.SelectRead))
+                    if (sock.Poll(poll_timeout, SelectMode.SelectRead))
                     {
                         ufds[i].revents |= POLLIN;
                     }
@@ -180,7 +183,7 @@ namespace EricIsAMAZING
                     events = info.events;
                 }
 
-                int revents = ufds[i].events;
+                int revents = ufds[i].revents;
 
                 if (func != null &&
                     ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 ||
@@ -191,14 +194,14 @@ namespace EricIsAMAZING
                     {
                         lock (just_deleted_mutex)
                         {
-                            if (just_deleted.Contains(ufds[i].sock))
+                            if (just_deleted.Contains(Socket.Get(ufds[i].sock)))
                                 skip = true;
                         }
                     }
 
                     if (!skip)
                     {
-                        func.Invoke(revents & (events | POLLERR | POLLHUP | POLLNVAL));
+                        func(revents & (events | POLLERR | POLLHUP | POLLNVAL));
                     }
                 }
 
@@ -243,13 +246,24 @@ namespace EricIsAMAZING
                 }
             }
         }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        public override string ToString()
+        {
+            string s = "";
+            lock (socket_info_mutex)
+                foreach (SocketInfo si in socket_info.Values)
+                    s += "" + si.sock + ", ";
+            s = s.Remove(s.Length - 3, 2);
+            return s;
+        }
     }
 
     public class SocketInfo
     {
         public int events;
         public PollSet.SocketUpdateFunc func;
-        public Socket sock;
+        public uint sock;
         public TcpTransport transport;
     }
 
@@ -257,6 +271,6 @@ namespace EricIsAMAZING
     {
         public int events;
         public int revents;
-        public Socket sock;
+        public uint sock;
     }
 }

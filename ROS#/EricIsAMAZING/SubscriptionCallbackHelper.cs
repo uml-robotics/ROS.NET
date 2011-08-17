@@ -14,7 +14,17 @@ namespace EricIsAMAZING
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
-        public new Callback<M> callback;
+        public Callback<M> callback
+        {
+            get
+            {
+                return (Callback<M>)base.callback;
+            }
+            set
+            {
+                base.callback = value;
+            }
+        }
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {

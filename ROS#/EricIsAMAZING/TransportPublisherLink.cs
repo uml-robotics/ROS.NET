@@ -44,12 +44,11 @@ namespace EricIsAMAZING
 
         public bool initialize(Connection connection)
         {
-            Console.WriteLine("TransportPublisherLink: initialize");
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
             {
-                connection.header_func = onHeaderReceived;
+                connection.setHeaderReceivedCallback(onHeaderReceived);
 
                 lock (parent)
                 {
@@ -101,7 +100,6 @@ namespace EricIsAMAZING
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
-            Console.WriteLine("TransportPublisherLink: onHeaderReceived");
             if (conn != connection) return false;
             if (!setHeader(header))
             {
@@ -116,8 +114,7 @@ namespace EricIsAMAZING
 
         public void handleMessage(IRosMessage m, bool ser, bool nocopy)
         {
-            Console.WriteLine("TransportPublisherLink: handleMessage");
-            stats.bytes_received += (ulong) m.Serialize().Length;
+            stats.bytes_received += (ulong) m.Serialized.Length;
             stats.messages_received++;
             if (parent != null)
                 lock (parent)
@@ -126,13 +123,11 @@ namespace EricIsAMAZING
 
         private void onHeaderWritten(Connection conn)
         {
-            Console.WriteLine("TransportPublisherLink: onHeaderWritten");
             //do nothing
         }
 
         private void onMessageLength(Connection conn, byte[] buffer, int size, bool success)
         {
-            Console.WriteLine("TransportPublisherLink: onMessageLength");
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
             if (!success)
@@ -154,13 +149,18 @@ namespace EricIsAMAZING
 
         private void onMessage(Connection conn, byte[] buffer, int size, bool success)
         {
-            Console.WriteLine("TransportPublisherLink: onMessage");
             if (!success && conn == null || conn != connection) return;
             if (success)
             {
-                Type t = Type.GetType("m." + parent.datatype);
-                var T = t.GetConstructor(new[] {typeof (byte[])}).Invoke(new[] {buffer});
-                handleMessage(T as IRosMessage, true, false);
+                string ty = "Messages." + parent.datatype.Replace("/", ".");
+                Console.WriteLine(ty);
+                Type t = TypeHelper.GetType(ty);
+                if (t == null)
+                    throw new Exception("string fail!");
+                IRosMessage msg = new IRosMessage();// ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
+                msg.Serialized = new byte[buffer.Length];
+                Array.Copy(buffer, msg.Serialized, buffer.Length);
+                handleMessage(msg, true, false);
             }
             if (success || !connection.transport.getRequiresHeader())
                 connection.read(4, onMessageLength);

@@ -71,7 +71,7 @@ namespace EricIsAMAZING
         {
             lock (id_info_mutex)
             {
-                if (id_info.ContainsKey(id))
+                if (id_info != null && id_info.ContainsKey(id))
                     return id_info[id];
             }
             return null;
@@ -184,7 +184,9 @@ namespace EricIsAMAZING
             }
             else
             {
-                tls.spliceout(tls.current.info);
+                ICallbackInfo cbi = tls.spliceout(tls.current.info);
+                if (cbi != null)
+                    cbi.Callback.Call();
             }
             return CallOneResult.Called;
         }
@@ -261,7 +263,6 @@ namespace EricIsAMAZING
                     //Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
                 }
                 if (callbacks.Count == 0 || !enabled) return;
-                Console.WriteLine("ZOMG CALLBACKS TO CALL!!!");
                 bool wasempty = tls.Count == 0;
                 callbacks.ForEach((cbi) => tls.enqueue(cbi));
                 if (wasempty)

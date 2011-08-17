@@ -18,6 +18,15 @@ using nm = Messages.nav_msgs;
 
 namespace EricIsAMAZING
 {
+    public static class EDB
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        public static void WriteLine(object o)
+        {
+            System.Diagnostics.Debug.WriteLine(o);
+        }
+    }
+
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();
@@ -48,24 +57,31 @@ namespace EricIsAMAZING
             return stamp;
         }
 
-        public static IMessageDeserializer MakeDeserializer(IRosMessage msg)
-        {
-            return
-                MakeAndDowncast<MessageDeserializer<IRosMessage>, IMessageDeserializer>(
-                    TypeHelper.TypeInformation[msg.type].Type.GetGenericArguments());
-        }
-
         public static IRosMessage MakeMessage(MsgTypes type)
         {
             return
                 (IRosMessage)
-                Activator.CreateInstance(typeof (TypedMessage<>),
-                                         TypeHelper.TypeInformation[type].Type.GetGenericArguments());
+                Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+        }
+
+        public static IRosMessage MakeMessage(MsgTypes type, byte[] data)
+        {
+            IRosMessage msg = MakeMessage(type);
+            if (msg == null)
+                return null;
+            msg.Deserialize(data);
+            /*if (constructorInfo != null)
+                return
+                    (IRosMessage)constructorInfo.Invoke(new []{data});
+             */
+            return msg;
         }
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
         {
-            return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
+            if (typeof(T).IsGenericTypeDefinition)
+                return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
+            return (G)Activator.CreateInstance(typeof(T));
         }
 
         public static void FREAKTHEFUCKOUT()

@@ -23,11 +23,6 @@ namespace EricIsAMAZING
             XmlRpc_Uri = xmlrpc_uri;
         }
 
-        public PublisherLink()
-        {
-            throw new NotImplementedException();
-        }
-
         public string TransportType
         {
             get { return "TCPROS"; /*lol... pwned*/ }

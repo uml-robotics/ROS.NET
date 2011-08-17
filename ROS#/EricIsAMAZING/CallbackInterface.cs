@@ -13,9 +13,11 @@ namespace EricIsAMAZING
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
         public new CallbackDelegate<T> func;
+        public T message;
 
-        public Callback()
+        public Callback(T m)
         {
+            message = m;
         }
 
         public Callback(CallbackDelegate<T> f) : base((ci) => f((T) ci))
@@ -25,6 +27,17 @@ namespace EricIsAMAZING
                            f(r);
                            Console.WriteLine("HOLY CRAP INVOKING A CALLBACKDELEGATE<" + typeof (T).Name + ">!");
                        };
+        }
+
+        internal override CallResult Call()
+        {
+            return Call(message);
+        }
+
+        internal CallResult Call(IRosMessage m)
+        {
+            func(m as T);
+            return CallResult.Success;
         }
     }
 
@@ -58,7 +71,7 @@ namespace EricIsAMAZING
 
         internal virtual CallResult Call()
         {
-            return CallResult.Success;
+            return CallResult.Invalid;
         }
 
         internal virtual bool ready()
