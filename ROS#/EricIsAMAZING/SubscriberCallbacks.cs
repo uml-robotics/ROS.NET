@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 #endregion
@@ -26,7 +27,7 @@ namespace EricIsAMAZING
 
         public UInt64 Get()
         {
-            return (UInt64)System.Diagnostics.Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
+            return (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
         }
     }
 }

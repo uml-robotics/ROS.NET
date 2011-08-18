@@ -55,7 +55,11 @@ namespace EricIsAMAZING
         public void setupTLS()
         {
             if (tls == null)
-                tls = new TLS {calling_in_this_thread = (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id};
+                tls = new TLS
+                          {
+                              calling_in_this_thread =
+                                  (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id
+                          };
         }
 
         internal void notify_all()
@@ -91,7 +95,7 @@ namespace EricIsAMAZING
             {
                 if (!id_info.ContainsKey(owner_id))
                 {
-                    id_info.Add(owner_id, new IDInfo { calling_rw_mutex = new object(), id = owner_id });
+                    id_info.Add(owner_id, new IDInfo {calling_rw_mutex = new object(), id = owner_id});
                 }
             }
             notify_one();

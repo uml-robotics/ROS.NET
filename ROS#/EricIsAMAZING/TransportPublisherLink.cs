@@ -156,7 +156,8 @@ namespace EricIsAMAZING
                 Type t = TypeHelper.GetType(ty);
                 if (t == null)
                     throw new Exception("string fail!");
-                IRosMessage msg = new IRosMessage();// ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
+                IRosMessage msg = new IRosMessage();
+                    // ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
                 msg.Serialized = new byte[buffer.Length];
                 Array.Copy(buffer, msg.Serialized, buffer.Length);
                 handleMessage(msg, true, false);

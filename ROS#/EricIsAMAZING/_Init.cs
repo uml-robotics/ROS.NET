@@ -20,10 +20,10 @@ namespace EricIsAMAZING
 {
     public static class EDB
     {
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static void WriteLine(object o)
         {
-            System.Diagnostics.Debug.WriteLine(o);
+            Debug.WriteLine(o);
         }
     }
 
@@ -61,7 +61,8 @@ namespace EricIsAMAZING
         {
             return
                 (IRosMessage)
-                Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+                Activator.CreateInstance(
+                    typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
         }
 
         public static IRosMessage MakeMessage(MsgTypes type, byte[] data)
@@ -79,9 +80,9 @@ namespace EricIsAMAZING
 
         public static G MakeAndDowncast<T, G>(params Type[] types)
         {
-            if (typeof(T).IsGenericTypeDefinition)
+            if (typeof (T).IsGenericTypeDefinition)
                 return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
-            return (G)Activator.CreateInstance(typeof(T));
+            return (G) Activator.CreateInstance(typeof (T));
         }
 
         public static void FREAKTHEFUCKOUT()

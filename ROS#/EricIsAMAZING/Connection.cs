@@ -20,15 +20,6 @@ namespace EricIsAMAZING
 
         #endregion
 
-        public string CallerID
-        {
-            get
-            {
-                if (header != null && header.Values.Contains("callerid"))
-                    return (string)header.Values["callerid"];
-                return "";
-            }
-        }
         public string RemoteString;
         public object drop_mutex = new object();
         public bool dropped;
@@ -50,6 +41,17 @@ namespace EricIsAMAZING
         public object write_mutex = new object();
         public int write_sent, write_size;
         public bool writing;
+
+        public string CallerID
+        {
+            get
+            {
+                if (header != null && header.Values.Contains("callerid"))
+                    return (string) header.Values["callerid"];
+                return "";
+            }
+        }
+
         public event DisconnectFunc DroppedEvent;
 
         public void sendHeaderError(ref string error_message)
@@ -172,7 +174,7 @@ namespace EricIsAMAZING
 
         private void onHeaderRead(Connection conn, byte[] data, int size, bool success)
         {
-            if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");            
+            if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (!success)
             {
                 return;
@@ -196,10 +198,6 @@ namespace EricIsAMAZING
                 {
                     if (header_func == null) throw new Exception("AMG YOUR HEADERFUNC SUCKS");
                     transport.parseHeader(header);
-                    foreach (object k in header.Values.Keys)
-                    {
-                        string key = (string) k;
-                    }
                     header_func(conn, header);
                 }
             }

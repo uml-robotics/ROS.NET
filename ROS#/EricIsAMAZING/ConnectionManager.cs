@@ -111,6 +111,8 @@ namespace EricIsAMAZING
         public void tcpRosAcceptConnection(TcpTransport transport)
         {
             string client_uri = transport.ClientURI;
+            Console.WriteLine("connection manager has a client_uri variable that's = \"" + client_uri +
+                              "\", wtf it be is?");
             Connection conn = new Connection();
             addConnection(conn);
             conn.initialize(transport, true, onConnectionHeaderReceived);

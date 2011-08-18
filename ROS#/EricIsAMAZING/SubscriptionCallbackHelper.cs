@@ -20,7 +20,7 @@ namespace EricIsAMAZING
             EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
             base.callback(new Callback<M>(cb));
-                //if you think about this one too hard, you might die.
+            //if you think about this one too hard, you might die.
         }
 
         public SubscriptionCallbackHelper(MsgTypes t)
@@ -52,22 +52,13 @@ namespace EricIsAMAZING
         {
             EDB.WriteLine("SubscriptionCallbackHelper: call");
             MessageEvent<M> e = (MessageEvent<M>) parms.Event;
-            ((Callback<M>)callback()).func(new ParameterAdapter<M>().getParameter(e));
+            (callback()).func(new ParameterAdapter<M>().getParameter(e));
         }
     }
 
     public class ISubscriptionCallbackHelper
     {
         private CallbackInterface _callback;
-        public virtual CallbackInterface callback()
-        {
-            return _callback;
-        }
-        public virtual CallbackInterface callback(CallbackInterface cb)
-        {
-            _callback = cb;
-            return _callback;
-        }
 
         public MsgTypes type;
 
@@ -81,6 +72,17 @@ namespace EricIsAMAZING
             EDB.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
             //throw new NotImplementedException();
             _callback = Callback;
+        }
+
+        public virtual CallbackInterface callback()
+        {
+            return _callback;
+        }
+
+        public virtual CallbackInterface callback(CallbackInterface cb)
+        {
+            _callback = cb;
+            return _callback;
         }
 
         public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage

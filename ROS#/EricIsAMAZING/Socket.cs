@@ -1,32 +1,50 @@
-﻿using System;
+﻿#region USINGZ
+
 using System.Collections.Generic;
-using System.Linq;
-using EricIsAMAZING.CustomSocket;
+using System.Diagnostics;
 using System.Net.Sockets;
-using Socket = EricIsAMAZING.CustomSocket.Socket;
-using System.Text;
 using n = System.Net;
 using ns = System.Net.Sockets;
 
+#endregion
+
 namespace EricIsAMAZING.CustomSocket
 {
-    public class Socket : ns.Socket
+    public class Socket : System.Net.Sockets.Socket
     {
-        public static Socket Get(uint fd)
-        {
-            if (_socklist == null || !_socklist.ContainsKey(fd))
-                return null;
-            return _socklist[fd];
-        }
         private static SortedList<uint, Socket> _socklist;
-        private uint _fakefd = 0;
         private static uint nextfakefd = 1;
         private static List<uint> _freelist = new List<uint>();
+        private uint _fakefd;
         private bool disposed;
+
+        public Socket(System.Net.Sockets.Socket sock) : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
+        {
+        }
+
+        public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+            : base(addressFamily, socketType, protocolType)
+        {
+            if (_socklist == null)
+                _socklist = new SortedList<uint, Socket>();
+            _socklist.Add(FD, this);
+            //EDB.WriteLine("Making socket w/ FD=" + FD);
+        }
+
+        public Socket(SocketInformation socketInformation)
+            : base(socketInformation)
+        {
+            if (_socklist == null)
+                _socklist = new SortedList<uint, Socket>();
+            _socklist.Add(FD, this);
+            //EDB.WriteLine("Making socket w/ FD=" + FD);
+        }
+
         public bool IsDisposed
         {
             get { return disposed; }
         }
+
         public uint FD
         {
             get
@@ -45,24 +63,11 @@ namespace EricIsAMAZING.CustomSocket
             }
         }
 
-        public Socket(ns.Socket sock) : this(sock.DuplicateAndClose(System.Diagnostics.Process.GetCurrentProcess().Id)) { }
-
-        public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
-            : base(addressFamily, socketType, protocolType)
+        public static Socket Get(uint fd)
         {
-            if (_socklist == null)
-                _socklist = new SortedList<uint, Socket>();
-            _socklist.Add(FD, this);
-            //EDB.WriteLine("Making socket w/ FD=" + FD);
-        }
-
-        public Socket(ns.SocketInformation socketInformation)
-            : base(socketInformation)
-        {
-            if (_socklist == null)
-                _socklist = new SortedList<uint, Socket>();
-            _socklist.Add(FD, this);
-            //EDB.WriteLine("Making socket w/ FD=" + FD);
+            if (_socklist == null || !_socklist.ContainsKey(fd))
+                return null;
+            return _socklist[fd];
         }
 
         ~Socket()

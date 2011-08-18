@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Messages;
 using XmlRpc_Wrapper;
@@ -425,7 +426,8 @@ namespace EricIsAMAZING
                         bool nonconst_need_copy = false;
                         if (callbacks.Count > 1)
                             nonconst_need_copy = true;
-                        info.helper.callback().func(msg);/* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
+                        info.helper.callback().func(msg);
+                            /* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
                                                       receipt_time);*/
                         if (was_full)
                             ++drops;
@@ -454,7 +456,8 @@ namespace EricIsAMAZING
             }
         }
 
-        public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m, IDictionary connection_header)
+        public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m,
+                                                     IDictionary connection_header)
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage(type));
@@ -508,8 +511,9 @@ namespace EricIsAMAZING
                                     IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
                                                                                         latch_info.connection_header);
                                     bool was_full = false;
-                                    ((Callback<TypedMessage<M>>)info.subscription_queue).push(info.helper, des, true, ref was_full,
-                                                                 latch_info.receipt_time);
+                                    ((Callback<TypedMessage<M>>) info.subscription_queue).push(info.helper, des, true,
+                                                                                               ref was_full,
+                                                                                               latch_info.receipt_time);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }
@@ -529,7 +533,7 @@ namespace EricIsAMAZING
                 {
                     if (info.helper == helper)
                     {
-                       // ((Callback<M>)info.subscription_queue).clear();
+                        // ((Callback<M>)info.subscription_queue).clear();
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
                         //if (!helper.isConst())
@@ -583,7 +587,7 @@ namespace EricIsAMAZING
 
             public UInt64 Get()
             {
-                return (UInt64)System.Diagnostics.Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
+                return (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
             }
         }
 

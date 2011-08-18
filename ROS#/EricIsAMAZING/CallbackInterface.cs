@@ -1,7 +1,6 @@
 ﻿#region USINGZ
 
 using System;
-using System.Collections.Generic;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -13,6 +12,36 @@ namespace EricIsAMAZING
 {
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
+        public Callback(CallbackDelegate<T> f)
+        {
+            Event += func;
+            /*{
+                T t = new T();
+                t.Deserialize(ci.Serialized);
+                //if (ci == null || ci.Serialized == null) return;
+                //byte[] data = new byte[ci.Serialized.Length];
+                //Array.Copy(ci.Serialized, data, data.Length);
+                //T t = new T();
+                //t.Deserialize(data);
+                //f(t);
+            };*/
+            base.Event +=
+                (b) =>
+                    {
+                        if (b.Serialized != null)
+                        {
+                            T t = new T();
+                            byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
+                            Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
+                            t.Deserialize(FUCKNOZZLE);
+                            f(t);
+                        }
+                        else
+                            f(b as T);
+                    };
+            //func = f;
+        }
+
         public event CallbackDelegate<T> Event;
 
         /*public bool _full;
@@ -40,7 +69,7 @@ namespace EricIsAMAZING
         {
             if (Event != null)
             {
-                T t = (T)deserializer.deserialize();
+                T t = (T) deserializer.deserialize();
                 t.connection_header = deserializer.connection_header;
                 Event(t);
             }
@@ -105,8 +134,6 @@ namespace EricIsAMAZING
             }
         }*/
 
-        #region Nested type: Item
-
         /*public class Item
         {
             public IMessageDeserializer deserializer;
@@ -114,39 +141,6 @@ namespace EricIsAMAZING
             public bool nonconst_need_copy;
             public DateTime receipt_time;
         }*/
-
-        #endregion
-
-        public Callback(CallbackDelegate<T> f)
-            : base()
-        {
-            Event += func;
-            /*{
-                T t = new T();
-                t.Deserialize(ci.Serialized);
-                //if (ci == null || ci.Serialized == null) return;
-                //byte[] data = new byte[ci.Serialized.Length];
-                //Array.Copy(ci.Serialized, data, data.Length);
-                //T t = new T();
-                //t.Deserialize(data);
-                //f(t);
-            };*/
-            base.Event +=
-            (b) =>
-            {
-                if (b.Serialized != null)
-                {
-                    T t = new T();
-                    byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
-                    Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
-                    t.Deserialize(FUCKNOZZLE);
-                    f(t);
-                }
-                else
-                    f(b as T);
-            };
-            //func = f;
-        }
 
         internal override CallResult Call()
         {
@@ -177,13 +171,11 @@ namespace EricIsAMAZING
 
     public class CallbackInterface
     {
-        public void func<T>(T msg) where T : IRosMessage, new()
-        {
-            if (Event != null)
-            {
-                Event(msg);
-            }
-        }
+        #region Delegates
+
+        public delegate void ICallbackDelegate(IRosMessage msg);
+
+        #endregion
 
         #region CallResult enum
 
@@ -196,9 +188,6 @@ namespace EricIsAMAZING
 
         #endregion
 
-        public delegate void ICallbackDelegate(IRosMessage msg);
-        public event ICallbackDelegate Event;
-
         public CallbackInterface()
         {
         }
@@ -207,6 +196,16 @@ namespace EricIsAMAZING
         {
             Event += f;
         }
+
+        public void func<T>(T msg) where T : IRosMessage, new()
+        {
+            if (Event != null)
+            {
+                Event(msg);
+            }
+        }
+
+        public event ICallbackDelegate Event;
 
         internal virtual CallResult Call()
         {

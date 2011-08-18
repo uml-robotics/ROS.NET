@@ -37,7 +37,7 @@ namespace EricIsAMAZING
             if (message != null)
             {
                 SubscriptionCallbackHelperCallParams cpms = new SubscriptionCallbackHelperCallParams();
-                cpms.Event = new IMessageEvent(new MessageEvent<M>((M)message));
+                cpms.Event = new IMessageEvent(new MessageEvent<M>((M) message));
                 helper.call(cpms);
             }
             return message;
@@ -59,7 +59,7 @@ namespace EricIsAMAZING
 
         public virtual IRosMessage deserialize()
         {
-            return new IRosMessage() { type = MsgTypes.Unknown };
+            return new IRosMessage {type = MsgTypes.Unknown};
         }
     }
 }

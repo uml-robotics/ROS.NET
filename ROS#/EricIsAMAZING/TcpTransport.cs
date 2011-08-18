@@ -2,7 +2,6 @@
 
 using System;
 using System.Net;
-using EricIsAMAZING.CustomSocket;
 using System.Net.Sockets;
 using Socket = EricIsAMAZING.CustomSocket.Socket;
 
@@ -367,8 +366,7 @@ namespace EricIsAMAZING
                 }
 
                 if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count))
-                    setKeepAlive(sock, (ulong)idle, (ulong)interval);
-
+                    setKeepAlive(sock, (ulong) idle, (ulong) interval);
             }
         }
 
@@ -454,13 +452,13 @@ namespace EricIsAMAZING
         public TcpTransport accept()
         {
             Socket acc = null;
-                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-                if (!sock.AcceptAsync(args))
-                    return null;
-                while (args.AcceptSocket == null)
-                {
-                }
-                acc = new Socket(args.AcceptSocket);
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            if (!sock.AcceptAsync(args))
+                return null;
+            while (args.AcceptSocket == null)
+            {
+            }
+            acc = new Socket(args.AcceptSocket);
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {

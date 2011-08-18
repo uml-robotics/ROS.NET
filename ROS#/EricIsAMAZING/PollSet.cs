@@ -1,8 +1,8 @@
 ﻿#region USINGZ
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
-using EricIsAMAZING.CustomSocket;
 using System.Net.Sockets;
 using Socket = EricIsAMAZING.CustomSocket.Socket;
 
@@ -247,7 +247,7 @@ namespace EricIsAMAZING
             }
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public override string ToString()
         {
             string s = "";
