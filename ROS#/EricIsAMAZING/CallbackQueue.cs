@@ -266,9 +266,7 @@ namespace EricIsAMAZING
                 if (!enabled) return;
                 if (callbacks.Count == 0 && timeout != 0)
                 {
-                    //DateTime prewait = DateTime.Now;
                     sem.WaitOne(timeout);
-                    //Console.WriteLine("call avail waited for " + DateTime.Now.Subtract(prewait).TotalMilliseconds + " ms");
                 }
                 if (callbacks.Count == 0 || !enabled) return;
                 bool wasempty = tls.Count == 0;

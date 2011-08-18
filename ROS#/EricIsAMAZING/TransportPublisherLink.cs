@@ -79,7 +79,7 @@ namespace EricIsAMAZING
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
-            Console.WriteLine("TransportPublisherLink: onConnectionDropped");
+            EDB.WriteLine("TransportPublisherLink: onConnectionDropped");
             if (dropping || conn != connection) return;
             lock (parent)
             {
@@ -140,7 +140,7 @@ namespace EricIsAMAZING
             int len = BitConverter.ToInt32(buffer, 0);
             if (len > 1000000000)
             {
-                Console.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
+                EDB.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
                 drop();
                 return;
             }
@@ -153,7 +153,6 @@ namespace EricIsAMAZING
             if (success)
             {
                 string ty = "Messages." + parent.datatype.Replace("/", ".");
-                Console.WriteLine(ty);
                 Type t = TypeHelper.GetType(ty);
                 if (t == null)
                     throw new Exception("string fail!");
@@ -168,7 +167,7 @@ namespace EricIsAMAZING
 
         private void onRetryTimer(object o)
         {
-            Console.WriteLine("TransportPublisherLink: onRetryTimer");
+            EDB.WriteLine("TransportPublisherLink: onRetryTimer");
             if (dropping) return;
             if (needs_retry && DateTime.Now.Subtract(next_retry).TotalMilliseconds < 0)
             {

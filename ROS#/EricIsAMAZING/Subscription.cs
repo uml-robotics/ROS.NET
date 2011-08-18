@@ -95,21 +95,21 @@ namespace EricIsAMAZING
         {
             lock (publisher_links_mutex)
             {
-                //Console.WriteLine("SUB: getInfo with " + publisher_links.Count + " publinks in list");
+                //EDB.WriteLine("SUB: getInfo with " + publisher_links.Count + " publinks in list");
                 foreach (PublisherLink c in publisher_links)
                 {
-                    //Console.WriteLine("PUB: adding a curr_info to info!");
+                    //EDB.WriteLine("PUB: adding a curr_info to info!");
                     XmlRpcValue curr_info = new XmlRpcValue();
                     curr_info.Set(0, (int) c.ConnectionID);
                     curr_info.Set(1, c.XmlRpc_Uri);
                     curr_info.Set(2, "i");
                     curr_info.Set(3, c.TransportType);
                     curr_info.Set(4, name);
-                    //Console.Write("PUB curr_info DUMP:\n\t");
+                    //EDB.Write("PUB curr_info DUMP:\n\t");
                     //curr_info.Dump();
                     info.Set(info.Size, curr_info);
                 }
-                //Console.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
+                //EDB.WriteLine("SUB: outgoing info is of type: " + info.Type + " and has size: " + info.Size);
             }
         }
 
@@ -186,12 +186,12 @@ namespace EricIsAMAZING
             ss += " already have these connections: ";
             foreach (PublisherLink spc in publisher_links)
                 ss += spc.XmlRpc_Uri;
-            Console.WriteLine("Publisher update for [" + name + "]: " + ss);
+            EDB.WriteLine("Publisher update for [" + name + "]: " + ss);
 #endif
             string tt = "Publisher URIS passed to publisher update = ";
             foreach (string s in pubs)
                 tt += "\n\t" + s;
-            Console.WriteLine(tt);
+            EDB.WriteLine(tt);
             List<string> additions = new List<string>();
             List<PublisherLink> subtractions = new List<PublisherLink>(), to_add = new List<PublisherLink>();
             lock (publisher_links_mutex)
@@ -317,7 +317,6 @@ namespace EricIsAMAZING
             string peer_host = conn.client.Host;
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
-            Console.WriteLine("PENDING CONNECTION DONE W/ " + xmlrpc_uri);
             XmlRpcValue proto = new XmlRpcValue();
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
@@ -327,7 +326,7 @@ namespace EricIsAMAZING
             if (proto.Size == 0)
             {
 #if DEBUG
-                Console.WriteLine("Coudsn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name +
+                Console.WriteLine("Couldn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name +
                                   "]");
 #endif
                 return;

@@ -47,7 +47,6 @@ namespace EricIsAMAZING
 
         public void Start()
         {
-            //Console.WriteLine("STARTING TOPICS MANAGER");
             lock (shutting_down_mutex)
             {
                 shutting_down = false;
@@ -334,11 +333,6 @@ namespace EricIsAMAZING
                     }
                     else
                         serialize = true;
-                    /*if (!nocopy)
-                    {
-                        Console.WriteLine("This line is also sketchy... TopicManager.cs:262-ish... publish(string, byte, msg)");
-                        msg.type = MsgTypes.Unknown;
-                    }*/
                     if (serialize)
                     {
                         msg.Serialized = serfunc();
@@ -563,15 +557,11 @@ namespace EricIsAMAZING
         public void getBusInfo(IntPtr i)
         {
             XmlRpcValue info = XmlRpcValue.LookUp(i);
-            //Console.WriteLine("was " + info.Type);
-            //info.Type = TypeEnum.TypeArray;
-            //Console.WriteLine("now is " + info.Type);
             info.Size = 0;
             lock (advertised_topics_mutex)
             {
                 foreach (Publication t in advertised_topics)
                 {
-                    //Console.WriteLine("ADDING PUB: " + t.Name + " to BusInfo");
                     t.getInfo(info);
                 }
             }
@@ -579,7 +569,6 @@ namespace EricIsAMAZING
             {
                 foreach (Subscription t in subscriptions)
                 {
-                    //Console.WriteLine("ADDING SUB: " + t.name + " w/ "+t.pending_connections.Count+" pending connections to BusInfo");
                     t.getInfo(info);
                 }
             }
@@ -648,19 +637,18 @@ namespace EricIsAMAZING
                 XmlRpcManager.Instance.responseInt(1, "", 0)(result);
             else
             {
-                Console.WriteLine("Unknown Error or some shit");
+                Console.WriteLine("Unknown Error");
                 XmlRpcManager.Instance.responseInt(0, "Unknown Error or some shit", 0)(result);
             }
         }
 
         public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            Console.WriteLine("REQUEST TOPIC CALLBACK!");
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             result = res.instance;
             if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
             {
-                string last_error = "Unknown error or some shit";
+                string last_error = "Unknown error";
 
                 XmlRpcManager.Instance.responseInt(0, last_error, 0)(result);
             }

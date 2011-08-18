@@ -291,7 +291,6 @@ namespace EricIsAMAZING
                 nodelay = (string) header.Values["tcp_nodelay"];
             if (nodelay == "1")
             {
-                Console.WriteLine("SETTING NODELAY ON THIS SHIZNIT! JUST KIDDING FUCK YOU!");
                 setNoDelay(true);
             }
         }
@@ -367,20 +366,10 @@ namespace EricIsAMAZING
                     return;
                 }
 
-                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) &&
-                    !setKeepAlive(sock, (ulong) idle, (ulong) interval))
-                    Console.WriteLine("FAIL!");
+                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count))
+                    setKeepAlive(sock, (ulong)idle, (ulong)interval);
+
             }
-            /*else
-                try
-                {
-                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, false);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    return;
-                }*/
         }
 
         public int read(ref byte[] buffer, int pos, int length)
@@ -399,15 +388,12 @@ namespace EricIsAMAZING
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    EDB.WriteLine("recv() on this socket failed with error [" + err + "]");
                     close();
                     return -1;
                 }
                 else
                     return 0;
             }
-            else
-                EDB.WriteLine("READ: " + num_bytes);
             return num_bytes;
         }
 
@@ -426,7 +412,6 @@ namespace EricIsAMAZING
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
-                    EDB.WriteLine("Write failed -- "+err);
                     close();
                     return -1;
                 }
@@ -527,13 +512,10 @@ namespace EricIsAMAZING
                 try
                 {
                     int error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
-                    Console.WriteLine("GetSocketOption(error) says socket error = " + error);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("GetSocketOption failed:\t" + e);
                 }
-                Console.WriteLine("Closing socket " + sock.Handle.ToString() + " w/ (ERR|HUP|NVAL) events " + events);
                 close();
             }
         }
@@ -543,7 +525,6 @@ namespace EricIsAMAZING
             DisconnectFunc disconnect_cb = null;
             if (!closed)
             {
-                Console.WriteLine("Transport - closing");
                 lock (close_mutex)
                 {
                     if (!closed)
