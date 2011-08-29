@@ -45,7 +45,11 @@ namespace ConsoleApplication1
 
         public static void intarrayCallback(TypedMessage<Messages.custom_msgs.simpleintarray> msg)
         {
-            Console.WriteLine("" + msg.data.knownlengtharray);
+            string s = "";
+            for (int i = 0; i < msg.data.knownlengtharray.Length - 1; i++)
+                s += "" + msg.data.knownlengtharray[i]+", ";
+            s += "" + msg.data.knownlengtharray[msg.data.knownlengtharray.Length - 1];
+            Console.WriteLine(s);
         }
 
         private static void Main(string[] args)

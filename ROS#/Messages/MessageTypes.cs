@@ -17,29 +17,16 @@ namespace Messages
 {
 	public static class TypeHelper
 	{
-        public static System.Type GetType(string name)
-        {
-            return System.Type.GetType(name, true, true);
-        }
+		public static System.Type GetType(string name)
+		{
+			return System.Type.GetType(name, true, true);
+		}
 
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
-		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
-@"int32[2] integers
-int32[] lengthlessintegers
-string teststring
-string[2] teststringarray
-string[] teststringarraylengthless",
+		{			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
+@"int16[3] knownlengtharray",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
-					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
-					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)},
-					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)},
-					{"teststringarraylengthless", new MsgFieldInfo("teststringarraylengthless", true, typeof(String), false, "", true, "", false)}
-			})},
-			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, true,
-@"Int16[3] knownlengtharray",
-				 new Dictionary<string, MsgFieldInfo>{
-					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", true)}
+					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", false)}
 			})},
 			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x
@@ -55,9 +42,9 @@ float64 z",
 float32 y
 float32 z",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"x", new MsgFieldInfo("x", true, typeof(double), false, "", false, "", false)},
-					{"y", new MsgFieldInfo("y", true, typeof(double), false, "", false, "", false)},
-					{"z", new MsgFieldInfo("z", true, typeof(double), false, "", false, "", false)}
+					{"x", new MsgFieldInfo("x", true, typeof(float), false, "", false, "", false)},
+					{"y", new MsgFieldInfo("y", true, typeof(float), false, "", false, "", false)},
+					{"z", new MsgFieldInfo("z", true, typeof(float), false, "", false, "", false)}
 			})},
 			{MsgTypes.geometry_msgs__PointStamped, new TypeInfo(typeof(TypedMessage<geometry_msgs.PointStamped>), true, true,
 @"Header header
@@ -221,8 +208,8 @@ float32 cell_height
 geometry_msgs/Point[] cells",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
-					{"cell_width", new MsgFieldInfo("cell_width", true, typeof(double), false, "", false, "", false)},
-					{"cell_height", new MsgFieldInfo("cell_height", true, typeof(double), false, "", false, "", false)},
+					{"cell_width", new MsgFieldInfo("cell_width", true, typeof(float), false, "", false, "", false)},
+					{"cell_height", new MsgFieldInfo("cell_height", true, typeof(float), false, "", false, "", false)},
 					{"cells", new MsgFieldInfo("cells", false, typeof(TypedMessage<Point>), false, "", true, "", true)}
 			})},
 			{MsgTypes.nav_msgs__MapMetaData, new TypeInfo(typeof(TypedMessage<nav_msgs.MapMetaData>), false, true,
@@ -233,7 +220,7 @@ uint32 height
 geometry_msgs/Pose origin",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"map_load_time", new MsgFieldInfo("map_load_time", true, typeof(Time), false, "", false, "", false)},
-					{"resolution", new MsgFieldInfo("resolution", true, typeof(double), false, "", false, "", false)},
+					{"resolution", new MsgFieldInfo("resolution", true, typeof(float), false, "", false, "", false)},
 					{"width", new MsgFieldInfo("width", true, typeof(uint), false, "", false, "", false)},
 					{"height", new MsgFieldInfo("height", true, typeof(uint), false, "", false, "", false)},
 					{"origin", new MsgFieldInfo("origin", false, typeof(TypedMessage<Pose>), false, "", false, "", true)}
@@ -322,10 +309,10 @@ float32 g
 float32 b
 float32 a",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"r", new MsgFieldInfo("r", true, typeof(double), false, "", false, "", false)},
-					{"g", new MsgFieldInfo("g", true, typeof(double), false, "", false, "", false)},
-					{"b", new MsgFieldInfo("b", true, typeof(double), false, "", false, "", false)},
-					{"a", new MsgFieldInfo("a", true, typeof(double), false, "", false, "", false)}
+					{"r", new MsgFieldInfo("r", true, typeof(float), false, "", false, "", false)},
+					{"g", new MsgFieldInfo("g", true, typeof(float), false, "", false, "", false)},
+					{"b", new MsgFieldInfo("b", true, typeof(float), false, "", false, "", false)},
+					{"a", new MsgFieldInfo("a", true, typeof(float), false, "", false, "", false)}
 			})},
 			{MsgTypes.std_msgs__ConnectionHeader, new TypeInfo(typeof(TypedMessage<std_msgs.ConnectionHeader>), true, true,
 @"byte DEBUG=1
@@ -369,14 +356,14 @@ string[] topics",
 			{MsgTypes.std_msgs__Float32, new TypeInfo(typeof(TypedMessage<std_msgs.Float32>), false, false,
 @"float32 data",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"data", new MsgFieldInfo("data", true, typeof(double), false, "", false, "", false)}
+					{"data", new MsgFieldInfo("data", true, typeof(float), false, "", false, "", false)}
 			})},
 			{MsgTypes.std_msgs__Float32MultiArray, new TypeInfo(typeof(TypedMessage<std_msgs.Float32MultiArray>), false, true,
 @"MultiArrayLayout  layout
 float32[]         data",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"layout", new MsgFieldInfo("layout", false, typeof(TypedMessage<MultiArrayLayout>), false, "", false, "", true)},
-					{"data", new MsgFieldInfo("data", true, typeof(double), false, "", true, "", false)}
+					{"data", new MsgFieldInfo("data", true, typeof(float), false, "", true, "", false)}
 			})},
 			{MsgTypes.std_msgs__Float64, new TypeInfo(typeof(TypedMessage<std_msgs.Float64>), false, false,
 @"float64 data",
@@ -526,7 +513,6 @@ uint8[]           data",
 	public enum MsgTypes
 	{
 		Unknown,
-		custom_msgs__arraytest,
 		custom_msgs__simpleintarray,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,

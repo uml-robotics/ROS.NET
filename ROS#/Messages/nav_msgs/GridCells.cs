@@ -16,8 +16,8 @@ namespace Messages.nav_msgs
 		public class GridCells
 		{
 			public Header header;
-			public double cell_width;
-			public double cell_height;
+			public float cell_width;
+			public float cell_height;
 			public Point[] cells;
 		}
 }

@@ -16,6 +16,6 @@ namespace Messages.std_msgs
 		public class Float32MultiArray
 		{
 			public MultiArrayLayout  layout;
-			public double[]         data;
+			public float[]         data;
 		}
 }

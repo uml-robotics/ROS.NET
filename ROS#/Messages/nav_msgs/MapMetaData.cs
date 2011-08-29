@@ -16,7 +16,7 @@ namespace Messages.nav_msgs
 		public class MapMetaData
 		{
 			public Time map_load_time;
-			public double resolution;
+			public float resolution;
 			public uint width;
 			public uint height;
 			public Pose origin;
