@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class this_node
     {

@@ -6,7 +6,7 @@ using System.Linq;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class network
     {

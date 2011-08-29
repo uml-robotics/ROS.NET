@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class PublisherLink
     {

@@ -8,7 +8,7 @@ using ns = System.Net.Sockets;
 
 #endregion
 
-namespace EricIsAMAZING.CustomSocket
+namespace Ros_CSharp.CustomSocket
 {
     public class Socket : System.Net.Sockets.Socket
     {

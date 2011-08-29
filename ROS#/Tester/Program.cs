@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using EricIsAMAZING;
+using Ros_CSharp;
 using Messages;
 using Messages.custom_msgs;
 using Messages.std_msgs;
@@ -57,7 +57,7 @@ namespace ConsoleApplication1
             NodeHandle nh = new NodeHandle();
             Subscriber<TypedMessage<m.Int32>> intsub = nh.subscribe<m.Int32>("ints", 1000, intCallback);
             Subscriber<TypedMessage<m.String>> strsub = nh.subscribe<m.String>("strings", 1000, stringCallback);
-            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("intarrays", 1000, intarrayCallback);
+            Subscriber<TypedMessage<simpleintarray>> arraysub = nh.subscribe<simpleintarray>("intarrays", 1000, intarrayCallback);
             ROS.spin();
             while (ROS.ok)
             {

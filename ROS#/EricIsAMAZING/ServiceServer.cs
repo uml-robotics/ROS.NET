@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class ServiceServer<T, MReq, MRes> : IServiceServer
     {

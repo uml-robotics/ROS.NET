@@ -8,7 +8,7 @@ using String = Messages.std_msgs.String;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class MD5
     {

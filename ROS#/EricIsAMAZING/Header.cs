@@ -6,7 +6,7 @@ using System.Text;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class Header
     {

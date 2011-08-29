@@ -6,7 +6,7 @@ using System.Threading;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class SubscriberCallbacks
     {

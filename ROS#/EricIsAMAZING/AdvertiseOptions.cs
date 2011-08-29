@@ -4,7 +4,7 @@ using Messages;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class AdvertiseOptions<T> where T : class, new()
     {

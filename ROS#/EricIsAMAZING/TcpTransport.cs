@@ -3,11 +3,11 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Socket = EricIsAMAZING.CustomSocket.Socket;
+using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class TcpTransport
     {
@@ -57,7 +57,7 @@ namespace EricIsAMAZING
         public PollSet poll_set;
         public IPEndPoint server_address;
         public int server_port = -1;
-        private Socket sock;
+        private CustomSocket.Socket sock;
 
         public TcpTransport()
         {
@@ -175,7 +175,7 @@ namespace EricIsAMAZING
 
         public bool connect(string host, int port)
         {
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
 
@@ -226,7 +226,7 @@ namespace EricIsAMAZING
             is_server = true;
             this.accept_cb = accept_cb;
 
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             setNonBlocking();
             sock.Bind(new IPEndPoint(IPAddress.Any, port));
             server_port = (sock.LocalEndPoint as IPEndPoint).Port;
@@ -238,7 +238,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        private bool setKeepAlive(Socket sock, ulong time, ulong interval)
+        private bool setKeepAlive(CustomSocket.Socket sock, ulong time, ulong interval)
         {
             try
             {
@@ -294,7 +294,7 @@ namespace EricIsAMAZING
             }
         }
 
-        private bool setKeepAlive(Socket sock, ulong time, ulong interval, ulong count)
+        private bool setKeepAlive(CustomSocket.Socket sock, ulong time, ulong interval, ulong count)
         {
             try
             {
@@ -443,7 +443,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        private bool setSocket(Socket s)
+        private bool setSocket(CustomSocket.Socket s)
         {
             sock = s;
             return initializeSocket();
@@ -451,14 +451,14 @@ namespace EricIsAMAZING
 
         public TcpTransport accept()
         {
-            Socket acc = null;
+            CustomSocket.Socket acc = null;
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             if (!sock.AcceptAsync(args))
                 return null;
             while (args.AcceptSocket == null)
             {
             }
-            acc = new Socket(args.AcceptSocket);
+            acc = new CustomSocket.Socket(args.AcceptSocket);
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {

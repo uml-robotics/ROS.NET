@@ -5,7 +5,7 @@ using System.Collections;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class names
     {

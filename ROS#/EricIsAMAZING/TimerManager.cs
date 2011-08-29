@@ -31,7 +31,7 @@ using System.Threading;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     /// <summary>
     ///   The timer manager.

@@ -1,4 +1,4 @@
-﻿namespace EricIsAMAZING
+﻿namespace Ros_CSharp
 {
     public class TopicInfo
     {

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using Socket = EricIsAMAZING.CustomSocket.Socket;
+using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public class PollSet
     {
@@ -24,9 +24,9 @@ namespace EricIsAMAZING
         public const int POLLIN = 0x001;
         public const int POLLOUT = 0x004;
 
-        public List<Socket> just_deleted = new List<Socket>();
+        public List<CustomSocket.Socket> just_deleted = new List<CustomSocket.Socket>();
         public object just_deleted_mutex = new object();
-        private Socket[] localpipeevents = new Socket[2];
+        private CustomSocket.Socket[] localpipeevents = new CustomSocket.Socket[2];
         public bool signal_locked;
         public object signal_mutex = new object();
 
@@ -37,9 +37,9 @@ namespace EricIsAMAZING
 
         public PollSet()
         {
-            localpipeevents[0] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[0] = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             localpipeevents[0].Bind(new IPEndPoint(IPAddress.Loopback, 0));
-            localpipeevents[1] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[1] = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             localpipeevents[1].Connect(localpipeevents[0].LocalEndPoint);
             localpipeevents[0].Connect(localpipeevents[1].LocalEndPoint);
             localpipeevents[0].Blocking = false;
@@ -77,12 +77,12 @@ namespace EricIsAMAZING
                 }
         }
 
-        public bool addSocket(Socket s, SocketUpdateFunc update_func)
+        public bool addSocket(CustomSocket.Socket s, SocketUpdateFunc update_func)
         {
             return addSocket(s, update_func, null);
         }
 
-        public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
+        public bool addSocket(CustomSocket.Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
             SocketInfo info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
             lock (socket_info_mutex)
@@ -96,7 +96,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool delSocket(Socket s)
+        public bool delSocket(CustomSocket.Socket s)
         {
             lock (socket_info_mutex)
             {
@@ -113,7 +113,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool addEvents(Socket s, int events)
+        public bool addEvents(CustomSocket.Socket s, int events)
         {
             lock (socket_info_mutex)
             {
@@ -125,7 +125,7 @@ namespace EricIsAMAZING
             return true;
         }
 
-        public bool delEvents(Socket sock, int events)
+        public bool delEvents(CustomSocket.Socket sock, int events)
         {
             lock (socket_info_mutex)
             {
@@ -144,7 +144,7 @@ namespace EricIsAMAZING
             int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
-                Socket sock = Socket.Get(ufds[i].sock);
+                CustomSocket.Socket sock = CustomSocket.Socket.Get(ufds[i].sock);
                 if (!sock.Connected)
                 {
                     ufds[i].revents |= POLLHUP;
@@ -194,7 +194,7 @@ namespace EricIsAMAZING
                     {
                         lock (just_deleted_mutex)
                         {
-                            if (just_deleted.Contains(Socket.Get(ufds[i].sock)))
+                            if (just_deleted.Contains(CustomSocket.Socket.Get(ufds[i].sock)))
                                 skip = true;
                         }
                     }

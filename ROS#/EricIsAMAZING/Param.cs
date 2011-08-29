@@ -7,7 +7,7 @@ using XmlRpc_Wrapper;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class Param
     {

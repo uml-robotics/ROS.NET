@@ -16,7 +16,7 @@ using nm = Messages.nav_msgs;
 
 #endregion
 
-namespace EricIsAMAZING
+namespace Ros_CSharp
 {
     public static class EDB
     {
