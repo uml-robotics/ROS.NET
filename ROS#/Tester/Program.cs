@@ -33,31 +33,31 @@ namespace ConsoleApplication1
             Console.WriteLine(s);
         }
 
-        public static void chatterCallback(TypedMessage<String> msg)
+        public static void intCallback(TypedMessage<m.Int32> msg)
         {
-            Console.WriteLine(msg.data.data);
+            Console.WriteLine(""+msg.data.data);
+        }
+
+        public static void stringCallback(TypedMessage<m.String> msg)
+        {
+            Console.WriteLine("" + msg.data.data);
+        }
+
+        public static void intarrayCallback(TypedMessage<Messages.custom_msgs.simpleintarray> msg)
+        {
+            Console.WriteLine("" + msg.data.knownlengtharray);
         }
 
         private static void Main(string[] args)
         {
-            /*TypedMessage<Messages.rosgraph_msgs.Log> md5test = new TypedMessage<Messages.rosgraph_msgs.Log>();
-            string teststr = TypeHelper.MessageDefinitions[md5test.type].Trim();
-            Console.WriteLine("DEF = \n" + teststr + "\n\n\n");
-            Console.WriteLine(MD5.Sum(md5test.type));
-            Console.ReadLine();
-            return;*/
-            uint count = 0;
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            //NodeHandle nh2 = new NodeHandle();
-            //Publisher<arraytest> pub = nh.advertise<arraytest>("chatter", 1000);
-            /*Publisher<Header> pub2 = nh.advertise<Header>("headertest", 1000);
-            Publisher<Time> pub3 = nh.advertise<Time>("timetest", 1000);
-            Publisher<String> pub4 = nh.advertise<String>("juststringtest", 1000);*/
-            Subscriber<TypedMessage<String>> sub = nh.subscribe<String>("chatter2", 1000, chatterCallback);
+            Subscriber<TypedMessage<m.Int32>> intsub = nh.subscribe<m.Int32>("ints", 1000, intCallback);
+            Subscriber<TypedMessage<m.String>> strsub = nh.subscribe<m.String>("strings", 1000, stringCallback);
+            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("intarrays", 1000, intarrayCallback);
             ROS.spin();
             while (ROS.ok)
             {

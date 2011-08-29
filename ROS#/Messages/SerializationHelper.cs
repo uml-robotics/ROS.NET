@@ -16,25 +16,22 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        [System.Diagnostics.DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
             return GetMessageType(t.FullName);
         }
-        [System.Diagnostics.DebuggerStepThrough]
+
         public static MsgTypes GetMessageType(string s)
         {
             if (!s.Contains("Messages")) return MsgTypes.Unknown;
             return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
-            if (bytes == null) return null;
             return new TypedMessage<T>((T)deserialize(typeof(T), bytes, true));
         }
-        [System.Diagnostics.DebuggerStepThrough]
+
         public static object deserialize(Type T, byte[] bytes, bool iswhole = false)
         {
             object thestructure = Activator.CreateInstance(T);
@@ -42,57 +39,21 @@ namespace Messages
             int totallength = BitConverter.ToInt32(bytes, 0);
             int currpos = iswhole ? 4 : 0;
             int currinfo = 0;
-            while (currpos < bytes.Length && currinfo < infos.Length)
+            while (currpos < bytes.Length)
             {
-                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type !=
-                                        typeof(string) &&
-                                        (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].IsArray ||
-                                         TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths.Count !=
-                                         0);
-                int len=iswhole?totallength:0;
-                if (knownpiecelength)
+                int len = BitConverter.ToInt32(bytes, currpos);
+                IntPtr pIP = Marshal.AllocHGlobal(len);
+                Marshal.Copy(bytes, currpos, pIP, len);
+                if (infos[currinfo].FieldType.ToString().Contains("Messages"))
                 {
-                    if (len == 0)
-                    len = Marshal.SizeOf(infos[currpos].GetValue(thestructure));
-                    IntPtr pIP = Marshal.AllocHGlobal(len);
-                    Marshal.Copy(bytes, currpos+4, pIP, len);
-                    infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
-                    currpos += len;
+                    byte[] smallerpiece = new byte[len + 4];
+                    Array.Copy(bytes, currpos, smallerpiece, 0, len + 4);
+                    infos[currinfo].SetValue(thestructure, deserialize(infos[currinfo].FieldType, smallerpiece));
                 }
                 else
-                {
-                    var fullName = infos[currinfo].FieldType.FullName;
-                    if (fullName != null && fullName.Contains("Message."))
-                    {
-                        IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.GetGenericArguments()));
-                        if (len == 0)
-                        len = BitConverter.ToInt32(bytes, currpos);
-                        IntPtr pIP = Marshal.AllocHGlobal(len);
-                        Marshal.Copy(bytes, currpos, pIP, len);
-                        byte[] smallerpiece = new byte[len];
-                        Array.Copy(bytes, currpos, smallerpiece, 0, len + 4);
-                        msg.Deserialize(smallerpiece);
-                        object data = msg.GetType().GetField("data").GetValue(msg);
-                        infos[currinfo].SetValue(thestructure, data);
-                        currpos += len+4;
-                    }
-                    else
-                    {
-                        if (infos[currinfo].FieldType == typeof(string))
-                        {
-                             if (len == 0)
-                                len = BitConverter.ToInt32(bytes, currpos);
-                             byte[] piece = new byte[len];
-                             Array.Copy(bytes, currpos, piece, 0, len);
-                             string str = Encoding.ASCII.GetString(piece);
-                            infos[currinfo].SetValue(thestructure, str);
-                            currpos += len;
-                        }
-                        else
-                            Console.WriteLine("ZOMG HANDLE: " + infos[currinfo].FieldType.FullName);
-                    }
-                }
+                    infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
                 currinfo++;
+                currpos += len;
             }
             if (iswhole && currpos != totallength + 4)
                 throw new Exception("MATH FAIL LOL!");
@@ -237,12 +198,11 @@ namespace Messages
             return thischunk;
         }
     }
-    [System.Diagnostics.DebuggerStepThrough]
+
     public class TypedMessage<M> : IRosMessage where M : class, new()
     {
         public M data = new M();
-        
-        [System.Diagnostics.DebuggerStepThrough]
+
         public TypedMessage()
             : base(
                 (MsgTypes)
@@ -261,7 +221,7 @@ namespace Messages
                     IsMetaType)
         {
         }
-        [System.Diagnostics.DebuggerStepThrough]
+
         public TypedMessage(M d)
         {
             data = d;
@@ -287,26 +247,12 @@ namespace Messages
 
         public TypedMessage(byte[] SERIALIZEDSTUFF)
         {
-            if (SERIALIZEDSTUFF != null)
-                this.Deserialize(SERIALIZEDSTUFF);
+            Deserialize(SERIALIZEDSTUFF);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
-        public override sealed void Deserialize(byte[] SERIALIZEDSTUFF)
+        public override void Deserialize(byte[] SERIALIZEDSTUFF)
         {
-            if (SERIALIZEDSTUFF == null)
-            {
-                data = null;
-                return;
-            }
-            try
-            {
-                data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
-            }
-            catch(Exception e)
-            {
-                throw e;
-            }
+            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
         }
 
         public override byte[] Serialize()
@@ -331,13 +277,11 @@ namespace Messages
         public IDictionary connection_header;
         public MsgTypes type;
 
-        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage()
             : this(MsgTypes.Unknown, "", false, false)
         {
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta)
         {
             type = t;
@@ -346,25 +290,21 @@ namespace Messages
             IsMeta = meta;
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
             Deserialize(SERIALIZEDSTUFF);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
         {
             throw new NotImplementedException();
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public virtual byte[] Serialize()
         {
             return Serialize(false);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
         public virtual byte[] Serialize(bool partofsomethingelse = false)
         {
             return null;

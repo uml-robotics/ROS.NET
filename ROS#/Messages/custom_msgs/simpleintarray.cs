@@ -10,16 +10,11 @@ using Messages.geometry_msgs;
 using Messages.nav_msgs;
 using String=Messages.std_msgs.String;
 
-namespace Messages.std_msgs
+namespace Messages.custom_msgs
 {
 
-		public class String
+		public class simpleintarray
 		{
-			public string data;
-
-
-			public String(string s){ data = s; }
-			public String(){ data = ""; }
-
+			public short[] knownlengtharray = new short[3];
 		}
 }

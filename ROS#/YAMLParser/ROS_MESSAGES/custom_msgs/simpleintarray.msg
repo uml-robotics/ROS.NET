@@ -1,0 +1,1 @@
+﻿Int16[3] knownlengtharray

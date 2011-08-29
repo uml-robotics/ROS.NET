@@ -50,9 +50,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EricIsAMAZING\EricIsAMAZING.csproj">
+    <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
-      <Name>EricIsAMAZING</Name>
+      <Name>ROS_C-Sharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\Messages\Messages.csproj">
       <Project>{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}</Project>

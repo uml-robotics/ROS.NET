@@ -70,6 +70,27 @@ namespace Messages
             return outgoing.Serialized;
         }
 
+        public static bool IsLengthPrepended(Type T)
+        {
+            if (T == typeof(string) || T.FullName.Contains("Messages.std_msgs.String"))
+                return true;
+            FieldInfo[] infos = t.GetType().GetFields();
+            bool b = true;
+            foreach (FieldInfo info in infos)
+            {
+                string fullName = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type.FullName;
+                if (fullName != null)
+                    b = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type != typeof(string) &&
+                        !fullName.Contains("Messages.std_msgs.String") &&
+                        (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsArray ||
+                         TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count !=
+                         0);
+                if (!b)
+                    break;
+            }
+            return !b;
+        }
+
         public static byte[] SlapChop(Type T, object t, bool partofsomethingelse = false)
         {
             FieldInfo[] infos = t.GetType().GetFields();
@@ -88,8 +109,7 @@ namespace Messages
                     else
                         info.SetValue(t, Activator.CreateInstance(info.FieldType));
                 }
-                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type !=
-                                        typeof(string) &&
+                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type != typeof(string) &&
                                         (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsArray ||
                                          TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count !=
                                          0);

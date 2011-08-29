@@ -31,9 +31,9 @@ namespace EricIsAMAZING
                         if (b.Serialized != null)
                         {
                             T t = new T();
-                            byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
-                            Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
-                            t.Deserialize(FUCKNOZZLE);
+                            //byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
+                            //Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
+                            t.Deserialize(b.Serialized);
                             f(t);
                         }
                         else

@@ -258,6 +258,9 @@
     <Content Include="ROS_MESSAGES\rosgraph_msgs\Log.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\simpleintarray.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\roscsharp\Logger.msg" />
     <None Include="ROS_MESSAGES\roscsharp\Empty.srv" />
     <None Include="ROS_MESSAGES\roscsharp\SetLoggerLevel.srv" />
