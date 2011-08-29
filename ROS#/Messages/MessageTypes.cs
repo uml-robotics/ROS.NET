@@ -24,9 +24,11 @@ namespace Messages
 
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
 		{			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
-@"int16[3] knownlengtharray",
+@"int16[3] knownlengtharray
+int16[] unknownlengtharray",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", false)}
+					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", false)},
+					{"unknownlengtharray", new MsgFieldInfo("unknownlengtharray", true, typeof(short), false, "", true, "", false)}
 			})},
 			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x

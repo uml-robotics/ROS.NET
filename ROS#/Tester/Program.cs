@@ -47,8 +47,14 @@ namespace ConsoleApplication1
         {
             string s = "";
             for (int i = 0; i < msg.data.knownlengtharray.Length - 1; i++)
-                s += "" + msg.data.knownlengtharray[i]+", ";
-            s += "" + msg.data.knownlengtharray[msg.data.knownlengtharray.Length - 1];
+                s += "" + msg.data.knownlengtharray[i] + ", ";
+            s += msg.data.knownlengtharray[msg.data.knownlengtharray.Length-1]+ "\n";
+            for (int i = 0; msg.data.unknownlengtharray != null && i < msg.data.unknownlengtharray.Length - 1; i++)
+                s += "" + msg.data.unknownlengtharray[i] + ", ";
+            if (msg.data.unknownlengtharray != null)
+                s += "" + msg.data.unknownlengtharray[msg.data.knownlengtharray.Length - 1];
+            else
+                s += "UNKNOWN LENGTH INT ARRAY = NULL!";
             Console.WriteLine(s);
         }
 
