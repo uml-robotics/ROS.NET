@@ -43,18 +43,32 @@ namespace ConsoleApplication1
             Console.WriteLine("" + msg.data.data);
         }
 
-        public static void intarrayCallback(TypedMessage<Messages.custom_msgs.simpleintarray> msg)
+        public static void arraytestCallback(TypedMessage<Messages.custom_msgs.arraytest> msg)
         {
-            string s = "";
-            for (int i = 0; i < msg.data.knownlengtharray.Length - 1; i++)
-                s += "" + msg.data.knownlengtharray[i] + ", ";
-            s += msg.data.knownlengtharray[msg.data.knownlengtharray.Length-1]+ "\n";
-            for (int i = 0; msg.data.unknownlengtharray != null && i < msg.data.unknownlengtharray.Length - 1; i++)
-                s += "" + msg.data.unknownlengtharray[i] + ", ";
-            if (msg.data.unknownlengtharray != null)
-                s += "" + msg.data.unknownlengtharray[msg.data.knownlengtharray.Length - 1];
+            string s = "\n---- CALLBACK ----\n"+msg.data.teststring.data+"\n";
+            for (int i = 0; i < msg.data.integers.Length - 1; i++)
+                s += "" + msg.data.integers[i] + ", ";
+            s += msg.data.integers[msg.data.integers.Length - 1] + "\n";
+            for (int i = 0; msg.data.lengthlessintegers != null && i < msg.data.lengthlessintegers.Length - 1; i++)
+                s += "" + msg.data.lengthlessintegers[i] + ", ";
+            if (msg.data.lengthlessintegers != null)
+                s += "" + msg.data.lengthlessintegers[msg.data.lengthlessintegers.Length - 1];
             else
                 s += "UNKNOWN LENGTH INT ARRAY = NULL!";
+            s += "\n";
+            for (int i = 0; i < msg.data.teststringarray.Length - 1; i++)
+            {
+
+                s += "" + (msg.data.teststringarray[i] == null ? "NULL" : msg.data.teststringarray[i].data) + ", ";
+            }
+            s += (msg.data.teststringarray[msg.data.teststringarray.Length - 1] == null ? "NULL" : msg.data.teststringarray[msg.data.teststringarray.Length - 1].data) + "\n";
+            for (int i = 0; msg.data.teststringarraylengthless != null && i < msg.data.teststringarraylengthless.Length - 1; i++)
+                s += "" + msg.data.teststringarraylengthless[i] + ", ";
+            if (msg.data.teststringarraylengthless != null)
+                s += "" + msg.data.teststringarraylengthless[msg.data.teststringarraylengthless.Length - 1];
+            else
+                s += "List<String> == NULL";
+            s += "\n------------------ \n";
             Console.WriteLine(s);
         }
 
@@ -65,9 +79,7 @@ namespace ConsoleApplication1
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            Subscriber<TypedMessage<m.Int32>> intsub = nh.subscribe<m.Int32>("ints", 1000, intCallback);
-            Subscriber<TypedMessage<m.String>> strsub = nh.subscribe<m.String>("strings", 1000, stringCallback);
-            Subscriber<TypedMessage<simpleintarray>> arraysub = nh.subscribe<simpleintarray>("intarrays", 1000, intarrayCallback);
+            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
             ROS.spin();
             while (ROS.ok)
             {

@@ -23,7 +23,20 @@ namespace Messages
 		}
 
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
-		{			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
+		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
+@"int32[2] integers
+int32[] lengthlessintegers
+string teststring
+string[2] teststringarray
+string[] teststringarraylengthless",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
+					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
+					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)},
+					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)},
+					{"teststringarraylengthless", new MsgFieldInfo("teststringarraylengthless", true, typeof(String), false, "", true, "", false)}
+			})},
+			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
 @"int16[3] knownlengtharray
 int16[] unknownlengtharray",
 				 new Dictionary<string, MsgFieldInfo>{
@@ -515,6 +528,7 @@ uint8[]           data",
 	public enum MsgTypes
 	{
 		Unknown,
+		custom_msgs__arraytest,
 		custom_msgs__simpleintarray,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,

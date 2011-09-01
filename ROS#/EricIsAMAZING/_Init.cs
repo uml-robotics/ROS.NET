@@ -40,7 +40,7 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 10;
+        public static int WallDuration = 1;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
@@ -71,10 +71,6 @@ namespace Ros_CSharp
             if (msg == null)
                 return null;
             msg.Deserialize(data);
-            /*if (constructorInfo != null)
-                return
-                    (IRosMessage)constructorInfo.Invoke(new []{data});
-             */
             return msg;
         }
 

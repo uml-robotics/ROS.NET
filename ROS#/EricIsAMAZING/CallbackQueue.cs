@@ -353,7 +353,9 @@ namespace Ros_CSharp
                 current = null;
                 return null;
             }
-            return current.info;
+            if (current != null)
+                return current.info;
+            return null;
         }
 
         #region Nested type: CallbackInfoNode
