@@ -55,7 +55,11 @@ namespace Messages
                 int totallength = sizeknown ? bytes.Length : BitConverter.ToInt32(bytes, 0);
                 int currpos = sizeknown ? 0 : 4;
                 int currinfo = 0;
-                //Console.WriteLine("DESERIALIZING:\t" + Encoding.ASCII.GetString(bytes));
+                if (T.FullName != null && T.FullName.Contains("TypedMessage`1["))
+                {
+                    return deserialize(T.GetField("data").FieldType, bytes, IsSizeKnown(T, true));
+                }
+                Console.WriteLine("DESERIALIZING:\t" + Encoding.ASCII.GetString(bytes));
                 while (currpos < bytes.Length && currinfo < infos.Length)
                 {
                     Type type = TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type;
@@ -97,11 +101,38 @@ namespace Messages
                         }
                         else
                         {
-                            int len = Marshal.SizeOf(infos[currinfo].GetValue(thestructure));
-                            IntPtr pIP = Marshal.AllocHGlobal(len);
-                            Marshal.Copy(bytes, currpos, pIP, len);
-                            infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
-                            currpos += len;
+                            if (type.FullName.Contains("Message"))
+                            {
+                                if (!IsSizeKnown(type, true))
+                                {
+                                    int len = BitConverter.ToInt32(bytes, currpos);
+                                    byte[] piece = new byte[len];
+                                    Array.Copy(bytes, currpos + 4, piece, 0, len);
+                                    MsgTypes mt = GetMessageType(T);
+                                    object obj;
+                                    if (mt != MsgTypes.Unknown)
+                                    {
+                                        IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[mt].Type.GetGenericArguments()));
+                                        obj = deserialize(type, piece, IsSizeKnown(type, true) && (!TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].Lengths.Count != 0));
+                                    }
+                                    else
+                                        obj = deserialize(type, piece, IsSizeKnown(type, true));
+                                    infos[currinfo].SetValue(thestructure, obj);
+                                    currpos += len + 4;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("ANOTHER CASE?!");
+                                }
+                            }
+                            else
+                            {
+                                int len = Marshal.SizeOf(infos[currinfo].GetValue(thestructure));
+                                IntPtr pIP = Marshal.AllocHGlobal(len);
+                                Marshal.Copy(bytes, currpos, pIP, len);
+                                infos[currinfo].SetValue(thestructure, Marshal.PtrToStructure(pIP, infos[currinfo].FieldType));
+                                currpos += len;
+                            }
                         }
                     }
                     else
@@ -124,7 +155,7 @@ namespace Messages
                                 throw new Exception("LENGTHLESS ARRAY FAIL -- ELEMENT TYPE IS NULL!");
                             if (TT == typeof(string) || TT.FullName.Contains("Message."))
                                 throw new Exception("NOT YET, YOUNG PATAWAN");
-                            bool knownlength = IsSizeKnown(TT, true);
+                            //bool knownlength = IsSizeKnown(TT, true);
                             if (TT.FullName != null && TT.FullName.Contains("Message"))
                             {
                                 if (TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths.Count > 0)
