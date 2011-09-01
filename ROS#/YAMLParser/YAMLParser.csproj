@@ -261,6 +261,9 @@
     <Content Include="ROS_MESSAGES\custom_msgs\simpleintarray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\custom_msgs\arraytestsquared.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\roscsharp\Logger.msg" />
     <None Include="ROS_MESSAGES\roscsharp\Empty.srv" />
     <None Include="ROS_MESSAGES\roscsharp\SetLoggerLevel.srv" />

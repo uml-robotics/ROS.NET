@@ -55,7 +55,7 @@ namespace Messages
                 int totallength = sizeknown ? bytes.Length : BitConverter.ToInt32(bytes, 0);
                 int currpos = sizeknown ? 0 : 4;
                 int currinfo = 0;
-                Console.WriteLine("DESERIALIZING:\t" + Encoding.ASCII.GetString(bytes));
+                //Console.WriteLine("DESERIALIZING:\t" + Encoding.ASCII.GetString(bytes));
                 while (currpos < bytes.Length && currinfo < infos.Length)
                 {
                     Type type = TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type;
@@ -133,24 +133,20 @@ namespace Messages
                                         throw new Exception("MULTIDIMS NOT HANDLED YET!");
                                     currpos -= 4;
                                     chunklen = TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths[0];
-                                    Array chunks = Array.CreateInstance(TT, chunklen);
-                                    for (int i = 0; i < chunklen; i++)
-                                    {
-                                        IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(TT)].Type.GetGenericArguments()));
-                                        int len = BitConverter.ToInt32(bytes, currpos);
-                                        byte[] chunk = new byte[len + 4];
-                                        Array.Copy(bytes, currpos, chunk, 0, len + 4);
-                                        msg.Deserialize(chunk);
-                                        object data = msg.GetType().GetField("data").GetValue(msg);
-                                        chunks.SetValue(data, i);
-                                        currpos += len + 4;
-                                    }
-                                    infos[currinfo].SetValue(thestructure, chunks);
                                 }
-                                else
+                                Array chunks = Array.CreateInstance(TT, chunklen);
+                                for (int i = 0; i < chunklen; i++)
                                 {
-                                    Console.WriteLine("UNKNOWN LENGTH!");
+                                    IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(TT)].Type.GetGenericArguments()));
+                                    int len = BitConverter.ToInt32(bytes, currpos);
+                                    byte[] chunk = new byte[len + 4];
+                                    Array.Copy(bytes, currpos, chunk, 0, len + 4);
+                                    msg.Deserialize(chunk);
+                                    object data = msg.GetType().GetField("data").GetValue(msg);
+                                    chunks.SetValue(data, i);
+                                    currpos += len + 4;
                                 }
+                                infos[currinfo].SetValue(thestructure, chunks);
                             }
                             else
                             {
@@ -221,8 +217,6 @@ namespace Messages
             }
             return thestructure;
         }
-
-        private static T CastAs<T>(object obj) where T : class, new() { return obj as T; }
 
         public static byte[] Serialize<T>(TypedMessage<T> outgoing, bool partofsomethingelse = false)
             where T : class, new()

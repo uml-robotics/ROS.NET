@@ -36,6 +36,13 @@ string[] teststringarraylengthless",
 					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)},
 					{"teststringarraylengthless", new MsgFieldInfo("teststringarraylengthless", true, typeof(String), false, "", true, "", false)}
 			})},
+			{MsgTypes.custom_msgs__arraytestsquared, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytestsquared>), false, true,
+@"arraytest first
+arraytest second",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"first", new MsgFieldInfo("first", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)},
+					{"second", new MsgFieldInfo("second", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)}
+			})},
 			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
 @"int16[3] knownlengtharray
 int16[] unknownlengtharray",
@@ -529,6 +536,7 @@ uint8[]           data",
 	{
 		Unknown,
 		custom_msgs__arraytest,
+		custom_msgs__arraytestsquared,
 		custom_msgs__simpleintarray,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,
