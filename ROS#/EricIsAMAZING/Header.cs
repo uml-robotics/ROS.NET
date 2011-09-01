@@ -15,22 +15,27 @@ namespace Ros_CSharp
         public bool Parse(byte[] buffer, int size, ref string error_msg)
         {
             int i = 0;
-            while (i < buffer.Length)
+            while (i < size)
             {
                 int thispiece = BitConverter.ToInt32(buffer, i);
                 i += 4;
                 byte[] line = new byte[thispiece];
                 Array.Copy(buffer, i, line, 0, thispiece);
-                string[] chunks = Encoding.ASCII.GetString(line).Split('=');
+                string thisheader = Encoding.ASCII.GetString(line);
+                Console.WriteLine(thisheader);
+                string[] chunks = thisheader.Split('=');
                 if (chunks.Length != 2)
                 {
-                    error_msg = "A LINE DOES NOT CONTAIN TWO CHUNKS!";
-                    return false;
+                    i += thispiece;
+                    continue;
                 }
                 Values[chunks[0].Trim()] = chunks[1].Trim();
                 i += thispiece;
             }
-            return (i == size);
+            bool res = (i == size);
+            if (!res)
+                Console.WriteLine("WHAT THE FUCK ASS?");
+            return res;
         }
 
         private static byte[] concat(byte[] a, byte[] b)

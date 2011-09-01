@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using n = System.Net;
 using ns = System.Net.Sockets;
@@ -17,6 +18,32 @@ namespace Ros_CSharp.CustomSocket
         private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
         private bool disposed;
+
+        string attemptedConnectionEndpoint = null;
+
+        public new void Connect(IPAddress[] address, int port)
+        {
+            attemptedConnectionEndpoint = address[0].ToString(); 
+            base.Connect(address, port);
+        }
+
+        public new void Connect(IPAddress address, int port)
+        {
+            attemptedConnectionEndpoint = address.ToString();
+            base.Connect(address,port);
+        }
+
+        public new void Connect(EndPoint ep)
+        {
+            attemptedConnectionEndpoint = ep.ToString();
+            base.Connect(ep);
+        }
+
+        public new bool ConnectAsync(SocketAsyncEventArgs e)
+        {
+            attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
+            return base.ConnectAsync(e);
+        }
 
         public Socket(System.Net.Sockets.Socket sock) : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
         {
@@ -79,9 +106,11 @@ namespace Ros_CSharp.CustomSocket
         {
             if (!disposed)
             {
-                EDB.WriteLine("Killing socket w/ FD=" + FD);
+                EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
                 if (Get(FD) != null)
+                {
                     _socklist.Remove(FD);
+                }
                 _freelist.Add(FD);
                 disposed = true;
                 base.Dispose(disposing);

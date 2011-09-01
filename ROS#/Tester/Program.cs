@@ -45,8 +45,15 @@ namespace ConsoleApplication1
 
         public static void BREAKSTUFFCallback(TypedMessage<arraytestsquared> msg)
         {
-            arraytestCallback(new TypedMessage<arraytest>(msg.data.first));
-            arraytestCallback(new TypedMessage<arraytest>(msg.data.second));
+            if (msg.data.first == null)
+                Console.WriteLine("FIRST = NULL!");
+            else
+                arraytestCallback(new TypedMessage<arraytest>(msg.data.first));
+
+            if (msg.data.second == null)
+                Console.WriteLine("SECOND = NULL!");
+            else
+                arraytestCallback(new TypedMessage<arraytest>(msg.data.second));
         }
 
         public static void arraytestCallback(TypedMessage<Messages.custom_msgs.arraytest> msg)
@@ -86,8 +93,8 @@ namespace ConsoleApplication1
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            Subscriber<TypedMessage<arraytest>> arraysquaredsub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            Subscriber<TypedMessage<arraytestsquared>> arraysub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
+            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
             ROS.spin();
             while (ROS.ok)
             {
