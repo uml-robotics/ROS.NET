@@ -93,8 +93,8 @@ namespace ConsoleApplication1
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
-            //Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
+            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
             ROS.spin();
             while (ROS.ok)
             {
