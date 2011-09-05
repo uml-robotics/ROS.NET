@@ -94,17 +94,34 @@ namespace ConsoleApplication1
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
             //Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            Publisher<TypedMessage<arraytestsquared>> hardpub = nh.advertise<arraytestsquared>("hardstuff2", 1000);
+            int count = 0;
             ROS.spin();
             while (ROS.ok)
             {
-                /*arraytest test = new arraytest { lengthlessintegers = new[] { 2, 3, 4 }, teststring = new String("ZOMGSINGLESTRINGWORX"), teststringarraylengthless = new[] { new String("ZOMG1"), new String("ZOMGZOMG2"), new String("ZOMGZOMGZOMG3") } };
-                test.integers[0] = 0;
-                test.integers[1] = 1;
-                test.teststringarray[0] = new String("string 1");
-                test.teststringarray[1] = new String("string 2");
-                pub.publish(test);
-                ROS.Info("ERIC RULZ! "+count);*/
+                arraytest[] pieces = new arraytest[2];
+                pieces[0].teststring = new String("BBQ");
+                pieces[1].teststring = new String("QBB");
+                for (int i = 0; i < 2; i++)
+                {
+                    pieces[0].teststringarray[i] = new String("ZOMG "+(count+i));
+                    pieces[1].teststringarray[i] = new String("" + (count+2-i) + " GMOZ");
+                    pieces[0].integers[i] = count + i;
+                    pieces[1].integers[i] = count + 2 - i;
+                }
+                pieces[0].lengthlessintegers = new int[10];
+                pieces[1].lengthlessintegers = new int[10];
+                pieces[0].teststringarraylengthless = new String[10];
+                pieces[1].teststringarraylengthless = new String[10];
+                for(int i=2;i<12;i++)
+                {
+                    pieces[0].lengthlessintegers[i - 2] = count + i;
+                    pieces[1].lengthlessintegers[i - 2] = count + 12 - i;
+                    pieces[0].teststringarraylengthless[i - 2] = new String("ZOMFGBBQ " + (count + i));
+                    pieces[1].teststringarraylengthless[i - 2] = new String("" + (count + 12 - i) + " QBBGFMOZ");
+                }
+                hardpub.publish(new TypedMessage<arraytestsquared>(new arraytestsquared { first = pieces[0], second = pieces[1] }));
                 /*m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
                 pub2.publish(ht);
                 Time t = new Time {data = new TimeData(1,1)};
