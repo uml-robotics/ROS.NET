@@ -392,6 +392,8 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
+            else
+                Console.WriteLine("READ: " + num_bytes);
             return num_bytes;
         }
 
@@ -416,6 +418,8 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
+            else
+                Console.WriteLine("READ: " + num_bytes);
             return num_bytes;
         }
 
@@ -451,14 +455,15 @@ namespace Ros_CSharp
 
         public TcpTransport accept()
         {
-            CustomSocket.Socket acc = null;
+            Socket acc = null;
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             if (!sock.AcceptAsync(args))
                 return null;
             while (args.AcceptSocket == null)
             {
             }
-            acc = new CustomSocket.Socket(args.AcceptSocket);
+            Console.WriteLine("HOLY CRAP ACCEPTED!");
+            acc = new Socket(args.AcceptSocket);
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {

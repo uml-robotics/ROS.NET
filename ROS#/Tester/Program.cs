@@ -94,7 +94,7 @@ namespace ConsoleApplication1
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
             //Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
             //Publisher<arraytestsquared> hardpub = nh.advertise<arraytestsquared>("hardstuff2", 1000);
             int count = 0;
             while (ROS.ok)
