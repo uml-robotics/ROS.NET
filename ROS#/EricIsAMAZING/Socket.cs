@@ -21,7 +21,7 @@ namespace Ros_CSharp.CustomSocket
 
         string attemptedConnectionEndpoint = null;
 
-        public new void Connect(IPAddress[] address, int port)
+        /*public new void Connect(IPAddress[] address, int port)
         {
             attemptedConnectionEndpoint = address[0].ToString(); 
             base.Connect(address, port);
@@ -43,7 +43,7 @@ namespace Ros_CSharp.CustomSocket
         {
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
             return base.ConnectAsync(e);
-        }
+        }*/
 
         public Socket(System.Net.Sockets.Socket sock) : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
         {

@@ -3,7 +3,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Socket = Ros_CSharp.CustomSocket.Socket;
+//using Socket = Ros_CSharp.CustomSock.Socket;
 
 #endregion
 
@@ -57,11 +57,11 @@ namespace Ros_CSharp
         public PollSet poll_set;
         public IPEndPoint server_address;
         public int server_port = -1;
-        private CustomSocket.Socket sock;
+        private Socket sock;
 
         public TcpTransport()
         {
-            //Console.WriteLine("TCP TRANSPORT ZOMG!");
+            Console.WriteLine("TCP TRANSPORT ZOMG!");
         }
 
         public TcpTransport(PollSet pollset, int flags = 0) : this()
@@ -175,7 +175,7 @@ namespace Ros_CSharp
 
         public bool connect(string host, int port)
         {
-            sock = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
 
@@ -226,19 +226,19 @@ namespace Ros_CSharp
             is_server = true;
             this.accept_cb = accept_cb;
 
-            sock = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             setNonBlocking();
             sock.Bind(new IPEndPoint(IPAddress.Any, port));
             server_port = (sock.LocalEndPoint as IPEndPoint).Port;
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            //if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-            //    enableRead();
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+                enableRead();
             return true;
         }
 
-        private bool setKeepAlive(CustomSocket.Socket sock, ulong time, ulong interval)
+        private bool setKeepAlive(Socket sock, ulong time, ulong interval)
         {
             try
             {
@@ -294,7 +294,7 @@ namespace Ros_CSharp
             }
         }
 
-        private bool setKeepAlive(CustomSocket.Socket sock, ulong time, ulong interval, ulong count)
+        private bool setKeepAlive(Socket sock, ulong time, ulong interval, ulong count)
         {
             try
             {
@@ -447,7 +447,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool setSocket(CustomSocket.Socket s)
+        private bool setSocket(Socket s)
         {
             sock = s;
             return initializeSocket();
@@ -463,7 +463,7 @@ namespace Ros_CSharp
             {
             }
             Console.WriteLine("HOLY CRAP ACCEPTED!");
-            acc = new Socket(args.AcceptSocket);
+            acc = args.AcceptSocket;
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {

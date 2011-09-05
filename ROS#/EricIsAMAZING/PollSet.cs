@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using Socket = Ros_CSharp.CustomSocket.Socket;
+//using Socket = Ros_CSharp.CustomSock.Socket;
 
 #endregion
 
@@ -24,22 +24,22 @@ namespace Ros_CSharp
         public const int POLLIN = 0x001;
         public const int POLLOUT = 0x004;
 
-        public List<CustomSocket.Socket> just_deleted = new List<CustomSocket.Socket>();
+        public List<Socket> just_deleted = new List<Socket>();
         public object just_deleted_mutex = new object();
-        private CustomSocket.Socket[] localpipeevents = new CustomSocket.Socket[2];
+        private Socket[] localpipeevents = new Socket[2];
         public bool signal_locked;
         public object signal_mutex = new object();
 
-        public Dictionary<uint, SocketInfo> socket_info = new Dictionary<uint, SocketInfo>();
+        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
         public object socket_info_mutex = new object();
         public bool sockets_changed;
         public List<PollFD> ufds = new List<PollFD>();
 
         public PollSet()
         {
-            localpipeevents[0] = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[0] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             localpipeevents[0].Bind(new IPEndPoint(IPAddress.Loopback, 0));
-            localpipeevents[1] = new CustomSocket.Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localpipeevents[1] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             localpipeevents[1].Connect(localpipeevents[0].LocalEndPoint);
             localpipeevents[0].Connect(localpipeevents[1].LocalEndPoint);
             localpipeevents[0].Blocking = false;
@@ -77,14 +77,14 @@ namespace Ros_CSharp
                 }
         }
 
-        public bool addSocket(CustomSocket.Socket s, SocketUpdateFunc update_func)
+        public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
             return addSocket(s, update_func, null);
         }
 
-        public bool addSocket(CustomSocket.Socket s, SocketUpdateFunc update_func, TcpTransport trans)
+        public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
+            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -96,13 +96,13 @@ namespace Ros_CSharp
             return true;
         }
 
-        public bool delSocket(CustomSocket.Socket s)
+        public bool delSocket(Socket s)
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(s.FD))
+                if (!socket_info.ContainsKey(s))
                     return false;
-                socket_info.Remove(s.FD);
+                socket_info.Remove(s);
                 lock (just_deleted_mutex)
                 {
                     just_deleted.Add(s);
@@ -113,25 +113,25 @@ namespace Ros_CSharp
             return true;
         }
 
-        public bool addEvents(CustomSocket.Socket s, int events)
+        public bool addEvents(Socket s, int events)
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(s.FD))
+                if (!socket_info.ContainsKey(s))
                     return false;
-                socket_info[s.FD].events |= events;
+                socket_info[s].events |= events;
             }
             signal();
             return true;
         }
 
-        public bool delEvents(CustomSocket.Socket sock, int events)
+        public bool delEvents(Socket sock, int events)
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(sock.FD))
+                if (!socket_info.ContainsKey(sock))
                     return false;
-                socket_info[sock.FD].events &= ~events;
+                socket_info[sock].events &= ~events;
             }
             signal();
             return true;
@@ -144,7 +144,7 @@ namespace Ros_CSharp
             int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
-                CustomSocket.Socket sock = CustomSocket.Socket.Get(ufds[i].sock);
+                Socket sock = ufds[i].sock;
                 if (!sock.Connected)
                 {
                     ufds[i].revents |= POLLHUP;
@@ -194,7 +194,7 @@ namespace Ros_CSharp
                     {
                         lock (just_deleted_mutex)
                         {
-                            if (just_deleted.Contains(CustomSocket.Socket.Get(ufds[i].sock)))
+                            if (just_deleted.Contains(ufds[i].sock))
                                 skip = true;
                         }
                     }
@@ -263,7 +263,7 @@ namespace Ros_CSharp
     {
         public int events;
         public PollSet.SocketUpdateFunc func;
-        public uint sock;
+        public Socket sock;
         public TcpTransport transport;
     }
 
@@ -271,6 +271,6 @@ namespace Ros_CSharp
     {
         public int events;
         public int revents;
-        public uint sock;
+        public Socket sock;
     }
 }

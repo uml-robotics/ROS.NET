@@ -94,12 +94,12 @@ namespace ConsoleApplication1
             ROS.Init(args, "ROSsharp_Listener");
             NodeHandle nh = new NodeHandle();
             //Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
-            //Publisher<arraytestsquared> hardpub = nh.advertise<arraytestsquared>("hardstuff2", 1000);
+            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff", 1000, BREAKSTUFFCallback);
+            Publisher<arraytestsquared> hardpub = nh.advertise<arraytestsquared>("hardstuff2", 1000);
             int count = 0;
             while (ROS.ok)
             {
-              /*  arraytest[] pieces = new []{new arraytest(), new arraytest()};
+                arraytest[] pieces = new []{new arraytest(), new arraytest()};
                 pieces[0].teststring = new String("BBQ");
                 pieces[1].teststring = new String("QBB");
                 for (int i = 0; i < 2; i++)
@@ -120,7 +120,7 @@ namespace ConsoleApplication1
                     pieces[0].teststringarraylengthless[i - 2] = new String("ZOMFGBBQ " + (count + i));
                     pieces[1].teststringarraylengthless[i - 2] = new String("" + (count + 12 - i) + " QBBGFMOZ");
                 }
-                hardpub.publish(new arraytestsquared{ first = pieces[0], second = pieces[1] });*/
+                hardpub.publish(new arraytestsquared{ first = pieces[0], second = pieces[1] });
                 ROS.Info("THINGS PUBLISH, JUST NOT THAT CRAZY SHIT! -- "+(count++));
                 /*m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
                 pub2.publish(ht);
