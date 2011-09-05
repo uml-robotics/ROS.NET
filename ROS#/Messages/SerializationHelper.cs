@@ -69,7 +69,6 @@ namespace Messages
                 {
                     return deserialize(T.GetField("data").FieldType, bytes, out amountread, IsSizeKnown(T.GetFields()[0].FieldType, false) && (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].IsArray || TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].Lengths.Count != 0));
                 }
-                Console.WriteLine("DESERIALIZING:\t" + Encoding.ASCII.GetString(bytes));
                 while (currpos < bytes.Length && currinfo < infos.Length)
                 {
                     Type type = GetTypeSmart(TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type);
@@ -80,8 +79,6 @@ namespace Messages
                     {
                         if (realtype.IsArray && msgtype != MsgTypes.std_msgs__String) //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
                         {
-                            //if (TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths.Count != 1)
-                            //    throw new Exception("AMG MULTIDIM FAIL!");
                             Type TT = GetTypeSmart(realtype.GetElementType());
                             if (TT.IsArray)
                                 throw new Exception("ERIC, YOU NEED TO MAKE DESERIALIZATION RECURSE!!!");
@@ -99,10 +96,7 @@ namespace Messages
                                     IntPtr pIP = Marshal.AllocHGlobal(leng);
                                     Marshal.Copy(bytes, currpos, pIP, leng);
                                     object o = Marshal.PtrToStructure(pIP, TT);
-                                    Console.WriteLine("bytes["+currpos+"-"+(currpos+leng)+"] = "+o.ToString());
                                     vals.SetValue(o, i);
-                                    if (currpos >= bytes.Length)
-                                        break; //hopefully we're done by now O.o
                                     currpos += leng;
                                 }
                             }
@@ -120,7 +114,6 @@ namespace Messages
                                     Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                     int len = 0;
                                     object obj = deserialize(type, piece, out len, IsSizeKnown(realtype, true) && (!TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].Lengths.Count != 0));
-                                    Console.WriteLine("bytes[" + currpos + "-" + (currpos + len) + "] = " + obj.ToString());
                                     infos[currinfo].SetValue(thestructure, obj);
                                     currpos += len;
                                 }
@@ -135,7 +128,6 @@ namespace Messages
                                 IntPtr pIP = Marshal.AllocHGlobal(len);
                                 Marshal.Copy(bytes, currpos, pIP, len);
                                 object obj = Marshal.PtrToStructure(pIP, infos[currinfo].FieldType);
-                                Console.WriteLine("bytes[" + currpos + "-" + (currpos + len) + "] = " + obj.ToString());
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
                             }
@@ -147,14 +139,6 @@ namespace Messages
                         if (ft.IsArray)
                         {
                             Type TT = GetTypeSmart(ft.GetElementType());
-                            Console.WriteLine("Starting to deserialize an array @ " + currpos);
-                            /*if (ft.GetElementType() == typeof(Messages.std_msgs.String))
-                            {
-                                Console.WriteLine("ARRAYS OF STRINGS w/ UNKNOWN LENGTH? YOU OUTCHO MIND?!");
-                                return thestructure;
-                            }
-                            else
-                            {*/
                             Array val = infos[currinfo].GetValue(thestructure) as Array;
                             int chunklen;
                             if (val == null)
@@ -162,12 +146,10 @@ namespace Messages
                                 chunklen = BitConverter.ToInt32(bytes, currpos);
                                 currpos += 4;
                                 val = Array.CreateInstance(TT, chunklen);
-                                Console.WriteLine("Reading length from array, pos now @ " + currpos);
                             }
                             else
                             {
                                 chunklen = val.Length;
-                                Console.WriteLine("Array had known length -- pos still @ " + currpos);
                             }
                             if (TT == null)
                                 throw new Exception("LENGTHLESS ARRAY FAIL -- ELEMENT TYPE IS NULL!");
@@ -214,13 +196,11 @@ namespace Messages
                         {
                             if (ft.FullName != null && ft.FullName.Contains("Message"))
                             {
-                                Console.WriteLine("Deserializing a single message that starts @ " + currpos);
                                 IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.GetGenericArguments()));
                                 Type t = GetTypeSmart(msg.GetType());
                                 bool knownsize = IsSizeKnown(t, false) && (!TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].Lengths.Count != 0);
                                 if (!knownsize && t.GetField("data").FieldType == typeof(string))
                                 {
-                                    Console.WriteLine("Message contains a string, so copying length and its itty bits to an array @ " + currpos);
                                     int len = BitConverter.ToInt32(bytes, currpos);
                                     byte[] smallerpiece = new byte[len+4];
                                     Array.Copy(bytes, currpos, smallerpiece, 0, smallerpiece.Length);
