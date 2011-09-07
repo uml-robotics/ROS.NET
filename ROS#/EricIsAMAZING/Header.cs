@@ -33,7 +33,7 @@ namespace Ros_CSharp
             }
             bool res = (i == size);
             if (!res)
-                Console.WriteLine("WHAT THE FUCK ASS?");
+                EDB.WriteLine("WHAT THE FUCK ASS?");
             return res;
         }
 

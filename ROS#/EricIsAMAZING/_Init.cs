@@ -23,7 +23,21 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void WriteLine(object o)
         {
+#if DEBUG
             Debug.WriteLine(o);
+#else
+            EDB.WriteLine(o);
+#endif
+        }
+
+        [DebuggerStepThrough]
+        public static void WriteLine(string format, params object[] args)
+        {
+#if DEBUG
+            Debug.WriteLine(format, args);
+#else
+            EDB.WriteLine(o);
+#endif
         }
     }
 
@@ -40,11 +54,11 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 1;
+        public static int WallDuration = 100;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
-        public static Thread internal_queue_thread;
+        public static Timer internal_queue_thread;
         public static object shutting_down_mutex = new object();
         private static bool dictinit;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
@@ -172,8 +186,8 @@ namespace Ros_CSharp
             if (num_params > 1)
             {
                 string reason = parms[1].Get<string>();
-                Console.WriteLine("Shutdown request received.");
-                Console.WriteLine("Reason given for shutdown: [" + reason + "]");
+                EDB.WriteLine("Shutdown request received.");
+                EDB.WriteLine("Reason given for shutdown: [" + reason + "]");
                 requestShutdown();
             }
             XmlRpcManager.Instance.responseInt(1, "", 0)(r);
@@ -213,19 +227,20 @@ namespace Ros_CSharp
                 rosoutappender = new RosOutAppender();
 
                 //Time.Init();
-                internal_queue_thread = new Thread(internalCallbackQueueThreadFunc);
-                internal_queue_thread.IsBackground = true;
-                internal_queue_thread.Start();
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
+                                         Timeout.Infinite);
                 GlobalCallbackQueue.Enable();
             }
         }
 
-        public static void internalCallbackQueueThreadFunc()
+        public static void internalCallbackQueueThreadFunc(object nothing)
         {
-            while (!shutting_down)
-            {
-                GlobalCallbackQueue.callAvailable(100);
-            }
+            GlobalCallbackQueue.callAvailable(100);
+            if (!ok)
+                timer_manager.RemoveTimer(ref internal_queue_thread);
+            else
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
+                                         Timeout.Infinite);
         }
 
         public static bool isStarted()
@@ -243,11 +258,11 @@ namespace Ros_CSharp
                 else
                     shutting_down = true;
 
-                Console.WriteLine("We're going down down....");
+                EDB.WriteLine("We're going down down....");
 
                 GlobalCallbackQueue.Disable();
                 GlobalCallbackQueue.Clear();
-                internal_queue_thread.Join();
+                internal_queue_thread.Dispose();
 
                 if (started)
                 {

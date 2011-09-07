@@ -1,6 +1,5 @@
 ﻿#region USINGZ
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -167,13 +166,13 @@ namespace Ros_CSharp
                     }
                 }
             }
-            if (udfscount == 0) 
+            if (udfscount == 0)
                 return;
             for (int i = 0; i < udfscount; i++)
             {
                 if (ufds[i].revents == 0)
                 {
-                    Console.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
+                    EDB.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
                     continue;
                 }
 

@@ -50,15 +50,19 @@ namespace Ros_CSharp
 
         public override bool check()
         {
+            XmlRpcValue chk = new XmlRpcValue();
             if (parent == null)
                 return false;
             bool res = client.IsConnected;
             if (res == false)
+                EDB.WriteLine("DEAD MASTER DETECTED!");
+            else
             {
-                Console.WriteLine("DEAD MASTER DETECTED!");
+                res &= client.ExecuteCheckDone(chk);
+                if (res)
+                    parent.pendingConnectionDone(this, chk.instance);
             }
             return res;
-            XmlRpcValue chk = new XmlRpcValue();
             //if (NEVERAGAIN) return true;
             if (client.ExecuteCheckDone(chk))
             {

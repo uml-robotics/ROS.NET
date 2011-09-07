@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,29 +17,35 @@ namespace Messages
 {
     public static class SerializationHelper
     {
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
             return GetMessageType(t.FullName);
         }
-        [System.Diagnostics.DebuggerStepThrough]
+
+        [DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
             if (s.Contains("TypedMessage`1["))
                 s = Type.GetType(s).GetField("data").FieldType.FullName;
             if (!s.Contains("Messages"))
                 return MsgTypes.Unknown;
-            return (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
+            return (MsgTypes) Enum.Parse(typeof (MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
         }
 
         public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
         {
-            if (typeof(T).FullName.Contains("TypedMessage"))
+            if (typeof (T).FullName.Contains("TypedMessage"))
                 Console.WriteLine("TYPE FAIL!");
             int dontcare = 0;
-            return new TypedMessage<T>((T)deserialize(typeof(T), bytes, out dontcare, IsSizeKnown(TypeHelper.TypeInformation[GetMessageType(typeof(T))].Type, false)));
+            return
+                new TypedMessage<T>(
+                    (T)
+                    deserialize(typeof (T), bytes, out dontcare,
+                                IsSizeKnown(TypeHelper.TypeInformation[GetMessageType(typeof (T))].Type, false)));
         }
-        [System.Diagnostics.DebuggerStepThrough]
+
+        [DebuggerStepThrough]
         public static Type GetType(string s)
         {
             MsgTypes mt = GetMessageType(s);
@@ -62,22 +69,32 @@ namespace Messages
             try
             {
                 FieldInfo[] infos = T.GetFields();
-                currpos = 0;// sizeknown ? 0 : 4;
+                currpos = 0; // sizeknown ? 0 : 4;
                 startingpos = currpos;
                 int currinfo = 0;
                 if (T.FullName != null && T.FullName.Contains("TypedMessage`1["))
                 {
-                    return deserialize(T.GetField("data").FieldType, bytes, out amountread, IsSizeKnown(T.GetFields()[0].FieldType, false) && (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].IsArray || TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].Lengths.Count != 0));
+                    return deserialize(T.GetField("data").FieldType, bytes, out amountread,
+                                       IsSizeKnown(T.GetFields()[0].FieldType, false) &&
+                                       (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].IsArray ||
+                                        TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[0].Name].Lengths.
+                                            Count != 0));
                 }
                 while (currpos < bytes.Length && currinfo < infos.Length)
                 {
-                    Type type = GetTypeSmart(TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type);
+                    Type type =
+                        GetTypeSmart(TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Type);
                     Type realtype = GetTypeSmart(infos[currinfo].FieldType);
                     MsgTypes msgtype = GetMessageType(type);
-                    bool knownpiecelength = IsSizeKnown(realtype, false) && (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].Lengths.Count != 0);
+                    bool knownpiecelength = IsSizeKnown(realtype, false) &&
+                                            (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name]
+                                                  .IsArray ||
+                                             TypeHelper.TypeInformation[GetMessageType(T)].Fields[infos[currinfo].Name].
+                                                 Lengths.Count != 0);
                     if (knownpiecelength)
                     {
-                        if (realtype.IsArray && msgtype != MsgTypes.std_msgs__String) //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
+                        if (realtype.IsArray && msgtype != MsgTypes.std_msgs__String)
+                            //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
                         {
                             Type TT = GetTypeSmart(realtype.GetElementType());
                             if (TT.IsArray)
@@ -113,7 +130,12 @@ namespace Messages
                                     byte[] piece = new byte[bytes.Length - currpos];
                                     Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                     int len = 0;
-                                    object obj = deserialize(type, piece, out len, IsSizeKnown(realtype, true) && (!TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].Lengths.Count != 0));
+                                    object obj = deserialize(type, piece, out len,
+                                                             IsSizeKnown(realtype, true) &&
+                                                             (!TypeHelper.TypeInformation[mt].Fields[
+                                                                 infos[currinfo].Name].IsArray ||
+                                                              TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name
+                                                                  ].Lengths.Count != 0));
                                     infos[currinfo].SetValue(thestructure, obj);
                                     currpos += len;
                                 }
@@ -153,7 +175,7 @@ namespace Messages
                             }
                             if (TT == null)
                                 throw new Exception("LENGTHLESS ARRAY FAIL -- ELEMENT TYPE IS NULL!");
-                            if (TT == typeof(string) || TT.FullName.Contains("Message."))
+                            if (TT == typeof (string) || TT.FullName.Contains("Message."))
                                 throw new Exception("NOT YET, YOUNG PATAWAN");
                             //bool knownlength = IsSizeKnown(TT, true);
                             if (TT.FullName != null && TT.FullName.Contains("Message"))
@@ -172,7 +194,12 @@ namespace Messages
                                     byte[] chunk = new byte[bytes.Length - currpos];
                                     Array.Copy(bytes, currpos, chunk, 0, chunk.Length);
                                     int len = 0;
-                                    object data = deserialize(TT, chunk, out len, IsSizeKnown(TT, false) && (!TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[mt].Fields[infos[currinfo].Name].Lengths.Count != 0));
+                                    object data = deserialize(TT, chunk, out len,
+                                                              IsSizeKnown(TT, false) &&
+                                                              (!TypeHelper.TypeInformation[mt].Fields[
+                                                                  infos[currinfo].Name].IsArray ||
+                                                               TypeHelper.TypeInformation[mt].Fields[
+                                                                   infos[currinfo].Name].Lengths.Count != 0));
                                     val.SetValue(data, i);
                                     currpos += len;
                                 }
@@ -181,14 +208,14 @@ namespace Messages
                             else
                             {
                                 int len = Marshal.SizeOf(TT);
-                                for (int i = 0; i < chunklen * len; i += len)
+                                for (int i = 0; i < chunklen*len; i += len)
                                 {
                                     IntPtr pIP = Marshal.AllocHGlobal(len);
                                     Marshal.Copy(bytes, currpos + i, pIP, len);
-                                    val.SetValue(Marshal.PtrToStructure(pIP, TT), i / len);
+                                    val.SetValue(Marshal.PtrToStructure(pIP, TT), i/len);
                                 }
                                 infos[currinfo].SetValue(thestructure, val);
-                                currpos += chunklen * len;
+                                currpos += chunklen*len;
                             }
                             // }
                         }
@@ -196,10 +223,19 @@ namespace Messages
                         {
                             if (ft.FullName != null && ft.FullName.Contains("Message"))
                             {
-                                IRosMessage msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.GetGenericArguments()));
+                                IRosMessage msg =
+                                    (IRosMessage)
+                                    Activator.CreateInstance(
+                                        typeof (TypedMessage<>).MakeGenericType(
+                                            TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.
+                                                GetGenericArguments()));
                                 Type t = GetTypeSmart(msg.GetType());
-                                bool knownsize = IsSizeKnown(t, false) && (!TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].IsArray || TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].Lengths.Count != 0);
-                                if (!knownsize && t.GetField("data").FieldType == typeof(string))
+                                bool knownsize = IsSizeKnown(t, false) &&
+                                                 (!TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].
+                                                       IsArray ||
+                                                  TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].
+                                                      Lengths.Count != 0);
+                                if (!knownsize && t.GetField("data").FieldType == typeof (string))
                                 {
                                     int len = BitConverter.ToInt32(bytes, currpos);
                                     byte[] smallerpiece = new byte[len + 4];
@@ -221,7 +257,6 @@ namespace Messages
                                     object data = msg.GetType().GetField("data").GetValue(msg);
                                     infos[currinfo].SetValue(thestructure, data);
                                     currpos += len;
-
                                 }
                                 else
                                 {
@@ -230,7 +265,7 @@ namespace Messages
                             }
                             else
                             {
-                                if (infos[currinfo].FieldType == typeof(string))
+                                if (infos[currinfo].FieldType == typeof (string))
                                 {
                                     int len = BitConverter.ToInt32(bytes, currpos);
                                     byte[] piece = new byte[len];
@@ -247,7 +282,6 @@ namespace Messages
                                     return thestructure;
                                 }
                             }
-
                         }
                     }
                     currinfo++;
@@ -255,7 +289,7 @@ namespace Messages
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine(e);
+                Debug.WriteLine(e);
             }
             amountread = currpos - startingpos;
             return thestructure;
@@ -274,7 +308,8 @@ namespace Messages
         {
             if (T.FullName != null && T.FullName.Contains("Messages.TypedMessage`1["))
                 return IsSizeKnown(T.GetField("data").FieldType, recurse);
-            if (T == typeof(string) || T == typeof(Messages.std_msgs.String) || (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) || T.IsArray)
+            if (T == typeof (string) || T == typeof (String) ||
+                (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) || T.IsArray)
                 return false;
             if (!recurse || !T.FullName.Contains("Messages")) return true;
             FieldInfo[] infos = T.GetFields();
@@ -285,13 +320,15 @@ namespace Messages
                 if (fullName != null)
                 {
                     if (fullName.Contains("Messages."))
-                        b = TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type != typeof(string) &&
-                            TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type != typeof(String) &&
+                        b = TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type !=
+                            typeof (string) &&
+                            TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type !=
+                            typeof (String) &&
                             (!TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].IsArray ||
                              TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Lengths.Count !=
                              0);
                     else
-                        b = !info.FieldType.IsArray && info.FieldType != typeof(string);
+                        b = !info.FieldType.IsArray && info.FieldType != typeof (string);
                 }
                 if (!b)
                     break;
@@ -310,14 +347,15 @@ namespace Messages
                 if (TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsConst) continue;
                 if (info.GetValue(t) == null)
                 {
-                    if (info.FieldType == typeof(string))
+                    if (info.FieldType == typeof (string))
                         info.SetValue(t, "");
                     else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
                         info.SetValue(t, 0);
                     else
                         info.SetValue(t, Activator.CreateInstance(info.FieldType));
                 }
-                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type != typeof(string) &&
+                bool knownpiecelength = TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Type !=
+                                        typeof (string) &&
                                         (!TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].IsArray ||
                                          TypeHelper.TypeInformation[GetMessageType(T)].Fields[info.Name].Lengths.Count !=
                                          0);
@@ -348,22 +386,22 @@ namespace Messages
             byte[] thischunk = null;
             if (!T.IsArray)
             {
-                if (T != typeof(TimeData) && T.Namespace.Contains("Message"))
+                if (T != typeof (TimeData) && T.Namespace.Contains("Message"))
                 {
                     IRosMessage msg = null;
                     if (val != null)
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T), val);
                     else
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
+                        msg = (IRosMessage) Activator.CreateInstance(typeof (TypedMessage<>).MakeGenericType(T));
                     thischunk = msg.Serialize(true);
                 }
-                else if (val is string || T == typeof(string))
+                else if (val is string || T == typeof (string))
                 {
                     if (!knownlength)
                     {
                         if (val == null)
                             val = "";
-                        byte[] nolen = Encoding.ASCII.GetBytes((string)val);
+                        byte[] nolen = Encoding.ASCII.GetBytes((string) val);
                         thischunk = new byte[nolen.Length + 4];
                         byte[] bylen2 = BitConverter.GetBytes(nolen.Length);
                         Array.Copy(nolen, 0, thischunk, 4, nolen.Length);
@@ -371,7 +409,7 @@ namespace Messages
                     }
                     else
                     {
-                        thischunk = Encoding.ASCII.GetBytes((string)val);
+                        thischunk = Encoding.ASCII.GetBytes((string) val);
                         knownlength = false;
                     }
                 }
@@ -434,18 +472,18 @@ namespace Messages
         public TypedMessage()
             : base(
                 (MsgTypes)
-                Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")),
+                Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__")),
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     MessageDefinition,
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     HasHeader,
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     IsMetaType)
         {
         }
@@ -455,21 +493,21 @@ namespace Messages
             data = d;
             base.type =
                 (MsgTypes)
-                Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
+                Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"));
             base.MessageDefinition =
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     MessageDefinition;
             base.HasHeader =
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     HasHeader;
             base.IsMeta =
                 TypeHelper.TypeInformation[
                     (MsgTypes)
-                    Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"))].
+                    Enum.Parse(typeof (MsgTypes), typeof (M).FullName.Replace("Messages.", "").Replace(".", "__"))].
                     IsMetaType;
         }
 
@@ -626,13 +664,14 @@ namespace Messages
                  members.ConstValue,
                  members.IsArray.ToString().ToLower(),
                  members.lengths,
-                //FIX MEEEEEEEE
+                 //FIX MEEEEEEEE
                  members.meta.ToString().ToLower());
         }
     }
 
     public class MsgsFile
     {
+        private string GUTS;
         public string GeneratedDictHelper;
         private bool HasHeader;
         public string Name;
@@ -682,7 +721,6 @@ namespace Messages
             }
         }
 
-        string GUTS = null;
         public override string ToString()
         {
             bool wasnull = false;
@@ -771,7 +809,7 @@ namespace Messages
             {
             }
             GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t{\n" + memoizedcontent + "\t\t}" + "\n" +
-                         backhalf;
+                   backhalf;
             return GUTS;
         }
 
@@ -841,11 +879,13 @@ namespace Messages
         public bool IsLiteral;
         public string Name;
         public string Type;
+        private string[] backup;
         public string input;
         public string lengths = "";
         public bool meta;
         public string output;
         public string rostype = "";
+
         public SingleType(string s)
         {
             if (s.Contains('[') && s.Contains(']'))
@@ -877,8 +917,6 @@ namespace Messages
             PARTS[0] = csharptype.Value;
             return Finalize(PARTS, true);
         }
-
-        string[] backup;
 
         public SingleType Finalize(string[] s, bool isliteral)
         {
@@ -1022,8 +1060,13 @@ namespace Messages
 
     public struct TimeData
     {
-        public uint sec;
         public uint nsec;
-        public TimeData(uint s, uint ns) { sec = s; nsec = ns; }
+        public uint sec;
+
+        public TimeData(uint s, uint ns)
+        {
+            sec = s;
+            nsec = ns;
+        }
     }
 }

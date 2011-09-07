@@ -155,7 +155,7 @@ namespace Ros_CSharp
                 !header.Values.Contains("callerid"))
             {
                 string msg = "Header from subscriber did not have the required elements: md5sum, topic, callerid";
-                Console.WriteLine(msg);
+                EDB.WriteLine(msg);
                 error_message = msg;
                 return false;
             }
@@ -166,7 +166,7 @@ namespace Ros_CSharp
             {
                 string msg = "received a tcpros connection for a nonexistent topic [" + topic + "] from [" +
                              client_callerid + "].";
-                Console.WriteLine(msg);
+                EDB.WriteLine(msg);
                 error_message = msg;
                 return false;
             }
@@ -177,7 +177,7 @@ namespace Ros_CSharp
                 string msg = "Client [" + client_callerid + "] wants topic [" + topic + "] to hava datatype/md5sum [" +
                              datatype + "/" + md5sum + "], but our version has [" + DataType + "/" + Md5sum +
                              "]. Dropping connection";
-                Console.WriteLine(msg);
+                EDB.WriteLine(msg);
                 error_message = msg;
                 return false;
             }

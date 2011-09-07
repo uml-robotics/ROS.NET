@@ -1,21 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.InteropServices;
+#region USINGZ
 
-using Messages.std_msgs;
 using Messages.geometry_msgs;
-using Messages.nav_msgs;
-using String=Messages.std_msgs.String;
+using Messages.std_msgs;
+
+#endregion
 
 namespace Messages.nav_msgs
 {
-
-		public class Path
-		{
-			public Header header;
-			public PoseStamped[] poses;
-		}
+    public class Path
+    {
+        public Header header;
+        public PoseStamped[] poses;
+    }
 }

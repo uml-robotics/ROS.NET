@@ -10,7 +10,7 @@ using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using Socket = Ros_CSharp.CustomSocket.Socket;
+
 #endregion
 
 namespace Ros_CSharp
@@ -40,7 +40,7 @@ namespace Ros_CSharp
             {
                 if (tcpserver_transport == null || tcpserver_transport.LocalEndpoint == null)
                     return -1;
-                return ((IPEndPoint)tcpserver_transport.LocalEndpoint).Port;
+                return ((IPEndPoint) tcpserver_transport.LocalEndpoint).Port;
             }
         }
 
@@ -137,7 +137,7 @@ namespace Ros_CSharp
             string val = "";
             if (header.Values.Contains("topic"))
             {
-                val = (string)header.Values["topic"];
+                val = (string) header.Values["topic"];
                 TransportSubscriberLink sub_link = new TransportSubscriberLink();
                 sub_link.initialize(conn);
                 ret = sub_link.handleHeader(header);
@@ -148,8 +148,8 @@ namespace Ros_CSharp
             }
             else
             {
-                Console.WriteLine("got a connection for a type other than topic or service from [" + conn.RemoteString +
-                                  "]. Fail.");
+                EDB.WriteLine("got a connection for a type other than topic or service from [" + conn.RemoteString +
+                              "]. Fail.");
                 return false;
             }
             return ret;
@@ -164,7 +164,8 @@ namespace Ros_CSharp
             }
         }
 
-        Timer acceptor;
+        private Timer acceptor;
+
         public void Start()
         {
             poll_manager = PollManager.Instance;

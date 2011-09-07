@@ -22,7 +22,7 @@ namespace YAMLParser
         }
 
         private static void Main(string[] args)
-        {            
+        {
             List<string> paths = new List<string>();
             List<string> std = new List<string>();
             Console.WriteLine
@@ -204,7 +204,8 @@ namespace YAMLParser
                         backhalf += lines[i] + "\n";
                 }
             }
-            fronthalf += "\tpublic static class TypeHelper\n\t{\n\t\tpublic static System.Type GetType(string name)\n\t\t{\n\t\t\treturn System.Type.GetType(name, true, true);\n\t\t}\n";
+            fronthalf +=
+                "\tpublic static class TypeHelper\n\t{\n\t\tpublic static System.Type GetType(string name)\n\t\t{\n\t\t\treturn System.Type.GetType(name, true, true);\n\t\t}\n";
 
             GenDict
                 ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, msgsFiles.Count,

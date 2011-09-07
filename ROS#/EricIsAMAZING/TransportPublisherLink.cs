@@ -44,7 +44,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            Console.WriteLine(parent.datatype);
+            EDB.WriteLine(parent.datatype);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -92,13 +92,14 @@ namespace Ros_CSharp
                     if (retry_timer == null)
                         retry_period = TimeSpan.FromMilliseconds(100);
                     ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer,
-                                                 (int)Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
+                                                 (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
                 }
                 else
                 {
                     if (reason == Connection.DropReason.HeaderError)
                     {
-                        EDB.WriteLine("SOMETHING BE WRONG WITH THE HEADER FOR: "+(parent != null ? parent.name : "unknown"));
+                        EDB.WriteLine("SOMETHING BE WRONG WITH THE HEADER FOR: " +
+                                      (parent != null ? parent.name : "unknown"));
                     }
                     drop();
                 }
@@ -164,7 +165,7 @@ namespace Ros_CSharp
                 if (t == null)
                     throw new Exception("string fail!");
                 IRosMessage msg = new IRosMessage();
-                    // ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
+                // ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
                 msg.Serialized = new byte[buffer.Length];
                 Array.Copy(buffer, msg.Serialized, buffer.Length);
                 handleMessage(msg, true, false);

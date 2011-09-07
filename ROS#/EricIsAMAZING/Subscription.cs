@@ -243,15 +243,15 @@ namespace Ros_CSharp
                     if (link.XmlRpc_Uri != XmlRpcManager.Instance.uri)
                     {
 #if DEBUG
-                        Console.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
-                                          "] at [" + link.XmlRpc_Uri + "]");
+                        EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
+                                      "] at [" + link.XmlRpc_Uri + "]");
                         link.drop();
 #endif
                     }
                     else
                     {
 #if DEBUG
-                        Console.WriteLine("NOT DISCONNECTING FROM MYSELF FOR TOPIC " + name);
+                        EDB.WriteLine("NOT DISCONNECTING FROM MYSELF FOR TOPIC " + name);
 #endif
                     }
                 }
@@ -261,7 +261,7 @@ namespace Ros_CSharp
                     if (XmlRpcManager.Instance.uri != i)
                         retval &= NegotiateConnection(i);
                     else
-                        Console.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
+                        EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
                 }
             }
             return retval;
@@ -280,20 +280,20 @@ namespace Ros_CSharp
             int peer_port = 0;
             if (!network.splitURI(xmlrpc_uri, ref peer_host, ref peer_port))
             {
-                Console.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
+                EDB.WriteLine("Bad xml-rpc URI: [" + xmlrpc_uri + "]");
                 return false;
             }
             XmlRpcClient c = new XmlRpcClient(peer_host, peer_port);
-            if (!c.ExecuteNonBlock("requestTopic", Params))
+            if (!c.IsConnected || !c.ExecuteNonBlock("requestTopic", Params))
             {
-                Console.WriteLine("Failed to contact publisher [" + peer_host + ":" + peer_port + "] for topic [" + name +
-                                  "]");
+                EDB.WriteLine("Failed to contact publisher [" + peer_host + ":" + peer_port + "] for topic [" + name +
+                              "]");
                 c.Dispose();
                 return false;
             }
-
-            Console.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
-
+#if DEBUG
+            //EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+#endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
             {
@@ -321,40 +321,40 @@ namespace Ros_CSharp
             XmlRpcValue proto = new XmlRpcValue();
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
-                Console.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
+                EDB.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
                 return;
             }
             if (proto.Size == 0)
             {
 #if DEBUG
-                Console.WriteLine("Couldn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name +
-                                  "]");
+                EDB.WriteLine("Couldn't agree on any common protocols with [" + xmlrpc_uri + "] for topic [" + name +
+                              "]");
 #endif
                 return;
             }
             if (proto.Type != TypeEnum.TypeArray)
             {
-                Console.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
+                EDB.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
                 return;
             }
             string proto_name = proto[0].Get<string>();
             if (proto_name == "UDPROS")
             {
-                Console.WriteLine("OWNED! Only tcpros is supported right now.");
+                EDB.WriteLine("OWNED! Only tcpros is supported right now.");
                 return;
             }
             else if (proto_name == "TCPROS")
             {
                 if (proto.Size != 3 || proto[1].Type != TypeEnum.TypeString || proto[2].Type != TypeEnum.TypeInt)
                 {
-                    Console.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
+                    EDB.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
                     return;
                 }
                 string pub_host = proto[1].Get<string>();
                 int pub_port = proto[2].Get<int>();
 #if DEBUG
-                Console.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port +
-                                  "]");
+                EDB.WriteLine("Connecting via tcpros to topic [" + name + "] at host [" + pub_host + ":" + pub_port +
+                              "]");
 #endif
 
                 TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set);
@@ -375,19 +375,19 @@ namespace Ros_CSharp
 
 
 #if DEBUG
-                    Console.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port +
-                                      "]");
+                    EDB.WriteLine("Connected to publisher of topic [" + name + "] at  [" + pub_host + ":" + pub_port +
+                                  "]");
 #endif
                 }
                 else
                 {
-                    Console.WriteLine("Failed to connect to publisher of topic [" + name + "] at  [" + pub_host + ":" +
-                                      pub_port + "]");
+                    EDB.WriteLine("Failed to connect to publisher of topic [" + name + "] at  [" + pub_host + ":" +
+                                  pub_port + "]");
                 }
             }
             else
             {
-                Console.WriteLine("Your xmlrpc server be talking jibber jabber, foo");
+                EDB.WriteLine("Your xmlrpc server be talking jibber jabber, foo");
                 return;
             }
         }
@@ -427,7 +427,7 @@ namespace Ros_CSharp
                         if (callbacks.Count > 1)
                             nonconst_need_copy = true;
                         info.helper.callback().func(msg);
-                            /* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
+                        /* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
                                                       receipt_time);*/
                         if (was_full)
                             ++drops;

@@ -16,12 +16,13 @@ namespace Ros_CSharp
         public static string host = "";
         public static string uri = "";
         public static TimeSpan retryTimeout = TimeSpan.FromSeconds(0);
+        private static bool firstsucces;
 
         internal static void init(IDictionary remapping_args)
         {
             if (remapping_args.Contains("__master"))
             {
-                uri = (string)remapping_args["__master"];
+                uri = (string) remapping_args["__master"];
                 ROS.ROS_MASTER_URI = uri;
             }
             if (uri == "")
@@ -81,7 +82,6 @@ namespace Ros_CSharp
         }
 
 
-        private static bool firstsucces;
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
                                    bool wait_for_master)
         {
@@ -92,12 +92,14 @@ namespace Ros_CSharp
             bool printed = false;
             bool slept = false;
             bool ok = true;
-            while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down || !client.Execute(method, request, response) || !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
+            while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
+                   !client.Execute(method, request, response) ||
+                   !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
             {
                 if (!printed)
                 {
-                    Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                      master_port, (wait_for_master ? "Retrying..." : ""));
+                    EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                                  master_port, (wait_for_master ? "Retrying..." : ""));
                     printed = true;
                 }
 
@@ -109,8 +111,8 @@ namespace Ros_CSharp
 
                 if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
                 {
-                    Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                      retryTimeout.TotalSeconds);
+                    EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                                  retryTimeout.TotalSeconds);
                     XmlRpcManager.Instance.releaseXMLRPCClient(client);
                     return false;
                 }
@@ -120,7 +122,7 @@ namespace Ros_CSharp
             if (ok && !firstsucces)
             {
                 firstsucces = true;
-                Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+                EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
             }
             XmlRpcManager.Instance.releaseXMLRPCClient(client);
             return true;

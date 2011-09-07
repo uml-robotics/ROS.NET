@@ -144,7 +144,7 @@ namespace Ros_CSharp
             if (ops.datatype == "")
                 throw new Exception("Advertising on topic [" + ops.topic + "] with an empty datatype");
             if (ops.message_definition == "")
-                Console.WriteLine
+                EDB.WriteLine
                     ("Danger, Will Robinson... Advertising on topic [" + ops.topic +
                      "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
             Publication pub = null;
@@ -157,7 +157,7 @@ namespace Ros_CSharp
                 {
                     if (pub.Md5sum != ops.md5sum)
                     {
-                        Console.WriteLine
+                        EDB.WriteLine
                             ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]",
                              ops.topic, ops.md5sum,
                              ops.datatype, pub.Md5sum, pub.DataType);
@@ -221,7 +221,7 @@ namespace Ros_CSharp
                 s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks);
                 if (!registerSubscriber(s, ops.datatype))
                 {
-                    Console.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
+                    EDB.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
                     s.shutdown();
                     return false;
                 }
@@ -259,7 +259,7 @@ namespace Ros_CSharp
                     subscriptions.Remove(sub);
 
                     if (!unregisterSubscriber(topic))
-                        Console.WriteLine("Couldn't unregister subscriber for topic [" + topic + "]");
+                        EDB.WriteLine("Couldn't unregister subscriber for topic [" + topic + "]");
                 }
 
                 sub.shutdown();
@@ -404,12 +404,12 @@ namespace Ros_CSharp
                 XmlRpcValue proto = protos[proto_idx];
                 if (proto.Type != TypeEnum.TypeArray)
                 {
-                    Console.WriteLine("requestTopic protocol list was not a list of lists");
+                    EDB.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;
                 }
                 if (proto[0].Type != TypeEnum.TypeString)
                 {
-                    Console.WriteLine(
+                    EDB.WriteLine(
                         "requestTopic received a protocol list in which a sublist did not start with a string");
                     return false;
                 }
@@ -426,12 +426,12 @@ namespace Ros_CSharp
                 }
                 else if (proto_name == "UDPROS")
                 {
-                    Console.WriteLine("IGNORING UDP GIZNARBAGE");
+                    EDB.WriteLine("IGNORING UDP GIZNARBAGE");
                 }
                 else
-                    Console.WriteLine("an unsupported protocol was offered: [{0}]", proto_name);
+                    EDB.WriteLine("an unsupported protocol was offered: [{0}]", proto_name);
             }
-            Console.WriteLine("The caller to requestTopic has NO IDEA WHAT'S GOING ON!");
+            EDB.WriteLine("The caller to requestTopic has NO IDEA WHAT'S GOING ON!");
             return false;
         }
 
@@ -606,7 +606,7 @@ namespace Ros_CSharp
 
         public bool pubUpdate(string topic, List<string> pubs)
         {
-            Console.WriteLine("TopicManager is updating publishers for " + topic);
+            EDB.WriteLine("TopicManager is updating publishers for " + topic);
             Subscription sub = null;
             lock (subs_mutex)
             {
@@ -622,8 +622,8 @@ namespace Ros_CSharp
             if (sub != null)
                 return sub.pubUpdate(pubs);
             else
-                Console.WriteLine("got a request for updating publishers of topic " + topic +
-                                  ", but I don't have any subscribers to that topic.");
+                EDB.WriteLine("got a request for updating publishers of topic " + topic +
+                              ", but I don't have any subscribers to that topic.");
             return false;
         }
 
@@ -637,7 +637,7 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.responseInt(1, "", 0)(result);
             else
             {
-                Console.WriteLine("Unknown Error");
+                EDB.WriteLine("Unknown Error");
                 XmlRpcManager.Instance.responseInt(0, "Unknown Error or some shit", 0)(result);
             }
         }

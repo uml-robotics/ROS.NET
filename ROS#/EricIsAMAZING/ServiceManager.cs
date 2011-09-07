@@ -25,7 +25,7 @@ namespace Ros_CSharp
 
         public void Start()
         {
-            Console.WriteLine("DA SERVICES. DAY DO NUSSING!");
+            EDB.WriteLine("DA SERVICES. DAY DO NUSSING!");
         }
 
         internal bool advertiseService<MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)

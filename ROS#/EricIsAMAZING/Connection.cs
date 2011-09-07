@@ -190,8 +190,8 @@ namespace Ros_CSharp
                 if (header.Values.Contains("error"))
                 {
                     error_val = (string) header.Values["error"];
-                    Console.WriteLine("Received error message in header for connection to [{0}]: [{1}]",
-                                      "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
+                    EDB.WriteLine("Received error message in header for connection to [{0}]: [{1}]",
+                                  "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
                     drop(DropReason.HeaderError);
                 }
                 else

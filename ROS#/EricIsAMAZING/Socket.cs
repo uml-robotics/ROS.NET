@@ -17,33 +17,9 @@ namespace Ros_CSharp.CustomSocket
         private static uint nextfakefd = 1;
         private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
+
+        private string attemptedConnectionEndpoint;
         private bool disposed;
-
-        string attemptedConnectionEndpoint = null;
-
-        public new void Connect(IPAddress[] address, int port)
-        {
-            attemptedConnectionEndpoint = address[0].ToString(); 
-            base.Connect(address, port);
-        }
-
-        public new void Connect(IPAddress address, int port)
-        {
-            attemptedConnectionEndpoint = address.ToString();
-            base.Connect(address,port);
-        }
-
-        public new void Connect(EndPoint ep)
-        {
-            attemptedConnectionEndpoint = ep.ToString();
-            base.Connect(ep);
-        }
-
-        public new bool ConnectAsync(SocketAsyncEventArgs e)
-        {
-            attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
-            return base.ConnectAsync(e);
-        }
 
         public Socket(System.Net.Sockets.Socket sock)
             : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
@@ -91,6 +67,30 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
+        public new void Connect(IPAddress[] address, int port)
+        {
+            attemptedConnectionEndpoint = address[0].ToString();
+            base.Connect(address, port);
+        }
+
+        public new void Connect(IPAddress address, int port)
+        {
+            attemptedConnectionEndpoint = address.ToString();
+            base.Connect(address, port);
+        }
+
+        public new void Connect(EndPoint ep)
+        {
+            attemptedConnectionEndpoint = ep.ToString();
+            base.Connect(ep);
+        }
+
+        public new bool ConnectAsync(SocketAsyncEventArgs e)
+        {
+            attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
+            return base.ConnectAsync(e);
+        }
+
         public static Socket Get(uint fd)
         {
             if (_socklist == null || !_socklist.ContainsKey(fd))
@@ -118,7 +118,7 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public override string ToString()
         {
             if (attemptedConnectionEndpoint == null || attemptedConnectionEndpoint == "")
@@ -132,7 +132,7 @@ namespace Ros_CSharp.CustomSocket
                         attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
                 }
             }
-            return ""+FD+ " -- "+attemptedConnectionEndpoint;
+            return "" + FD + " -- " + attemptedConnectionEndpoint;
         }
     }
 }

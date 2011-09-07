@@ -1,27 +1,17 @@
 ﻿#region USINGZ
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Socket = Ros_CSharp.CustomSocket.Socket;
+
 #endregion
 
 namespace Ros_CSharp
 {
     public class TcpTransport
     {
-        [System.Diagnostics.DebuggerStepThrough]
-        public void DB(object o)
-        {
-            //System.Diagnostics.Debug.WriteLine(this+"\t"+o);
-        }
-        [System.Diagnostics.DebuggerStepThrough]
-        public void DB(object o, int events)
-        {
-            //string b = ByteDump(BitConverter.GetBytes(events));
-            //DB(o + "\tw/ events: " + b);
-        }
-
         #region Delegates
 
         public delegate void AcceptCallback(TcpTransport trans);
@@ -82,14 +72,13 @@ namespace Ros_CSharp
 
         public TcpTransport(PollSet pollset, int flags = 0) : this()
         {
-            DB("INSTANTIATING WITH POLLSET AND FLAGS!");
             poll_set = pollset;
             this.flags = flags;
         }
 
         public string ClientURI
         {
-            [System.Diagnostics.DebuggerStepThrough]
+            [DebuggerStepThrough]
             get
             {
                 if (connected_host == null || connected_port == 0)
@@ -110,7 +99,6 @@ namespace Ros_CSharp
 
         public bool setNonBlocking()
         {
-            DB("SETNONBLOCKING");
             if ((flags & (int) Flags.SYNCHRONOUS) == 0)
             {
                 try
@@ -119,7 +107,7 @@ namespace Ros_CSharp
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    EDB.WriteLine(e);
                     close();
                     return false;
                 }
@@ -130,20 +118,18 @@ namespace Ros_CSharp
 
         public void setNoDelay(bool nd)
         {
-            DB("SETNODELAT");
             try
             {
                 sock.NoDelay = nd;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                EDB.WriteLine(e);
             }
         }
 
         public void enableRead()
         {
-            DB("ENABLEREAD");
             lock (close_mutex)
             {
                 if (closed) return;
@@ -157,7 +143,6 @@ namespace Ros_CSharp
 
         public void disableRead()
         {
-            DB("DISABLEREAD");
             lock (close_mutex)
             {
                 if (closed) return;
@@ -171,7 +156,6 @@ namespace Ros_CSharp
 
         public void enableWrite()
         {
-            DB("ENABLEWRITE");
             lock (close_mutex)
             {
                 if (closed) return;
@@ -185,7 +169,6 @@ namespace Ros_CSharp
 
         public void disableWrite()
         {
-            DB("DISABLEWRITE");
             lock (close_mutex)
             {
                 if (closed) return;
@@ -199,7 +182,6 @@ namespace Ros_CSharp
 
         public bool connect(string host, int port)
         {
-            DB("CONNECT("+host+port+")");
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
@@ -221,7 +203,7 @@ namespace Ros_CSharp
                 if (IPA == null)
                 {
                     close();
-                    Console.WriteLine("Couldn't resolve host name [{0}]", host);
+                    EDB.WriteLine("Couldn't resolve host name [{0}]", host);
                     return false;
                 }
             }
@@ -236,10 +218,10 @@ namespace Ros_CSharp
 
             while (!sock.Connected)
             {
-                //Console.WriteLine("waiting");
+                //EDB.WriteLine("waiting");
             }
 
-            cached_remote_host = "" + host + ":" + port + " on socket "+sock;
+            cached_remote_host = "" + host + ":" + port + " on socket " + sock;
 
             if (!initializeSocket())
                 return false;
@@ -248,7 +230,6 @@ namespace Ros_CSharp
 
         public bool listen(int port, int backlog, AcceptCallback accept_cb)
         {
-            DB("LISTENING, THOUGH I'M NOT A SERVER YET!");
             is_server = true;
             this.accept_cb = accept_cb;
 
@@ -375,6 +356,7 @@ namespace Ros_CSharp
             }
             return s;
         }
+
         public static string ByteDump(byte[] b)
         {
             string s = "";
@@ -397,7 +379,7 @@ namespace Ros_CSharp
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    EDB.WriteLine(e);
                     return;
                 }
 
@@ -408,7 +390,6 @@ namespace Ros_CSharp
 
         public int read(ref byte[] buffer, int pos, int length)
         {
-            DB("READ "+length);
             lock (close_mutex)
             {
                 if (closed)
@@ -430,13 +411,12 @@ namespace Ros_CSharp
                     return 0;
             }
             /*else
-                Console.WriteLine("READ: " + num_bytes);*/
+                EDB.WriteLine("READ: " + num_bytes);*/
             return num_bytes;
         }
 
         public int write(byte[] buffer, int pos, int size)
         {
-            DB("WRITE " + size);
             lock (close_mutex)
             {
                 if (closed)
@@ -456,14 +436,11 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
-            /*else
-                Console.WriteLine("WRITE: " + num_bytes);*/
             return num_bytes;
         }
 
         private bool initializeSocket()
         {
-            DB("INITIALIZE!");
             if (!setNonBlocking())
                 return false;
 
@@ -488,7 +465,6 @@ namespace Ros_CSharp
 
         private bool setSocket(Socket s)
         {
-            DB("SETSOCKET!");
             sock = s;
             return initializeSocket();
         }
@@ -500,7 +476,7 @@ namespace Ros_CSharp
                 return null;
             if (args.AcceptSocket == null)
             {
-                Console.WriteLine("NOTHING TO ACCEPT SO RETURNING NULL!");
+                EDB.WriteLine("NOTHING TO ACCEPT SO RETURNING NULL!");
                 return null;
             }
             Socket acc = new Socket(args.AcceptSocket);
@@ -513,7 +489,7 @@ namespace Ros_CSharp
         }
 
 
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public override string ToString()
         {
             return "TCPROS connection to [" + sock + "]";
@@ -521,7 +497,6 @@ namespace Ros_CSharp
 
         private void socketUpdate(int events)
         {
-            DB("SOCKETUPDATE: ", events);
             lock (close_mutex)
             {
                 if (closed) return;
@@ -556,7 +531,7 @@ namespace Ros_CSharp
                 {
                     try
                     {
-                        int error = (int)sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                        int error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
                     }
                     catch (Exception e)
                     {

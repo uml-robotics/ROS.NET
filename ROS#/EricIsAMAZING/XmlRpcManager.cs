@@ -71,7 +71,7 @@ namespace Ros_CSharp
                 {
                     foreach (AsyncXmlRpcConnection con in added_connections)
                     {
-                        Console.WriteLine("Completed ASYNC XmlRpc connection to: " + (con as PendingConnection).RemoteUri);
+                        EDB.WriteLine("Completed ASYNC XmlRpc connection to: " + (con as PendingConnection).RemoteUri);
                         con.addToDispatch(server.Dispatch);
                         connections.Add(con);
                     }
@@ -130,7 +130,7 @@ namespace Ros_CSharp
         private bool validateFailed(string method, string errorfmat, params object[] info)
         {
 #if DEBUG
-            //Console.WriteLine("XML-RPC Call [{0}] {1}", method, string.Format(errorfmat, info));
+            //EDB.WriteLine("XML-RPC Call [{0}] {1}", method, string.Format(errorfmat, info));
 #endif
             return false;
         }
@@ -152,7 +152,8 @@ namespace Ros_CSharp
                             client.last_use_time = DateTime.Now;
                             break;
                         }
-                        else if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 || !client.client.IsConnected)
+                        else if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
+                                 !client.client.IsConnected)
                         {
                             client.client.Shutdown();
                             zombies.Add(client);
@@ -271,7 +272,7 @@ namespace Ros_CSharp
                 throw new Exception("RPCServer's port is invalid");
             uri = "http://" + network.host + ":" + port + "/";
 
-            Console.WriteLine("XmlRpc IN THE HIZI (" + uri + ") FOR SHIZI");
+            EDB.WriteLine("XmlRpc IN THE HIZI (" + uri + ") FOR SHIZI");
             server_thread = new Thread(serverThreadFunc);
             server_thread.IsBackground = true;
             server_thread.Start();

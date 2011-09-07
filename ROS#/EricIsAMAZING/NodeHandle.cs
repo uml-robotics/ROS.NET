@@ -293,7 +293,7 @@ namespace Ros_CSharp
 
         public string resolveName(string name, bool remap, bool novalidate)
         {
-            //Console.WriteLine("resolveName(" + name + ")");
+            //EDB.WriteLine("resolveName(" + name + ")");
             if (name == "") return Namespace;
             string final = name;
             if (final[0] == '~')
