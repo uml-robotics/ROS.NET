@@ -3,14 +3,25 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-//using Socket = Ros_CSharp.CustomSock.Socket;
-
+using Socket = Ros_CSharp.CustomSocket.Socket;
 #endregion
 
 namespace Ros_CSharp
 {
     public class TcpTransport
     {
+        [System.Diagnostics.DebuggerStepThrough]
+        public void DB(object o)
+        {
+            //System.Diagnostics.Debug.WriteLine(this+"\t"+o);
+        }
+        [System.Diagnostics.DebuggerStepThrough]
+        public void DB(object o, int events)
+        {
+            //string b = ByteDump(BitConverter.GetBytes(events));
+            //DB(o + "\tw/ events: " + b);
+        }
+
         #region Delegates
 
         public delegate void AcceptCallback(TcpTransport trans);
@@ -43,7 +54,7 @@ namespace Ros_CSharp
         public const int POLLOUT = 0x004;
 
         public static bool use_keepalive;
-        public string cached_remote_host;
+        public string cached_remote_host = "";
         public object close_mutex = new object();
         public bool closed;
         public string connected_host;
@@ -57,21 +68,28 @@ namespace Ros_CSharp
         public PollSet poll_set;
         public IPEndPoint server_address;
         public int server_port = -1;
+
         private Socket sock;
 
         public TcpTransport()
         {
-            Console.WriteLine("TCP TRANSPORT ZOMG!");
+        }
+
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset, int flags = 0) : this(pollset, flags)
+        {
+            setSocket(new Socket(s));
         }
 
         public TcpTransport(PollSet pollset, int flags = 0) : this()
         {
+            DB("INSTANTIATING WITH POLLSET AND FLAGS!");
             poll_set = pollset;
             this.flags = flags;
         }
 
         public string ClientURI
         {
+            [System.Diagnostics.DebuggerStepThrough]
             get
             {
                 if (connected_host == null || connected_port == 0)
@@ -92,6 +110,7 @@ namespace Ros_CSharp
 
         public bool setNonBlocking()
         {
+            DB("SETNONBLOCKING");
             if ((flags & (int) Flags.SYNCHRONOUS) == 0)
             {
                 try
@@ -111,6 +130,7 @@ namespace Ros_CSharp
 
         public void setNoDelay(bool nd)
         {
+            DB("SETNODELAT");
             try
             {
                 sock.NoDelay = nd;
@@ -123,58 +143,63 @@ namespace Ros_CSharp
 
         public void enableRead()
         {
+            DB("ENABLEREAD");
             lock (close_mutex)
             {
                 if (closed) return;
             }
             if (!expecting_read)
             {
-                poll_set.addEvents(sock, POLLIN);
+                poll_set.addEvents(sock.FD, POLLIN);
                 expecting_read = true;
             }
         }
 
         public void disableRead()
         {
+            DB("DISABLEREAD");
             lock (close_mutex)
             {
                 if (closed) return;
             }
             if (expecting_read)
             {
-                poll_set.delEvents(sock, POLLIN);
+                poll_set.delEvents(sock.FD, POLLIN);
                 expecting_read = false;
             }
         }
 
         public void enableWrite()
         {
+            DB("ENABLEWRITE");
             lock (close_mutex)
             {
                 if (closed) return;
             }
             if (!expecting_write)
             {
-                poll_set.addEvents(sock, POLLOUT);
+                poll_set.addEvents(sock.FD, POLLOUT);
                 expecting_write = true;
             }
         }
 
         public void disableWrite()
         {
+            DB("DISABLEWRITE");
             lock (close_mutex)
             {
                 if (closed) return;
             }
             if (expecting_write)
             {
-                poll_set.delEvents(sock, POLLOUT);
+                poll_set.delEvents(sock.FD, POLLOUT);
                 expecting_write = false;
             }
         }
 
         public bool connect(string host, int port)
         {
+            DB("CONNECT("+host+port+")");
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
@@ -214,7 +239,7 @@ namespace Ros_CSharp
                 //Console.WriteLine("waiting");
             }
 
-            cached_remote_host = "" + host + ":" + port + " on socket 867,530.9";
+            cached_remote_host = "" + host + ":" + port + " on socket "+sock;
 
             if (!initializeSocket())
                 return false;
@@ -223,6 +248,7 @@ namespace Ros_CSharp
 
         public bool listen(int port, int backlog, AcceptCallback accept_cb)
         {
+            DB("LISTENING, THOUGH I'M NOT A SERVER YET!");
             is_server = true;
             this.accept_cb = accept_cb;
 
@@ -233,8 +259,8 @@ namespace Ros_CSharp
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-                enableRead();
+            //if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+            //    enableRead();
             return true;
         }
 
@@ -339,7 +365,17 @@ namespace Ros_CSharp
             return true;
         }
 
-        public static void ByteDump(byte[] b)
+
+        public static string ByteDumpCondensed(byte[] b)
+        {
+            string s = "";
+            for (int i = 0; i < b.Length; i++)
+            {
+                s += "" + b[i].ToString("x") + "";
+            }
+            return s;
+        }
+        public static string ByteDump(byte[] b)
         {
             string s = "";
             for (int i = 0; i < b.Length; i++)
@@ -348,7 +384,7 @@ namespace Ros_CSharp
                 if (i%4 == 0) s += "     ";
                 if (i%16 == 0 && i != b.Length - 1) s += "\n";
             }
-            Console.WriteLine(s);
+            return s;
         }
 
         public void setKeepAlive(bool use, int idle, int interval, int count)
@@ -372,6 +408,7 @@ namespace Ros_CSharp
 
         public int read(ref byte[] buffer, int pos, int length)
         {
+            DB("READ "+length);
             lock (close_mutex)
             {
                 if (closed)
@@ -399,6 +436,7 @@ namespace Ros_CSharp
 
         public int write(byte[] buffer, int pos, int size)
         {
+            DB("WRITE " + size);
             lock (close_mutex)
             {
                 if (closed)
@@ -419,23 +457,24 @@ namespace Ros_CSharp
                     return 0;
             }
             else
-                Console.WriteLine("READ: " + num_bytes);
+                Console.WriteLine("WRITE: " + num_bytes);
             return num_bytes;
         }
 
         private bool initializeSocket()
         {
+            DB("INITIALIZE!");
             if (!setNonBlocking())
                 return false;
 
             setKeepAlive(use_keepalive, 60, 10, 9);
 
-            if (cached_remote_host == "")
+            if (cached_remote_host == null || cached_remote_host == "")
             {
                 if (is_server)
                     cached_remote_host = "TCPServer Socket";
                 else
-                    cached_remote_host = ClientURI + " on socket " + sock.RemoteEndPoint;
+                    cached_remote_host = ClientURI + " on socket " + sock;
             }
 
             if (poll_set != null)
@@ -449,21 +488,22 @@ namespace Ros_CSharp
 
         private bool setSocket(Socket s)
         {
+            DB("SETSOCKET!");
             sock = s;
             return initializeSocket();
         }
 
         public TcpTransport accept()
         {
-            Socket acc = null;
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             if (!sock.AcceptAsync(args))
                 return null;
-            while (args.AcceptSocket == null)
+            if (args.AcceptSocket == null)
             {
+                Console.WriteLine("NOTHING TO ACCEPT SO RETURNING NULL!");
+                return null;
             }
-            Console.WriteLine("HOLY CRAP ACCEPTED!");
-            acc = args.AcceptSocket;
+            Socket acc = new Socket(args.AcceptSocket);
             TcpTransport transport = new TcpTransport(poll_set, flags);
             if (!transport.setSocket(acc))
             {
@@ -472,54 +512,57 @@ namespace Ros_CSharp
             return transport;
         }
 
+
+        [System.Diagnostics.DebuggerStepThrough]
         public override string ToString()
         {
-            return "TCPROS connection to [" + cached_remote_host + "]";
+            return "TCPROS connection to [" + sock + "]";
         }
 
         private void socketUpdate(int events)
         {
+            DB("SOCKETUPDATE: ", events);
             lock (close_mutex)
             {
                 if (closed) return;
             }
-            if ((events & POLLIN) != 0 && expecting_read) //POLL IN FLAG
+
+            if (is_server)
             {
-                if (is_server)
+                TcpTransport transport = accept();
+                if (transport != null)
                 {
-                    TcpTransport transport = accept();
-                    if (transport != null)
-                    {
-                        if (accept_cb == null) throw new Exception("NULL ACCEPT_CB FTL!");
-                        accept_cb(transport);
-                    }
+                    if (accept_cb == null) throw new Exception("NULL ACCEPT_CB FTL!");
+                    accept_cb(transport);
                 }
-                else
+            }
+            else
+            {
+                if ((events & POLLIN) != 0 && expecting_read) //POLL IN FLAG
                 {
                     if (read_cb != null)
                     {
                         read_cb(this);
                     }
                 }
-            }
-            if (closed) return;
-            if ((events & POLLOUT) != 0 && expecting_write)
-            {
-                if (write_cb != null)
-                    write_cb(this);
-            }
-            if (closed) return;
 
-            if ((events & POLLERR) != 0 || (events & POLLHUP) != 0 || (events & POLLNVAL) != 0)
-            {
-                try
+                if ((events & POLLOUT) != 0 && expecting_write)
                 {
-                    int error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                    if (write_cb != null)
+                        write_cb(this);
                 }
-                catch (Exception e)
+
+                if ((events & POLLERR) != 0 || (events & POLLHUP) != 0 || (events & POLLNVAL) != 0)
                 {
+                    try
+                    {
+                        int error = (int)sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    close();
                 }
-                close();
             }
         }
 
@@ -538,6 +581,7 @@ namespace Ros_CSharp
                         if (sock.Connected)
                             sock.Shutdown(SocketShutdown.Both);
                         sock.Close();
+                        sock.Dispose();
                         sock = null;
                         disconnect_cb = this.disconnect_cb;
                         this.disconnect_cb = null;

@@ -111,7 +111,7 @@ namespace Ros_CSharp
                         return false;
                     }
 
-                    if (DateTime.Now.Subtract(startTime) > retryTimeout)
+                    if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
                     {
                         Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
                                           retryTimeout.TotalSeconds);

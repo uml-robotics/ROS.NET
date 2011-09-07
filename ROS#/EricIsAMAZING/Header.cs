@@ -22,7 +22,6 @@ namespace Ros_CSharp
                 byte[] line = new byte[thispiece];
                 Array.Copy(buffer, i, line, 0, thispiece);
                 string thisheader = Encoding.ASCII.GetString(line);
-                Console.WriteLine(thisheader);
                 string[] chunks = thisheader.Split('=');
                 if (chunks.Length != 2)
                 {

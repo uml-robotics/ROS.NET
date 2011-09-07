@@ -21,7 +21,7 @@ namespace Ros_CSharp.CustomSocket
 
         string attemptedConnectionEndpoint = null;
 
-        /*public new void Connect(IPAddress[] address, int port)
+        public new void Connect(IPAddress[] address, int port)
         {
             attemptedConnectionEndpoint = address[0].ToString(); 
             base.Connect(address, port);
@@ -43,9 +43,10 @@ namespace Ros_CSharp.CustomSocket
         {
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
             return base.ConnectAsync(e);
-        }*/
+        }
 
-        public Socket(System.Net.Sockets.Socket sock) : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
+        public Socket(System.Net.Sockets.Socket sock)
+            : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
         {
         }
 
@@ -106,7 +107,7 @@ namespace Ros_CSharp.CustomSocket
         {
             if (!disposed)
             {
-                EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
+                //EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
                 if (Get(FD) != null)
                 {
                     _socklist.Remove(FD);
@@ -115,6 +116,23 @@ namespace Ros_CSharp.CustomSocket
                 disposed = true;
                 base.Dispose(disposing);
             }
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        public override string ToString()
+        {
+            if (attemptedConnectionEndpoint == null || attemptedConnectionEndpoint == "")
+            {
+                if (!Connected)
+                    attemptedConnectionEndpoint = "";
+                else if (RemoteEndPoint != null)
+                {
+                    IPEndPoint ipep = RemoteEndPoint as IPEndPoint;
+                    if (ipep != null)
+                        attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
+                }
+            }
+            return ""+FD+ " -- "+attemptedConnectionEndpoint;
         }
     }
 }

@@ -181,8 +181,6 @@ namespace Ros_CSharp
                 error_message = msg;
                 return false;
             }
-
-            EDB.WriteLine("HOLY CRAP! A VALID SUBSCRIBER!");
             return true;
         }
 

@@ -1,10 +1,11 @@
 ﻿#region USINGZ
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-//using Socket = Ros_CSharp.CustomSock.Socket;
+using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
 
@@ -30,7 +31,7 @@ namespace Ros_CSharp
         public bool signal_locked;
         public object signal_mutex = new object();
 
-        public Dictionary<Socket, SocketInfo> socket_info = new Dictionary<Socket, SocketInfo>();
+        public Dictionary<uint, SocketInfo> socket_info = new Dictionary<uint, SocketInfo>();
         public object socket_info_mutex = new object();
         public bool sockets_changed;
         public List<PollFD> ufds = new List<PollFD>();
@@ -45,7 +46,7 @@ namespace Ros_CSharp
             localpipeevents[0].Blocking = false;
             localpipeevents[1].Blocking = false;
             addSocket(localpipeevents[0], onLocalPipeEvents);
-            addEvents(localpipeevents[0], POLLIN);
+            addEvents(localpipeevents[0].FD, POLLIN);
         }
 
         ~PollSet()
@@ -84,7 +85,7 @@ namespace Ros_CSharp
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo {sock = s, func = update_func, transport = trans};
+            SocketInfo info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
             lock (socket_info_mutex)
             {
                 if (socket_info.ContainsKey(info.sock))
@@ -100,9 +101,10 @@ namespace Ros_CSharp
         {
             lock (socket_info_mutex)
             {
-                if (!socket_info.ContainsKey(s))
+                uint fd = s.FD;
+                if (!socket_info.ContainsKey(fd))
                     return false;
-                socket_info.Remove(s);
+                socket_info.Remove(fd);
                 lock (just_deleted_mutex)
                 {
                     just_deleted.Add(s);
@@ -113,7 +115,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        public bool addEvents(Socket s, int events)
+        public bool addEvents(uint s, int events)
         {
             lock (socket_info_mutex)
             {
@@ -125,7 +127,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        public bool delEvents(Socket sock, int events)
+        public bool delEvents(uint sock, int events)
         {
             lock (socket_info_mutex)
             {
@@ -144,7 +146,7 @@ namespace Ros_CSharp
             int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
-                Socket sock = ufds[i].sock;
+                Socket sock = Socket.Get(ufds[i].sock);
                 if (!sock.Connected)
                 {
                     ufds[i].revents |= POLLHUP;
@@ -165,11 +167,15 @@ namespace Ros_CSharp
                     }
                 }
             }
-            if (udfscount == 0) return;
+            if (udfscount == 0) 
+                return;
             for (int i = 0; i < udfscount; i++)
             {
                 if (ufds[i].revents == 0)
+                {
+                    Console.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
                     continue;
+                }
 
                 SocketUpdateFunc func = null;
                 TcpTransport trans = null;
@@ -194,7 +200,7 @@ namespace Ros_CSharp
                     {
                         lock (just_deleted_mutex)
                         {
-                            if (just_deleted.Contains(ufds[i].sock))
+                            if (just_deleted.Contains(Socket.Get(ufds[i].sock)))
                                 skip = true;
                         }
                     }
@@ -263,7 +269,7 @@ namespace Ros_CSharp
     {
         public int events;
         public PollSet.SocketUpdateFunc func;
-        public Socket sock;
+        public uint sock;
         public TcpTransport transport;
     }
 
@@ -271,6 +277,6 @@ namespace Ros_CSharp
     {
         public int events;
         public int revents;
-        public Socket sock;
+        public uint sock;
     }
 }
