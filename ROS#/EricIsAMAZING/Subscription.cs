@@ -291,9 +291,9 @@ namespace Ros_CSharp
                 c.Dispose();
                 return false;
             }
-#if DEBUG
+
             Console.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
-#endif
+
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
             {

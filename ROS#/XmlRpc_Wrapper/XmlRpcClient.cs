@@ -213,10 +213,10 @@ namespace XmlRpc_Wrapper
 
         #region public get passthroughs
 
-        public bool IsFault
+        public bool IsConnected
         {
-            [DebuggerStepThrough]
-            get { return isfault(instance); }
+            //[DebuggerStepThrough]
+            get { return isconnected(instance); }
         }
 
         public string Host
@@ -319,11 +319,6 @@ namespace XmlRpc_Wrapper
             return handleevent(instance, eventType);
         }
 
-        public void ClearFault()
-        {
-            clearfault(instance);
-        }
-
         #endregion
 
         #region P/Invoke
@@ -360,12 +355,7 @@ namespace XmlRpc_Wrapper
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool isfault(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ClearFault",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void clearfault(IntPtr target);
-
+        private static extern bool isconnected(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
         private static extern string gethost(IntPtr target);

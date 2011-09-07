@@ -21,7 +21,7 @@ namespace Ros_CSharp
         {
             if (remapping_args.Contains("__master"))
             {
-                uri = (string) remapping_args["__master"];
+                uri = (string)remapping_args["__master"];
                 ROS.ROS_MASTER_URI = uri;
             }
             if (uri == "")
@@ -80,6 +80,8 @@ namespace Ros_CSharp
             return true;
         }
 
+
+        private static bool firstsucces;
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
                                    bool wait_for_master)
         {
@@ -90,51 +92,34 @@ namespace Ros_CSharp
             bool printed = false;
             bool slept = false;
             bool ok = true;
-            do
+            while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down || !client.Execute(method, request, response) || !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
             {
-                bool b = client.Execute(method, request, response);
-
-                ok = !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down;
-
-                if (!b && ok)
+                if (!printed)
                 {
-                    if (!printed && wait_for_master)
-                    {
-                        Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                          master_port, (wait_for_master ? "Retrying..." : ""));
-                        printed = true;
-                    }
-
-                    if (!wait_for_master)
-                    {
-                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        return false;
-                    }
-
-                    if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
-                    {
-                        Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                          retryTimeout.TotalSeconds);
-                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        return false;
-                    }
-                    slept = true;
-                    Thread.Sleep(50);
+                    Console.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                                      master_port, (wait_for_master ? "Retrying..." : ""));
+                    printed = true;
                 }
-                else
+
+                if (!wait_for_master)
                 {
-                    if (!XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
-                    {
-                        Console.WriteLine("Received a response? I think?... but it FAILED VALIDATION!");
-                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        return false;
-                    }
-                    break;
+                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                    return false;
                 }
-            } while (ok);
 
-            if (ok && slept)
+                if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
+                {
+                    Console.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                                      retryTimeout.TotalSeconds);
+                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                    return false;
+                }
+                slept = true;
+                Thread.Sleep(50);
+            }
+            if (ok && !firstsucces)
             {
+                firstsucces = true;
                 Console.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
             }
             XmlRpcManager.Instance.releaseXMLRPCClient(client);

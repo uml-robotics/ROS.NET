@@ -23,6 +23,8 @@ namespace XmlRpc {
   //! A class to send XML RPC requests to a server and return the results.
   class XmlRpcClient : public XmlRpcSource {
   public:
+	bool testConnection();
+
     // Static data
     static const char REQUEST_BEGIN[];
     static const char REQUEST_END_METHODNAME[];
@@ -75,11 +77,16 @@ namespace XmlRpc {
     //!  @param eventType The type of event that occurred. 
     //!  @see XmlRpcDispatch::EventType
     virtual unsigned handleEvent(unsigned eventType);
+	
 
   protected:
     // Execution processing helpers
     virtual bool doConnect();
     virtual bool setupConnection();
+
+    // Possible IO states for the connection
+    enum ClientConnectionState { NO_CONNECTION, CONNECTING, WRITE_REQUEST, READ_HEADER, READ_RESPONSE, IDLE };
+    ClientConnectionState _connectionState;
 
     virtual bool generateRequest(const char* method, XmlRpcValue const& params);
     virtual std::string generateHeader(std::string const& body);
@@ -87,10 +94,6 @@ namespace XmlRpc {
     virtual bool readHeader();
     virtual bool readResponse();
     virtual bool parseResponse(XmlRpcValue& result);
-
-    // Possible IO states for the connection
-    enum ClientConnectionState { NO_CONNECTION, CONNECTING, WRITE_REQUEST, READ_HEADER, READ_RESPONSE, IDLE };
-    ClientConnectionState _connectionState;
 
     // Server location
     std::string _host;

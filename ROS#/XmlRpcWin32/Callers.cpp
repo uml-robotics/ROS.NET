@@ -82,6 +82,11 @@ extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, 
 	}
 	return false;
 }
+extern "C" XMLRPC_API bool XmlRpcClient_IsConnected(XmlRpcClient* instance)
+{
+	return (*instance).testConnection();
+}
+
 extern "C" XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result)
 {
 	try

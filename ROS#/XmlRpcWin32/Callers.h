@@ -20,6 +20,7 @@ extern "C" {
 	//XmlRpcClient
 	extern XMLRPC_API XmlRpcClient* XmlRpcClient_Create(const char *host, int port, const char *uri);
 	extern XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance);
+	extern XMLRPC_API bool XmlRpcClient_TestConnection(XmlRpcClient* instance);
 	extern XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameterss, XmlRpcValue *result);
 	extern XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameterss);
 	extern XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result);

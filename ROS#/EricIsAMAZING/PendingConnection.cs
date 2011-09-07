@@ -38,6 +38,8 @@ namespace Ros_CSharp
         {
             if (disp == null)
                 return;
+            if (!check())
+                return;
             disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
@@ -50,14 +52,12 @@ namespace Ros_CSharp
         {
             if (parent == null)
                 return false;
-            /*if (stickaroundyouwench == null)
-                stickaroundyouwench = new XmlRpcValue();
-            if (client.ExecuteCheckDone(stickaroundyouwench))
+            bool res = client.IsConnected;
+            if (res == false)
             {
-                parent.pendingConnectionDone(this, stickaroundyouwench.instance);
-                return true;
+                Console.WriteLine("DEAD MASTER DETECTED!");
             }
-            return false;*/
+            return res;
             XmlRpcValue chk = new XmlRpcValue();
             //if (NEVERAGAIN) return true;
             if (client.ExecuteCheckDone(chk))

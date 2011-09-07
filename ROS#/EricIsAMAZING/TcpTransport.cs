@@ -429,8 +429,8 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
-            else
-                Console.WriteLine("READ: " + num_bytes);
+            /*else
+                Console.WriteLine("READ: " + num_bytes);*/
             return num_bytes;
         }
 
@@ -456,8 +456,8 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
-            else
-                Console.WriteLine("WRITE: " + num_bytes);
+            /*else
+                Console.WriteLine("WRITE: " + num_bytes);*/
             return num_bytes;
         }
 

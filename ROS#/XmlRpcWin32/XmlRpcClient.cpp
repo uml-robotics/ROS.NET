@@ -24,6 +24,14 @@ const char XmlRpcClient::REQUEST_END[] = "</methodCall>\r\n";
 const char XmlRpcClient::METHODRESPONSE_TAG[] = "<methodResponse>";
 const char XmlRpcClient::FAULT_TAG[] = "<fault>";
 
+bool XmlRpcClient::testConnection()
+{	
+	if (_connectionState & XmlRpcClient::NO_CONNECTION)
+		if (! setupConnection())
+			return false;
+	return _connectionState & XmlRpcClient::NO_CONNECTION;	
+}
+
 //done and works
 XmlRpcClient::XmlRpcClient(const char* host, int port, const char* uri/*=0*/)
 {
