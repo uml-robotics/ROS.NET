@@ -26,7 +26,7 @@ namespace Ros_CSharp
 #if DEBUG
             Debug.WriteLine(o);
 #else
-            EDB.WriteLine(o);
+            Console.WriteLine(o);
 #endif
         }
 
@@ -36,7 +36,7 @@ namespace Ros_CSharp
 #if DEBUG
             Debug.WriteLine(format, args);
 #else
-            EDB.WriteLine(o);
+            Console.WriteLine(format, args);
 #endif
         }
     }

@@ -16,30 +16,41 @@ namespace YAMLParser
         public static string backhalf;
         public static string fronthalf;
 
-        public static string outputdir
-        {
-            get { return "..\\..\\..\\Messages"; }
-        }
+        public static string outputdir = "..\\..\\..\\Messages";
 
         private static void Main(string[] args)
         {
+            if (args.Length < 1)
+            {
+                Console.WriteLine("USAGE: \n\t\"<Relative path to output directory>\""+/*\n\t\"<Relative path to ROS_MESSAGES folder>\"*/"\n\t\"<Relative path to folder containing custom messages>\" (\".\")");
+                Console.WriteLine("Press Enter");
+                Console.ReadLine();
+                return;
+            }
+            outputdir = args[0];
             List<string> paths = new List<string>();
             List<string> std = new List<string>();
             Console.WriteLine
                 (
                     "Generatinc C# classes for ROS Messages:\n\tstd_msgs\t\t(in namespace \"Messages\")\n\tgeometry_msgs\t\t(in namespace \"Messages.geometry_msgs\")\n\tnav_msgs\t\t(in namespace \"Messages.nav_msgs\")");
+            if (!Directory.Exists("ROS_MESSAGES"))
+            {
+                Console.WriteLine("the ROS_MESSAGES folder must be in the same folder as the executable!");
+                Console.WriteLine("Press Enter");
+                Console.ReadLine();
+            }
             std.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.msg"));
             foreach (string dir in Directory.GetDirectories("ROS_MESSAGES"))
             {
                 std.AddRange(Directory.GetFiles(dir, "*.msg"));
             }
-            if (args.Length == 0)
+            if (args.Length == 1)
             {
                 paths.AddRange(Directory.GetFiles(".", "*.msg"));
             }
             else
             {
-                for (int i = 0; i < args.Length; i++)
+                for (int i = 1; i < args.Length; i++)
                 {
                     if (args[i].Contains(".msg"))
                         paths.Add(args[i]);
@@ -148,7 +159,7 @@ namespace YAMLParser
             }
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
-            string args = "/nologo \"" + Environment.CurrentDirectory + "\\YAMLProjectDir\\Messages.csproj\"";
+            string args = "/nologo \"" + outputdir+"\\Messages.csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
@@ -161,10 +172,10 @@ namespace YAMLParser
             string error = proc.StandardError.ReadToEnd();
             if (File.Exists(outputdir + "\\bin\\Debug\\Messages.dll"))
             {
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t.\\Messages.dll\n\n");
-                if (File.Exists(Environment.CurrentDirectory + "\\Messages.dll"))
-                    File.Delete(Environment.CurrentDirectory + "\\Messages.dll");
-                File.Copy(outputdir + "\\bin\\Debug\\Messages.dll", Environment.CurrentDirectory + "\\Messages.dll");
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t"+outputdir+"\\Messages.dll\n\n");
+                if (File.Exists(outputdir + "\\Messages.dll"))
+                    File.Delete(outputdir + "\\Messages.dll");
+                File.Copy(outputdir + "\\bin\\Debug\\Messages.dll", outputdir + "\\Messages.dll");
             }
             else
             {

@@ -41,9 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-	<Compile Include="custom_msgs\arraytest.cs" />
-	<Compile Include="custom_msgs\arraytestsquared.cs" />
-	<Compile Include="custom_msgs\simpleintarray.cs" />
 	<Compile Include="geometry_msgs\Point.cs" />
 	<Compile Include="geometry_msgs\Point32.cs" />
 	<Compile Include="geometry_msgs\PointStamped.cs" />
@@ -72,6 +69,7 @@
 	<Compile Include="nav_msgs\OccupancyGrid.cs" />
 	<Compile Include="nav_msgs\Odometry.cs" />
 	<Compile Include="nav_msgs\Path.cs" />
+	<Compile Include="roscsharp\Logger.cs" />
 	<Compile Include="rosgraph_msgs\Log.cs" />
 	<Compile Include="std_msgs\Bool.cs" />
 	<Compile Include="std_msgs\Byte.cs" />
@@ -106,6 +104,9 @@
 	<Compile Include="std_msgs\UInt64MultiArray.cs" />
 	<Compile Include="std_msgs\UInt8.cs" />
 	<Compile Include="std_msgs\UInt8MultiArray.cs" />
+	<Compile Include="custom_msgs\arraytest.cs" />
+	<Compile Include="custom_msgs\arraytestsquared.cs" />
+	<Compile Include="custom_msgs\simpleintarray.cs" />
 	<Compile Include="SerializationHelper.cs" />
 	<Compile Include="MessageTypes.cs" />
   </ItemGroup>

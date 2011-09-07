@@ -10,12 +10,12 @@ using Messages.geometry_msgs;
 using Messages.nav_msgs;
 using String=Messages.std_msgs.String;
 
-namespace Messages.geometry_msgs
+namespace Messages.roscsharp
 {
 
-		public class PoseWithCovarianceStamped
+		public class Logger
 		{
-			public Header header;
-			public PoseWithCovariance pose;
+			public String name;
+			public String level;
 		}
 }
