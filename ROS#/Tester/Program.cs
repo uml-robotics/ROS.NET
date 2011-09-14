@@ -145,7 +145,7 @@ namespace ConsoleApplication1
                 pub3.publish(t);
                 pub4.publish(new String("UGH!"));*/
                 ROS.spinOnce();
-                Thread.Sleep(500);
+                Thread.Sleep(5);
             }
 
 
