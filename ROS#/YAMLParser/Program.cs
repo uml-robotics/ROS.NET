@@ -13,6 +13,7 @@ namespace YAMLParser
     internal class Program
     {
         public static List<MsgsFile> msgsFiles = new List<MsgsFile>();
+        public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
 
@@ -20,16 +21,14 @@ namespace YAMLParser
 
         private static void Main(string[] args)
         {
-            if (args.Length < 1)
+            if (args.Length >= 1)
             {
-                Console.WriteLine("USAGE: \n\t\"<Relative path to output directory>\""+/*\n\t\"<Relative path to ROS_MESSAGES folder>\"*/"\n\t\"<Relative path to folder containing custom messages>\" (\".\")");
-                Console.WriteLine("Press Enter");
-                Console.ReadLine();
-                return;
+                outputdir = args[0];
             }
-            outputdir = args[0];
             List<string> paths = new List<string>();
+            List<string> pathssrv = new List<string>();
             List<string> std = new List<string>();
+            List<string> srv = new List<string>();
             Console.WriteLine
                 (
                     "Generatinc C# classes for ROS Messages:\n\tstd_msgs\t\t(in namespace \"Messages\")\n\tgeometry_msgs\t\t(in namespace \"Messages.geometry_msgs\")\n\tnav_msgs\t\t(in namespace \"Messages.nav_msgs\")");
@@ -40,13 +39,16 @@ namespace YAMLParser
                 Console.ReadLine();
             }
             std.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.msg"));
+            srv.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.srv"));
             foreach (string dir in Directory.GetDirectories("ROS_MESSAGES"))
             {
                 std.AddRange(Directory.GetFiles(dir, "*.msg"));
+                srv.AddRange(Directory.GetFiles(dir, "*.srv"));
             }
             if (args.Length == 1)
             {
                 paths.AddRange(Directory.GetFiles(".", "*.msg"));
+                pathssrv.AddRange(Directory.GetFiles(".", "*.srv"));
             }
             else
             {
@@ -54,17 +56,26 @@ namespace YAMLParser
                 {
                     if (args[i].Contains(".msg"))
                         paths.Add(args[i]);
+                    else if (args[i].Contains(".srv"))
+                        pathssrv.Add(args[i]);
                     else
                     {
                         string[] paths2 = Directory.GetFiles(args[i], "*.msg");
                         if (paths2.Length != 0)
                             paths.AddRange(paths2);
+                        string[] paths3 = Directory.GetFiles(args[i], "*.srv");
+                        if (paths3.Length != 0)
+                            pathssrv.AddRange(paths3);
                     }
                 }
             }
             foreach (string path in std)
             {
                 msgsFiles.Add(new MsgsFile(path));
+            }
+            foreach (string path in srv)
+            {
+                srvFiles.Add(new SrvsFile(path));
             }
             if (paths.Count > 0)
             {
@@ -75,20 +86,27 @@ namespace YAMLParser
                     msgsFiles.Add(new MsgsFile(path));
                 }
             }
-            if (std.Count + paths.Count > 0)
+            if (pathssrv.Count > 0)
+            {
+                Console.WriteLine("Custom services being parsed+generated:");
+                foreach (string path in pathssrv)
+                {
+                    Console.WriteLine("\t" + path.Replace(".\\", ""));
+                    srvFiles.Add(new SrvsFile(path));
+                }
+            }
+            if (std.Count + paths.Count + srv.Count + pathssrv.Count > 0)
             {
                 MakeTempDir();
-                GenerateFiles(msgsFiles);
-                GenerateProject(msgsFiles);
+                GenerateFiles(msgsFiles, srvFiles);
+                GenerateProject(msgsFiles, srvFiles);
                 BuildProject();
-                //Console.WriteLine("Press enter to finish...");
-                //Console.ReadLine();
             }
             else
             {
                 Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
-                Console.ReadLine();
             }
+            Console.ReadLine();
         }
 
         public static void MakeTempDir()
@@ -103,16 +121,21 @@ namespace YAMLParser
             }
         }
 
-        public static void GenerateFiles(List<MsgsFile> files)
+        public static void GenerateFiles(List<MsgsFile> files, List<SrvsFile> srvfiles)
         {
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
             }
+            foreach (SrvsFile file in srvfiles)
+            {
+                file.Request.Write(outputdir);
+                file.Response.Write(outputdir);
+            }
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }
 
-        public static void GenerateProject(List<MsgsFile> files)
+        public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles)
         {
             if (!Directory.Exists(outputdir + "\\Properties"))
                 Directory.CreateDirectory(outputdir + "\\Properties");
@@ -130,6 +153,10 @@ namespace YAMLParser
                     foreach (MsgsFile m in files)
                     {
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
+                    }
+                    foreach (SrvsFile m in srvFiles)
+                    {
+                        output += "\t<Compile Include=\"" + m.Request.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";

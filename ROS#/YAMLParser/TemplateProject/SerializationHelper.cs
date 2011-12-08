@@ -669,6 +669,32 @@ namespace Messages
         }
     }
 
+    public class SrvsFile
+    {
+        public MsgsFile Request, Response;
+        public SrvsFile(string filename)
+        {
+            string[] lines = File.ReadAllLines(filename);
+            int mid = 0;
+            bool found = false;
+            List<string> request = new List<string>(), response = new List<string>();
+            for (; mid < lines.Length; mid++)
+            {
+                if (lines[mid].Contains("---"))
+                {
+                    found = true;
+                    continue;
+                }
+                if (found)
+                    request.Add(lines[mid]);
+                else
+                    response.Add(lines[mid]);
+            }
+            Request = new MsgsFile(filename, true, request);
+            Response = new MsgsFile(filename, false, response);
+        }
+    }
+
     public class MsgsFile
     {
         private string GUTS;
@@ -684,7 +710,43 @@ namespace Messages
         public string fronthalf;
         private string memoizedcontent;
         private bool meta;
-
+        public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
+        public MsgsFile(string filename, bool isrequest, List<string> lines)
+        {
+            if (isrequest)
+                serviceMessageType = ServiceMessageType.Request;
+            else
+                serviceMessageType = ServiceMessageType.Response;
+            filename = filename.Replace(".srv", ".msg");
+            if (!filename.Contains(".msg"))
+                throw new Exception("" + filename + " IS NOT A VALID SRV FILE!");
+            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
+            classname = sp[sp.Length - 1];
+            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
+            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
+            string[] sp2 = Namespace.Split('.');
+            Namespace = "";
+            for (int i = 0; i < sp2.Length - 2; i++)
+                Namespace += sp2[i] + ".";
+            Namespace += sp2[sp2.Length - 2];
+            //THIS IS BAD!
+            classname = classname.Replace("/", ".");
+            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
+            Name = Name.TrimStart('.');
+            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
+            classname += (isrequest ? "Request" : "Response");
+            Namespace = Namespace.Trim('.');
+            def = new List<string>();
+            for (int i = 0; i < lines.Count; i++)
+            {
+                def.Add(lines[i]);
+                if (Name.ToLower() == "string")
+                    lines[i].Replace("String", "string");
+                SingleType test = KnownStuff.WhatItIs(lines[i]);
+                if (test != null)
+                    Stuff.Add(test);
+            }
+        }
         public MsgsFile(string filename)
         {
             if (!filename.Contains(".msg"))
@@ -808,8 +870,8 @@ namespace Messages
             if (wasnull)
             {
             }
-            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t{\n" + memoizedcontent + "\t\t}" + "\n" +
-                   backhalf;
+            GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "")+ "\n\t\tpublic class " + classname + "\n\t\t{\n" + memoizedcontent + "\t\t}" + "\n" +
+                   (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
             return GUTS;
         }
 
@@ -821,7 +883,13 @@ namespace Messages
                 outdir += "\\" + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
-            File.WriteAllText(outdir + "\\" + classname + ".cs", ToString());
+            string localcn = classname;
+            if (serviceMessageType != ServiceMessageType.Not)
+                localcn = classname.Replace("Request", "").Replace("Response", "");
+            if (serviceMessageType == ServiceMessageType.Response)
+                File.AppendAllText(outdir + "\\" + localcn + ".cs", ToString());
+            else
+                File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
         }
     }
 
@@ -920,6 +988,7 @@ namespace Messages
 
         public SingleType Finalize(string[] s, bool isliteral)
         {
+            Console.WriteLine(s.Length);
             backup = new string[s.Length];
             Array.Copy(s, backup, s.Length);
             bool isconst = false;
@@ -1056,6 +1125,13 @@ namespace Messages
             else
                 Name = name;
         }
+    }
+
+    public enum ServiceMessageType
+    {
+        Not,
+        Request,
+        Response
     }
 
     public struct TimeData

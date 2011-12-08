@@ -23,7 +23,34 @@ namespace Messages
 		}
 
 		public static Dictionary<MsgTypes, TypeInfo> TypeInformation = new Dictionary<MsgTypes, TypeInfo>()
-		{			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
+		{			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
+@"int32[2] integers
+int32[] lengthlessintegers
+string teststring
+string[2] teststringarray
+string[] teststringarraylengthless",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
+					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
+					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)},
+					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)},
+					{"teststringarraylengthless", new MsgFieldInfo("teststringarraylengthless", true, typeof(String), false, "", true, "", false)}
+			})},
+			{MsgTypes.custom_msgs__arraytestsquared, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytestsquared>), false, true,
+@"arraytest first
+arraytest second",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"first", new MsgFieldInfo("first", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)},
+					{"second", new MsgFieldInfo("second", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)}
+			})},
+			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
+@"int16[3] knownlengtharray
+int16[] unknownlengtharray",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", false)},
+					{"unknownlengtharray", new MsgFieldInfo("unknownlengtharray", true, typeof(short), false, "", true, "", false)}
+			})},
+			{MsgTypes.geometry_msgs__Point, new TypeInfo(typeof(TypedMessage<geometry_msgs.Point>), false, false,
 @"float64 x
 float64 y
 float64 z",
@@ -509,39 +536,15 @@ uint8[]           data",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"layout", new MsgFieldInfo("layout", false, typeof(TypedMessage<MultiArrayLayout>), false, "", false, "", true)},
 					{"data", new MsgFieldInfo("data", true, typeof(byte), false, "", true, "", false)}
-			})},
-			{MsgTypes.custom_msgs__arraytest, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytest>), false, false,
-@"int32[2] integers
-int32[] lengthlessintegers
-string teststring
-string[2] teststringarray
-string[] teststringarraylengthless",
-				 new Dictionary<string, MsgFieldInfo>{
-					{"integers", new MsgFieldInfo("integers", true, typeof(int), false, "", true, "2", false)},
-					{"lengthlessintegers", new MsgFieldInfo("lengthlessintegers", true, typeof(int), false, "", true, "", false)},
-					{"teststring", new MsgFieldInfo("teststring", true, typeof(String), false, "", false, "", false)},
-					{"teststringarray", new MsgFieldInfo("teststringarray", true, typeof(String), false, "", true, "2", false)},
-					{"teststringarraylengthless", new MsgFieldInfo("teststringarraylengthless", true, typeof(String), false, "", true, "", false)}
-			})},
-			{MsgTypes.custom_msgs__arraytestsquared, new TypeInfo(typeof(TypedMessage<custom_msgs.arraytestsquared>), false, true,
-@"arraytest first
-arraytest second",
-				 new Dictionary<string, MsgFieldInfo>{
-					{"first", new MsgFieldInfo("first", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)},
-					{"second", new MsgFieldInfo("second", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)}
-			})},
-			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
-@"int16[3] knownlengtharray
-int16[] unknownlengtharray",
-				 new Dictionary<string, MsgFieldInfo>{
-					{"knownlengtharray", new MsgFieldInfo("knownlengtharray", true, typeof(short), false, "", true, "3", false)},
-					{"unknownlengtharray", new MsgFieldInfo("unknownlengtharray", true, typeof(short), false, "", true, "", false)}
 			})}
 		};	}
 
 	public enum MsgTypes
 	{
 		Unknown,
+		custom_msgs__arraytest,
+		custom_msgs__arraytestsquared,
+		custom_msgs__simpleintarray,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,
 		geometry_msgs__PointStamped,
@@ -604,9 +607,6 @@ int16[] unknownlengtharray",
 		std_msgs__UInt64,
 		std_msgs__UInt64MultiArray,
 		std_msgs__UInt8,
-		std_msgs__UInt8MultiArray,
-		custom_msgs__arraytest,
-		custom_msgs__arraytestsquared,
-		custom_msgs__simpleintarray
+		std_msgs__UInt8MultiArray
 	}
 }
