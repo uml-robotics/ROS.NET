@@ -310,6 +310,29 @@ string[] topics",
 					{"line", new MsgFieldInfo("line", true, typeof(uint), false, "", false, "", false)},
 					{"topics", new MsgFieldInfo("topics", true, typeof(String), false, "", true, "", false)}
 			})},
+			{MsgTypes.sensor_msgs__Image, new TypeInfo(typeof(TypedMessage<sensor_msgs.Image>), true, true,
+@"Header header
+uint32 seq
+time stamp
+string frame_id
+uint32 height
+uint32 width
+string encoding
+uint8 is_bigendian
+uint32 step
+uint8[] data",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
+					{"seq", new MsgFieldInfo("seq", true, typeof(uint), false, "", false, "", false)},
+					{"stamp", new MsgFieldInfo("stamp", true, typeof(Time), false, "", false, "", false)},
+					{"frame_id", new MsgFieldInfo("frame_id", true, typeof(String), false, "", false, "", false)},
+					{"height", new MsgFieldInfo("height", true, typeof(uint), false, "", false, "", false)},
+					{"width", new MsgFieldInfo("width", true, typeof(uint), false, "", false, "", false)},
+					{"encoding", new MsgFieldInfo("encoding", true, typeof(String), false, "", false, "", false)},
+					{"is_bigendian", new MsgFieldInfo("is_bigendian", true, typeof(byte), false, "", false, "", false)},
+					{"step", new MsgFieldInfo("step", true, typeof(uint), false, "", false, "", false)},
+					{"data", new MsgFieldInfo("data", true, typeof(byte), false, "", true, "", false)}
+			})},
 			{MsgTypes.std_msgs__Bool, new TypeInfo(typeof(TypedMessage<std_msgs.Bool>), false, false,
 @"bool data",
 				 new Dictionary<string, MsgFieldInfo>{
@@ -575,6 +598,7 @@ uint8[]           data",
 		nav_msgs__Path,
 		roscsharp__Logger,
 		rosgraph_msgs__Log,
+		sensor_msgs__Image,
 		std_msgs__Bool,
 		std_msgs__Byte,
 		std_msgs__ByteMultiArray,

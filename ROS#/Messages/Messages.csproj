@@ -74,6 +74,7 @@
 	<Compile Include="nav_msgs\Path.cs" />
 	<Compile Include="roscsharp\Logger.cs" />
 	<Compile Include="rosgraph_msgs\Log.cs" />
+	<Compile Include="sensor_msgs\Image.cs" />
 	<Compile Include="std_msgs\Bool.cs" />
 	<Compile Include="std_msgs\Byte.cs" />
 	<Compile Include="std_msgs\ByteMultiArray.cs" />

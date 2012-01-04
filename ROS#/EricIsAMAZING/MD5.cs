@@ -19,6 +19,7 @@ namespace Ros_CSharp
                 hashme = hashme.Replace("  ", " ");
             while (hashme.Contains("\r\n"))
                 hashme = hashme.Replace("\r\n", "\n");
+            hashme = hashme.Trim();
             IRosMessage irm =
                 (IRosMessage)
                 Activator.CreateInstance(

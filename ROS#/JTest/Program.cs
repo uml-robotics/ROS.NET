@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Imports
 
 using System;
 using System.IO;
@@ -15,11 +15,11 @@ using nm = Messages.nav_msgs;
 
 #endregion
 
-namespace ConsoleApplication1
+namespace JTest
 {
     public class Program
     {
-        private const string ROS_MASTER_URI = "http://10.0.2.41:11311/";
+        private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 
@@ -108,46 +108,102 @@ namespace ConsoleApplication1
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = ROS_MASTER_URI;
             ROS.Init(args, "ROSsharp_Listener");
-            NodeHandle nh = new NodeHandle();
-            Subscriber<TypedMessage<arraytest>> arraysub = nh.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-            Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = nh.subscribe<arraytestsquared>("hardstuff",
-                                                                                                        1000,
-                                                                                                        BREAKSTUFFCallback);
-            Publisher<arraytestsquared> hardpub = nh.advertise<arraytestsquared>("hardstuff2", 1000, true);
-            int count = 0;
+            NodeHandle node = new NodeHandle();
+           
+            //Subscriber<> SubscribeOptions = node.subscribe<>();
+
+            //Publisher<String> pub = node.advertise<String>("myTopic", 1000, true);
+            
+            Messages.geometry_msgs.Twist t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0} };
+            Publisher<gm.Twist> pub = node.advertise<gm.Twist>("rosaria/cmd_vel",1000,true);
             while (ROS.ok)
             {
-                arraytest[] pieces = new[] {new arraytest(), new arraytest()};
-                pieces[0].teststring = new String("BBQ");
-                pieces[1].teststring = new String("QBB");
-                for (int i = 0; i < 2; i++)
-                {
-                    pieces[0].teststringarray[i] = new String("ZOMG " + (count + i));
-                    pieces[1].teststringarray[i] = new String("" + (count + 2 - i) + " GMOZ");
-                    pieces[0].integers[i] = count + i;
-                    pieces[1].integers[i] = count + 2 - i;
-                }
-                pieces[0].lengthlessintegers = new int[10];
-                pieces[1].lengthlessintegers = new int[10];
-                pieces[0].teststringarraylengthless = new String[10];
-                pieces[1].teststringarraylengthless = new String[10];
-                for (int i = 2; i < 12; i++)
-                {
-                    pieces[0].lengthlessintegers[i - 2] = count + i;
-                    pieces[1].lengthlessintegers[i - 2] = count + 12 - i;
-                    pieces[0].teststringarraylengthless[i - 2] = new String("ZOMFGBBQ " + (count + i));
-                    pieces[1].teststringarraylengthless[i - 2] = new String("" + (count + 12 - i) + " QBBGFMOZ");
-                }
-                hardpub.publish(new arraytestsquared {first = pieces[0], second = pieces[1]});
-                count = (count + 1)%244;
-                /*m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
-                pub2.publish(ht);
-                Time t = new Time {data = new TimeData(1,1)};
-                pub3.publish(t);
-                pub4.publish(new String("UGH!"));*/
-                ROS.spinOnce();
-                Thread.Sleep(5);
+                
+                   // t.linear.x = 0;
+                   // t.angular.z = 0;
+                    if (Console.ReadKey(false).Key == ConsoleKey.K)
+                    {
+                        Console.WriteLine("PUBLISHING K");
+                        t.linear.x = 0;
+                        t.angular.z = 0;
+                    }    
+                    else if (Console.ReadKey(false).Key == ConsoleKey.I)
+                    {
+                        Console.WriteLine("PUBLISHING I");
+                        t.linear.x = .5;
+                        t.angular.z = 0;
+                    }
+                    else if (Console.ReadKey(false).Key == ConsoleKey.OemComma)
+                    {
+                        Console.WriteLine("PUBLISHING ,");
+                        t.linear.x = -.1;
+                        t.angular.z = 0;
+                    }
+                    else if (Console.ReadKey(false).Key == ConsoleKey.J)
+                    {
+                        Console.WriteLine("PUBLISHING J");
+                        t.linear.x = 0;
+                        t.angular.z = .5;
+                    }
+                    else if (Console.ReadKey(false).Key == ConsoleKey.L)
+                    {
+                        Console.WriteLine("PUBLISHING L");
+                        t.linear.x = 0;
+                        t.angular.z = -.5;
+                    }
+                    else
+                    {
+                       // t.linear.x = 0;
+                        //t.angular.z = 0;
+                    }
+
+                    pub.publish(t);
+                
+                //pub.publish(new m.String("Hello, World!") /*{ data = "Hello, World!" }*/ );
+               // Console.WriteLine(new m.String { data = "Hello, World!" }.data);
+               // Thread.Sleep(500);
             }
+
+            
+            //Subscriber<TypedMessage<arraytest>> arraysub = node.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
+            //Subscriber<TypedMessage<arraytestsquared>> arraysquaredsub = node.subscribe<arraytestsquared>("hardstuff",
+            //                                                                                            1000,
+            //                                                                                            BREAKSTUFFCallback);
+            //Publisher<arraytestsquared> hardpub = node.advertise<arraytestsquared>("hardstuff2", 1000, true);
+            //int count = 0;
+            //while (ROS.ok)
+            //{
+            //    arraytest[] pieces = new[] {new arraytest(), new arraytest()};
+            //    pieces[0].teststring = new String("BBQ");
+            //    pieces[1].teststring = new String("QBB");
+            //    for (int i = 0; i < 2; i++)
+            //    {
+            //        pieces[0].teststringarray[i] = new String("ZOMG " + (count + i));
+            //        pieces[1].teststringarray[i] = new String("" + (count + 2 - i) + " GMOZ");
+            //        pieces[0].integers[i] = count + i;
+            //        pieces[1].integers[i] = count + 2 - i;
+            //    }
+            //    pieces[0].lengthlessintegers = new int[10];
+            //    pieces[1].lengthlessintegers = new int[10];
+            //    pieces[0].teststringarraylengthless = new String[10];
+            //    pieces[1].teststringarraylengthless = new String[10];
+            //    for (int i = 2; i < 12; i++)
+            //    {
+            //        pieces[0].lengthlessintegers[i - 2] = count + i;
+            //        pieces[1].lengthlessintegers[i - 2] = count + 12 - i;
+            //        pieces[0].teststringarraylengthless[i - 2] = new String("ZOMFGBBQ " + (count + i));
+            //        pieces[1].teststringarraylengthless[i - 2] = new String("" + (count + 12 - i) + " QBBGFMOZ");
+            //    }
+            //    hardpub.publish(new arraytestsquared {first = pieces[0], second = pieces[1]});
+            //    count = (count + 1)%244;
+            //    /*m.Header ht = new m.Header { seq = count, frame_id = new m.String((""+count)+(""+count)), stamp = new m.Time(count, count++) };
+            //    pub2.publish(ht);
+            //    Time t = new Time {data = new TimeData(1,1)};
+            //    pub3.publish(t);
+            //    pub4.publish(new String("UGH!"));*/
+            //    ROS.spinOnce();
+            //    Thread.Sleep(5);
+            //}
 
 
             //Publisher<m.TypedMessage<String>> pub = nh.advertise<String>("chatter", 1000);

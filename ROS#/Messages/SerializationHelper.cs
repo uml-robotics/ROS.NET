@@ -23,9 +23,11 @@ namespace Messages
             return GetMessageType(t.FullName);
         }
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
+            if (s.Contains("TimeData"))
+                return MsgTypes.std_msgs__Time;
             if (s.Contains("TypedMessage`1["))
                 s = Type.GetType(s).GetField("data").FieldType.FullName;
             if (!s.Contains("Messages"))
@@ -141,7 +143,16 @@ namespace Messages
                                 }
                                 else
                                 {
-                                    Console.WriteLine("ANOTHER CASE?!");
+                                    if (GetMessageType(realtype) == MsgTypes.std_msgs__Time)
+                                    {
+                                        uint u1 = BitConverter.ToUInt32(bytes, currpos);
+                                        uint u2 = BitConverter.ToUInt32(bytes, currpos + 4);
+                                        TimeData td = new TimeData(u1, u2);
+                                        infos[currinfo].SetValue(thestructure, (object)new std_msgs.Time(td));
+                                        currpos += 8;
+                                    }
+                                    else
+                                        Console.WriteLine("HANDLE IT!");
                                 }
                             }
                             else
