@@ -20,7 +20,7 @@ namespace videoView
 {
     public class Program
     {
-        private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
+        private const string ROS_MASTER_URI = "http://robot-lab8:11311/";
         //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 
@@ -53,13 +53,8 @@ namespace videoView
 
            // Messages.geometry_msgs.Twist t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
             //Publisher<gm.Twist> pub = node.advertise<gm.Twist>("rosaria/cmd_vel", 1000, true);
-
-
-            Subscriber<TypedMessage<m.Header>> subby = node.subscribe<m.Header>("headercrap", 1000, (h) => {
-                Console.WriteLine(h.data.seq + "\t\t" + h.data.stamp.data.sec + "." + h.data.stamp.data.nsec + "\t\t" + h.data.frame_id.data);
-            });
-
-            //Subscriber<TypedMessage<sm.Image>> subby = node.subscribe<sm.Image>("/camera/rgb/image_color", 1000, videoCallback);
+            
+            
 
             while (ROS.ok)
             {
