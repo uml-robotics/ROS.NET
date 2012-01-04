@@ -60,26 +60,37 @@ namespace Ros_CSharp
 
         public void logThread()
         {
+            List<IRosMessage> localqueue = new List<IRosMessage>();
             while (!shutting_down)
             {
-                Queue<IRosMessage> localqueue = null;
+                bool nothingtolog = false;
                 lock (queue_mutex)
                 {
-                    if (shutting_down) return;
-                    localqueue = new Queue<IRosMessage>(log_queue);
-                    if (shutting_down) return;
-                    log_queue.Clear();
-                    if (shutting_down) return;
+                    if (log_queue.Count > 0)
+                    {
+                        if (shutting_down) return;
+                        localqueue.AddRange(log_queue);
+                        if (shutting_down) return;
+                        log_queue.Clear();
+                        if (shutting_down) return;
+                    }
+                    else
+                        nothingtolog = true;
+                }
+                if (nothingtolog)
+                {
+                    Thread.Sleep(1);
+                    continue;
                 }
                 if (shutting_down) return;
-                while (localqueue.Count > 0)
+                foreach(IRosMessage msg in localqueue)
                 {
-                    if (shutting_down) return;
-                    IRosMessage msg = localqueue.Dequeue();
                     if (shutting_down) return;
                     TopicManager.Instance.publish(names.resolve("/rosout"), msg);
                     if (shutting_down) return;
                 }
+                localqueue.Clear();
+                Thread.Sleep(0);
             }
         }
     }

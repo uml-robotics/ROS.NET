@@ -1,4 +1,4 @@
-#region Imports
+﻿#region Imports
 
 using System;
 using System.IO;
@@ -21,7 +21,7 @@ namespace videoView
 {
     public class Program
     {
-        private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
+        private const string ROS_MASTER_URI = "http://robot-lab8:11311/";
         //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 
@@ -37,16 +37,7 @@ namespace videoView
 
         public static void videoCallback( TypedMessage<sm.Image> image)
         {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < image.data.data.Length; i++)
-            {
-                byte b = image.data.data[i];
-                string s = b.ToString("X");
-                if (s.Length == 1)
-                    s = "0" + s;
-                sb.Append(" " + s);
-            }
-            Console.WriteLine(sb);
+            Console.WriteLine("Got "+image.data.data.Length+" bytes worth of "+image.data.encoding.data+" image "+image.data.width+"x"+image.data.height);
         }
 
         private static void Main(string[] args)
@@ -73,7 +64,6 @@ namespace videoView
 
             while (ROS.ok)
             {
-                Console.WriteLine("just keep swimming");
                 //Subscriber<TypedMessage<arraytest>> arraysub = node.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
 
                 //pub.publish(new m.String("Hello, World!") /*{ data = "Hello, World!" }*/ );

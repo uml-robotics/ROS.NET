@@ -106,7 +106,6 @@ namespace YAMLParser
             {
                 Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
             }
-            Console.ReadLine();
         }
 
         public static void MakeTempDir()
@@ -211,6 +210,7 @@ namespace YAMLParser
                 if (error.Length > 0)
                     Console.WriteLine(error);
                 Console.WriteLine("AMG BUILD FAIL!");
+                Console.ReadLine();
             }
         }
 
