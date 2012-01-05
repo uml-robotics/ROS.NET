@@ -35,9 +35,12 @@ namespace videoView
             Console.WriteLine(s);
         }
 
+        static DateTime last = DateTime.Now;
         public static void videoCallback( TypedMessage<sm.Image> image)
         {
-            Console.WriteLine("Got "+image.data.data.Length+" bytes worth of "+image.data.encoding.data+" image "+image.data.width+"x"+image.data.height);
+            DateTime now = DateTime.Now;
+            Console.WriteLine("Got " + image.data.data.Length + " bytes worth of " + image.data.encoding.data + " image " + image.data.width + "x" + image.data.height + "\t @ " + (1 / (now.Subtract(last).TotalMilliseconds / 1000)) + " fps");
+            last = now;
         }
 
         private static void Main(string[] args)
