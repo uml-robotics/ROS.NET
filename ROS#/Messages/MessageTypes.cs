@@ -312,9 +312,6 @@ string[] topics",
 			})},
 			{MsgTypes.sensor_msgs__Image, new TypeInfo(typeof(TypedMessage<sensor_msgs.Image>), true, true,
 @"Header header
-uint32 seq
-time stamp
-string frame_id
 uint32 height
 uint32 width
 string encoding
@@ -323,9 +320,6 @@ uint32 step
 uint8[] data",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
-					{"seq", new MsgFieldInfo("seq", true, typeof(uint), false, "", false, "", false)},
-					{"stamp", new MsgFieldInfo("stamp", true, typeof(Time), false, "", false, "", false)},
-					{"frame_id", new MsgFieldInfo("frame_id", true, typeof(String), false, "", false, "", false)},
 					{"height", new MsgFieldInfo("height", true, typeof(uint), false, "", false, "", false)},
 					{"width", new MsgFieldInfo("width", true, typeof(uint), false, "", false, "", false)},
 					{"encoding", new MsgFieldInfo("encoding", true, typeof(String), false, "", false, "", false)},

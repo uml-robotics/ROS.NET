@@ -16,9 +16,6 @@ namespace Messages.sensor_msgs
 		public class Image
 		{
 			public Header header;
-			public uint seq;
-			public Time stamp;
-			public String frame_id;
 			public uint height;
 			public uint width;
 			public String encoding;

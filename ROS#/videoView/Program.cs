@@ -13,6 +13,7 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
+using System.Text;
 
 #endregion
 
@@ -36,7 +37,16 @@ namespace videoView
 
         public static void videoCallback( TypedMessage<sm.Image> image)
         {
-            Console.WriteLine("I GOT SOME VIDEO YO!");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < image.data.data.Length; i++)
+            {
+                byte b = image.data.data[i];
+                string s = b.ToString("X");
+                if (s.Length == 1)
+                    s = "0" + s;
+                sb.Append(" " + s);
+            }
+            Console.WriteLine(sb);
         }
 
         private static void Main(string[] args)
@@ -55,11 +65,11 @@ namespace videoView
             //Publisher<gm.Twist> pub = node.advertise<gm.Twist>("rosaria/cmd_vel", 1000, true);
 
 
-            Subscriber<TypedMessage<m.Header>> subby = node.subscribe<m.Header>("headercrap", 1000, (h) => {
+            /*Subscriber<TypedMessage<m.Header>> subby = node.subscribe<m.Header>("headercrap", 1000, (h) => {
                 Console.WriteLine(h.data.seq + "\t\t" + h.data.stamp.data.sec + "." + h.data.stamp.data.nsec + "\t\t" + h.data.frame_id.data);
-            });
+            });*/
 
-            //Subscriber<TypedMessage<sm.Image>> subby = node.subscribe<sm.Image>("/camera/rgb/image_color", 1000, videoCallback);
+            Subscriber<TypedMessage<sm.Image>> subby = node.subscribe<sm.Image>("/camera/rgb/image_color", 1000, videoCallback);
 
             while (ROS.ok)
             {

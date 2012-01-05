@@ -125,6 +125,7 @@ namespace Messages
                         {
                             if (type.FullName != null && type.FullName.Contains("Message"))
                             {
+                                Console.WriteLine(realtype);
                                 bool IKNOWWHATTHATISZOMG = IsSizeKnown(realtype, true);
                                 MsgTypes mt = GetMessageType(T);
                                 if (!IKNOWWHATTHATISZOMG)
@@ -331,6 +332,9 @@ namespace Messages
                 if (fullName != null)
                 {
                     if (fullName.Contains("Messages."))
+                    {
+                        if (!TypeHelper.TypeInformation.ContainsKey(GetMessageType(info.FieldType)) || !TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields.ContainsKey(info.Name))
+                            return false;
                         b = TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type !=
                             typeof(string) &&
                             TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Type !=
@@ -338,6 +342,7 @@ namespace Messages
                             (!TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].IsArray ||
                              TypeHelper.TypeInformation[GetMessageType(info.FieldType)].Fields[info.Name].Lengths.Count !=
                              0);
+                    }
                     else
                         b = !info.FieldType.IsArray && info.FieldType != typeof(string);
                 }
