@@ -118,6 +118,20 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
+        public bool SafePoll(int timeout, SelectMode sm)
+        {
+            bool res = false;
+            try
+            {
+                res = Poll(timeout, sm);
+            }
+            catch 
+            {
+                res = sm == SelectMode.SelectError;
+            }
+            return res;
+        }
+
         [DebuggerStepThrough]
         public override string ToString()
         {

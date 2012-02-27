@@ -237,12 +237,25 @@ namespace XmlRpc_Wrapper
 
         public void Exit()
         {
-            exit(instance);
+            try{
+                exit(instance);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         public void Clear()
         {
-            clear(instance);
+            try
+            {
+                clear(instance);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

@@ -149,6 +149,10 @@ namespace Ros_CSharp
         public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
             where M : class, new()
         {
+            if (_callback == null)
+            {
+                _callback = ROS.GlobalCallbackQueue;
+            }
             SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size,
                                                                                           cb.func
                 )

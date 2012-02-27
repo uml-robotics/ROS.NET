@@ -65,7 +65,7 @@ namespace Ros_CSharp
         }*/
 
         public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,
-                         ref bool was_full, DateTime receipt_time = default(DateTime))
+                         ref bool was_full, TimeData receipt_time = new TimeData())
         {
             if (Event != null)
             {

@@ -46,7 +46,7 @@ namespace Ros_CSharp
 
         internal void shutdown()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

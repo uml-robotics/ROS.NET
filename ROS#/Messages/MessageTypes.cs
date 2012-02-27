@@ -223,6 +223,18 @@ Wrench wrench",
 					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
 					{"wrench", new MsgFieldInfo("wrench", false, typeof(TypedMessage<Wrench>), false, "", false, "", true)}
 			})},
+			{MsgTypes.histogram_msgs__histogramsnapshot, new TypeInfo(typeof(TypedMessage<histogram_msgs.histogramsnapshot>), false, false,
+@"float32[] belief",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"belief", new MsgFieldInfo("belief", true, typeof(float), false, "", true, "", false)}
+			})},
+			{MsgTypes.histogram_msgs__MCLSnapshot, new TypeInfo(typeof(TypedMessage<histogram_msgs.MCLSnapshot>), false, false,
+@"float32[] positions
+float32[] weights",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"positions", new MsgFieldInfo("positions", true, typeof(float), false, "", true, "", false)},
+					{"weights", new MsgFieldInfo("weights", true, typeof(float), false, "", true, "", false)}
+			})},
 			{MsgTypes.nav_msgs__GridCells, new TypeInfo(typeof(TypedMessage<nav_msgs.GridCells>), true, true,
 @"Header header
 float32 cell_width
@@ -280,6 +292,11 @@ string level",
 				 new Dictionary<string, MsgFieldInfo>{
 					{"name", new MsgFieldInfo("name", true, typeof(String), false, "", false, "", false)},
 					{"level", new MsgFieldInfo("level", true, typeof(String), false, "", false, "", false)}
+			})},
+			{MsgTypes.rosgraph_msgs__Clock, new TypeInfo(typeof(TypedMessage<rosgraph_msgs.Clock>), false, false,
+@"time clock",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"clock", new MsgFieldInfo("clock", true, typeof(Time), false, "", false, "", false)}
 			})},
 			{MsgTypes.rosgraph_msgs__Log, new TypeInfo(typeof(TypedMessage<rosgraph_msgs.Log>), true, true,
 @"byte DEBUG=1
@@ -585,12 +602,15 @@ uint8[]           data",
 		geometry_msgs__Vector3Stamped,
 		geometry_msgs__Wrench,
 		geometry_msgs__WrenchStamped,
+		histogram_msgs__histogramsnapshot,
+		histogram_msgs__MCLSnapshot,
 		nav_msgs__GridCells,
 		nav_msgs__MapMetaData,
 		nav_msgs__OccupancyGrid,
 		nav_msgs__Odometry,
 		nav_msgs__Path,
 		roscsharp__Logger,
+		rosgraph_msgs__Clock,
 		rosgraph_msgs__Log,
 		sensor_msgs__Image,
 		std_msgs__Bool,

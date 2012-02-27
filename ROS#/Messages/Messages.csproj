@@ -67,12 +67,15 @@
 	<Compile Include="geometry_msgs\Vector3Stamped.cs" />
 	<Compile Include="geometry_msgs\Wrench.cs" />
 	<Compile Include="geometry_msgs\WrenchStamped.cs" />
+	<Compile Include="histogram_msgs\histogramsnapshot.cs" />
+	<Compile Include="histogram_msgs\MCLSnapshot.cs" />
 	<Compile Include="nav_msgs\GridCells.cs" />
 	<Compile Include="nav_msgs\MapMetaData.cs" />
 	<Compile Include="nav_msgs\OccupancyGrid.cs" />
 	<Compile Include="nav_msgs\Odometry.cs" />
 	<Compile Include="nav_msgs\Path.cs" />
 	<Compile Include="roscsharp\Logger.cs" />
+	<Compile Include="rosgraph_msgs\Clock.cs" />
 	<Compile Include="rosgraph_msgs\Log.cs" />
 	<Compile Include="sensor_msgs\Image.cs" />
 	<Compile Include="std_msgs\Bool.cs" />

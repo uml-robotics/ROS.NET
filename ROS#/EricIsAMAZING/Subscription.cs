@@ -292,7 +292,7 @@ namespace Ros_CSharp
                 return false;
             }
 #if DEBUG
-            //EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+            EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
@@ -408,7 +408,7 @@ namespace Ros_CSharp
             {
                 ulong drops = 0;
                 cached_deserializers.Clear();
-                DateTime receipt_time = DateTime.Now;
+                TimeData receipt_time = ROS.GetTime().data;
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
@@ -423,9 +423,7 @@ namespace Ros_CSharp
                             cached_deserializers.Add(ti, deserializer);
                         }
                         bool was_full = false;
-                        bool nonconst_need_copy = false;
-                        if (callbacks.Count > 1)
-                            nonconst_need_copy = true;
+                        bool nonconst_need_copy = callbacks.Count > 1;
                         info.helper.callback().func(msg);
                         /* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
                                                       receipt_time);*/
@@ -600,7 +598,7 @@ namespace Ros_CSharp
             public IDictionary connection_header;
             public PublisherLink link;
             public IRosMessage message;
-            public DateTime receipt_time;
+            public TimeData receipt_time;
         }
 
         #endregion

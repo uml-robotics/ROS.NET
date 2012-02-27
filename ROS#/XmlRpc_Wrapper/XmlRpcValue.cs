@@ -13,6 +13,7 @@ namespace XmlRpc_Wrapper
     //TODO: OPERATOR GARBAGE?
     public class XmlRpcValue : IDisposable
     {
+        public static int totalrefs = 0;
         #region Reference Tracking + unmanaged pointer management
 
         public XmlRpcValue this[int key]
@@ -108,6 +109,8 @@ namespace XmlRpc_Wrapper
 #endif
                     _refs[ptr]++;
                 }
+                totalrefs++;
+                Console.WriteLine("total xmlrpcvalue refs = " + totalrefs);
             }
         }
 
@@ -122,8 +125,11 @@ namespace XmlRpc_Wrapper
                     Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
 #endif
                     _refs[ptr]--;
+                    totalrefs--;
+                    Console.WriteLine("total xmlrpcvalue refs = " + totalrefs);
                     if (_refs[ptr] <= 0)
                     {
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #if REFDEBUG
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #endif

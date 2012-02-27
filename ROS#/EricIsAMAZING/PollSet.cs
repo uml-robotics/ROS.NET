@@ -146,21 +146,21 @@ namespace Ros_CSharp
             for (int i = 0; i < ufds.Count; i++)
             {
                 Socket sock = Socket.Get(ufds[i].sock);
-                if (!sock.Connected)
+                if (sock == null || !sock.Connected)
                 {
                     ufds[i].revents |= POLLHUP;
                 }
-                else if (sock.Poll(poll_timeout, SelectMode.SelectError))
+                else if (sock.SafePoll(poll_timeout, SelectMode.SelectError))
                 {
                     ufds[i].revents |= POLLERR;
                 }
                 else
                 {
-                    if (sock.Poll(poll_timeout, SelectMode.SelectWrite))
+                    if (sock.SafePoll(poll_timeout, SelectMode.SelectWrite))
                     {
                         ufds[i].revents |= POLLOUT;
                     }
-                    if (sock.Poll(poll_timeout, SelectMode.SelectRead))
+                    if (sock.SafePoll(poll_timeout, SelectMode.SelectRead))
                     {
                         ufds[i].revents |= POLLIN;
                     }
@@ -172,7 +172,7 @@ namespace Ros_CSharp
             {
                 if (ufds[i].revents == 0)
                 {
-                    EDB.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
+                    //EDB.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
                     continue;
                 }
 

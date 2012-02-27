@@ -50,23 +50,23 @@ namespace Ros_CSharp
         {
         }
 
-        public MessageEvent(M msg, DateTime rec)
+        public MessageEvent(M msg, TimeData rec)
             : base(msg, rec)
         {
         }
 
-        public MessageEvent(M msg, IDictionary head, DateTime rec)
+        public MessageEvent(M msg, IDictionary head, TimeData rec)
             : base(msg, head, rec)
         {
         }
 
-        public MessageEvent(M msg, IDictionary head, DateTime rec, bool needcopy, SpecCreateFunction c)
+        public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, SpecCreateFunction c)
             : base(msg, head, rec, needcopy, convert(c))
         {
             speccreate = c;
         }
 
-        public MessageEvent(M msg, IDictionary head, DateTime rec, bool needcopy, CreateFunction c)
+        public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, CreateFunction c)
             : base(msg, head, rec, needcopy, c)
         {
             speccreate = convert(c);
@@ -82,7 +82,7 @@ namespace Ros_CSharp
             return () => (M) spec.Invoke();
         }
 
-        public override void init(IRosMessage msg, IDictionary connhead, DateTime rec, bool needcopy, CreateFunction c)
+        public override void init(IRosMessage msg, IDictionary connhead, TimeData rec, bool needcopy, CreateFunction c)
         {
             base.init(msg, connhead, rec, needcopy, c);
             speccreate = convert(c);
@@ -101,7 +101,7 @@ namespace Ros_CSharp
         public CreateFunction create;
         public IRosMessage message;
         public bool nonconst_need_copy;
-        public DateTime receipt_time;
+        public TimeData receipt_time;
 
         public IMessageEvent()
         {
@@ -129,21 +129,21 @@ namespace Ros_CSharp
         }
 
         public IMessageEvent(IRosMessage msg)
-            : this(msg, msg.connection_header, DateTime.Now, true, DefaultCreator)
+            : this(msg, msg.connection_header, ROS.GetTime().data, true, DefaultCreator)
         {
         }
 
-        public IMessageEvent(IRosMessage msg, DateTime rec)
+        public IMessageEvent(IRosMessage msg, TimeData rec)
             : this(msg, msg.connection_header, rec, true, DefaultCreator)
         {
         }
 
-        public IMessageEvent(IRosMessage msg, IDictionary head, DateTime rec)
+        public IMessageEvent(IRosMessage msg, IDictionary head, TimeData rec)
             : this(msg, head, rec, true, DefaultCreator)
         {
         }
 
-        public IMessageEvent(IRosMessage msg, IDictionary conhead, DateTime rectime, bool needcopy, CreateFunction c)
+        public IMessageEvent(IRosMessage msg, IDictionary conhead, TimeData rectime, bool needcopy, CreateFunction c)
         {
             init(msg, conhead, rectime, needcopy, c);
         }
@@ -155,7 +155,7 @@ namespace Ros_CSharp
             return message;
         }
 
-        public virtual void init(IRosMessage msg, IDictionary connhead, DateTime rec, bool needcopy, CreateFunction c)
+        public virtual void init(IRosMessage msg, IDictionary connhead, TimeData rec, bool needcopy, CreateFunction c)
         {
             message = msg;
             connection_header = connhead;
