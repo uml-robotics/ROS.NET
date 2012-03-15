@@ -59,7 +59,17 @@ namespace Ros_CSharp
             construct(ns, false);
         }
 
-        public NodeHandle() : this(ROS.GlobalNodeHandle)
+        private static NodeHandle waitplzkthx()
+        {
+            while (ROS.GlobalNodeHandle == null)
+            {
+                Console.WriteLine("GLOBALNODEHANDLE IS NULL ZOMG!");
+                Thread.Sleep(100);
+            }
+            return ROS.GlobalNodeHandle;
+        }
+
+        public NodeHandle() : this(waitplzkthx())
         {
         }
 

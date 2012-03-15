@@ -108,6 +108,7 @@ namespace Ros_CSharp
 
         public static void Init(string[] args, string name, int options = 0)
         {
+            Console.WriteLine("INIT!");
             IDictionary dick = new Hashtable();
             for (int i = 0; i < args.Length; i++)
             {
