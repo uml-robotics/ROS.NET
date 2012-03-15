@@ -245,8 +245,8 @@ namespace Ros_CSharp
 #if DEBUG
                         EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
                                       "] at [" + link.XmlRpc_Uri + "]");
-                        link.drop();
 #endif
+                        link.drop();
                     }
                     else
                     {
@@ -321,7 +321,6 @@ namespace Ros_CSharp
             XmlRpcValue proto = new XmlRpcValue();
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
-                EDB.WriteLine("Failed to contact publisher [" + xmlrpc_uri + "] for topic [" + name + "]");
                 return;
             }
             if (proto.Size == 0)

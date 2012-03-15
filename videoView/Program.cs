@@ -21,7 +21,7 @@ namespace videoView
 {
     public class Program
     {
-        private const string ROS_MASTER_URI = "http://robot-lab8:11311/";
+        private const string ROS_MASTER_URI = "http://robot-lab8.lan:11311/";
         //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
         //private const string ROS_MASTER_URI = "http://localhost:11311/";
 

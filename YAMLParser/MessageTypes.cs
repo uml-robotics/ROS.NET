@@ -28,6 +28,7 @@ namespace Messages
         Unknown,
         std_msgs__String,
         std_msgs__Header,
-        std_msgs__Time
+        std_msgs__Time,
+        std_msgs__Byte
     }
 }

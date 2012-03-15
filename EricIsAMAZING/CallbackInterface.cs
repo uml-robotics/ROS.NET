@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections.Generic;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -44,7 +45,7 @@ namespace Ros_CSharp
 
         public event CallbackDelegate<T> Event;
 
-        /*public bool _full;
+        public bool _full;
         public bool allow_concurrent_callbacks;
 
         public bool callback_mutex;
@@ -62,7 +63,7 @@ namespace Ros_CSharp
             _full = false;
             size = queue_size;
             this.queue_size = 0;
-        }*/
+        }
 
         public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,
                          ref bool was_full, TimeData receipt_time = new TimeData())
@@ -73,7 +74,6 @@ namespace Ros_CSharp
                 t.connection_header = deserializer.connection_header;
                 Event(t);
             }
-            /*if (receipt_time == default(DateTime)) receipt_time = DateTime.Now;
             lock (queue_mutex)
             {
                 if (was_full)
@@ -99,10 +99,10 @@ namespace Ros_CSharp
                              receipt_time = receipt_time
                          };
             queue.Enqueue(i);
-            ++queue_size;*/
+            ++queue_size;
         }
 
-        /*public void clear()
+        public void clear()
         {
             while (callback_mutex)
             {
@@ -114,14 +114,14 @@ namespace Ros_CSharp
                 queue_size = 0;
             }
             callback_mutex = false;
-        }*/
+        }
 
         public new virtual bool ready()
         {
             return true;
         }
 
-        /*private bool fullNoLock()
+        private bool fullNoLock()
         {
             return size > 0 && queue_size >= size;
         }
@@ -132,19 +132,19 @@ namespace Ros_CSharp
             {
                 return fullNoLock();
             }
-        }*/
+        }
 
-        /*public class Item
+        public class Item
         {
             public IMessageDeserializer deserializer;
             public ISubscriptionCallbackHelper helper;
             public bool nonconst_need_copy;
-            public DateTime receipt_time;
-        }*/
+            public TimeData receipt_time;
+        }
 
         internal override CallResult Call()
         {
-            /*if (!allow_concurrent_callbacks)
+            if (!allow_concurrent_callbacks)
             {
                 if (callback_mutex)
                     return CallResult.TryAgain;
@@ -164,7 +164,7 @@ namespace Ros_CSharp
             parms.Event = new IMessageEvent(i.deserializer.deserialize(), i.deserializer.connection_header, i.receipt_time,
                                             i.nonconst_need_copy, IMessageEvent.DefaultCreator);
             i.helper.call(parms);
-            callback_mutex = false;*/
+            callback_mutex = false;
             return CallResult.Success;
         }
     }

@@ -62,11 +62,8 @@ namespace Ros_CSharp
                 if (res)
                     parent.pendingConnectionDone(this, chk.instance);
             }
-            return res;
-            //if (NEVERAGAIN) return true;
             if (client.ExecuteCheckDone(chk))
             {
-                //NEVERAGAIN = true;
                 parent.pendingConnectionDone(this, chk.instance);
                 return true;
             }

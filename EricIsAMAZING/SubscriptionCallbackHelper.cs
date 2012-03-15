@@ -17,7 +17,7 @@ namespace Ros_CSharp
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
+            //EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
             base.callback(new Callback<M>(cb));
             //if you think about this one too hard, you might die.
@@ -25,32 +25,32 @@ namespace Ros_CSharp
 
         public SubscriptionCallbackHelper(MsgTypes t)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: type constructor");
+            //EDB.WriteLine("SubscriptionCallbackHelper: type constructor");
             type = t;
         }
 
         public SubscriptionCallbackHelper(CallbackInterface q)
             : base(q)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
+            //EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
         }
 
         public M deserialize(SubscriptionCallbackHelperDeserializeParams parms)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
+           // EDB.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
             return deserialize<M>(parms);
         }
 
         public override T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
+            //EDB.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
             T t = base.deserialize<T>(parms);
             return t;
         }
 
         public override void call(SubscriptionCallbackHelperCallParams parms)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: call");
+            //EDB.WriteLine("SubscriptionCallbackHelper: call");
             MessageEvent<M> e = (MessageEvent<M>) parms.Event;
             (callback()).func(new ParameterAdapter<M>().getParameter(e));
         }
@@ -64,12 +64,12 @@ namespace Ros_CSharp
 
         protected ISubscriptionCallbackHelper()
         {
-            EDB.WriteLine("ISubscriptionCallbackHelper: 0 arg constructor");
+           // EDB.WriteLine("ISubscriptionCallbackHelper: 0 arg constructor");
         }
 
         protected ISubscriptionCallbackHelper(CallbackInterface Callback)
         {
-            EDB.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
+            //EDB.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
             //throw new NotImplementedException();
             _callback = Callback;
         }
@@ -87,7 +87,7 @@ namespace Ros_CSharp
 
         public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage
         {
-            EDB.WriteLine("ISubscriptionCallbackHelper: deserialize");
+            //EDB.WriteLine("ISubscriptionCallbackHelper: deserialize");
             IRosMessage msg = ROS.MakeMessage(type);
             assignSubscriptionConnectionHeader(ref msg, parms.connection_header);
             T t = (T) msg;
@@ -98,13 +98,13 @@ namespace Ros_CSharp
 
         private void assignSubscriptionConnectionHeader(ref IRosMessage msg, IDictionary p)
         {
-            EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
+           // EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
             msg.connection_header = new Hashtable(p);
         }
 
         public virtual void call(SubscriptionCallbackHelperCallParams parms)
         {
-            EDB.WriteLine("ISubscriptionCallbackHelper: call");
+           // EDB.WriteLine("ISubscriptionCallbackHelper: call");
             throw new NotImplementedException();
         }
     }
