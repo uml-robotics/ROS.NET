@@ -723,10 +723,39 @@ namespace Messages
 
     public class SrvsFile
     {
+        private string GUTS;
+        public string GeneratedDictHelper;
+        private bool HasHeader;
+        public string Name;
+        public string Namespace = "Messages";
+        public List<SingleType> Stuff = new List<SingleType>();
+        public string backhalf;
+        public string classname;
+        private List<string> def = new List<string>();
+        public string dimensions = "";
+        public string fronthalf;
+        private string memoizedcontent;
+        private bool meta;
         public MsgsFile Request, Response;
         public SrvsFile(string filename)
         {
             string[] lines = File.ReadAllLines(filename);
+            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".srv", "").Split('\\');
+            classname = sp[sp.Length - 1];
+            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".srv", "");
+            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
+            string[] sp2 = Namespace.Split('.');
+            Namespace = "";
+            for (int i = 0; i < sp2.Length - 2; i++)
+                Namespace += sp2[i] + ".";
+            Namespace += sp2[sp2.Length - 2];
+            //THIS IS BAD!
+            classname = classname.Replace("/", ".");
+            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
+            Name = Name.TrimStart('.');
+            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
+            Namespace = Namespace.Trim('.');
+            def = new List<string>(lines);
             int mid = 0;
             bool found = false;
             List<string> request = new List<string>(), response = new List<string>();
@@ -744,6 +773,52 @@ namespace Messages
             }
             Request = new MsgsFile(filename, true, request);
             Response = new MsgsFile(filename, false, response);
+        }
+
+        public void Write(string outdir)
+        {
+            string[] chunks = Name.Split('.');
+            for (int i = 0; i < chunks.Length - 1; i++)
+                outdir += "\\" + chunks[i];
+            if (!Directory.Exists(outdir))
+                Directory.CreateDirectory(outdir);
+            string localcn = classname;
+            localcn = classname.Replace("Request", "").Replace("Response", "");
+            File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
+        }
+
+        public override string ToString()
+        {
+            if (fronthalf == null)
+            {
+                fronthalf = "";
+                backhalf = "";
+                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
+                bool hitvariablehole = false;
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
+                    {
+                        hitvariablehole = true;
+                        continue;
+                    }
+                    if (lines[i].Contains("namespace"))
+                    {
+                        fronthalf +=
+                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                        fronthalf += "namespace " + Namespace + "\n";
+                        continue;
+                    }
+                    if (!hitvariablehole)
+                        fronthalf += lines[i] + "\n";
+                    else
+                        backhalf += lines[i] + "\n";
+                }
+            }
+
+            GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + Request.GetSrvHalf() + "\n" + Response.GetSrvHalf() + "\n" + "\t\t\t}" + "\n" +
+                   backhalf;
+            return GUTS;
         }
     }
 
@@ -783,7 +858,7 @@ namespace Messages
             Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
             Name = Name.TrimStart('.');
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            classname += (isrequest ? "Request" : "Response");
+            classname = (isrequest ? "Request" : "Response");
             Namespace = Namespace.Trim('.');
             def = new List<string>();
             for (int i = 0; i < lines.Count; i++)
@@ -832,6 +907,67 @@ namespace Messages
             }
         }
 
+        public string GetSrvHalf()
+        {
+            classname = classname.Contains("Request") ? "Request" : "Response";
+            if (memoizedcontent == null)
+            {
+                memoizedcontent = "";
+                for (int i = 0; i < Stuff.Count; i++)
+                {
+                    SingleType thisthing = Stuff[i];
+                    if (thisthing.Type == "Header")
+                    {
+                        HasHeader = true;
+                    }
+                    else if (classname == "String")
+                    {
+                        thisthing.input = thisthing.input.Replace("String", "string");
+                        thisthing.Type = thisthing.Type.Replace("String", "string");
+                        thisthing.output = thisthing.output.Replace("String", "string");
+                    }
+                    else if (classname == "Time")
+                    {
+                        thisthing.input = thisthing.input.Replace("Time", "TimeData");
+                        thisthing.Type = thisthing.Type.Replace("Time", "TimeData");
+                        thisthing.output = thisthing.output.Replace("Time", "TimeData");
+                    }
+                    else if (classname == "Duration")
+                    {
+                        thisthing.input = thisthing.input.Replace("Duration", "TimeData");
+                        thisthing.Type = thisthing.Type.Replace("Duration", "TimeData");
+                        thisthing.output = thisthing.output.Replace("Duration", "TimeData");
+                    }
+                    meta |= thisthing.meta;
+                    memoizedcontent += "\t" + thisthing.output + "\n";
+                }
+                if (classname.ToLower() == "string")
+                {
+                    memoizedcontent +=
+                        "\n\n\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\tpublic String(){ data = \"\"; }\n\n";
+                }
+                else if (classname == "Time")
+                {
+                    memoizedcontent +=
+                        "\n\n\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\tpublic Time() : this(0,0){}\n\n";
+                }
+                else if (classname == "Duration")
+                {
+                    memoizedcontent +=
+                        "\n\n\t\t\t\tpublic Duration(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Duration(TimeData s){ data = s; }\n\t\t\t\tpublic Duration() : this(0,0){}\n\n";
+                }
+                string ns = Namespace.Replace("Messages.", "");
+                if (ns == "Messages")
+                    ns = "";
+                while (memoizedcontent.Contains("DataData"))
+                    memoizedcontent = memoizedcontent.Replace("DataData", "Data");
+                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
+            }
+            GUTS = fronthalf+ "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
+                   backhalf;
+            return GUTS;
+        }
+
         public override string ToString()
         {
             bool wasnull = false;
@@ -852,7 +988,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }

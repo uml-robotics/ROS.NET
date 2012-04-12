@@ -49,6 +49,8 @@ namespace Ros_CSharp
         public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;
         public static int init_options;
         public static string ROS_MASTER_URI;
+        public static string ROS_HOSTNAME;
+        public static string ROS_IP;
         public static object start_mutex = new object();
 
         /// <summary>
@@ -109,7 +111,7 @@ namespace Ros_CSharp
         public static void Init(string[] args, string name, int options = 0)
         {
             Console.WriteLine("INIT!");
-            IDictionary dick = new Hashtable();
+            IDictionary remapping = new Hashtable();
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i].Contains(":="))
@@ -118,10 +120,23 @@ namespace Ros_CSharp
                     chunks[1].TrimStart('=');
                     chunks[0].Trim();
                     chunks[1].Trim();
-                    dick.Add(chunks[0], chunks[1]);
+                    remapping.Add(chunks[0], chunks[1]);
                 }
             }
-            Init(dick, name, options);
+            if (!string.IsNullOrEmpty(ROS.ROS_MASTER_URI))
+            {
+                remapping.Add("__master", ROS.ROS_MASTER_URI);
+            }
+            if (!string.IsNullOrEmpty(ROS.ROS_HOSTNAME))
+            {
+                remapping.Add("__hostname", ROS.ROS_HOSTNAME);
+            }
+            if (!string.IsNullOrEmpty(ROS.ROS_IP))
+            {
+                remapping.Add("__ip", ROS.ROS_IP);
+            }
+
+            Init(remapping, name, options);
         }
 
         public static void Init(IDictionary remapping_args, string name, int options = 0)

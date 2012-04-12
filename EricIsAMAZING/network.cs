@@ -43,6 +43,11 @@ namespace Ros_CSharp
 
         public static void init(IDictionary remappings)
         {
+            Console.WriteLine("REMAPPINGS: ");
+            foreach (object o in remappings.Keys)
+            {
+                Console.WriteLine("{0} = {1}", (string)o, (string)remappings[o]);
+            }
             if (remappings.Contains("__hostname"))
                 host = (string) remappings["__hostname"];
             else

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,7 +37,15 @@ namespace WPF_Image_Test
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ROS.ROS_MASTER_URI = "http://robot-lab8.lan:11311";
+            ROS.ROS_MASTER_URI = "http://robot-lab9:11311";
+            IPAddress[] addr = Dns.GetHostAddresses(Dns.GetHostName());
+            IPAddress v4 = null;
+            foreach (IPAddress a in addr)
+            {
+                if (a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && a != IPAddress.Loopback && (!a.ToString().Contains("192.168.2")))
+                    v4 = a;
+            }
+            ROS.ROS_HOSTNAME = v4.ToString();
             ROS.Init(new string[0], "ImageTest");
         }
     }

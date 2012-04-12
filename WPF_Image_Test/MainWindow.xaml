@@ -6,9 +6,9 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
-            <ColumnDefinition></ColumnDefinition>
+            <!--<ColumnDefinition></ColumnDefinition>-->
         </Grid.ColumnDefinitions>
-        <ros:ImageControl ros:ImageControl.TopicName="/camera/depth/image_raw" Grid.Row="0" Grid.Column="0"/>
-        <ros:ImageControl ros:ImageControl.TopicName="/camera/rgb/image_color" Grid.Row="0" Grid.Column="1"/>
+        <ros:ImageControl ros:ImageControl.TopicName="/camera/rgb/image_color" Grid.Row="0" Grid.Column="0"/>
+        <!--<ros:ImageControl ros:ImageControl.TopicName="/camera/rgb/image_color" Grid.Row="0" Grid.Column="1" />-->
     </Grid>
 </Window>

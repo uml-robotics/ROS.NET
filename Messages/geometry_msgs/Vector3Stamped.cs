@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 
 using Messages.std_msgs;
+using Messages.roscsharp;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
 using String=Messages.std_msgs.String;

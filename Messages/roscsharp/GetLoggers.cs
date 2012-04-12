@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 
 using Messages.std_msgs;
+using Messages.roscsharp;
 using Messages.geometry_msgs;
 using Messages.nav_msgs;
 using String=Messages.std_msgs.String;
@@ -13,12 +14,18 @@ using String=Messages.std_msgs.String;
 namespace Messages.roscsharp
 {
 
-		public class GetLoggersRequest
-		{
-			public Logger[] loggers;
-		}
+			public class GetLoggers
+			{
 
-		public class GetLoggersResponse
-		{
-		}
+			public class Request
+			{
+			public Logger[] loggers;
+			}
+
+
+			public class Response
+			{
+			}
+
+			}
 }

@@ -128,8 +128,7 @@ namespace YAMLParser
             }
             foreach (SrvsFile file in srvfiles)
             {
-                file.Request.Write(outputdir);
-                file.Response.Write(outputdir);
+                file.Write(outputdir);
             }
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }

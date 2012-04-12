@@ -8,8 +8,8 @@
     <ProjectGuid>{586A3B66-104A-4182-82C2-88DC120F10AC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EricIsAMAZING</RootNamespace>
-    <AssemblyName>EricIsAMAZING</AssemblyName>
+    <RootNamespace>Ros_CSharp</RootNamespace>
+    <AssemblyName>Ros_CSharp</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -68,6 +68,7 @@
     <Compile Include="ServiceClient.cs" />
     <Compile Include="ServiceClientOptions.cs" />
     <Compile Include="ServiceManager.cs" />
+    <Compile Include="ServicePublication.cs" />
     <Compile Include="ServiceServer.cs" />
     <Compile Include="ServiceServerLink.cs" />
     <Compile Include="SingleSubscriberPublisher.cs" />

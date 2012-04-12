@@ -13,6 +13,12 @@ namespace Ros_CSharp
     public class ServiceManager
     {
         private static ServiceManager _instance;
+        private static object g_service_manager_mutex = new object();
+        
+        ~ServiceManager()
+        {
+            shutdown();
+        }
 
         public static ServiceManager Instance
         {
@@ -46,7 +52,8 @@ namespace Ros_CSharp
 
         internal void shutdown()
         {
-            //throw new NotImplementedException();
+            
         }
+
     }
 }
