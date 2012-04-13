@@ -2,11 +2,20 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 #endregion
 
 namespace Ros_CSharp
 {
+    public class InvalidNameException : Exception
+    {
+        public InvalidNameException(string error)
+            : base("INVALID NAME -- " + error)
+        {
+        }
+    }
+
     public static class names
     {
         public static IDictionary resolved_remappings = new Hashtable();
@@ -19,13 +28,14 @@ namespace Ros_CSharp
 
         public static bool validate(string name, ref string error)
         {
-            if (name == "") return true;
+            if (name == "" || name.StartsWith("__")) return true;
             if (!Char.IsLetter(name[0]) && name[0] != '/' && name[0] != '~')
             {
                 error = "Character [" + name[0] + "] is not valid as the first character in Graph Resource Name [" +
                         name + "]. valid characters are a-z, A-Z, /, and ~";
                 return false;
             }
+
             for (int i = 1; i < name.Length; i++)
             {
                 if (!isValidCharInName(name[i]))
@@ -52,11 +62,7 @@ namespace Ros_CSharp
 
         public static string remap(string name)
         {
-            //EDB.WriteLine("remap(" + name + ")");
-            string resolved = resolve(name, false);
-            if (resolved_remappings.Contains("name"))
-                return (string) resolved_remappings["name"];
-            return name;
+            return resolve(name, false);
         }
 
         public static string resolve(string name, bool doremap = true)
@@ -64,16 +70,18 @@ namespace Ros_CSharp
             return resolve(this_node.Namespace, name, doremap);
         }
 
-        internal static void InvalidName(string error)
+        internal static Exception InvalidName(string error)
         {
-            throw new Exception("INVALID NAME -- " + error);
+            return new InvalidNameException(error);
         }
 
         public static string resolve(string ns, string name, bool doremap = true)
         {
             string error = "";
             if (!validate(name, ref error))
-                InvalidName(error);
+            {
+                throw InvalidName(error);
+            }
             if (name == "")
             {
                 if (ns == "")
@@ -96,8 +104,8 @@ namespace Ros_CSharp
         {
             foreach (object k in remappings.Keys)
             {
-                string left = (string) k;
-                string right = (string) remappings[k];
+                string left = (string)k;
+                string right = (string)remappings[k];
                 if (left != "" && left[0] != '_')
                 {
                     string resolved_left = resolve(left, false);

@@ -42,7 +42,14 @@ namespace Ros_CSharp
                 throw new Exception("NAMES CANT HAVE SLASHES, WENCH!");
             if (Name.Contains("~"))
                 throw new Exception("NAMES CANT HAVE SQUIGGLES, WENCH!");
-            Name = names.resolve(Namespace, Name);
+            try
+            {
+                Name = names.resolve(Namespace, Name);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             if ((options & (int) InitOption.AnonymousName) == (int) InitOption.AnonymousName && !disable_anon)
             {
                 int lbefore = Name.Length;

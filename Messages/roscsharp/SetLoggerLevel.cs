@@ -14,19 +14,18 @@ using String=Messages.std_msgs.String;
 namespace Messages.roscsharp
 {
 
-			public class SetLoggerLevel
+		public class SetLoggerLevel
 			{
-
 			public class Request
-			{
-			}
-
-
-			public class Response
 			{
 			public String logger;
 			public String level;
 			}
 
+
+			public class Response
+			{
 			}
+
+		}
 }

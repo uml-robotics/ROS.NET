@@ -14,9 +14,8 @@ using String=Messages.std_msgs.String;
 namespace Messages.std_srvs
 {
 
-			public class Empty
+		public class Empty
 			{
-
 			public class Request
 			{
 			}
@@ -26,5 +25,5 @@ namespace Messages.std_srvs
 			{
 			}
 
-			}
+		}
 }

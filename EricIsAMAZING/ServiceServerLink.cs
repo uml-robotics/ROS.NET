@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using Messages;
 
 #endregion
 
@@ -39,10 +40,27 @@ namespace Ros_CSharp
                                                                          ROS.GetDataType(response));
             return gen.GetConstructor(null).Invoke(null);
         }
+
+        internal void initialize(Connection connection)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class ServiceServerLink<MReq, MRes> : IServiceServerLink
+        where MReq : IRosMessage, new()
+        where MRes : IRosMessage, new()
     {
+        internal bool call<MReq, MRes>(MReq request, ref MRes response)
+        {
+            Console.WriteLine("HOLLA FOR A DOLLA");
+            return true;
+        }
+
+        internal void reset()
+        {
+            
+        }
     }
 
     internal struct CallInfo<MReq, MRes>

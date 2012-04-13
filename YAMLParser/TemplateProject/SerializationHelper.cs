@@ -767,9 +767,9 @@ namespace Messages
                     continue;
                 }
                 if (found)
-                    request.Add(lines[mid]);
-                else
                     response.Add(lines[mid]);
+                else
+                    request.Add(lines[mid]);
             }
             Request = new MsgsFile(filename, true, request);
             Response = new MsgsFile(filename, false, response);
@@ -816,7 +816,7 @@ namespace Messages
                 }
             }
 
-            GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + Request.GetSrvHalf() + "\n" + Response.GetSrvHalf() + "\n" + "\t\t\t}" + "\n" +
+            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t\t{" + Request.GetSrvHalf() + "\n" + Response.GetSrvHalf() + "\n" + "\t\t}" + "\n" +
                    backhalf;
             return GUTS;
         }

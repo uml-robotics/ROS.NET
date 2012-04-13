@@ -65,8 +65,10 @@
     <Compile Include="Publisher.cs" />
     <Compile Include="PublisherLink.cs" />
     <Compile Include="RosOutAppender.cs" />
+    <Compile Include="ServiceCallbackHelper.cs" />
     <Compile Include="ServiceClient.cs" />
     <Compile Include="ServiceClientOptions.cs" />
+    <Compile Include="ServiceFunction.cs" />
     <Compile Include="ServiceManager.cs" />
     <Compile Include="ServicePublication.cs" />
     <Compile Include="ServiceServer.cs" />
