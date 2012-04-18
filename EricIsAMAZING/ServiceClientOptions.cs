@@ -17,7 +17,7 @@ namespace Ros_CSharp
         public ServiceClientOptions(string service, bool persistent, IDictionary header_values)
             : this(service, persistent, header_values, "")
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public ServiceClientOptions(string service, bool persistent, IDictionary header_values, string md5sum)
@@ -27,7 +27,6 @@ namespace Ros_CSharp
             this.persistent = persistent;
             this.header_values = header_values;
             this.md5sum = md5sum;
-            throw new NotImplementedException();
         }
     }
 }

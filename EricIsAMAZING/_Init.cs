@@ -235,7 +235,14 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
                 //initInternalTimerManager();
                 TopicManager.Instance.Start();
-                ServiceManager.Instance.Start();
+                try
+                {
+                    ServiceManager.Instance.Start();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 ConnectionManager.Instance.Start();
                 PollManager.Instance.Start();
                 XmlRpcManager.Instance.Start();

@@ -193,12 +193,16 @@ namespace Ros_CSharp
             return new Subscriber<TypedMessage<M>>();
         }
 
-        public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, Func<MReq, MRes> srv_func)
+        public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
         {
             return advertiseService<T, MReq, MRes>(new AdvertiseServiceOptions<MReq, MRes>(service, srv_func));
         }
 
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
             if (ops.callback_queue == null)
@@ -222,11 +226,15 @@ namespace Ros_CSharp
 
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent = false,
                                                                    IDictionary header_values = null)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
         {
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, header_values));
         }
 
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(ServiceClientOptions ops)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
             ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent,
@@ -278,12 +286,18 @@ namespace Ros_CSharp
 
         public void initRemappings(IDictionary rms)
         {
-            foreach (object k in rms.Keys)
+            
+            foreach (object k in remappings.Keys)
             {
-                string key = (string) k;
-                string value = (string) rms[k];
-                remappings[resolveName(key, false)] = resolveName(value, false);
-                unresolved_remappings[key] = value;
+                string left = (string)k;
+                string right = (string)remappings[k];
+                if (left != "" && left[0] != '_')
+                {
+                    string resolved_left = resolveName(left, false);
+                    string resolved_right = resolveName(right, false);
+                    remappings[resolved_left] = resolved_right;
+                    unresolved_remappings[left] = right;
+                }
             }
         }
 

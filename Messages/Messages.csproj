@@ -113,6 +113,7 @@
 	<Compile Include="std_msgs\UInt64MultiArray.cs" />
 	<Compile Include="std_msgs\UInt8.cs" />
 	<Compile Include="std_msgs\UInt8MultiArray.cs" />
+	<Compile Include="roscpp_tutorials\TwoInts.cs" />
 	<Compile Include="roscsharp\GetLoggers.cs" />
 	<Compile Include="roscsharp\SetLoggerLevel.cs" />
 	<Compile Include="std_srvs\Empty.cs" />

@@ -11,19 +11,21 @@ using Messages.geometry_msgs;
 using Messages.nav_msgs;
 using String=Messages.std_msgs.String;
 
-namespace Messages.roscsharp
+namespace Messages.roscpp_tutorials
 {
 
-		public class GetLoggers
+		public class TwoInts
 			{
 			public class Request
 			{
+			public long a;
+			public long b;
 			}
 
 
 			public class Response
 			{
-			public Logger[] loggers;
+			public long sum;
 			}
 
 		}
