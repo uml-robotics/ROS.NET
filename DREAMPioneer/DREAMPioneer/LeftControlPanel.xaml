@@ -1,0 +1,12 @@
+﻿<DREAM:ControlPanel x:Class="DREAMPioneer.LeftControlPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:DREAM="clr-namespace:DREAMController;assembly=DREAMController"  
+             xmlns:E="clr-namespace:DREAMPioneer"   
+             >
+        <E:ViewportMD x:Name="newRangeCanvas" SnapsToDevicePixels="True" IsHitTestVisible="False" Background="Black" Visibility="Visible"></E:ViewportMD>    
+    <!--<Canvas Name="crackCanvas">
+        <Canvas Name="CRACK" Background="Red" Width="10" Height="10"/>
+    </Canvas>-->
+</DREAM:ControlPanel>

@@ -43,6 +43,21 @@ arraytest second",
 					{"first", new MsgFieldInfo("first", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)},
 					{"second", new MsgFieldInfo("second", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)}
 			})},
+			{MsgTypes.custom_msgs__ptz, new TypeInfo(typeof(TypedMessage<custom_msgs.ptz>), false, false,
+@"float32 x
+float32 y
+int32 CAM_ABS=0
+int32 CAM_REL=1
+int32 CAM_VEL=2
+int32 CAM_MODE",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"x", new MsgFieldInfo("x", true, typeof(float), false, "", false, "", false)},
+					{"y", new MsgFieldInfo("y", true, typeof(float), false, "", false, "", false)},
+					{"CAM_ABS", new MsgFieldInfo("CAM_ABS", true, typeof(int), true, "0", false, "", false)},
+					{"CAM_REL", new MsgFieldInfo("CAM_REL", true, typeof(int), true, "1", false, "", false)},
+					{"CAM_VEL", new MsgFieldInfo("CAM_VEL", true, typeof(int), true, "2", false, "", false)},
+					{"CAM_MODE", new MsgFieldInfo("CAM_MODE", true, typeof(int), false, "", false, "", false)}
+			})},
 			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,
 @"int16[3] knownlengtharray
 int16[] unknownlengtharray",
@@ -344,6 +359,29 @@ uint8[] data",
 					{"step", new MsgFieldInfo("step", true, typeof(uint), false, "", false, "", false)},
 					{"data", new MsgFieldInfo("data", true, typeof(byte), false, "", true, "", false)}
 			})},
+			{MsgTypes.sensor_msgs__LaserScan, new TypeInfo(typeof(TypedMessage<sensor_msgs.LaserScan>), true, true,
+@"Header header
+float32 angle_min
+float32 angle_max
+float32 angle_increment
+float32 time_increment
+float32 scan_time
+float32 range_min
+float32 range_max
+float32[] ranges
+float32[] intensities",
+				 new Dictionary<string, MsgFieldInfo>{
+					{"header", new MsgFieldInfo("header", false, typeof(TypedMessage<Header>), false, "", false, "", true)},
+					{"angle_min", new MsgFieldInfo("angle_min", true, typeof(float), false, "", false, "", false)},
+					{"angle_max", new MsgFieldInfo("angle_max", true, typeof(float), false, "", false, "", false)},
+					{"angle_increment", new MsgFieldInfo("angle_increment", true, typeof(float), false, "", false, "", false)},
+					{"time_increment", new MsgFieldInfo("time_increment", true, typeof(float), false, "", false, "", false)},
+					{"scan_time", new MsgFieldInfo("scan_time", true, typeof(float), false, "", false, "", false)},
+					{"range_min", new MsgFieldInfo("range_min", true, typeof(float), false, "", false, "", false)},
+					{"range_max", new MsgFieldInfo("range_max", true, typeof(float), false, "", false, "", false)},
+					{"ranges", new MsgFieldInfo("ranges", true, typeof(float), false, "", true, "", false)},
+					{"intensities", new MsgFieldInfo("intensities", true, typeof(float), false, "", true, "", false)}
+			})},
 			{MsgTypes.std_msgs__Bool, new TypeInfo(typeof(TypedMessage<std_msgs.Bool>), false, false,
 @"bool data",
 				 new Dictionary<string, MsgFieldInfo>{
@@ -578,6 +616,7 @@ uint8[]           data",
 		Unknown,
 		custom_msgs__arraytest,
 		custom_msgs__arraytestsquared,
+		custom_msgs__ptz,
 		custom_msgs__simpleintarray,
 		geometry_msgs__Point,
 		geometry_msgs__Point32,
@@ -613,6 +652,7 @@ uint8[]           data",
 		rosgraph_msgs__Clock,
 		rosgraph_msgs__Log,
 		sensor_msgs__Image,
+		sensor_msgs__LaserScan,
 		std_msgs__Bool,
 		std_msgs__Byte,
 		std_msgs__ByteMultiArray,

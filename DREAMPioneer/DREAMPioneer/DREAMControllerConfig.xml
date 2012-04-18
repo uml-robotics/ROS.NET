@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+  <Screen>
+    <HorizontalPixels>1680</HorizontalPixels>
+    <VerticalPixels>1050</VerticalPixels>
+    <DiagonalInches>22</DiagonalInches>
+  </Screen>
+  <ButtonLabels>    
+  </ButtonLabels>
+</Config>

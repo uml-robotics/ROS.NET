@@ -297,6 +297,12 @@
     <Content Include="ROS_MESSAGES\histogram_msgs\MCLSnapshot.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\ptz.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="ROS_MESSAGES\sensor_msgs\LaserScan.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\sensor_msgs\Image.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

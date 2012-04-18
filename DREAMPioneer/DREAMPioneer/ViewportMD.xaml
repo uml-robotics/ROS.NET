@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="DREAMPioneer.ViewportMD"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="500"
+             Width="500"
+             Loaded="UserControl_Loaded">
+
+    <Grid>
+        <DockPanel Name="dockPanel1"
+                   LastChildFill="True"
+                   Mouse.MouseWheel="dockPanel1_MouseWheel"
+                   Mouse.MouseDown="dockPanel1_MouseDown"
+                   Mouse.MouseUp="dockPanel1_MouseUp">
+            <Viewport3D Name="viewport" />
+        </DockPanel>
+    </Grid>
+
+</UserControl>
