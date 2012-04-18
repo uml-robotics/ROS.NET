@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using Messages;
 using String = Messages.std_msgs.String;
+using System.Collections.Generic;
 
 #endregion
 
@@ -20,6 +21,13 @@ namespace Ros_CSharp
             while (hashme.Contains("\r\n"))
                 hashme = hashme.Replace("\r\n", "\n");
             hashme = hashme.Trim();
+            string[] lines = hashme.Split('\n');
+
+            //this shit is bananas.
+            Queue<string> haves = new Queue<string>(), havenots = new Queue<string>();
+            foreach (string l in lines) if (l.Contains("=")) haves.Enqueue(l); else havenots.Enqueue(l); hashme = "";            
+            while(haves.Count + havenots.Count > 0) hashme += (haves.Count > 0 ? haves.Dequeue() : havenots.Dequeue()) + (haves.Count + havenots.Count >= 1 ? "\n" : "");
+
             IRosMessage irm =
                 (IRosMessage)
                 Activator.CreateInstance(

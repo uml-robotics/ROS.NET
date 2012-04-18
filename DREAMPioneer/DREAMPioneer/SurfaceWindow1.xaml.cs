@@ -68,26 +68,21 @@ namespace DREAMPioneer
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
         private JoystickManager joymgr;
         private NodeHandle node;
-        private Publisher<gm.Twist> joyPub;
-        private  Publisher<cm.ptz> servosPub;
+
         private Messages.geometry_msgs.Twist t;
         private cm.ptz pt;
         private EM3MTouch em3m;
         private DateTime currtime;
 
-        Subscriber<TypedMessage<sm.Image>> imageSub;
-        Subscriber<TypedMessage<sm.LaserScan>> laserSub;
-   
-
+        private Publisher<gm.Twist> joyPub;
+        private Publisher<cm.ptz> servosPub;
+        private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         /// <summary>
         ///   Default constructor.
         /// </summary>
         public SurfaceWindow1() 
         {
             current = this;
-            
-
-
             InitializeComponent();
 
             em3m = new EM3MTouch();
@@ -105,19 +100,16 @@ namespace DREAMPioneer
         }
 
         private void rosStart()
-        {
-            Console.WriteLine("CONNECTING TO ROS_MASTER URI: "+ROS_MASTER_URI);
-            ROS.ROS_MASTER_URI = ROS_MASTER_URI;
-            ROS.Init(new string[0], "donkeyballs");
-            node = new NodeHandle();
-            //Subscriber<TypedMessage<sm.Image>> subby = node.subscribe<sm.Image>("/camera/rgb/image_color", 1000, videoCallback);
+        {            
+            ROS.ROS_MASTER_URI = "http://10.0.2.41:11311";
+            ROS.ROS_HOSTNAME = "10.0.2.124";
+            ROS.Init(new string[0], "DREAM");
+            node = new NodeHandle();            
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 1, y = 0, z = 0 } };
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = cm.ptz.CAM_ABS };
-            joyPub = node.advertise<gm.Twist>("/robot_brain_1/rosaria/cmd_vel", 1000, true);
-            servosPub = node.advertise<cm.ptz>("/robot_brain_1servos", 1000, true);
+            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
+            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);            
+            servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
             laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
-            //imageSub = node.subscribe<sm.Image>("/robot_brain_1/camera/rgb/image_color", 1000, videoCallback);
-           // servosPub.publish(pt);
             currtime = DateTime.Now; 
         }
 
@@ -170,11 +162,11 @@ namespace DREAMPioneer
             {
                 if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
                 {
-                    pt.x=(float)(rx/ -10.0);
-                    pt.y=(float)(ry/ -10.0);
-                    pt.CAM_MODE = cm.ptz.CAM_ABS;
+                    pt.x = (float)(rx/ -10.0);
+                    pt.y = (float)(ry/ -10.0);
+                    pt.CAM_MODE = ptz.CAM_VEL;
                     servosPub.publish(pt);
-                    //Console.WriteLine("PT Published P:" + rx / 50.0 + " T:" + ry / -50.0 + " "+pt.vel);
+                    Console.WriteLine("PT Published P:" + pt.x / 10.0f + " T:" + pt.y / -10.0f );
                     //Console.WriteLine("Ticks: " + currtime.Ticks + "  " + DateTime.Now.Ticks);
                     currtime = DateTime.Now;
                 }
@@ -206,6 +198,7 @@ namespace DREAMPioneer
 
         public void videoCallback(TypedMessage<sm.Image> image)
         {
+            //Console.WriteLine("VIEOS?");
             d.Size size = new d.Size();
             size.Height = (int)image.data.height;
             size.Width = (int)image.data.width;

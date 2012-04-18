@@ -44,18 +44,18 @@ arraytest second",
 					{"second", new MsgFieldInfo("second", false, typeof(TypedMessage<arraytest>), false, "", false, "", true)}
 			})},
 			{MsgTypes.custom_msgs__ptz, new TypeInfo(typeof(TypedMessage<custom_msgs.ptz>), false, false,
-@"float32 x
-float32 y
-int32 CAM_ABS=0
+@"int32 CAM_ABS=0
 int32 CAM_REL=1
 int32 CAM_VEL=2
+float32 x
+float32 y
 int32 CAM_MODE",
 				 new Dictionary<string, MsgFieldInfo>{
-					{"x", new MsgFieldInfo("x", true, typeof(float), false, "", false, "", false)},
-					{"y", new MsgFieldInfo("y", true, typeof(float), false, "", false, "", false)},
 					{"CAM_ABS", new MsgFieldInfo("CAM_ABS", true, typeof(int), true, "0", false, "", false)},
 					{"CAM_REL", new MsgFieldInfo("CAM_REL", true, typeof(int), true, "1", false, "", false)},
 					{"CAM_VEL", new MsgFieldInfo("CAM_VEL", true, typeof(int), true, "2", false, "", false)},
+					{"x", new MsgFieldInfo("x", true, typeof(float), false, "", false, "", false)},
+					{"y", new MsgFieldInfo("y", true, typeof(float), false, "", false, "", false)},
 					{"CAM_MODE", new MsgFieldInfo("CAM_MODE", true, typeof(int), false, "", false, "", false)}
 			})},
 			{MsgTypes.custom_msgs__simpleintarray, new TypeInfo(typeof(TypedMessage<custom_msgs.simpleintarray>), false, false,

@@ -16,11 +16,11 @@ namespace Messages.custom_msgs
 
 		public class ptz
 		{
-			public float x;
-			public float y;
 			public const int CAM_ABS = 0;
 			public const int CAM_REL = 1;
 			public const int CAM_VEL = 2;
+			public float x;
+			public float y;
 			public int CAM_MODE;
 		}
 }

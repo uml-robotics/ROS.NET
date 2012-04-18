@@ -203,6 +203,7 @@
   <ItemGroup>
     <Content Include="DREAMControllerConfig.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Petzold.Media3D.dll" />
     <Content Include="XmlRpcWin32.dll">

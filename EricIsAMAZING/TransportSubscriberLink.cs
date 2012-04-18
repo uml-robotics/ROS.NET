@@ -46,6 +46,7 @@ namespace Ros_CSharp
 
         public bool handleHeader(Header header)
         {
+            Console.WriteLine("Many headers! Both sides! Handle it!");
             if (!header.Values.Contains("topic"))
             {
                 string msg = "Header from subscriber did not have the required element: topic";

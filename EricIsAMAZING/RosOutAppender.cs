@@ -40,11 +40,20 @@ namespace Ros_CSharp
             }
         }
 
-        public void Append(string m)
+        public enum ROSOUT_LEVEL
+        {
+            DEBUG = 1,
+			INFO = 2,
+			WARN = 4,
+			ERROR = 8,
+			FATAL = 16
+        }
+
+        public void Append(string m, ROSOUT_LEVEL lvl = ROSOUT_LEVEL.INFO)
         {
             Log l = new Log();
             l.msg = new String(m);
-            l.level = 8;
+            l.level = ((byte)((int)lvl));
             l.name = new String(this_node.Name);
             l.file = new String("*.cs");
             l.function = new String("main");

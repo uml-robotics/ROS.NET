@@ -102,10 +102,43 @@ namespace Ros_CSharp
             throw new Exception("ROS IS FREAKING THE FUCK OUT!");
         }
 
-        public static void Info(string msg)
+        [DebuggerStepThrough]
+        public static void Info(object o)
         {
             if (initialized)
-                rosoutappender.Append(msg);
+                rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.INFO);
+        }
+
+        [DebuggerStepThrough]
+        public static void Info(string format, params object[] args)
+        {
+            Info((object)string.Format(format, args));
+        }
+
+        [DebuggerStepThrough]
+        public static void Debug(object o)
+        {
+            if (initialized)
+                rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
+        }
+
+        [DebuggerStepThrough]
+        public static void Debug(string format, params object[] args)
+        {
+            Debug((object)string.Format(format, args));
+        }
+
+        [DebuggerStepThrough]
+        public static void Error(object o)
+        {
+            if (initialized)
+                rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.ERROR);
+        }
+
+        [DebuggerStepThrough]
+        public static void Error(string format, params object[] args)
+        {
+            Error((object)string.Format(format, args));
         }
 
         public static void Init(string[] args, string name, int options = 0)

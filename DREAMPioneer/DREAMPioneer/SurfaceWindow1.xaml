@@ -1,4 +1,4 @@
-﻿<Window x:Class="DREAMPioneer.SurfaceWindow1"
+﻿<Window x:Class="DREAMPioneer.SurfaceWindow1" Width="1680" Height="1050"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:j="clr-namespace:DREAMPioneer"
@@ -6,7 +6,10 @@
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
      Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize">
     <Canvas Name="MainCanvas" Background="Gray" Width="1680" Height="1050">
-        <ros:ImageControl ros:ImageControl.TopicName="/camera/rgb/image_color" Grid.Row="0" Grid.Column="0"/>
+        <ros:ImageControl ros:ImageControl.TopicName="/camera/rgb/image_color" Grid.Row="0" Grid.Column="0" >
+            
+        </ros:ImageControl>
+        
     </Canvas> 
 
 </Window>

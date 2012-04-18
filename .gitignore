@@ -14,3 +14,5 @@ ROS_dotNET.suo
 XmlRpc_Wrapper/XmlRpcWin32.lib
 XmlRpcWin32/XmlRpcWin32.vcxproj.user
 XmlRpc_Wrapper/XmlRpcWin32.pdb
+DREAMPioneer/DREAMPioneer/bin
+DREAMPioneer/DREAMPioneer/obj/

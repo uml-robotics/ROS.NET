@@ -18,13 +18,18 @@ namespace Messages
     public static class SerializationHelper
     {
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
+        static object memoizationdictlock = new object();
         //[DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
-            if (GetMessageTypeMemo.ContainsKey(t))
-                return GetMessageTypeMemo[t];
-            MsgTypes mt = GetMessageType(t.FullName);
-            GetMessageTypeMemo.Add(t, mt);
+            MsgTypes mt;
+            lock (memoizationdictlock)
+            {
+                if (GetMessageTypeMemo.ContainsKey(t))
+                    return GetMessageTypeMemo[t];
+                mt = GetMessageType(t.FullName);
+                GetMessageTypeMemo.Add(t, mt);
+            }
             return mt;
         }
 

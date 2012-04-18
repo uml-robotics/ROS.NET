@@ -543,7 +543,7 @@ namespace Ros_CSharp
 
         public void addLocalConnection(Publication pub)
         {
-            throw new Exception("NO LOCAL CONNECTIONS, BUTTHEAD");
+            
         }
 
         public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)

@@ -137,7 +137,7 @@ namespace Ros_CSharp
         {
             if (ops.datatype == "*")
                 throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
-            if (ops.md5sum == "*")
+            if (ops.md5sum == "*")                
                 throw new Exception("Advertising with * as the md5sum is not allowed.  Topic [" + ops.topic + "]");
             if (ops.md5sum == "")
                 throw new Exception("Advertising on topic [" + ops.topic + "] with an empty md5sum");
