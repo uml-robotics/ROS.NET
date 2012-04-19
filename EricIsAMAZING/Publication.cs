@@ -151,13 +151,7 @@ namespace Ros_CSharp
         }
 
         public bool validateHeader(Header header, ref string error_message)
-        {
-            StringBuilder sb = new StringBuilder("RECEIVED HEADER:\n");
-            foreach (object o in header.Values.Keys)
-            {
-                sb.AppendFormat("\t{0}\t= {1}\n", (string)o, (string)header.Values[o]);
-            }
-            Console.WriteLine(sb);
+        {            
             string md5sum = "", topic = "", client_callerid = "";
             if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") ||
                 !header.Values.Contains("callerid"))

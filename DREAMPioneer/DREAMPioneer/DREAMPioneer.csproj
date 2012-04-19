@@ -85,9 +85,6 @@
     <Compile Include="EButton.xaml.cs">
       <DependentUpon>EButton.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ImageControl.xaml.cs">
-      <DependentUpon>ImageControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="LeftControlPanel.xaml.cs">
       <DependentUpon>LeftControlPanel.xaml</DependentUpon>
     </Compile>
@@ -127,10 +124,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="EButton.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="ImageControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

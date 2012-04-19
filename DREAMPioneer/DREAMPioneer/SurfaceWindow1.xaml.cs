@@ -102,6 +102,7 @@ namespace DREAMPioneer
         private void rosStart()
         {            
             ROS.ROS_MASTER_URI = "http://10.0.2.41:11311";
+            Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = "10.0.2.124";
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();            
@@ -115,12 +116,11 @@ namespace DREAMPioneer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
             joymgr = new JoystickManager(this, MainCanvas);
             Console.WriteLine("Loading Window");
             joymgr.Joystick += joymgr_Joystick;
             joymgr.UpEvent += JoymgrFireUpEvent;
-            joymgr.SetDesiredControlPanelWidthToHeightRatios(1, 0.55);
+            joymgr.SetDesiredControlPanelWidthToHeightRatios(1, 1.333);
             
             //tell the joystick manager HOW TO INITIALIZE YOUR CUSTOM CONTROL PANELS... and register for events, if your control panel fires them
             //EVERY JOYSTICK'S CONTROL PANEL IS (now) A NEW INSTANCE! TO MAKE VALUES PERSIST, USE STATICS OR A STORAGE CLASS!

@@ -1,7 +1,6 @@
 ﻿<Window x:Class="DREAMPioneer.SurfaceWindow1" Width="1680" Height="1050"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:j="clr-namespace:DREAMPioneer"
     xmlns:ros="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
      Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize">
