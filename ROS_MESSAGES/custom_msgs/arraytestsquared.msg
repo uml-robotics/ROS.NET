@@ -1,2 +1,0 @@
-﻿arraytest first
-arraytest second
