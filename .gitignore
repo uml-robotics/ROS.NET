@@ -11,4 +11,5 @@ XmlRpc_Wrapper/XmlRpcWin32.dll
 XmlRpc_Wrapper/XmlRpcWin32.pdb
 Messages/
 *.suo
-*.sdf*.vcxproj.user
+*.sdf
+*.vcxproj.user
