@@ -5,9 +5,6 @@
 *.exp
 *.lib
 *.user
-*.suo
-*.opensdf
-*.vsp
-*.sdf
 XmlRpc_Wrapper/XmlRpcWin32.dll
 XmlRpc_Wrapper/XmlRpcWin32.pdb
+Messages/
