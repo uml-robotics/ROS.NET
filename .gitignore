@@ -4,10 +4,8 @@
 *Debug/
 *.exp
 *.lib
-*.suo
 *.opensdf
 *.vsp
-*.sdf
 *.user
 XmlRpc_Wrapper/XmlRpcWin32.dll
 XmlRpc_Wrapper/XmlRpcWin32.pdb
