@@ -107,7 +107,7 @@ namespace DREAMPioneer
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();            
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 1, y = 0, z = 0 } };
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
+            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
             joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);            
             servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
             laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
@@ -162,11 +162,11 @@ namespace DREAMPioneer
             {
                 if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
                 {
-                    pt.x = (float)(rx/ -10.0);
+                    pt.x = (float)(rx/ 10.0);
                     pt.y = (float)(ry/ -10.0);
-                    pt.CAM_MODE = ptz.CAM_VEL;
+                    pt.CAM_MODE = ptz.CAM_ABS;
                     servosPub.publish(pt);
-                    Console.WriteLine("PT Published P:" + pt.x / 10.0f + " T:" + pt.y / -10.0f );
+                    //Console.WriteLine("PT Published P:" + pt.x / 10.0f + " T:" + pt.y / -10.0f );
                     //Console.WriteLine("Ticks: " + currtime.Ticks + "  " + DateTime.Now.Ticks);
                     currtime = DateTime.Now;
                 }
