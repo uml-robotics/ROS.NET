@@ -2,6 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.ComponentModel;
+using System.Windows.Data;
+
+using Messages;
+using Messages.custom_msgs;
+using Ros_CSharp;
+using XmlRpc_Wrapper;
+
+
 using tf = Messages.tf;
 using gm = Messages.geometry_msgs;
 using String = Messages.std_msgs.String;
@@ -18,8 +28,36 @@ namespace DREAMPioneer
         List<tf_frame> currFrames;
         tf.tfMessage msg;
 
-        
+        private static NodeHandle tfhandle;
+        private Subscriber<TypedMessage<tf.tfMessage>> tfsub;
 
+ /*       private void waitfunc()
+        {
+            while (!ROS.initialized)
+            {
+                Thread.Sleep(100);
+            }
+            Dispatcher.BeginInvoke(new Action(SetupTopic));
+        }
+
+        private void SetupTopic()
+        {
+
+            if (imagehandle == null)
+                imagehandle = new NodeHandle();
+            if (robotsub != null)
+                robotsub.shutdown();
+
+            robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    //Console.WriteLine(i.data.polygon.points[0].y);
+                    float x = i.data.polygon.points[0].x - 0.19f;
+                    float y = i.data.polygon.points[0].y - 0.19f;
+                    updatePOS(x, y);
+                })), "*");
+        }
+        */
         public tf_node()
         {
             frames = new Dictionary<String,tf_frame>();

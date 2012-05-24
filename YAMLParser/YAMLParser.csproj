@@ -87,7 +87,7 @@
     <Content Include="ROS_MESSAGES\custom_msgs\arraytest.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\custom_msgs\arraytestsquared.msg">
+    <Content Include="ROS_MESSAGES\custom_msgs\cgeo.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ROS_MESSAGES\custom_msgs\simpleintarray.msg">
@@ -312,6 +312,9 @@
     <Content Include="ROS_MESSAGES\std_srvs\Empty.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\tf\tfMessage.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="ROS_ImageWPF.RobotControl"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      Loaded="UserControl_Loaded" SnapsToDevicePixels="True" SizeChanged="UserControl_SizeChanged"
+                      xmlns:c="clr-namespace:ROS_ImageWPF">
+     <!-- <UserControl.Resources>
+         <c:RobotControl x:Key="myDataSource"/> 
+    </UserControl.Resources> -->
+    <!-- <UserControl.DataContext>
+        <Binding Source="{StaticResource myDataSource}"/>
+    </UserControl.DataContext> -->
+    <Grid SnapsToDevicePixels="True" Width="1680" Height="1050" >
+        <Canvas Name="RobotCanvas" Width="auto" Height="auto" >
+
+            <Rectangle Name="robot" SnapsToDevicePixels="True" Width="50" Height="50" Fill="Blue" >
+                <!-- Canvas.Left="{Binding ElementName=BackgroundRectangle, Path=xPos}" Canvas.Top="{Binding ElementName=BackgroundRectangle, Path=yPos}"-->
+            <!--Canvas.Left="{Binding xPos}" Canvas.Top="{Binding yPos}" -->
+            <!-- Margin="{Binding Source={StaticResource myDataSource}, Path=pos}"-->
+      <!--<Rectangle.Fill>
+        <ImageBrush x:Name="image" />
+      </Rectangle.Fill>-->
+    </Rectangle>
+        </Canvas>
+    </Grid>
+</UserControl>

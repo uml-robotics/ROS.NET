@@ -40,22 +40,29 @@ namespace Ros_CSharp
                 {
                     Type FieldType = fields[i].FieldType;
                     if (!FieldType.Namespace.Contains("Messages")) continue;
-                    while (FieldType.IsArray || FieldType.Name.Contains("["))
-                    {
+                    while (FieldType.IsArray) FieldType = FieldType.GetElementType();
+                    /*{
+
                         object[] o;
                         if (FieldType.Name.Contains("String"))
                             FieldType = typeof (String);
                         else
                         {
+                            //if (FieldType.Name.Contains("TransformStamped[]"))
+                            //    throw new Exception("HOLY FUCK!");
+                            //Type myfieldType = FieldType;
+                            //else
                             o = (object[]) Activator.CreateInstance(FieldType);
                             FieldType = o.GetType();
-                        }
-                    }
+                        }*/
+                    //}
                     MsgTypes T =
                         (MsgTypes)
                         Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
                     if (!TypeHelper.TypeInformation.ContainsKey(T))
                         throw new Exception("SOME SHIT BE FUCKED!");
+                    //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
+                    Console.WriteLine(FieldType.Name);
                     hashme = hashme.Replace(FieldType.Name, Sum(T));
                 }
                 return Sum(hashme);

@@ -32,28 +32,28 @@ namespace ROS_ImageWPF
     /// <summary>
     ///   A general Surface WPF control for the displaying of bitmaps
     /// </summary>
-    public partial class ImageControl : UserControl
+    public partial class MapControl : UserControl
     {
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            set { SetValue(TopicProperty, value); Console.WriteLine("WEEEEEEFUCKINGWEEEEEEEEE"); }
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<TypedMessage<sm.Image>> imgsub;
+        private Subscriber<TypedMessage<nm.OccupancyGrid>> mapsub;
 
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
-            typeof(ImageControl),
+            typeof(MapControl),
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
                 {
-                    if (obj is ImageControl)
+                    if (obj is MapControl)
                     {
-                        ImageControl target = obj as ImageControl;
+                       MapControl target = obj as MapControl;
                         target.TopicName = (string)args.NewValue;
                         if (!ROS.isStarted())
                         {
@@ -80,17 +80,58 @@ namespace ROS_ImageWPF
 
         private void SetupTopic()
         {
+            
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (imgsub != null)
-                imgsub.shutdown();
-            imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
+            if (mapsub != null)
+                mapsub.shutdown();
+            
+            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
+                {                    
+                    UpdateImage( createRGBA( i.data.data ), new Size((int)i.data.info.width, (int)i.data.info.height), false);
+                })), "*");
+        } 
+        private byte[] createRGBA(sbyte[] map)
+        {
+            byte[] image = new byte[4 * map.Length];/*
+            Func<sbyte, byte[]> triple = (b) => { return new[] { (byte)b, (byte)b, (byte)b, (byte)0xFF }; };
+            Func<sbyte[], byte[]> supertriple = (m) => { List<byte> o = new List<byte>(); for (int i = 0; i < m.Length; i++) o.AddRange(triple(m[i])); return o.ToArray(); };
+            return supertriple(map);*/
+            int count = 0;
+            foreach (sbyte j in map)
+            {
+                switch (j)
                 {
-                    UpdateImage(i.data.data, new Size((int)i.data.width, (int)i.data.height), false, i.data.encoding.data);
-                })));
+                    case -1:
+                        image[count] = 211;
+                        image[count + 1] = 211;
+                        image[count + 2] = 211;
+                        image[count + 3] = 0xFF;
+                        break;
+                    case 100:
+                        image[count] = 105;
+                        image[count + 1] = 105;
+                        image[count + 2] = 105;
+                        image[count + 3] = 0xFF;
+                        break;
+                    case 0:
+                        image[count] = 255;
+                        image[count+1] = 255;
+                        image[count+2] = 255;
+                        image[count + 3] = 0xFF;
+                        break;
+                    default:
+                        image[count] = 255;
+                        image[count+1] = 0;
+                        image[count+2] = 0;
+                        image[count + 3] = 0xFF;
+                        break;
+                }
+                count += 4;
+            }
+            return image;
         }
-
 
         #region variables and such
 
@@ -211,7 +252,7 @@ namespace ROS_ImageWPF
         /// <param name = "hasHeader">
         ///   whether or not a header needs to be concatinated
         /// </param>
-        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
+        public void  UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
         {
             if (hasHeader)
             {
@@ -332,19 +373,11 @@ namespace ROS_ImageWPF
         {
             // makes a memory stream with the data
             MemoryStream ms = new MemoryStream(data);
-            
-            /*FileStream fs = new FileStream("C:\\notfucked.bmp", FileMode.OpenOrCreate);
-            fs.Seek(0, SeekOrigin.Begin);
-            fs.Write(data, 0, data.Length); 
-            fs.Flush();
-            fs.Close();*/
             ms.Flush();
             ms.Seek(0, SeekOrigin.Begin);
-
-
+   
             // makes an image
             BitmapImage img = new BitmapImage();
-
             try
             {
                 // tries to turn the memory stream into an image
@@ -485,7 +518,7 @@ namespace ROS_ImageWPF
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
         ///   constructor... nothing fancy
         /// </summary>
-        public ImageControl()
+        public MapControl()
         {
             InitializeComponent();
         }

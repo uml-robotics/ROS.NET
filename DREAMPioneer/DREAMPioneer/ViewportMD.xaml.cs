@@ -229,8 +229,8 @@ namespace DREAMPioneer
                 // The reason for adding i2m(15.748) to the laser values is to avoid a translate transform later on. 
                 // By avoiding the translate transform, the process of rotating everything becomes easy. 
                 ranges.Add(new Point3D(dLaserValues[i] * Math.Cos((i * res + start)), i2m(15.748) + dLaserValues[i] * Math.Sin(i * res + start), 0));
-                if (i == 0 || i == dLaserValues.Length-1)
-                    Console.WriteLine(ranges[ranges.Count - 1]);
+                /*if (i == 0 || i == dLaserValues.Length-1)
+                    Console.WriteLine(ranges[ranges.Count - 1]);*/
                
             }
             laserLines.Points = ranges;

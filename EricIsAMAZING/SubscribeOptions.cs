@@ -23,12 +23,12 @@ namespace Ros_CSharp
         public int queue_size;
         public string topic = "";
 
-        public SubscribeOptions() : this("", 1)
+        public SubscribeOptions() : this("", 1, null)
         {
             allow_concurrent_callbacks = false;
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL = null)
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL = null, string thisisveryverybad = null)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -42,7 +42,7 @@ namespace Ros_CSharp
             Type msgtype = typeof (T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
-            md5sum = MD5.Sum(new T().type);
+            md5sum = thisisveryverybad == null ? MD5.Sum(new T().type) : thisisveryverybad;
         }
     }
 

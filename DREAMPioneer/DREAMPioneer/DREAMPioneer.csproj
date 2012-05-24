@@ -91,6 +91,8 @@
     <Compile Include="RightControlPanel.xaml.cs">
       <DependentUpon>RightControlPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="tf_frame.cs" />
+    <Compile Include="tf_node.cs" />
     <Compile Include="ViewportMD.xaml.cs">
       <DependentUpon>ViewportMD.xaml</DependentUpon>
     </Compile>

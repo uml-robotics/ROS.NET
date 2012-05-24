@@ -49,8 +49,10 @@ using sm = Messages.sensor_msgs;
 using d = System.Drawing;
 using Touch = GenericTouchTypes.Touch;
 using cm = Messages.custom_msgs;
+using tf = Messages.tf;
 using System.Text;
 using EM3MTouchLib;
+using System.ComponentModel;
 
 #endregion
 
@@ -61,7 +63,7 @@ namespace DREAMPioneer
     /// <summary>
     ///   Interaction logic for SurfaceWindow1.xaml
     /// </summary>
-    public partial class SurfaceWindow1 : Window
+    public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
@@ -73,14 +75,19 @@ namespace DREAMPioneer
         private cm.ptz pt;
         private EM3MTouch em3m;
         private DateTime currtime;
+        private tf_node _tf;
 
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
+        private Subscriber<TypedMessage<tf.tfMessage>> tfSub;
+
+        private Subscriber<TypedMessage<cm.cgeo>> tpub;
+        private Subscriber<TypedMessage<gm.TransformStamped>> tsub;
         /// <summary>
         ///   Default constructor.
         /// </summary>
-        public SurfaceWindow1() 
+        public SurfaceWindow1()
         {
             current = this;
             InitializeComponent();
@@ -96,22 +103,41 @@ namespace DREAMPioneer
                 em3m.ChangedEvent += Changed;
                 em3m.UpEvent += Up;
                 
-            }            
+            }
+            //_tf = new tf_node();
         }
 
         private void rosStart()
         {            
             ROS.ROS_MASTER_URI = "http://10.0.2.41:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-            ROS.ROS_HOSTNAME = "10.0.2.124";
+            ROS.ROS_HOSTNAME = "10.0.2.163";
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();            
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 1, y = 0, z = 0 } };
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
-            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);            
+            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);
             servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
             laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
+            //tsub = node.subscribe<gm.TransformStamped>("/wtf", 1000, zomgCallback);
+            //tpub = node.subscribe<cm.cgeo>("/tf", 1000, cmCallback);
+            //tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
+            //robotsub = node.subscribe<gm.PolygonStamped>("/robot_brain_1/robot_brain_1/move_base/local_costmap/robot_footprint" , 1000, robotCallback);
+            //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
             currtime = DateTime.Now; 
+        }
+
+        public void zomgCallback(TypedMessage<gm.TransformStamped> msg)
+        {
+            Console.WriteLine(msg.data.transform.rotation.x);
+        }
+        public void cmCallback(TypedMessage<cm.cgeo> msg)
+        {
+            Console.WriteLine(msg.data.vec);
+        }
+        private void tfCallback(TypedMessage<tf.tfMessage> msg)
+        {
+            Console.WriteLine("GOT TF!");
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -156,7 +182,6 @@ namespace DREAMPioneer
                 t.linear.x = ry / -100.0;
                 t.angular.z = rx / -100.0;
                 joyPub.publish(t);
-                //Console.WriteLine("Joy Published x:" + ry / -100.0 + " y:" + rx / 100.0);
             }
             else
             {
@@ -164,14 +189,11 @@ namespace DREAMPioneer
                 {
                     pt.x = (float)(rx/ 10.0);
                     pt.y = (float)(ry/ -10.0);
-                    pt.CAM_MODE = ptz.CAM_ABS;
+                    pt.CAM_MODE = ptz.CAM_REL;
                     servosPub.publish(pt);
-                    //Console.WriteLine("PT Published P:" + pt.x / 10.0f + " T:" + pt.y / -10.0f );
-                    //Console.WriteLine("Ticks: " + currtime.Ticks + "  " + DateTime.Now.Ticks);
                     currtime = DateTime.Now;
                 }
             }
-            //Console.WriteLine((RightJoystick ? "Left=" : "Right=") + "\t(" + ((int)Math.Floor(rx)) + ", " + ((int)Math.Floor(-ry)) + ")");
         }
 
         private void joymgr_Button(int action, bool down)
@@ -195,10 +217,16 @@ namespace DREAMPioneer
                 Close();
         }
 
+        public void robotCallback(TypedMessage<gm.PolygonStamped> poly)
+        {
+            
+            //xPos = (poly.data.polygon.points[0].x /*- 0.19f*/) * 100;
+            //yPos = (poly.data.polygon.points[0].y /*- 0.19f*/) * 100;
+        }
 
         public void videoCallback(TypedMessage<sm.Image> image)
         {
-            //Console.WriteLine("VIEOS?");
+            
             d.Size size = new d.Size();
             size.Height = (int)image.data.height;
             size.Width = (int)image.data.width;
@@ -212,9 +240,12 @@ namespace DREAMPioneer
             
                 rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
 
-            Console.WriteLine("UPDATING ZE IMAGES!");
+            //Console.WriteLine("UPDATING ZE IMAGES!");
         }
-
+        public void wtfCallback(TypedMessage<nm.OccupancyGrid> pos)
+        {
+            Console.WriteLine("WE COOL!");
+        }
         public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
         {
             double[] scan = new double[laserScan.data.ranges.Length];
@@ -222,14 +253,21 @@ namespace DREAMPioneer
             {
                 scan[i] = laserScan.data.ranges[i];
             }
-
-           // Console.WriteLine("Updating Laser Values!  " + "number of scans" + laserScan.data.ranges[0]);
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
                     lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min); 
             }));
-            //float32[] laserScan;
+        }
+
+        private void pan()
+        {
+
+        }
+
+        private void zoom()
+        {
+
         }
         
         private void Down(Touch e)

@@ -106,6 +106,7 @@ namespace YAMLParser
             {
                 Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
             }
+            Console.ReadLine();
         }
 
         public static void MakeTempDir()

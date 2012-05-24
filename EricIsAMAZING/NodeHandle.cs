@@ -151,12 +151,12 @@ namespace Ros_CSharp
         }
 
         public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size,
-                                                        CallbackDelegate<TypedMessage<M>> cb) where M : class, new()
+                                                        CallbackDelegate<TypedMessage<M>> cb, string thisisveryverybad = null) where M : class, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<TypedMessage<M>>(cb));
+            return subscribe<M>(topic, queue_size, new Callback<TypedMessage<M>>(cb), thisisveryverybad);
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
+        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad = null)
             where M : class, new()
         {
             if (_callback == null)
@@ -164,7 +164,7 @@ namespace Ros_CSharp
                 _callback = ROS.GlobalCallbackQueue;
             }
             SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size,
-                                                                                          cb.func
+                                                                                          cb.func, thisisveryverybad
                 )
                                                         {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
