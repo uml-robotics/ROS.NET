@@ -21,6 +21,9 @@ namespace Messages
         //[DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
+            //gross, but it gets the job done            
+            if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
+                GetMessageTypeMemo.Add(typeof(Single), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Float32")); //ERIC
             if (GetMessageTypeMemo.ContainsKey(t))
                 return GetMessageTypeMemo[t];
             MsgTypes mt = GetMessageType(t.FullName);
@@ -52,6 +55,7 @@ namespace Messages
         }
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
+
         [DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
@@ -78,7 +82,7 @@ namespace Messages
                 }
                 return MsgTypes.Unknown;
             }
-            MsgTypes ms = (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__"));
+            MsgTypes ms = (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__").Replace("[]", ""));
             GetMessageTypeMemoString.Add(s, ms);
             return ms;
         }
@@ -89,7 +93,7 @@ namespace Messages
             if (T.FullName != null && T.FullName.Contains("Messages.TypedMessage`1["))
                 return IsSizeKnown(T.GetField("data").FieldType, recurse);
             if (T == typeof(string) || T == typeof(String) ||
-                (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) || T.IsArray)
+                (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
                 return false;
             if (!recurse || !T.FullName.Contains("Messages")) return true;
             FieldInfo[] infos = T.GetFields();
@@ -214,34 +218,36 @@ namespace Messages
                     {
                         if (type.FullName != null && type.FullName.Contains("Message"))
                         {
-                            bool IKNOWWHATTHATISZOMG = IsSizeKnown(realtype, true);
-                            if (!IKNOWWHATTHATISZOMG)
+                            //bool IKNOWWHATTHATISZOMG = IsSizeKnown(realtype, true);
+                            //if (!IKNOWWHATTHATISZOMG)
+                            //{
+
+                            // }
+                            // else
+                            //{
+                            if (GetMessageType(realtype) == MsgTypes.std_msgs__Time)
+                            {
+                                uint u1 = BitConverter.ToUInt32(bytes, currpos);
+                                uint u2 = BitConverter.ToUInt32(bytes, currpos + 4);
+                                TimeData td = new TimeData(u1, u2);
+                                infos[currinfo].SetValue(thestructure, (object)new std_msgs.Time(td));
+                                currpos += 8;
+                            }
+                            else
                             {
                                 byte[] piece = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                 int len = 0;
                                 object obj = _deserialize(type, piece, out len,
-                                                         IsSizeKnown(realtype, true) &&
+                                                         IsSizeKnown(realtype, true)/* &&
                                                          (!TypeHelper.TypeInformation[MT].Fields[
                                                              infos[currinfo].Name].IsArray ||
                                                           TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name
-                                                              ].Length != -1));
+                                                              ].Length != -1)*/);
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
                             }
-                            else
-                            {
-                                if (GetMessageType(realtype) == MsgTypes.std_msgs__Time)
-                                {
-                                    uint u1 = BitConverter.ToUInt32(bytes, currpos);
-                                    uint u2 = BitConverter.ToUInt32(bytes, currpos + 4);
-                                    TimeData td = new TimeData(u1, u2);
-                                    infos[currinfo].SetValue(thestructure, (object)new std_msgs.Time(td));
-                                    currpos += 8;
-                                }
-                                else
-                                    Console.WriteLine("HANDLE IT!");
-                            }
+                            // }
                         }
                         else
                         {
@@ -293,11 +299,11 @@ namespace Messages
                                 Array.Copy(bytes, currpos, chunk, 0, chunk.Length);
                                 int len = 0;
                                 object data = _deserialize(TT, chunk, out len,
-                                                          IsSizeKnown(TT, false) &&
+                                                          IsSizeKnown(TT, false) /*&&
                                                           (!TypeHelper.TypeInformation[mt].Fields[
                                                               infos[currinfo].Name].IsArray ||
                                                            TypeHelper.TypeInformation[mt].Fields[
-                                                               infos[currinfo].Name].Length != -1));
+                                                               infos[currinfo].Name].Length != -1)*/);
                                 val.SetValue(data, i);
                                 currpos += len;
                             }
@@ -894,7 +900,18 @@ namespace Messages
             lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
                 lines[i] = lines[i].Split('#')[0].Trim();
+            //lines = lines.Where((st) => (st.Length > 0)).ToList();
+
+            lines.ForEach(new Action<string>((s) =>
+            {
+                if (s.Contains('#') && s.Split('#')[0].Length != 0)
+                    s = s.Split('#')[0];
+                if (s.Contains('#'))
+                    s = "";
+            }));
             lines = lines.Where((st) => (st.Length > 0)).ToList();
+
+
             def = new List<string>();
             for (int i = 0; i < lines.Count; i++)
             {
@@ -963,7 +980,7 @@ namespace Messages
                     memoizedcontent = memoizedcontent.Replace("DataData", "Data");
                 GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
             }
-            GUTS = fronthalf+ "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
+            GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
                    backhalf;
             return GUTS;
         }
@@ -1083,7 +1100,7 @@ namespace Messages
         public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
                                                                   {
                                                                       {"float64", "double"},
-                                                                      {"float32", "float"},
+                                                                      {"float32", "Single"},
                                                                       {"uint64", "ulong"},
                                                                       {"uint32", "uint"},
                                                                       {"uint16", "ushort"},
