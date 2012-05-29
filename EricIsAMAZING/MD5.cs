@@ -15,6 +15,12 @@ namespace Ros_CSharp
     {
         public static string Sum(MsgTypes m)
         {
+            if (m == MsgTypes.tf__tfMessage)
+                Console.WriteLine("WTF");
+            if (m == MsgTypes.geometry_msgs__TransformStamped)
+                Console.WriteLine("WTF");
+            if (m == MsgTypes.geometry_msgs__Transform)
+                Console.WriteLine("WTF");
             string hashme = TypeHelper.TypeInformation[m].MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
@@ -63,7 +69,7 @@ namespace Ros_CSharp
                         throw new Exception("SOME SHIT BE FUCKED!");
                     //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
                     Console.WriteLine(FieldType.Name);
-                    hashme = hashme.Replace(FieldType.Name, Sum(T));
+                    hashme = hashme.Replace(FieldType.Name, Sum(T)).Replace("geometry_msgs/", "").Replace("[]",""); //.Replace("geometry_msgs/","")
                 }
                 return Sum(hashme);
             }

@@ -121,7 +121,7 @@ namespace DREAMPioneer
             laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
             //tsub = node.subscribe<gm.TransformStamped>("/wtf", 1000, zomgCallback);
             //tpub = node.subscribe<cm.cgeo>("/tf", 1000, cmCallback);
-            //tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
+            tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
             //robotsub = node.subscribe<gm.PolygonStamped>("/robot_brain_1/robot_brain_1/move_base/local_costmap/robot_footprint" , 1000, robotCallback);
             //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
             currtime = DateTime.Now; 
@@ -129,15 +129,15 @@ namespace DREAMPioneer
 
         public void zomgCallback(TypedMessage<gm.TransformStamped> msg)
         {
-            Console.WriteLine(msg.data.transform.rotation.x);
+           // Console.WriteLine(msg.data.transform.rotation.x);
         }
         public void cmCallback(TypedMessage<cm.cgeo> msg)
         {
-            Console.WriteLine(msg.data.vec);
+            //Console.WriteLine(msg.data.vec);
         }
         private void tfCallback(TypedMessage<tf.tfMessage> msg)
         {
-            Console.WriteLine("GOT TF!");
+            //Console.WriteLine(msg.data.transforms[0].transform.translation.x);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
