@@ -124,6 +124,7 @@ namespace DREAMPioneer
             tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
             //robotsub = node.subscribe<gm.PolygonStamped>("/robot_brain_1/robot_brain_1/move_base/local_costmap/robot_footprint" , 1000, robotCallback);
             //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
+            tf_node _tf_node = new tf_node();
             currtime = DateTime.Now; 
         }
 
@@ -187,9 +188,9 @@ namespace DREAMPioneer
             {
                 if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
                 {
-                    pt.x = (float)(rx/ 10.0);
-                    pt.y = (float)(ry/ -10.0);
-                    pt.CAM_MODE = ptz.CAM_REL;
+                    pt.x = (float)(rx /* 10.0*/);
+                    pt.y = (float)(ry * -1 /* -10.0*/);
+                    pt.CAM_MODE = ptz.CAM_ABS;
                     servosPub.publish(pt);
                     currtime = DateTime.Now;
                 }

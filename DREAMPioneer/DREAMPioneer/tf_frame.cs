@@ -23,7 +23,6 @@ namespace DREAMPioneer
             msg = _msg;
             
         }
-
         #region Variables and accessors
         public String frame_id
         {
@@ -43,4 +42,5 @@ namespace DREAMPioneer
         }
         #endregion
     }
+
 }

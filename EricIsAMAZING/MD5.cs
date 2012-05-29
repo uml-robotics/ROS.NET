@@ -21,6 +21,8 @@ namespace Ros_CSharp
                 Console.WriteLine("WTF");
             if (m == MsgTypes.geometry_msgs__Transform)
                 Console.WriteLine("WTF");
+            if (m == MsgTypes.sensor_msgs__LaserScan)
+                Console.WriteLine("WTF");
             string hashme = TypeHelper.TypeInformation[m].MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
@@ -69,7 +71,10 @@ namespace Ros_CSharp
                         throw new Exception("SOME SHIT BE FUCKED!");
                     //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
                     Console.WriteLine(FieldType.Name);
-                    hashme = hashme.Replace(FieldType.Name, Sum(T)).Replace("geometry_msgs/", "").Replace("[]",""); //.Replace("geometry_msgs/","")
+                    if ( hashme == "geometry_msgs/TransformStamped[] transforms")
+                        hashme = hashme.Replace(FieldType.Name, Sum(T)).Replace("geometry_msgs/", "").Replace("[]",""); //.Replace("geometry_msgs/","")
+                    else
+                        hashme = hashme.Replace(FieldType.Name, Sum(T));
                 }
                 return Sum(hashme);
             }
