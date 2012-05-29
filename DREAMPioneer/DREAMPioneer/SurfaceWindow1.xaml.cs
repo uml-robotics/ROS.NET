@@ -75,15 +75,16 @@ namespace DREAMPioneer
         private cm.ptz pt;
         private EM3MTouch em3m;
         private DateTime currtime;
-        private tf_node _tf;
+        //public tf_node _tf;
 
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         private Subscriber<TypedMessage<tf.tfMessage>> tfSub;
 
-        private Subscriber<TypedMessage<cm.cgeo>> tpub;
-        private Subscriber<TypedMessage<gm.TransformStamped>> tsub;
+        private int width;
+        private int height;
+        private float mapresolution = 5.085f;
         /// <summary>
         ///   Default constructor.
         /// </summary>
@@ -104,7 +105,8 @@ namespace DREAMPioneer
                 em3m.UpEvent += Up;
                 
             }
-            //_tf = new tf_node();
+            width = 1078;
+            height = 212;
         }
 
         private void rosStart()
@@ -124,8 +126,9 @@ namespace DREAMPioneer
             tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
             //robotsub = node.subscribe<gm.PolygonStamped>("/robot_brain_1/robot_brain_1/move_base/local_costmap/robot_footprint" , 1000, robotCallback);
             //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
-            tf_node _tf_node = new tf_node();
-            currtime = DateTime.Now; 
+            //tf_node _tf_node = new tf_node();
+            currtime = DateTime.Now;
+            tf_node.init();
         }
 
         public void zomgCallback(TypedMessage<gm.TransformStamped> msg)

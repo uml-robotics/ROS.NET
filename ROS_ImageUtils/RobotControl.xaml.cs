@@ -39,7 +39,6 @@ namespace ROS_ImageWPF
          private float _xPos;
         private float _yPos;
         private Thickness pos;
-        private String mystr;
         public float xPos
         {
             get { return _xPos; }
@@ -119,16 +118,22 @@ namespace ROS_ImageWPF
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    //tf_node tf = new tf_node();
+                    gm.Vector3 vec ;//= new gm.Vector3();
+                    gm.Quaternion quat;// = new gm.Quaternion();
+                    tf_node.transformFrame("/robot_brain_1/base_link","/robot_brain_1/map",out vec,out quat);
+                    
                     //Console.WriteLine(i.data.polygon.points[0].y);
-                    float x = i.data.polygon.points[0].x - 0.19f;
-                    float y = i.data.polygon.points[0].y - 0.19f;
+                    float x = i.data.polygon.points[0].x - 0.19f + (float)vec.x;
+                    float y = i.data.polygon.points[0].y - 0.19f + (float)vec.y;
                     updatePOS(x,y);
                 })), "*");
         }
 
         private void updatePOS(float x, float y)
         {
-            robot.Margin = new Thickness(x,0,0,y);
+            robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; //(400,0,0,0);
+            
         } 
 
         /// <summary>

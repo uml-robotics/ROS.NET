@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows.Threading;
+//using System.Windows.Threading;
 using System.ComponentModel;
-using System.Windows.Data;
+//using System.Windows.Data;
 using System.IO;
 
 
@@ -19,22 +19,22 @@ using tf = Messages.tf;
 using gm = Messages.geometry_msgs;
 using String = Messages.std_msgs.String;
 
-namespace DREAMPioneer
+namespace Ros_CSharp
 {
     // Listenes to the /tf topic, need subscriber
     // for each Transform in /tf, create a new frame. Frame has a (frame)child and (frame)id
     // provide translation from 2 frames, user requests from /map to /base_link for example, must identify route
     // base_link.child = odom, odom.child = map
     // map-> odom + odom->base_link
-    class tf_node
+    public static class tf_node
     {
         static Dictionary<string, tf_frame> frames;
         static List<tf_frame> currFrames;
-        tf.tfMessage msg;
-        Thread mythread;
+        static tf.tfMessage msg;
+        static Thread mythread;
 
         private static NodeHandle tfhandle;
-        private Subscriber<TypedMessage<tf.tfMessage>> tfsub;
+        private static Subscriber<TypedMessage<tf.tfMessage>> tfsub;
 
        /*private void waitfunc()
         {
@@ -64,8 +64,13 @@ namespace DREAMPioneer
                       })), "*");
               }*/
 
-        private void init()
+        public static void init()
         {
+
+            frames = new Dictionary<string, tf_frame>();
+            //subscribes
+            msg = new tf.tfMessage();
+
             if (tfhandle == null)
                       tfhandle = new NodeHandle();
                   if (tfsub != null)
@@ -74,7 +79,7 @@ namespace DREAMPioneer
                   tfsub = tfhandle.subscribe<tf.tfMessage>("/tf", 1, tfCallback);
         }
 
-        private void tfCallback(TypedMessage<tf.tfMessage> msg)
+        private static void tfCallback(TypedMessage<tf.tfMessage> msg)
         {
 
             //if (msg.data.transforms.Length > frames.Count)
@@ -88,16 +93,16 @@ namespace DREAMPioneer
                 }
         }
 
-        public tf_node()
+  /*      public tf_node()
         {
             frames = new Dictionary<string,tf_frame>();
             //subscribes
             msg = new tf.tfMessage();
             init();
             mythread = new Thread( new ThreadStart( init ));
-        }
+        } */
 
-        public void addFrame(gm.TransformStamped t)
+        public static void addFrame(gm.TransformStamped t)
         {
             if (!frames.ContainsKey(t.header.frame_id.data))
             {
@@ -112,42 +117,47 @@ namespace DREAMPioneer
         }
 
 
-        public static tf_frame transformFrame(String source, String target)
+        public static tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
-            if (!frames.ContainsKey(source.data))
+            if (!frames.ContainsKey(source))
                 throw new Exception("Arrg! Source key does not exist!");
-            if (!frames.ContainsKey(target.data))
+            if (!frames.ContainsKey(target))
                 throw new Exception("Arrg! Target key does not exist!");
 
             currFrames = new List<tf_frame>();
             
             link(source, target);
+            gm.Transform trans;
+            trans = new gm.Transform();
+            vec = new gm.Vector3();
+            quat = new gm.Quaternion();
 
             foreach(tf_frame k in currFrames)
             {
-                gm.Transform trans = new gm.Transform();
-                trans.rotation.w += k.transform.rotation.w;
-                trans.rotation.x += k.transform.rotation.x;
-                trans.rotation.y += k.transform.rotation.y;
-                trans.rotation.z += k.transform.rotation.z;
-                trans.translation.x += k.transform.translation.x;
-                trans.translation.y += k.transform.translation.y;
-                trans.translation.z += k.transform.translation.z;
+
+                quat.w += k.transform.rotation.w;
+                quat.x += k.transform.rotation.x;
+                quat.y += k.transform.rotation.y;
+                quat.z += k.transform.rotation.z;
+                vec.x += k.transform.translation.x;
+                vec.y += k.transform.translation.y;
+                vec.z += k.transform.translation.z;
             }
+
             return new tf_frame();
         }
 
-        public static void link(String source, String target)
+        public static void link(string source, string target)
         {
             if (source != target)
-                link(source, target);
-            currFrames.Add( frames[source.data] );
+                link(source, frames[target].child_id.data);
+            currFrames.Add( frames[target] );
         }
 
     }
 
 
-    class tf_frame
+    public class tf_frame
     {
         gm.TransformStamped msg;
         static int numberofframes;

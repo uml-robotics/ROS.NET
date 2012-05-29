@@ -37,11 +37,13 @@ namespace ROS_ImageWPF
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); Console.WriteLine("WEEEEEEFUCKINGWEEEEEEEEE"); }
+            set { SetValue(TopicProperty, value); }
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<TypedMessage<nm.OccupancyGrid>> mapsub;
+        float aspectratio = 5.085f;
+
 
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -80,7 +82,6 @@ namespace ROS_ImageWPF
 
         private void SetupTopic()
         {
-            
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
             if (mapsub != null)
@@ -90,6 +91,7 @@ namespace ROS_ImageWPF
                 Dispatcher.BeginInvoke(new Action(() =>
                 {                    
                     UpdateImage( createRGBA( i.data.data ), new Size((int)i.data.info.width, (int)i.data.info.height), false);
+                    //Console.WriteLine(i.data.info.width + " " + i.data.info.height);
                 })), "*");
         } 
         private byte[] createRGBA(sbyte[] map)
