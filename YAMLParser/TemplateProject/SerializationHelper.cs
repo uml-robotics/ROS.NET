@@ -149,6 +149,7 @@ namespace Messages
 
         private static object _deserialize(Type T, byte[] bytes, out int amountread, bool sizeknown = false)
         {
+
             object thestructure = Activator.CreateInstance(T);
             int startingpos = 0, currpos = 0;
             MsgTypes MT = GetMessageType(T);
@@ -163,12 +164,14 @@ namespace Messages
                                    (!TypeHelper.TypeInformation[MT].Fields[infos[0].Name].IsArray ||
                                     TypeHelper.TypeInformation[MT].Fields[infos[0].Name].Length != -1));
             }
+
             while (currpos < bytes.Length && currinfo < infos.Length)
             {
                 Type type =
                     GetTypeSmart(TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name].Type);
                 Type realtype = GetTypeSmart(infos[currinfo].FieldType);
                 MsgTypes msgtype = GetMessageType(type);
+
                 bool knownpiecelength = IsSizeKnown(realtype, false) &&
                                         (!TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name]
                                               .IsArray ||

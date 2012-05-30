@@ -119,31 +119,34 @@ namespace Ros_CSharp
 
         public static tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
-            if (!frames.ContainsKey(source))
+            /*if (!frames.ContainsKey(source))
                 throw new Exception("Arrg! Source key does not exist!");
             if (!frames.ContainsKey(target))
-                throw new Exception("Arrg! Target key does not exist!");
+                throw new Exception("Arrg! Target key does not exist!");*/
 
-            currFrames = new List<tf_frame>();
-            
-            link(source, target);
-            gm.Transform trans;
-            trans = new gm.Transform();
-            vec = new gm.Vector3();
-            quat = new gm.Quaternion();
-
-            foreach(tf_frame k in currFrames)
+            try
             {
+                currFrames = new List<tf_frame>();
 
-                quat.w += k.transform.rotation.w;
-                quat.x += k.transform.rotation.x;
-                quat.y += k.transform.rotation.y;
-                quat.z += k.transform.rotation.z;
-                vec.x += k.transform.translation.x;
-                vec.y += k.transform.translation.y;
-                vec.z += k.transform.translation.z;
+                link(source, target);
+                gm.Transform trans;
+                trans = new gm.Transform();
+                vec = new gm.Vector3();
+                quat = new gm.Quaternion();
+
+                foreach (tf_frame k in currFrames)
+                {
+
+                    quat.w += k.transform.rotation.w;
+                    quat.x += k.transform.rotation.x;
+                    quat.y += k.transform.rotation.y;
+                    quat.z += k.transform.rotation.z;
+                    vec.x += k.transform.translation.x;
+                    vec.y += k.transform.translation.y;
+                    vec.z += k.transform.translation.z;
+                }
             }
-
+            catch (Exception e) { vec = new gm.Vector3(); quat = new gm.Quaternion(); }
             return new tf_frame();
         }
 

@@ -68,6 +68,7 @@ namespace DREAMPioneer
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
+        private SortedList<int, Touch> captureOldVis = new SortedList<int, Touch>();
         private JoystickManager joymgr;
         private NodeHandle node;
 
@@ -77,13 +78,17 @@ namespace DREAMPioneer
         private DateTime currtime;
         //public tf_node _tf;
 
+
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         private Subscriber<TypedMessage<tf.tfMessage>> tfSub;
 
-        private int width;
-        private int height;
+        private double width;
+        private double height;
+        private DateTime n;
+        private Touch lastt;
+
         private float mapresolution = 5.085f;
         /// <summary>
         ///   Default constructor.
@@ -128,7 +133,10 @@ namespace DREAMPioneer
             //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
             //tf_node _tf_node = new tf_node();
             currtime = DateTime.Now;
+            width = 0;
+            height = 0;
             tf_node.init();
+            lastt = new Touch();
         }
 
         public void zomgCallback(TypedMessage<gm.TransformStamped> msg)
@@ -183,8 +191,8 @@ namespace DREAMPioneer
         {
             if (!RightJoystick)
             {
-                t.linear.x = ry / -100.0;
-                t.angular.z = rx / -100.0;
+                t.linear.x = ry / -300.0;
+                t.angular.z = rx / -300.0;
                 joyPub.publish(t);
             }
             else
@@ -264,16 +272,58 @@ namespace DREAMPioneer
             }));
         }
 
-        private void pan()
+        public double distance(Touch c1, Touch c2)
+        {
+            return distance(c1.Position, c2.Position);
+        }
+
+        public static double distance(Point q, Point p)
+        {
+            return distance(q.X, q.Y, p.X, p.Y);
+        }
+
+        public static double distance(double x2, double y2, double x1, double y1)
+        {
+            return Math.Sqrt(
+                (x2 - x1) * (x2 - x1)
+                + (y2 - y1) * (y2 - y1));
+        }
+
+        DateTime lastupdown = DateTime.Now;
+
+        public void moveStuff(Touch e)
+        {
+            //double xSum = 0;
+            //double ySum = 0;
+            //bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 250);
+            //translate transforms
+            //scale transforms
+
+            if ( distance(e, captureOldVis[e.Id] ) > 10 && true)
+            {
+
+                if (captureOldVis.Count == 1)
+                {
+                    width += (e.Position.X - captureOldVis[e.Id].Position.X);
+                    height += (e.Position.Y - captureOldVis[e.Id].Position.Y);
+                    map.Margin = new Thickness { Top = height, Left = width, Right = 0, Bottom = 0 };
+                }
+                else if(captureOldVis.Count > 1)
+                {
+                    map.Width += (e.Position.X - captureOldVis[e.Id].Position.X);
+                    map.Height += (e.Position.Y - captureOldVis[e.Id].Position.Y);
+                }
+                if (captureOldVis.ContainsKey(e.Id))
+                    captureOldVis.Remove(e.Id);
+                captureOldVis.Add(e.Id, e);
+            }
+     
+        }
+        public void zoomStuff()
         {
 
         }
 
-        private void zoom()
-        {
-
-        }
-        
         private void Down(Touch e)
         {
             joymgr.Down(e, (t, b) =>
@@ -281,6 +331,8 @@ namespace DREAMPioneer
                                             if (!b)
                                             {
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
+                                                if(!captureOldVis.ContainsKey(e.Id) )
+                                                    captureOldVis.Add(t.Id, e);
                                                 captureVis[t.Id].dot.Stroke = Brushes.White;
                                             }
                                         });
@@ -305,6 +357,12 @@ namespace DREAMPioneer
                                                         captureVis[t.Id].dot.Stroke = Brushes.Red;
                                                     }
                                                 }
+
+                                                //if (captureVis.Count > 1)
+                                               // {
+                                                    moveStuff(e);
+                                                //}
+                                                
                                             });
         }
 
@@ -317,6 +375,7 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
+                                                captureOldVis.Remove(t.Id);
                                             }
                                         }
                                         else
@@ -324,6 +383,7 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
+                                                captureOldVis.Remove(t.Id);
                                             }
                                         }
                                     });
