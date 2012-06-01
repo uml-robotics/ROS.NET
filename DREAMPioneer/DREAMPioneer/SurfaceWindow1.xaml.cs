@@ -84,6 +84,9 @@ namespace DREAMPioneer
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         private Subscriber<TypedMessage<tf.tfMessage>> tfSub;
 
+        private ScaleTransform scale;
+        private TranslateTransform translate;
+
         private double width;
         private double height;
         private DateTime n;
@@ -137,6 +140,16 @@ namespace DREAMPioneer
             height = 0;
             tf_node.init();
             lastt = new Touch();
+            scale = new ScaleTransform();
+            translate = new TranslateTransform();
+
+            TransformGroup group = new TransformGroup();
+            group.Children.Add(scale);
+            group.Children.Add(translate);
+            SubCanvas.RenderTransform = group;
+            n = DateTime.Now;
+            lastupdown = DateTime.Now;
+
         }
 
         public void zomgCallback(TypedMessage<gm.TransformStamped> msg)
@@ -191,8 +204,8 @@ namespace DREAMPioneer
         {
             if (!RightJoystick)
             {
-                t.linear.x = ry / -300.0;
-                t.angular.z = rx / -300.0;
+                t.linear.x = ry / -10.0;
+                t.angular.z = rx / -10.0;
                 joyPub.publish(t);
             }
             else
@@ -200,7 +213,7 @@ namespace DREAMPioneer
                 if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
                 {
                     pt.x = (float)(rx /* 10.0*/);
-                    pt.y = (float)(ry * -1 /* -10.0*/);
+                    pt.y = (float)(ry * 1 /* -10.0*/);
                     pt.CAM_MODE = ptz.CAM_ABS;
                     servosPub.publish(pt);
                     currtime = DateTime.Now;
@@ -293,30 +306,28 @@ namespace DREAMPioneer
 
         public void moveStuff(Touch e)
         {
-            //double xSum = 0;
-            //double ySum = 0;
-            //bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 250);
-            //translate transforms
-            //scale transforms
-
-            if ( distance(e, captureOldVis[e.Id] ) > 10 && true)
+            n = DateTime.Now;
+            //false;//=
+            bool SITSTILL =  (n.Subtract(lastupdown).TotalMilliseconds <= 250);
+            
+            Console.WriteLine(SITSTILL);
+            if ( distance(e, captureOldVis[e.Id] ) > 10 && !SITSTILL)
             {
+                lastupdown = DateTime.Now;
+                scale.ScaleY = 1;
+                scale.ScaleX = 1;
+                    translate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
+                    translate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
+                if(captureOldVis.Count > 1)
+                {
+                    //scale.ScaleX += .1;//map.Width += (e.Position.X - captureOldVis[e.Id].Position.X);
+                    //scale.ScaleY += .1;//map.Height += (e.Position.Y - captureOldVis[e.Id].Position.Y);
+                }
 
-                if (captureOldVis.Count == 1)
-                {
-                    width += (e.Position.X - captureOldVis[e.Id].Position.X);
-                    height += (e.Position.Y - captureOldVis[e.Id].Position.Y);
-                    map.Margin = new Thickness { Top = height, Left = width, Right = 0, Bottom = 0 };
-                }
-                else if(captureOldVis.Count > 1)
-                {
-                    map.Width += (e.Position.X - captureOldVis[e.Id].Position.X);
-                    map.Height += (e.Position.Y - captureOldVis[e.Id].Position.Y);
-                }
-                if (captureOldVis.ContainsKey(e.Id))
-                    captureOldVis.Remove(e.Id);
-                captureOldVis.Add(e.Id, e);
-            }
+
+            } if (captureOldVis.ContainsKey(e.Id))
+                captureOldVis.Remove(e.Id);
+            captureOldVis.Add(e.Id, e);
      
         }
         public void zoomStuff()
@@ -358,10 +369,16 @@ namespace DREAMPioneer
                                                     }
                                                 }
 
-                                                //if (captureVis.Count > 1)
-                                               // {
-                                                    moveStuff(e);
-                                                //}
+                                                switch(captureOldVis.Count)
+                                                {
+                                                    case 1:
+                                                        break;
+                                                    default:
+                                                        moveStuff(t);
+                                                        break;
+                                                }
+                                                
+                                                
                                                 
                                             });
         }

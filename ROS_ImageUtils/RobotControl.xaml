@@ -12,7 +12,7 @@
     <Grid SnapsToDevicePixels="True" Width="1680" Height="1050" >
         <Canvas Name="RobotCanvas" Width="auto" Height="auto" >
 
-            <Rectangle Name="robot" SnapsToDevicePixels="True" Width="50" Height="50" Fill="Blue" >
+            <Rectangle Name="robot" SnapsToDevicePixels="True" Width="10" Height="10" Fill="Blue" >
                 <!-- Canvas.Left="{Binding ElementName=BackgroundRectangle, Path=xPos}" Canvas.Top="{Binding ElementName=BackgroundRectangle, Path=yPos}"-->
                 <!--Canvas.Left="{Binding xPos}" Canvas.Top="{Binding yPos}" Margin="{Binding Source={StaticResource myDataSource}, Path=pos} -->
               

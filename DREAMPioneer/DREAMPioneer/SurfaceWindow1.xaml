@@ -5,10 +5,19 @@
     xmlns:System="clr-namespace:System;assembly=mscorlib"
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
      Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize">
-    
-    <Canvas Name="MainCanvas" Background="Gray" Width="1680" Height="1050" >
-        <ros:MapControl Name="map" ros:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212"  />
-         <ros:RobotControl Name="robotControl" ros:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1680" Height="1050"  > </ros:RobotControl>
+
+    <Canvas Name="MainCanvas" Background="Gray" Width="1680" Height="1080"  >
+        <Canvas Name="SubCanvas" Background="AliceBlue" Width="auto" Height="auto" >
+            <!-- <Canvas.RenderTransform>
+                <TransformGroup >
+                    <ScaleTransform  ScaleX="2" ScaleY="1"/>
+                    <TranslateTransform X="100" Y="100" />
+                </TransformGroup>
+            </Canvas.RenderTransform>-->
+
+            <ros:MapControl Name="map" ros:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212"  />
+            <ros:RobotControl Name="robotControl" ros:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1078" Height="212"  > </ros:RobotControl>
+        </Canvas>
         <!--<ros:ImageControl ros:ImageControl.TopicName="/robot_brain_1/camera/rgb/image_color" Width="1680" Height="1050" />-->
 <!--Canvas.Left="{Binding ros:RobotControl.xPos}" Canvas.Top="{Binding  ros:RobotControl.yPos}" Margin="{Binding robotPos}"-->
     </Canvas> 
