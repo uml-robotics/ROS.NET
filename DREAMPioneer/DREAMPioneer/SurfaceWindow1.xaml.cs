@@ -76,13 +76,10 @@ namespace DREAMPioneer
         private cm.ptz pt;
         private EM3MTouch em3m;
         private DateTime currtime;
-        //public tf_node _tf;
-
 
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
-        private Subscriber<TypedMessage<tf.tfMessage>> tfSub;
 
         private ScaleTransform scale;
         private TranslateTransform translate;
@@ -92,15 +89,10 @@ namespace DREAMPioneer
         private DateTime n;
         private Touch lastt;
 
-        private float mapresolution = 5.085f;
-        /// <summary>
-        ///   Default constructor.
-        /// </summary>
         public SurfaceWindow1()
         {
             current = this;
             InitializeComponent();
-
             em3m = new EM3MTouch();
             if (!em3m.Connect())
             {
@@ -129,12 +121,6 @@ namespace DREAMPioneer
             joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);
             servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
             laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
-            //tsub = node.subscribe<gm.TransformStamped>("/wtf", 1000, zomgCallback);
-            //tpub = node.subscribe<cm.cgeo>("/tf", 1000, cmCallback);
-            tfSub = node.subscribe<tf.tfMessage>("/tf", 1000, tfCallback);
-            //robotsub = node.subscribe<gm.PolygonStamped>("/robot_brain_1/robot_brain_1/move_base/local_costmap/robot_footprint" , 1000, robotCallback);
-            //wtfsub = node.subscribe<m.Time>("/wtf", 1000, wtfCallback);
-            //tf_node _tf_node = new tf_node();
             currtime = DateTime.Now;
             width = 0;
             height = 0;
@@ -149,20 +135,6 @@ namespace DREAMPioneer
             SubCanvas.RenderTransform = group;
             n = DateTime.Now;
             lastupdown = DateTime.Now;
-
-        }
-
-        public void zomgCallback(TypedMessage<gm.TransformStamped> msg)
-        {
-           // Console.WriteLine(msg.data.transform.rotation.x);
-        }
-        public void cmCallback(TypedMessage<cm.cgeo> msg)
-        {
-            //Console.WriteLine(msg.data.vec);
-        }
-        private void tfCallback(TypedMessage<tf.tfMessage> msg)
-        {
-            //Console.WriteLine(msg.data.transforms[0].transform.translation.x);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
