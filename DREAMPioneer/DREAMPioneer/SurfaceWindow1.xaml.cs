@@ -26,6 +26,7 @@
 #region USINGZ
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
@@ -301,6 +302,7 @@ namespace DREAMPioneer
 
             timers.StartTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
             timers.StartTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
+            timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
             numRobots = 1;
 
             for (int i = 0; i < turboFingering.Length; i++)
@@ -665,8 +667,6 @@ namespace DREAMPioneer
             }
         }
 
-
-
         /// <summary>
         ///   The finger handler.
         /// </summary>
@@ -738,6 +738,14 @@ namespace DREAMPioneer
      
         }
 
+        /// <summary>
+        ///   Gets FREE.
+        /// </summary>
+        public Dictionary<int, Touch> FREE
+        {
+            get { return joymgr.FreeTouches; }
+        }
+
         private void ChangeState(RMState s)
         {
             state = s;
@@ -754,6 +762,81 @@ namespace DREAMPioneer
                     waypointDots.Clear();
                 }
             }
+        }
+
+        /// <summary>
+        ///   The r m 5 start.
+        /// </summary>
+        /// <param name = "last">
+        ///   The last.
+        /// </param>
+        public void RM5Start(Point last)
+        {
+            if (!turnedIntoDrag && Math.Abs(distance(last, lastTouch)) < DTDistance && timers.IsRunning(ref RM5Timer))
+            {
+                RM5DoIt();
+                RM5End();
+                return;
+            }
+            else
+            {
+                ChangeState(RMState.State3);
+                if (timers.IsRunning(ref RM5Timer))
+                {
+                    AddWaypointDot(lastTouch);
+                    RM5End();
+                }
+
+                lastTouch = last;
+                timers.StartTimer(ref RM5Timer);
+            }
+        }
+
+        private double DTDistance
+        {
+            get
+            {
+                if (joymgr != null)
+                    return 0.5 * joymgr.DPI;
+                return 30;
+            }
+        }
+
+        /// <summary>
+        ///   The r m 5 do it.
+        /// </summary>
+        private void RM5DoIt()
+        {
+            //Log(String.Format("Waypoint - {0} - Single Tap", FormatTargets(selectedList.ToArray())));
+            AddWaypointDot(lastTouch);
+            HandOutWaypoints();
+            EndState("CD-G (t<dt && d<dD)");
+        }
+
+        /// <summary>
+        ///   The r m 5 timer_ tick.
+        /// </summary>
+        /// <param name = "sender">
+        ///   The sender.
+        /// </param>
+        private void RM5Timer_Tick(object sender)
+        {
+            RM5End();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!turnedIntoDrag && captureVis.Count >= 1)
+                {
+                    AddWaypointDot(lastTouch);
+                }
+            }));
+        }
+
+        /// <summary>
+        ///   The r m 5 end.
+        /// </summary>
+        public void RM5End()
+        {
+            timers.StopTimer(ref RM5Timer);
         }
 
         /// <summary>
@@ -806,6 +889,8 @@ namespace DREAMPioneer
             waypointDots.Clear();
         }
 
+
+        //REPLACED::Will delete eventually.
         private bool checkHit(Touch e)
         {
             //Console.WriteLine(e.Position.X+" " +e.Position.Y);
@@ -921,13 +1006,93 @@ namespace DREAMPioneer
                                                     captureOldVis.Add(t.Id, e);
                                                 captureVis[t.Id].dot.Stroke = Brushes.White;
 
+                                                ZoomDown(e);
+                                                int index = robotsCD(e);
                                                 if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
                                                     ChangeState(RMState.Start);
 
-                                                int n = robotsCD(e);
-                                                if (n != -1 /*!checkHit(t)*/)
+                                                switch (state)
                                                 {
-                                                    ToggleSelected(n, e);
+                                                    case RMState.Start:
+
+                                                        // If the CD was on a robot then ...
+                                                        if (index != -1)
+                                                        {
+                                                            ToggleSelected(index, e);
+                                                            ChangeState(RMState.State1);
+                                                        }
+
+                                    // If the CD was on gound then...
+                                                        else if ((index = CloseToRobot(e.Position)) != -1)
+                                                        {
+                                                            AddSelected(index, e);
+                                                            ChangeState(RMState.State1);
+                                                        }
+                                                        break;
+                                                    case RMState.State1:
+                                                        break;
+                                                    case RMState.State2:
+                                                        if (index != -1) // If the CD was on a robot then ...
+                                                        {
+                                                            ToggleSelected(index, e);
+                                                            ChangeState(RMState.State1);
+                                                        }
+                                                        else // If the CD was on gound then...
+                                                        {
+                                                            //index = CloseToRobot(e.Position); // Was the contact close enough to a robot?
+                                                            if ((index = CloseToRobot(e.Position)) != -1)
+                                                            {
+                                                                AddSelected(index, e);
+                                                                ChangeState(RMState.State3);
+                                                            }
+                                                            else // CD was far from any robot.
+                                                            {
+                                                                RM5Start(e.Position);
+                                                                ChangeState(RMState.State3);
+                                                            }
+                                                        }
+                                                        break;
+                                                    case RMState.State3:
+
+                                                        break;
+                                                    case RMState.State4:
+                                                        if (index != -1) // If the CD was on a robot then, start movement and reset to 1 robot selected.
+                                                        {
+                                                            // Reset to state RM1. Select the current robot.
+                                                            if (!selectedList.Contains(index))
+                                                            {
+                                                                NoPulse();
+                                                                HandOutWaypoints(); //"selected an unselected robot"
+                                                                selectedList.Clear();
+                                                                AddSelected(index, e);//"Tap"
+                                                            }
+
+                                                            ChangeState(RMState.State1);
+                                                        }
+                                                        else if ((index = CloseToRobot(e.Position)) != -1)
+                                                        {
+                                                            if (!selectedList.Contains(index))
+                                                            {
+                                                                NoPulse();
+                                                                HandOutWaypoints(); //"selected an unselected robot"
+                                                                selectedList.Clear();
+                                                                AddSelected(index, e);
+                                                            }
+
+                                                            ChangeState(RMState.State1);
+                                                        }
+                                                        else // If the CD was on gound then...
+                                                        {
+
+                                                            RM5Start(e.Position);
+                                                            ChangeState(RMState.State3);
+                                                        }
+
+                                                        break;
+                                                    case RMState.State5:
+                                                        break;
+                                                    default:
+                                                        break;
                                                 }
                                             }
                                         });
@@ -943,9 +1108,133 @@ namespace DREAMPioneer
                                                     {
                                                         captureVis[t.Id].dot.Stroke = Brushes.White;
                                                         captureVis[t.Id].Update(t.Position);
+                                                    }
 
-                                                        int n = robotsCD(t);
-                                                        if (n != -1 /*!checkHit(t)*/)
+                                                    int index = robotsCD(e);
+                                                    Dictionary<int, Touch> cc = FREE;
+
+                                                    if (FREE.Count == 1 && (state == RMState.State3 || em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
+                                                    {
+                                                        {
+                                                            WPDrag++;
+
+                                                            if (state == RMState.State3)
+                                                            {
+                                                                turnedIntoDrag = true;
+                                                                RM5Drag(t.Position);
+                                                            }
+
+                                                            if (state == RMState.State5)
+                                                            {
+                                                                AddWaypointDot(t.Position);
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (cc.Count > 1)
+                                                    {
+                                                        moveStuff(e);
+                                                        if (!cleanedUpDragPoints.Contains(e.Id))
+                                                        {
+                                                            if (lassoPoints.Contains(e.Position))
+                                                                lassoPoints.Remove(e.Position);
+                                                            if (lassoLine.Points.Contains(e.Position))
+                                                                lassoPoints.Remove(e.Position);
+                                                            cleanedUpDragPoints.Add(e.Id);
+                                                        }
+                                                        return;
+                                                    }
+
+                                                    switch (state)
+                                                    {
+                                                        case RMState.Start:
+                                                            if (cc.Count == 1 && (lassoId == -1 || lassoId == e.Id) && index == -1 &&
+                                                                selectedList.Count == 0)
+                                                            {
+                                                                lassoPoints.Add(e.Position);
+                                                                if (lassoId == -1)
+                                                                {
+                                                                    startLasso(e);
+                                                                }
+                                                                else
+                                                                {
+                                                                    addToLasso(e.Position);
+                                                                }
+                                                            }
+                                                            break;
+                                                        case RMState.State1:
+                                                            if (cc.Count > 1) break;
+                                                            /* indexdistfuck idf = DistToNearestGestureObject(e.Position); NEED TO FIX
+
+                                                            if (selectedList.Count > 0 && selectedList.Contains(idf.index) &&
+                                                                (idf.distance > ScaleDotToCameraHeight()))
+                                                            {
+                                                                AddWaypointDot(e.Position);
+                                                                if (robots[idf.index].GetColor() == Brushes.Blue)
+                                                                    PulseYellow(idf.index);
+                                                                ChangeState(RMState.State5);
+                                                                break;
+                                                            }
+                                                            else */if ((lassoId == -1 || lassoId == e.Id) && index == -1 &&
+                                                                                 selectedList.Count == 0)
+                                                            {
+                                                                lassoPoints.Add(e.Position);
+                                                                if (lassoId == -1)
+                                                                {
+                                                                    startLasso(e);
+                                                                }
+                                                                else
+                                                                {
+                                                                    addToLasso(e.Position);
+                                                                }
+                                                            }
+
+                                                            break;
+                                                        case RMState.State2:
+                                                            break;
+                                                        case RMState.State3:
+                                                            if (cc.Count == 1 && index == -1)
+                                                            {
+                                                                if (selectedList.Count > 0)
+                                                                {
+                                                                    WPDrag++;
+                                                                    turnedIntoDrag = true;
+                                                                    RM5Drag(e.Position);
+                                                                }
+                                                                else
+                                                                {
+                                                                    RM5End();
+                                                                    ChangeState(RMState.State1);
+                                                                }
+                                                            }
+
+                                                            break;
+                                                        case RMState.State4:
+                                                            break;
+                                                        case RMState.State5:
+                                                            if (cc.Count == 1 && index == -1 )
+                                                            {
+                                                                WPDrag++;
+                                                                AddWaypointDot(e.Position);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (captureVis.ContainsKey(t.Id))
+                                                    {
+                                                        captureVis[t.Id].dot.Stroke = Brushes.Red;
+                                                    }
+                                                }
+                                                
+                                            });
+        }
+
+/*                                                                int n = robotsCD(t);
+                                                        if (n != -1 /*!checkHit(t)*//*)
                                                         {
                                                             ToggleSelected(n, t);
                                                         }
@@ -976,19 +1265,7 @@ namespace DREAMPioneer
                                                                     break;
                                                             }
                                                         }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (captureVis.ContainsKey(t.Id))
-                                                    {
-                                                        captureVis[t.Id].dot.Stroke = Brushes.Red;
-                                                    }
-                                                }
-
-                                                
-                                            });
-        }
+*/
 
         private void Up(Touch e)
         {
@@ -1001,6 +1278,67 @@ namespace DREAMPioneer
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
                                                 captureOldVis.Remove(t.Id);
                                             }
+
+                                            if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
+                                            zoomUp();
+                                            List<int> beforeLasso = new List<int>();
+                                            List<int> newSelection = new List<int>();
+                                            switch (state)
+                                            {
+                                                case RMState.Start:
+                                                    beforeLasso.AddRange(selectedList);
+                                                    FinishLasso(e);
+                                                    
+                                                    newSelection = selectedList.Except(beforeLasso).ToList();
+                                                    if (newSelection.Count > 0)
+                                                    {
+                                                        ChangeState(RMState.State2);//, "CU (lasso done)"
+                                                    }
+
+                                                    break;
+                                                case RMState.State1:
+                                                    beforeLasso.AddRange(selectedList);
+                                                    FinishLasso(e);
+                                                    newSelection = selectedList.Except(beforeLasso).ToList();
+                                                    if (newSelection.Count > 0)
+                                                    {
+                                                        ChangeState(RMState.State2); // "CU (lasso done)"
+                                                    }
+                                                    else
+                                                    {
+                                                        ChangeState(RMState.State2); // "CU"
+
+                                                    }
+
+                                                    break;
+                                                case RMState.State2:
+                                                    break;
+                                                case RMState.State3:
+                                                    if (WPDrag > 0)
+                                                    {
+                                                        WPDrag = 0;
+                                                    }
+
+                                                    ChangeState(RMState.State4); // "CU"
+                                                    break;
+                                                case RMState.State4:
+                                                    break;
+                                                case RMState.State5:
+                                                    if (WPDrag > 0)
+                                                    {
+                                                        turnedIntoDrag = false;
+                                                        WPDrag = 0;
+                                                    }
+
+                                                    if (robotsCD(e) == -1)
+                                                    {
+                                                        ChangeState(RMState.State4);// "CU-G"
+                                                    }
+
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
                                         }
                                         else
                                         {
@@ -1012,8 +1350,6 @@ namespace DREAMPioneer
                                         }
                                     });
         }
-
-
 
         #region LassoUtility
 
@@ -1074,15 +1410,13 @@ namespace DREAMPioneer
                 {
                     for (int i = 0; i < numRobots; i++)
                     {
-                        //if (i == messageHandler.RobotInterventionIndex || OtherClients.Values.Count((c) => c.ManualRobot == i) > 0) continue;
-                        Point p = new Point(robots[i].xPos, robots[i].yPos);
+
+                        Point p = new Point((robots[i].xPos + (translate.X )) , (robots[i].yPos + (translate.Y))  );
                         if (PointInPoly(lassoPoints, p))
                         {
                             if (!selectedList.Exists(item => item == i))
                             {
                                 selectedList.Add(i);
-
-                                // lastAdd = i;
                                 PulseYellow(i);
                             }
                         }
@@ -1129,6 +1463,101 @@ namespace DREAMPioneer
 
         #endregion
 
+        public void HandOutWaypoints()
+        {
+
+        }
+
+
+
+        public void EndState(string s)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                WPDrag = 0;
+                ChangeState(RMState.Start);
+                lock (waypointDots)
+                {
+                    foreach (Ellipse el in waypointDots.Values)
+                        MainCanvas.Children.Remove(el);
+                    waypointDots.Clear();
+                }
+                NoPulse();
+                selectedList.Clear();
+            }));
+        }
+
+
+        private void ZoomDown(Touch e)
+        {
+            //lastupdown = DateTime.Now;
+            if (FREE.Count == 1)
+            {
+                lassoDontThrowAway.AddRange(lassoPoints.Except(lassoDontThrowAway));
+            }
+            if (FREE.Count > 1)
+            {
+                foreach (Touch c in FREE.Values)
+                {
+                    if (!cleanedUpDragPoints.Contains(c.Id))
+                    {
+                        if (lassoPoints.Contains(c.Position))
+                            lassoPoints.Remove(c.Position);
+                        if (lassoLine.Points.Contains(c.Position))
+                            lassoPoints.Remove(c.Position);
+                        cleanedUpDragPoints.Add(c.Id);
+                    }
+                }
+            }
+        }
+
+
+        private void zoomUp()
+        {
+            //lastupdown = DateTime.Now;
+            if (FREE.Count > 1)
+            {
+                lassoPoints = lassoPoints.Intersect(lassoDontThrowAway.AsEnumerable()).ToList();
+            }
+        }
+
+
+        // List<Point> waypointList = new List<Point>();
+        /// <summary>
+        ///   Contains the list of all the waypoints that the robots currently selected will have to go to.
+        /// </summary>
+        /// <summary>
+        ///   The menu that will be shown whenever wanted!.
+        /// </summary>
+        private int WPDrag;
+        private Timer RM5Timer;
+        private Point lastTouch;
+
+        /// <summary>
+        ///   The lasso dont throw away.
+        /// </summary>
+        private List<Point> lassoDontThrowAway = new List<Point>();
+
+        private List<int> cleanedUpDragPoints = new List<int>();
+        /// <summary>
+        ///   The r m 5 drag.
+        /// </summary>
+        /// <param name = "last">
+        ///   The last.
+        /// </param>
+        public void RM5Drag(Point last)
+        {
+            if (state != RMState.State5)
+                ChangeState(RMState.State5);
+            if (timers.IsRunning(ref RM5Timer))
+            {
+                AddWaypointDot(lastTouch);
+                RM5End();
+            }
+
+            lastTouch = last;
+            timers.StartTimer(ref RM5Timer);
+        }
 
         #region Nested type: SlipAndSlide
 
