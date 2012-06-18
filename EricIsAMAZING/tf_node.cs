@@ -152,9 +152,12 @@ namespace Ros_CSharp
 
         public static void link(string source, string target)
         {
-                if (source != target && frames.ContainsKey(target))
+            if ( frames.ContainsKey(target))
+            {
+                if(source != target)
                     link(source, frames[target].child_id.data);
                 currFrames.Add(frames[target]);
+            }
         }
 
     }

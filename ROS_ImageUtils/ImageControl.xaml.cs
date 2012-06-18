@@ -32,8 +32,12 @@ namespace ROS_ImageWPF
     /// <summary>
     ///   A general Surface WPF control for the displaying of bitmaps
     /// </summary>
+    /// 
+    
     public partial class ImageControl : UserControl
     {
+
+        DateTime wtf;
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
@@ -84,6 +88,7 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (imgsub != null)
                 imgsub.shutdown();
+            wtf = DateTime.Now;
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
@@ -126,6 +131,7 @@ namespace ROS_ImageWPF
         /// </param>
         public void UpdateImage(Bitmap bmp)
         {
+
             try
             {
                 // look up the image's dress
@@ -213,6 +219,9 @@ namespace ROS_ImageWPF
         /// </param>
         public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
         {
+
+            //Console.WriteLine(1 / DateTime.Now.Subtract(wtf).TotalSeconds);
+            //wtf = DateTime.Now;
             if (hasHeader)
             {
                 UpdateImage(data);
