@@ -576,16 +576,10 @@ namespace DREAMPioneer
         /// </summary>
         public void NoPulse()
         {
-            for (int i = 0; i < 0/*NUM ROBOTS*/; i++)
+            for (int i = 0; i < numRobots; i++)
             {
-                //if (OtherClients.Values.Count((c) => c.ManualRobot == i) == 0)
                     NoPulse(i);
-                /*else
-                    PulseBlack(i);*/
             }
-
-            /*if (messageHandler.RobotInterventionIndex != -1)
-                PulseGreen(messageHandler.RobotInterventionIndex);*/
         }
 
         /// <summary>
@@ -606,7 +600,7 @@ namespace DREAMPioneer
         /// </summary>
         public void PulseGreen()
         {
-            for (int i = 0; i < 0/*NUM ROBOTS*/; i++)
+            for (int i = 0; i < numRobots; i++)
                 PulseGreen(i);
         }
 
@@ -1410,7 +1404,6 @@ namespace DREAMPioneer
                 {
                     for (int i = 0; i < numRobots; i++)
                     {
-
                         Point p = new Point((robots[i].xPos + (translate.X )) , (robots[i].yPos + (translate.Y))  );
                         if (PointInPoly(lassoPoints, p))
                         {
@@ -1465,10 +1458,15 @@ namespace DREAMPioneer
 
         public void HandOutWaypoints()
         {
-
+            lock (waypointDots)
+            {
+                foreach (Ellipse el in waypointDots.Values)
+                    DotCanvas.Children.Remove(el);
+                waypointDots.Clear();
+            }
+            NoPulse();
+            selectedList.Clear();
         }
-
-
 
         public void EndState(string s)
         {
@@ -1479,7 +1477,7 @@ namespace DREAMPioneer
                 lock (waypointDots)
                 {
                     foreach (Ellipse el in waypointDots.Values)
-                        MainCanvas.Children.Remove(el);
+                       DotCanvas.Children.Remove(el);
                     waypointDots.Clear();
                 }
                 NoPulse();
