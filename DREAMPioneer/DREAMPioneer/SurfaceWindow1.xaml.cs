@@ -638,7 +638,6 @@ namespace DREAMPioneer
         {
             YellowDots.Remove(robots[i]);
             robots[i].SetColor(Brushes.Blue);
-            robots[i].SetOpacity(0.4);
             if (YellowDots.Count == 0)
                 timers.StopTimer(ref YellowTimer);
         }
@@ -655,7 +654,6 @@ namespace DREAMPioneer
             {
                 GreenDots.Remove(robots[i]);
                 robots[i].SetColor(Brushes.Blue);
-                robots[i].SetOpacity(0.4);
                 if (GreenDots.Count == 0)
                     timers.StopTimer(ref GreenTimer);
             }

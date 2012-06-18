@@ -130,7 +130,7 @@ namespace ROS_ImageWPF
         }
         public void SetOpacity(Double opa)
         {
-            robot.Opacity = opa;
+            //robot.Opacity = opa;
         }
 
         private void updateGoal(double x, double y)
