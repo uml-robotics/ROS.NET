@@ -164,17 +164,21 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
+    <ProjectReference Include="..\..\..\multitouch\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
       <Project>{5062C99F-6244-4C4E-873F-46F6CCD15EE0}</Project>
       <Name>EM3MTouchLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\lib_dreamcontroller\DREAMController.csproj">
+    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\DREAMController.csproj">
       <Project>{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}</Project>
       <Name>DREAMController</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\lib_dreamcontroller\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
+    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
       <Project>{A97E4991-EC24-4A9E-9073-CD1E37D50405}</Project>
       <Name>GenericTouchTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\lib_xmlconfigurator\XMLConfigurator.csproj">
+      <Project>{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}</Project>
+      <Name>XMLConfigurator</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\EricIsAMAZING\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>

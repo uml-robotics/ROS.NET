@@ -65,7 +65,6 @@ namespace DREAMPioneer
     /// </summary>
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
-        private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
         private SortedList<int, Touch> captureOldVis = new SortedList<int, Touch>();
@@ -110,10 +109,10 @@ namespace DREAMPioneer
         }
 
         private void rosStart()
-        {            
-            ROS.ROS_MASTER_URI = "http://10.0.2.41:11311";
+        {
+            ROS.ROS_MASTER_URI = "http://10.0.2.182:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-            ROS.ROS_HOSTNAME = "10.0.2.163";
+          //  ROS.ROS_HOSTNAME = "10.0.2.163";
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();            
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 1, y = 0, z = 0 } };
@@ -125,16 +124,19 @@ namespace DREAMPioneer
             width = 0;
             height = 0;
             tf_node.init();
-            lastt = new Touch();
-            scale = new ScaleTransform();
-            translate = new TranslateTransform();
+            Dispatcher.Invoke(new Action(() =>
+            {
+                lastt = new Touch();
+                scale = new ScaleTransform();
+                translate = new TranslateTransform();
 
-            TransformGroup group = new TransformGroup();
-            group.Children.Add(scale);
-            group.Children.Add(translate);
-            SubCanvas.RenderTransform = group;
-            n = DateTime.Now;
-            lastupdown = DateTime.Now;
+                TransformGroup group = new TransformGroup();
+                group.Children.Add(scale);
+                group.Children.Add(translate);
+                SubCanvas.RenderTransform = group;
+                n = DateTime.Now;
+                lastupdown = DateTime.Now;
+            }));
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -162,8 +164,7 @@ namespace DREAMPioneer
                 });
 
 
-
-            rosStart();
+            new Thread(rosStart).Start();
         }
 
         private void JoymgrFireUpEvent(Touch e)
