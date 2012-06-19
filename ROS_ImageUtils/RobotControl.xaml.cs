@@ -32,33 +32,13 @@ using System.Windows.Data;
 
 namespace ROS_ImageWPF
 {
-
-
     public partial class RobotControl : UserControl
     {
-         private float _xPos;
-        private float _yPos;
-        private Thickness pos;
-        public float xPos
-        {
-            get { return _xPos; }
-            set 
-            {
-                _xPos = value;
-                pos.Left = _xPos;
-                this.OnPropertyChanged("pos");
-            }
-        }
-        public float yPos
-        {
-            get { return _yPos; }
-            set 
-            { 
-                _yPos = value;
-                pos.Bottom = _xPos;
-                this.OnPropertyChanged("pos");
-            }
-        } 
+        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side
+        private static float PPM = 0.02868f;
+        private static float MPP = 1.0f / PPM;
+        public float xPos;
+        public float yPos;
 
         public string TopicName
         {
@@ -66,12 +46,10 @@ namespace ROS_ImageWPF
             set { SetValue(TopicProperty, value); }
         }
 
-
-
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<TypedMessage<gm.PolygonStamped>> robotsub;
-
+        private Subscriber<TypedMessage<gm.PoseStamped>> goalsub;
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -114,27 +92,51 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
-            
+
+            goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
+                 Dispatcher.BeginInvoke(new Action(() =>
+                 {
+                     double x = (j.data.pose.position.x  ) * (double)MPP;
+                     double y = (j.data.pose.position.y ) * (double)MPP;
+                     updateGoal(x, y);
+                 })));
+
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    //tf_node tf = new tf_node();
-                    gm.Vector3 vec ;//= new gm.Vector3();
-                    gm.Quaternion quat;// = new gm.Quaternion();
-                    tf_node.transformFrame("/robot_brain_1/base_link","/robot_brain_1/map",out vec,out quat);
+                    gm.Vector3 vec;
+                    gm.Quaternion quat;
+                    tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
                     
-                    //Console.WriteLine(i.data.polygon.points[0].y);
-                    float x = i.data.polygon.points[0].x - 0.19f + (float)vec.x;
-                    float y = i.data.polygon.points[0].y - 0.19f + (float)vec.y;
+                    float x = (i.data.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
+                    float y = (i.data.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
                     updatePOS(x,y);
                 })), "*");
         }
 
         private void updatePOS(float x, float y)
         {
-            robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; //(400,0,0,0);
-            
-        } 
+            if (x + y > 0 || x + y < 0)
+            {
+                xPos = x;
+                yPos = y;
+                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; 
+            }
+        }
+
+        public void SetColor(System.Windows.Media.SolidColorBrush color)
+        {
+            robot.Fill = color;
+        }
+        public void SetOpacity(Double opa)
+        {
+            //robot.Opacity = opa;
+        }
+
+        private void updateGoal(double x, double y)
+        {
+            goal.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+        }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
