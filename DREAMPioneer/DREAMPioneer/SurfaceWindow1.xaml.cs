@@ -274,7 +274,7 @@ namespace DREAMPioneer
 
             joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000); 
             servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
-            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
+            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/scan", 1000, laserCallback);
             initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
             goalSub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal",1000);
             initialPub.publish(pose);
@@ -409,8 +409,6 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => { RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; if (rcp != null)
             
                 rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
-
-            //Console.WriteLine("UPDATING ZE IMAGES!");
         }
 
         public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
@@ -418,12 +416,27 @@ namespace DREAMPioneer
             double[] scan = new double[laserScan.data.ranges.Length];
             for (int i = 0; i < laserScan.data.ranges.Length; i++)
             {
-                scan[i] = laserScan.data.ranges[i];
+                 if (i - 1 >= 0)
+                {
+                    if (laserScan.data.ranges[i] < 0.3f)
+                        scan[i] = scan[i-1];
+                    else
+                        scan[i] = laserScan.data.ranges[i];
+                }
+                else
+                {
+                    if (laserScan.data.ranges[i] < 0.3f)
+                        scan[i] = laserScan.data.ranges[i+1];
+                    else 
+                        scan[i] = laserScan.data.ranges[i];
+                }
             }
+
+            
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
-                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min); 
+                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min);
             }));
         }
 
@@ -689,7 +702,7 @@ namespace DREAMPioneer
         public void moveStuff(Touch e)
         {
             n = DateTime.Now;
-            bool SITSTILL =  (n.Subtract(lastupdown).TotalMilliseconds <= 1);
+            bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
             if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
             {
