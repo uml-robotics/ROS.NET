@@ -35,7 +35,7 @@ namespace ROS_ImageWPF
 {
     public partial class RobotControl : UserControl
     {
-        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side
+        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
         private static float PPM = 0.02868f;
         private static float MPP = 1.0f / PPM;
         public float xPos;
@@ -120,30 +120,23 @@ namespace ROS_ImageWPF
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
-                    
-                    float x = (i.data.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
-                    float y = (i.data.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
-//                    lock (waypoint)
-//                    {
-                        Console.WriteLine(waypoint.Count);
+                    float x = ((float)vec.x ) * MPP;
+                    float y = ( (float)vec.y ) * MPP;
+                    if (waypoint.Count > 0)
+                    {
+                        Point p = new Point(x, y);
+                        if (compare(p, waypoint[0]))
+                        {
+                            waypoint.RemoveAt(0);
+                        }
                         if (waypoint.Count > 0)
                         {
-                            Point p = new Point(x, y);
-                            Console.WriteLine(waypoint.Count);
-                            if (compare(p, waypoint[0]))
-                            {
-                                Console.WriteLine("PUBLISHING ZOMG");
-                                waypoint.RemoveAt(0);
-                                //goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "" } }, pose = new gm.Pose { position = new gm.Point { x = 0, y = 0, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } });
-                            }
-                            else
-                            {
-                                //waypoint.RemoveAt(0);
-                            }
-                            if(waypoint.Count > 0)
-                                goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
+                            //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
+                            goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, 
+                                pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, 
+                                    orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
                         }
-//                    }
+                    }
                     updatePOS(x,y);
                 })), "*");
         }
@@ -155,7 +148,6 @@ namespace ROS_ImageWPF
                 foreach (Point p in wayp)
                 {
                     waypoint.Add(p);
-
                 }
             }
             transx = x;
@@ -170,13 +162,13 @@ namespace ROS_ImageWPF
             {
                 xPos = x;
                 yPos = y;
-                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; 
+                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
             }
         }
 
         private bool compare(Point pos, Point waypoint)
         {
-            if (distance(pos, waypoint) < 100)
+            if (distance(pos, waypoint) < 5)
                 return true;
             else return false;
         }
