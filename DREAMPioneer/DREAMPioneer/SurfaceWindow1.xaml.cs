@@ -96,11 +96,6 @@ namespace DREAMPioneer
 
         private TimerManager timers = new TimerManager();
 
-        /// <summary>
-        ///   The pending is add.
-        /// </summary>
-        private bool pendingIsAdd;
-
         // <summary>
         ///   Should contain all the robots in existance.
         /// </summary>
@@ -121,9 +116,6 @@ namespace DREAMPioneer
         /// </summary>
         private const int TimeDT = 600;
 
-        private double width;
-        private double height;
-        private double oldDist;
         private DateTime n;
         private Touch lastt;
         private static float PPM = 0.02868f;
@@ -254,8 +246,7 @@ namespace DREAMPioneer
                 em3m.UpEvent += Up;
                 
             }
-            width = 1078;
-            height = 212;
+
         }
 
         private void rosStart()
@@ -278,8 +269,6 @@ namespace DREAMPioneer
             goalSub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal",1000);
             initialPub.publish(pose);
             currtime = DateTime.Now;
-            width = 0;
-            height = 0;
             tf_node.init();
             lastt = new Touch();
             scale = new ScaleTransform();
@@ -685,7 +674,6 @@ namespace DREAMPioneer
             {
                 selectedList.Add(robot);
                 PulseYellow(robot);
-                pendingIsAdd = true;
             }
         }
 
@@ -948,7 +936,6 @@ namespace DREAMPioneer
         {
             selectedList.Remove(robot);
             NoPulse(robot);
-            pendingIsAdd = false;
         }
         /// <summary>
         ///   Returns the id of the robot that was responsible for the contact event.

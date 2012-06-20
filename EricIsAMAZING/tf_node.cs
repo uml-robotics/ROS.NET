@@ -31,7 +31,6 @@ namespace Ros_CSharp
         static Dictionary<string, tf_frame> frames;
         static List<tf_frame> currFrames;
         static tf.tfMessage msg;
-        static Thread mythread;
 
         private static NodeHandle tfhandle;
         private static Subscriber<TypedMessage<tf.tfMessage>> tfsub;

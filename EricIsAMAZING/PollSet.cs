@@ -142,7 +142,7 @@ namespace Ros_CSharp
         {
             createNativePollSet();
             int udfscount = ufds.Count;
-            int ret = 0;
+            //int ret = 0;
             for (int i = 0; i < ufds.Count; i++)
             {
                 Socket sock = Socket.Get(ufds[i].sock);
