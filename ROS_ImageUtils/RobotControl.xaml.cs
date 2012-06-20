@@ -38,8 +38,8 @@ namespace ROS_ImageWPF
         //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
         private static float PPM = 0.02868f;
         private static float MPP = 1.0f / PPM;
-        public float xPos;
-        public float yPos;
+        public double xPos;
+        public double yPos;
         public double transx;
         public double transy;
         public double scalex;
@@ -54,11 +54,12 @@ namespace ROS_ImageWPF
             set { SetValue(TopicProperty, value); }
         }
 
+
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<TypedMessage<gm.PolygonStamped>> robotsub;
         private Subscriber<TypedMessage<gm.PoseStamped>> goalsub;
-
+        private Subscriber<TypedMessage<gm.PoseWithCovarianceStamped>> robotposesub;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -104,6 +105,15 @@ namespace ROS_ImageWPF
 
             goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
 
+            robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose",1,(k)=>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    double x = (k.data.pose.pose.position.x) * (double)MPP;
+                    double y = (k.data.pose.pose.position.y) * (double)MPP;
+                    updatePOS(x, y);
+                    
+                })));
+
             goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
@@ -111,6 +121,7 @@ namespace ROS_ImageWPF
                      double y = (j.data.pose.position.y ) * (double)MPP;
                      updateGoal(x, y);
                  })));
+
 
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -136,7 +147,7 @@ namespace ROS_ImageWPF
                                     orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
                         }
                     }
-                    updatePOS(x,y);
+                    //updatePOS(x,y);
                 })), "*");
         }
 
@@ -156,6 +167,16 @@ namespace ROS_ImageWPF
         }
 
         private void updatePOS(float x, float y)
+        {
+            if (x + y > 0 || x + y < 0)
+            {
+                xPos = x;
+                yPos = y;
+                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+            }
+        }
+
+        private void updatePOS(double x, double y)
         {
             if (x + y > 0 || x + y < 0)
             {
