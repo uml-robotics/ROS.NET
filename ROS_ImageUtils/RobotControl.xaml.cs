@@ -40,7 +40,6 @@ namespace ROS_ImageWPF
         private static float MPP = 1.0f / PPM;
         public float xPos;
         public float yPos;
-        int num = 0;
         public double transx;
         public double transy;
         public double scalex;
