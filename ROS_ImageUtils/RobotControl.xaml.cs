@@ -11,7 +11,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Point = System.Drawing.Point;
+//using Point = System.Drawing.Point;
+using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 using d = System.Drawing;
 using Messages;
@@ -39,7 +40,15 @@ namespace ROS_ImageWPF
         private static float MPP = 1.0f / PPM;
         public float xPos;
         public float yPos;
+        int num = 0;
+        public double transx;
+        public double transy;
+        public double scalex;
+        public double scaley;
 
+        public List<Point> waypoint = new List<Point>();
+
+        private Publisher<gm.PoseStamped> goalPub;
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
@@ -92,6 +101,9 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
+            
+
+            goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
 
             goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
                  Dispatcher.BeginInvoke(new Action(() =>
@@ -104,14 +116,52 @@ namespace ROS_ImageWPF
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
                     
                     float x = (i.data.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
                     float y = (i.data.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
+//                    lock (waypoint)
+//                    {
+                        Console.WriteLine(waypoint.Count);
+                        if (waypoint.Count > 0)
+                        {
+                            Point p = new Point(x, y);
+                            Console.WriteLine(waypoint.Count);
+                            if (compare(p, waypoint[0]))
+                            {
+                                Console.WriteLine("PUBLISHING ZOMG");
+                                waypoint.RemoveAt(0);
+                                //goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "" } }, pose = new gm.Pose { position = new gm.Point { x = 0, y = 0, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } });
+                            }
+                            else
+                            {
+                                //waypoint.RemoveAt(0);
+                            }
+                            if(waypoint.Count > 0)
+                                goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
+                        }
+//                    }
                     updatePOS(x,y);
                 })), "*");
+        }
+
+        public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
+        {
+            lock (waypoint)
+            {
+                foreach (Point p in wayp)
+                {
+                    waypoint.Add(p);
+
+                }
+            }
+            transx = x;
+            transy = y;
+            scalex = xx;
+            scaley = yy;
         }
 
         private void updatePOS(float x, float y)
@@ -122,6 +172,24 @@ namespace ROS_ImageWPF
                 yPos = y;
                 robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; 
             }
+        }
+
+        private bool compare(Point pos, Point waypoint)
+        {
+            if (distance(pos, waypoint) < 100)
+                return true;
+            else return false;
+        }
+        public double distance(Point q, Point p)
+        {
+            return distance(q.X + transx, q.Y + transy, p.X , p.Y);
+        }
+
+        public double distance(double x2, double y2, double x1, double y1)
+        {
+            return Math.Sqrt(
+                (x2 - x1) * (x2 - x1)
+                + (y2 - y1) * (y2 - y1));
         }
 
         public void SetColor(System.Windows.Media.SolidColorBrush color)
