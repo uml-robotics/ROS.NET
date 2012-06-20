@@ -387,13 +387,6 @@ namespace DREAMPioneer
                 Close();
         }
 
-        public void robotCallback(TypedMessage<gm.PolygonStamped> poly)
-        {
-            
-            //xPos = (poly.data.polygon.points[0].x /*- 0.19f*/) * 100;
-            //yPos = (poly.data.polygon.points[0].y /*- 0.19f*/) * 100;
-        }
-
         public void videoCallback(TypedMessage<sm.Image> image)
         {
             
@@ -469,7 +462,7 @@ namespace DREAMPioneer
         private int CloseToRobot(Point p)
         {
             double distance;
-            double closestDist = 2 * scale.ScaleX;
+            double closestDist = robots[0].robot.Width / scale.ScaleX;
             int id = -1;
 
             // see below

@@ -12,8 +12,8 @@
     <Grid SnapsToDevicePixels="True" Width="1680" Height="1050" >
         <Canvas Name="RobotCanvas" Width="auto" Height="auto" >
 
-            <Ellipse Name="robot" x:FieldModifier="public" SnapsToDevicePixels="True" Width="15" Height="15" Fill="Blue" />
-            <Rectangle Name="goal" x:FieldModifier="public" SnapsToDevicePixels="True" Width="10" Height="10" Fill="Red" />
+            <Ellipse Name="robot" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Blue" />
+            <Rectangle Name="goal" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Red" />
         </Canvas>
     </Grid>
 </UserControl>
