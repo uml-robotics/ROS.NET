@@ -41,7 +41,7 @@ namespace videoView
             NodeHandle node = new NodeHandle();
             ServiceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>> testclient = node.serviceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>>("/add_two_ints");
             TypedMessage<AddTwoInts.Response> resp = new TypedMessage<AddTwoInts.Response>();
-            if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, "*"))
+            if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, ""))
                 Console.WriteLine(resp.data.sum);
             else
                 Console.WriteLine("figured it wouldn't work on the first go... ballsass");
