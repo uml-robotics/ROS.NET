@@ -34,7 +34,6 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using DREAMController;
 using GenericTouchTypes;
-//using WPFImageHelper;
 using System.IO;
 using System.Threading;
 using Messages;
