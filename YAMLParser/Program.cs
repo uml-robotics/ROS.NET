@@ -155,7 +155,7 @@ namespace YAMLParser
                     }
                     foreach (SrvsFile m in srvFiles)
                     {
-                        output += "\t<Compile Include=\"" + m.Request.Name.Replace('.', '\\') + ".cs\" />\n";
+                        output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
@@ -210,7 +210,6 @@ namespace YAMLParser
                 if (error.Length > 0)
                     Console.WriteLine(error);
                 Console.WriteLine("AMG BUILD FAIL!");
-                Console.ReadLine();
             }
         }
 
@@ -232,7 +231,7 @@ namespace YAMLParser
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\nusing Messages.roscsharp;\n\n";
                         fronthalf += "namespace " + "Messages" + "\n";
                         continue;
                     }
@@ -244,10 +243,16 @@ namespace YAMLParser
             }
             fronthalf +=
                 "\tpublic static class TypeHelper\n\t{\n\t\tpublic static System.Type GetType(string name)\n\t\t{\n\t\t\treturn System.Type.GetType(name, true, true);\n\t\t}\n";
+            List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
+            foreach (SrvsFile sf in srvFiles)
+            {
+                everything.Add(sf.Request);
+                everything.Add(sf.Response);
+            }
 
             GenDict
-                ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, msgsFiles.Count,
-                 (i) => string.Format("{0}", msgsFiles[i].GeneratedDictHelper));
+                ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, everything.Count,
+                 (i) => string.Format("{0}", everything[i].GeneratedDictHelper));
 
             //GenDict("Types", "MsgTypes", "Type", ref fronthalf, 0, types.Count,
             //    (i) => string.Format("MsgTypes.{0}{1}", (namespaces[i].Length > 0 ? (namespaces[i] + "__") : ""), types[i]),
@@ -278,11 +283,13 @@ namespace YAMLParser
             //fronthalf += "\n\t\t};";
             fronthalf += "\t}\n\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
-            for (int i = 0; i < msgsFiles.Count; i++)
+            for (int i = 0; i < everything.Count; i++)
             {
                 fronthalf += "\n\t\t";
-                fronthalf += msgsFiles[i].Name.Replace(".", "__");
-                if (i < msgsFiles.Count - 1)
+                if (everything[i].classname == "Request" || everything[i].classname == "Response")
+                    everything[i].Name += "." + everything[i].classname;
+                fronthalf += everything[i].Name.Replace(".", "__");
+                if (i < everything.Count - 1)
                     fronthalf += ",";
             }
             fronthalf += "\n\t}\n";

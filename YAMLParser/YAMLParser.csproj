@@ -300,6 +300,9 @@
     <Content Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ROS_MESSAGES\ServiceTest\AddTwoInts.srv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\custom_msgs\ptz.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

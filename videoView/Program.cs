@@ -14,6 +14,7 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Text;
+using Messages.ServiceTest;
 
 #endregion
 
@@ -21,12 +22,7 @@ namespace videoView
 {
     public class Program
     {
-        private const string ROS_MASTER_URI = "http://robot-lab8.lan:11311/";
-        //private const string ROS_MASTER_URI = "http://EMVBOX:11311/";
-        //private const string ROS_MASTER_URI = "http://localhost:11311/";
-
         public static WrapperTest.balls BALLS;
-
         public static WrapperTest.TellMeHowAwesomeIAm tellmehowawesomeiam;
 
 
@@ -35,45 +31,21 @@ namespace videoView
             Console.WriteLine(s);
         }
 
-        static DateTime last = DateTime.Now;
-        public static void videoCallback( TypedMessage<sm.Image> image)
-        {
-            DateTime now = DateTime.Now;
-            Console.WriteLine("Got " + image.data.data.Length + " bytes worth of " + image.data.encoding.data + " image " + image.data.width + "x" + image.data.height + "\t @ " + (1 / (now.Subtract(last).TotalMilliseconds / 1000)) + " fps");
-            last = now;
-        }
-
         private static void Main(string[] args)
         {
             tellmehowawesomeiam = thisishowawesomeyouare;
             WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
-            ROS.ROS_MASTER_URI = ROS_MASTER_URI;
-            ROS.Init(args, "ROSsharp_Listener");
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_HOSTNAME = "10.0.2.177";
+            ROS.Init(args, "add_two_ints_client_csharp");
             NodeHandle node = new NodeHandle();
-
-            //Subscriber<> SubscribeOptions = node.subscribe<>();
-
-            //Publisher<String> pub = node.advertise<String>("myTopic", 1000, true);
-
-           // Messages.geometry_msgs.Twist t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
-            //Publisher<gm.Twist> pub = node.advertise<gm.Twist>("rosaria/cmd_vel", 1000, true);
-
-
-            /*Subscriber<TypedMessage<m.Header>> subby = node.subscribe<m.Header>("headercrap", 1000, (h) => {
-                Console.WriteLine(h.data.seq + "\t\t" + h.data.stamp.data.sec + "." + h.data.stamp.data.nsec + "\t\t" + h.data.frame_id.data);
-            });*/
-
-            Subscriber<TypedMessage<sm.Image>> subby = node.subscribe<sm.Image>("/camera/rgb/image_color", 1000, videoCallback);
-
-            while (ROS.ok)
-            {
-                //Subscriber<TypedMessage<arraytest>> arraysub = node.subscribe<arraytest>("arraytests", 1000, arraytestCallback);
-
-                //pub.publish(new m.String("Hello, World!") /*{ data = "Hello, World!" }*/ );
-                // Console.WriteLine(new m.String { data = "Hello, World!" }.data);
-                 Thread.Sleep(500);
-            }            
-
+            ServiceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>> testclient = node.serviceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>>("/add_two_ints");
+            TypedMessage<AddTwoInts.Response> resp = new TypedMessage<AddTwoInts.Response>();
+            if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, "*"))
+                Console.WriteLine(resp.data.sum);
+            else
+                Console.WriteLine("figured it wouldn't work on the first go... ballsass");
+            Console.WriteLine("Going down");
             Console.ReadLine();
         }
     }

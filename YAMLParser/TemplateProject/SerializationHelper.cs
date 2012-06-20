@@ -667,11 +667,19 @@ namespace Messages
         }
 
         public static string Generate(string name, string ns, bool HasHeader, bool meta, List<string> defs,
-                                      List<SingleType> types)
+                                      List<SingleType> types, bool issrv=false)
         {
             string def = defs.Aggregate("", (current, d) => current + (d + "\n"));
             def = def.Trim('\n');
-            string ret = string.Format
+            string ret;
+            if (issrv)
+                ret = string.Format
+                ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, {4},\n@\"{5}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n",
+                 (ns.Length > 0 ? (ns + "__") : ""), name.Replace(".","__"),
+                 "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)",
+                 HasHeader.ToString().ToLower(), meta.ToString().ToLower(), def);
+            else
+                ret = string.Format
                 ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, {4},\n@\"{5}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n",
                  (ns.Length > 0 ? (ns + "__") : ""), name,
                  "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)",
@@ -716,6 +724,8 @@ namespace Messages
 
         public static string Generate(SingleType members)
         {
+            if (members.Name == "Logger")
+                Console.WriteLine("FUCKSTICK");
             return string.Format
                 ("new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
                  members.Name,
@@ -780,8 +790,8 @@ namespace Messages
                 else
                     request.Add(lines[mid]);
             }
-            Request = new MsgsFile(filename, true, request);
-            Response = new MsgsFile(filename, false, response);
+            Request = new MsgsFile(filename, true, request, "\t");
+            Response = new MsgsFile(filename, false, response, "\t");
         }
 
         public void Write(string outdir)
@@ -825,7 +835,7 @@ namespace Messages
                 }
             }
 
-            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t\t{" + Request.GetSrvHalf() + "\n" + Response.GetSrvHalf() + "\n" + "\t\t}" + "\n" +
+            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t{" + Request.GetSrvHalf() + Response.GetSrvHalf() + "\t\t}" + "\n" +
                    backhalf;
             return GUTS;
         }
@@ -847,7 +857,7 @@ namespace Messages
         private string memoizedcontent;
         private bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
-        public MsgsFile(string filename, bool isrequest, List<string> lines)
+        public MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent = "")
         {
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
             filename = filename.Replace(".srv", ".msg");
@@ -867,20 +877,21 @@ namespace Messages
             Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
             Name = Name.TrimStart('.');
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            classname = (isrequest ? "Request" : "Response");
+            classname += (isrequest ? "Request" : "Response");
             Namespace = Namespace.Trim('.');
+            Console.WriteLine("" + Namespace + "." + classname);
             def = new List<string>();
             for (int i = 0; i < lines.Count; i++)
             {
                 def.Add(lines[i]);
                 if (Name.ToLower() == "string")
                     lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i]);
+                SingleType test = KnownStuff.WhatItIs(lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
             }
         }
-        public MsgsFile(string filename)
+        public MsgsFile(string filename, string extraindent="")
         {
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
@@ -921,7 +932,7 @@ namespace Messages
                 def.Add(lines[i]);
                 if (Name.ToLower() == "string")
                     lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i]);
+                SingleType test = KnownStuff.WhatItIs(lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
             }
@@ -929,6 +940,7 @@ namespace Messages
 
         public string GetSrvHalf()
         {
+            string wholename = classname.Replace("Request", ".Request").Replace("Response", ".Response"); ;
             classname = classname.Contains("Request") ? "Request" : "Response";
             if (memoizedcontent == null)
             {
@@ -964,25 +976,26 @@ namespace Messages
                 if (classname.ToLower() == "string")
                 {
                     memoizedcontent +=
-                        "\n\n\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\tpublic String(){ data = \"\"; }\n\n";
+                        "\n\n\t\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\t\tpublic String(){ data = \"\"; }\n\n";
                 }
                 else if (classname == "Time")
                 {
                     memoizedcontent +=
-                        "\n\n\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\tpublic Time() : this(0,0){}\n\n";
+                        "\n\n\t\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\t\tpublic Time() : this(0,0){}\n\n";
                 }
                 else if (classname == "Duration")
                 {
                     memoizedcontent +=
-                        "\n\n\t\t\t\tpublic Duration(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Duration(TimeData s){ data = s; }\n\t\t\t\tpublic Duration() : this(0,0){}\n\n";
+                        "\n\n\t\t\t\t\tpublic Duration(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\t\tpublic Duration(TimeData s){ data = s; }\n\t\t\t\t\tpublic Duration() : this(0,0){}\n\n";
                 }
-                string ns = Namespace.Replace("Messages.", "");
-                if (ns == "Messages")
-                    ns = "";
                 while (memoizedcontent.Contains("DataData"))
                     memoizedcontent = memoizedcontent.Replace("DataData", "Data");
-                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
             }
+            string ns = Namespace.Replace("Messages.", "");
+            if (ns == "Messages")
+                ns = "";
+            GeneratedDictHelper = TypeInfo.Generate(wholename, ns, HasHeader, meta, def, Stuff, true);
+            Console.WriteLine(GeneratedDictHelper);
             GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
                    backhalf;
             return GUTS;
@@ -1070,7 +1083,8 @@ namespace Messages
                     ns = "";
                 while (memoizedcontent.Contains("DataData"))
                     memoizedcontent = memoizedcontent.Replace("DataData", "Data");
-                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
+                if (GeneratedDictHelper == null)
+                    GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
             }
             if (wasnull)
             {
@@ -1120,14 +1134,14 @@ namespace Messages
                                                                       {"duration", "Duration"}
                                                                   };
 
-        public static SingleType WhatItIs(string s)
+        public static SingleType WhatItIs(string s, string extraindent)
         {
             string[] pieces = s.Split('/');
             if (pieces.Length > 1)
             {
                 s = pieces[pieces.Length - 1];
             }
-            return WhatItIs(new SingleType(s));
+            return WhatItIs(new SingleType(s, extraindent));
         }
 
         public static SingleType WhatItIs(SingleType t)
@@ -1158,9 +1172,11 @@ namespace Messages
         public bool meta;
         public string output;
         public string rostype = "";
+        public string lowestindent = "\t\t";
 
-        public SingleType(string s)
+        public SingleType(string s, string extraindent="")
         {
+            lowestindent += extraindent;
             if (s.Contains('[') && s.Contains(']'))
             {
                 string front = "";
@@ -1227,7 +1243,7 @@ namespace Messages
                 {
                     othershit = othershit.Replace("-1", "255");
                 }
-                output = "\t\tpublic " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
+                output = lowestindent+"public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
                 Const = isconst;
                 if (othershit.Contains("="))
                 {
@@ -1241,10 +1257,10 @@ namespace Messages
                 if (length.Length > 0)
                 {
                     IsLiteral = type != "string";
-                    output = "\t\tpublic " + type + "[] " + name + " = new " + type + "[" + length + "];";
+                    output = lowestindent + "public " + type + "[] " + name + " = new " + type + "[" + length + "];";
                 }
                 else
-                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
+                    output = lowestindent + "public " + "" + type + "[] " + name + othershit + ";";
                 if (othershit.Contains('='))
                 {
                     string[] split = othershit.Split('=');
@@ -1291,7 +1307,7 @@ namespace Messages
                 {
                     othershit = othershit.Replace("-1", "255");
                 }
-                output = "\t\tpublic " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
+                output = lowestindent+"public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
                 Const = isconst;
                 if (othershit.Contains("="))
                 {
@@ -1304,10 +1320,10 @@ namespace Messages
                 if (length.Length != 0)
                 {
                     IsLiteral = type != "string";
-                    output = "\t\tpublic " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
+                    output = lowestindent + "public " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
                 }
                 else
-                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
+                    output = lowestindent + "public " + "" + type + "[] " + name + othershit + ";";
                 if (othershit.Contains('='))
                 {
                     string[] split = othershit.Split('=');
