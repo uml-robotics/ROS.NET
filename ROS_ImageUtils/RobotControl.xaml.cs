@@ -44,6 +44,7 @@ namespace ROS_ImageWPF
         public double transy;
         public double scalex;
         public double scaley;
+        public bool sendnext;
 
         public List<Point> waypoint = new List<Point>();
 
@@ -126,7 +127,6 @@ namespace ROS_ImageWPF
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
@@ -138,13 +138,15 @@ namespace ROS_ImageWPF
                         if (compare(p, waypoint[0]))
                         {
                             waypoint.RemoveAt(0);
+                            sendnext = true;
                         }
-                        if (waypoint.Count > 0)
+                        if (waypoint.Count > 0 && sendnext)
                         {
                             //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
                             goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, 
                                 pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, 
                                     orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
+                            sendnext = false;
                         }
                     }
                     //updatePOS(x,y);
@@ -153,6 +155,7 @@ namespace ROS_ImageWPF
 
         public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
         {
+
             lock (waypoint)
             {
                 foreach (Point p in wayp)
@@ -164,6 +167,7 @@ namespace ROS_ImageWPF
             transy = y;
             scalex = xx;
             scaley = yy;
+            sendnext = true;
         }
 
         private void updatePOS(float x, float y)
@@ -188,7 +192,7 @@ namespace ROS_ImageWPF
 
         private bool compare(Point pos, Point waypoint)
         {
-            if (distance(pos, waypoint) < 5)
+            if (distance(pos, waypoint) < 20)
                 return true;
             else return false;
         }
