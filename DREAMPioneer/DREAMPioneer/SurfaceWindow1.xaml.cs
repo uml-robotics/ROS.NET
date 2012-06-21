@@ -686,6 +686,7 @@ namespace DREAMPioneer
             n = DateTime.Now;
             bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
+            Console.WriteLine(joymgr.FreeTouches);
             if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
@@ -696,9 +697,10 @@ namespace DREAMPioneer
                     {
                         if (p.Id != e.Id )
                         {   //- distance(captureOldVis[e.Id], captureOldVis[p.Id])
-                            if (Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 4)
+                            if (scale.ScaleX + Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 2)
                             {
-                                if (scale.ScaleX + ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
+                                Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
+                                if ( ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
                                     scale.ScaleY += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
@@ -1202,9 +1204,11 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
+                                            }
+                                            if (captureOldVis.ContainsKey(t.Id))
+                                            {
                                                 captureOldVis.Remove(t.Id);
                                             }
-
                                             if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
                                             zoomUp();
                                             List<int> beforeLasso = new List<int>();
@@ -1271,7 +1275,11 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                                captureOldVis.Remove(t.Id);
+                                                captureOldVis.Remove(e.Id);
+                                            }
+                                            if(captureOldVis.ContainsKey(e.Id))
+                                            {
+                                                captureOldVis.Remove(e.Id);
                                             }
                                         }
                                     });
