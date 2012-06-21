@@ -1,4 +1,6 @@
-﻿#region USINGZ
+﻿#define NO_SRVS_RIGHT_NOW
+
+#region USINGZ
 
 using System;
 using System.Collections.Generic;
@@ -26,9 +28,11 @@ namespace YAMLParser
                 outputdir = args[0];
             }
             List<string> paths = new List<string>();
-            List<string> pathssrv = new List<string>();
             List<string> std = new List<string>();
+#if !NO_SRVS_RIGHT_NOW
             List<string> srv = new List<string>();
+            List<string> pathssrv = new List<string>();
+#endif
             Console.WriteLine
                 (
                     "Generatinc C# classes for ROS Messages:\n\tstd_msgs\t\t(in namespace \"Messages\")\n\tgeometry_msgs\t\t(in namespace \"Messages.geometry_msgs\")\n\tnav_msgs\t\t(in namespace \"Messages.nav_msgs\")");
@@ -39,16 +43,22 @@ namespace YAMLParser
                 Console.ReadLine();
             }
             std.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.msg"));
+#if !NO_SRVS_RIGHT_NOW
             srv.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.srv"));
+#endif
             foreach (string dir in Directory.GetDirectories("ROS_MESSAGES"))
             {
                 std.AddRange(Directory.GetFiles(dir, "*.msg"));
+#if !NO_SRVS_RIGHT_NOW
                 srv.AddRange(Directory.GetFiles(dir, "*.srv"));
+#endif
             }
             if (args.Length == 1)
             {
                 paths.AddRange(Directory.GetFiles(".", "*.msg"));
+#if !NO_SRVS_RIGHT_NOW
                 pathssrv.AddRange(Directory.GetFiles(".", "*.srv"));
+#endif
             }
             else
             {
@@ -56,16 +66,20 @@ namespace YAMLParser
                 {
                     if (args[i].Contains(".msg"))
                         paths.Add(args[i]);
+#if !NO_SRVS_RIGHT_NOW
                     else if (args[i].Contains(".srv"))
                         pathssrv.Add(args[i]);
+#endif
                     else
                     {
                         string[] paths2 = Directory.GetFiles(args[i], "*.msg");
                         if (paths2.Length != 0)
                             paths.AddRange(paths2);
+#if !NO_SRVS_RIGHT_NOW
                         string[] paths3 = Directory.GetFiles(args[i], "*.srv");
                         if (paths3.Length != 0)
                             pathssrv.AddRange(paths3);
+#endif
                     }
                 }
             }
@@ -73,10 +87,12 @@ namespace YAMLParser
             {
                 msgsFiles.Add(new MsgsFile(path));
             }
+#if !NO_SRVS_RIGHT_NOW
             foreach (string path in srv)
             {
                 srvFiles.Add(new SrvsFile(path));
             }
+#endif
             if (paths.Count > 0)
             {
                 Console.WriteLine("Custom messages being parsed+generated:");
@@ -86,6 +102,7 @@ namespace YAMLParser
                     msgsFiles.Add(new MsgsFile(path));
                 }
             }
+#if !NO_SRVS_RIGHT_NOW
             if (pathssrv.Count > 0)
             {
                 Console.WriteLine("Custom services being parsed+generated:");
@@ -95,7 +112,12 @@ namespace YAMLParser
                     srvFiles.Add(new SrvsFile(path));
                 }
             }
+#endif
+#if !NO_SRVS_RIGHT_NOW
             if (std.Count + paths.Count + srv.Count + pathssrv.Count > 0)
+#else
+            if (std.Count + paths.Count > 0)
+#endif
             {
                 MakeTempDir();
                 GenerateFiles(msgsFiles, srvFiles);
@@ -158,8 +180,10 @@ namespace YAMLParser
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
+                    output += "\t<Compile Include=\"Interfaces.cs\" />\n";
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                     File.Copy("TemplateProject\\SerializationHelper.cs", outputdir + "\\SerializationHelper.cs");
+                    File.Copy("TemplateProject\\Interfaces.cs", outputdir + "\\Interfaces.cs");
                 }
             }
             File.WriteAllText(outputdir + "\\Messages.csproj", output);
@@ -215,34 +239,13 @@ namespace YAMLParser
 
         public new static string ToString()
         {
+            
             if (fronthalf == null)
             {
-                fronthalf = "";
-                backhalf = "";
-                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
-                bool hitvariablehole = false;
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
-                    {
-                        hitvariablehole = true;
-                        continue;
-                    }
-                    if (lines[i].Contains("namespace"))
-                    {
-                        fronthalf +=
-                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\nusing Messages.roscsharp;\n\n";
-                        fronthalf += "namespace " + "Messages" + "\n";
-                        continue;
-                    }
-                    if (!hitvariablehole)
-                        fronthalf += lines[i] + "\n";
-                    else
-                        backhalf += lines[i] + "\n";
-                }
+                fronthalf = "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\nusing Messages.roscsharp;\n\nnamespace Messages\n{\n";
+                backhalf = "\n}";
             }
-            fronthalf +=
-                "\tpublic static class TypeHelper\n\t{\n\t\tpublic static System.Type GetType(string name)\n\t\t{\n\t\t\treturn System.Type.GetType(name, true, true);\n\t\t}\n";
+            
             List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
             foreach (SrvsFile sf in srvFiles)
             {
@@ -250,38 +253,10 @@ namespace YAMLParser
                 everything.Add(sf.Response);
             }
 
-            GenDict
+            /*GenDict
                 ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, everything.Count,
-                 (i) => string.Format("{0}", everything[i].GeneratedDictHelper));
-
-            //GenDict("Types", "MsgTypes", "Type", ref fronthalf, 0, types.Count,
-            //    (i) => string.Format("MsgTypes.{0}{1}", (namespaces[i].Length > 0 ? (namespaces[i] + "__") : ""), types[i]),
-            //    (i) => string.Format("typeof(TypedMessage<{0}{1}>)", (namespaces[i].Length > 0 ? namespaces[i] + "." : ""), types[i]));
-
-
-            //fronthalf += "\n\n\t\t\tpublic static Dictionary<MsgTypes, string> MessageDefinitions = new Dictionary<MsgTypes, string>\n\t\t{";
-            //fronthalf += "\n\t\t\t{MsgTypes.Unknown, \"IDFK\"},\n";
-            //for (int i = 0; i < MessageDefs.Count; i++)
-            //{
-            //    fronthalf += "\t\t\t{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") +  types[i] + ", \n\t\t\t@\"\n";
-            //    foreach (string s in MessageDefs[i])
-            //        fronthalf += "" + s.Trim() + "\n";
-            //    fronthalf += "\t\t\t\"}";
-            //    if (i < MessageDefs.Count - 1)
-            //        fronthalf += ",\n";
-            //}
-            //fronthalf += "};\n";
-            //fronthalf += "\n\t\tpublic static Dictionary<MsgTypes, bool> IsMetaType = new Dictionary<MsgTypes, bool>()\n\t\t{";
-            //fronthalf += "\n\t\t\t{MsgTypes.Unknown, false},";
-            //for (int i = 0; i < types.Count; i++)
-            //{
-            //    fronthalf += "\n\t\t\t";
-            //    fronthalf += "{MsgTypes." + (namespaces[i].Length > 0 ? (namespaces[i] + "__") : "") + types[i] + ", " + ismetas[i].ToString().ToLower() + "}";
-            //    if (i < types.Count - 1)
-            //        fronthalf += ",";
-            //}
-            //fronthalf += "\n\t\t};";
-            fronthalf += "\t}\n\n\tpublic enum MsgTypes\n\t{";
+                 (i) => string.Format("{0}", everything[i].GeneratedDictHelper));*/
+            fronthalf += "\n\tpublic enum MsgTypes\n\t{";
             fronthalf += "\n\t\tUnknown,";
             for (int i = 0; i < everything.Count; i++)
             {

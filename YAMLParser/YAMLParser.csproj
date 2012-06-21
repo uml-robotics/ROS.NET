@@ -64,6 +64,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MessageTypes.cs" />
+    <Compile Include="TemplateProject\Interfaces.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="TemplateProject\Time.cs" />
     <Compile Include="TemplateProject\SerializationHelper.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

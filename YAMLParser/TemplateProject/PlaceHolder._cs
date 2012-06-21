@@ -7,5 +7,36 @@ using System.Runtime.InteropServices;
 
 namespace Messages
 {
-    $$DOLLADOLLABILLS
+	public class $WHATAMI : IRosMessage
+	{
+		$$DOLLADOLLABILLS
+
+		public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)
+		{
+			$NULLCONSTBODY
+		}
+
+		public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)
+		{
+			Deserialize(SERIALIZEDSTUFF);
+		}
+
+$EXTRACONSTRUCTOR		
+
+		public static $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
+		{			
+			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF);
+		}
+
+		public override void Deserialize(byte[] SERIALIZEDSTUFF)
+		{
+            int dontcare = 0;
+            SerializationHelper.deserialize(GetType(), SERIALIZEDSTUFF, out dontcare, false);			
+		}
+
+		public override byte[] Serialize(bool partofsomethingelse = false)
+		{
+			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
+		}
+	}
 }
