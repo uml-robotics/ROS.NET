@@ -115,19 +115,19 @@ namespace Ros_CSharp
                 srv.impl.unadvertise();
         }
 
-        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false) where M : class, new()
+        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false) where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
                                          SubscriberStatusCallback disconnectcallback, bool l = false)
-            where M : class, new()
+            where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
-        public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : class, new()
+        public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
@@ -150,20 +150,20 @@ namespace Ros_CSharp
             return null;
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size,
-                                                        CallbackDelegate<TypedMessage<M>> cb, string thisisveryverybad = null) where M : class, new()
+        public Subscriber<M> subscribe<M>(string topic, int queue_size,
+                                                        CallbackDelegate<M> cb, string thisisveryverybad = null) where M : IRosMessage, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<TypedMessage<M>>(cb), thisisveryverybad);
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad = null)
-            where M : class, new()
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad = null)
+            where M : IRosMessage, new()
         {
             if (_callback == null)
             {
                 _callback = ROS.GlobalCallbackQueue;
             }
-            SubscribeOptions<TypedMessage<M>> ops = new SubscribeOptions<TypedMessage<M>>(topic, queue_size,
+            SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size,
                                                                                           cb.func, thisisveryverybad
                 )
                                                         {callback_queue = _callback};
@@ -171,7 +171,7 @@ namespace Ros_CSharp
             return subscribe(ops);
         }
 
-        public Subscriber<TypedMessage<M>> subscribe<M>(SubscribeOptions<TypedMessage<M>> ops) where M : class, new()
+        public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
@@ -183,14 +183,14 @@ namespace Ros_CSharp
             }
             if (TopicManager.Instance.subscribe(ops))
             {
-                Subscriber<TypedMessage<M>> sub = new Subscriber<TypedMessage<M>>(ops.topic, this, ops.helper);
+                Subscriber<M> sub = new Subscriber<M>(ops.topic, this, ops.helper);
                 lock (collection.mutex)
                 {
                     collection.subscribers.Add(sub);
                 }
                 return sub;
             }
-            return new Subscriber<TypedMessage<M>>();
+            return new Subscriber<M>();
         }
 
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)

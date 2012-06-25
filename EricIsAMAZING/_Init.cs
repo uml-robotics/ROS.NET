@@ -69,24 +69,18 @@ namespace Ros_CSharp
         {
             TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
             uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            Time stamp = new Time(seconds, (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF));
+            Time stamp = new Time(new TimeData(seconds, (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF)));
             return stamp;
         }
 
         public static IRosMessage MakeMessage(MsgTypes type)
         {
-            return
-                (IRosMessage)
-                Activator.CreateInstance(
-                    typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[type].Type.GetGenericArguments()));
+            return IRosMessage.generate(type);
         }
 
         public static IRosMessage MakeMessage(MsgTypes type, byte[] data)
         {
-            IRosMessage msg = MakeMessage(type);
-            if (msg == null)
-                return null;
-            msg.Deserialize(data);
+            IRosMessage msg = IRosMessage.generate(type).Deserialize(data);
             return msg;
         }
 

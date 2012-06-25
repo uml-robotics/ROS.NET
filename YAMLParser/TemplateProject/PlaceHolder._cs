@@ -29,9 +29,22 @@ $EXTRACONSTRUCTOR
 		{			
 			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
 		}
+				
+		[System.Diagnostics.DebuggerStepThrough]
+		public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+		{			
+			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+		}
 
 		[System.Diagnostics.DebuggerStepThrough]
-		public override byte[] Serialize(bool partofsomethingelse = false)
+		public override byte[] Serialize()
+		{
+			return Serialize(false);
+		}
+
+		
+		[System.Diagnostics.DebuggerStepThrough]
+		public override byte[] Serialize(bool partofsomethingelse)
 		{
 			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
 		}

@@ -48,8 +48,8 @@ namespace ROS_ImageWPF
 
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<TypedMessage<gm.PolygonStamped>> robotsub;
-        private Subscriber<TypedMessage<gm.PoseStamped>> goalsub;
+        private Subscriber<gm.PolygonStamped> robotsub;
+        private Subscriber<gm.PoseStamped> goalsub;
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -96,8 +96,8 @@ namespace ROS_ImageWPF
             goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
-                     double x = (j.data.pose.position.x  ) * (double)MPP;
-                     double y = (j.data.pose.position.y ) * (double)MPP;
+                     double x = (j.pose.position.x  ) * (double)MPP;
+                     double y = (j.pose.position.y ) * (double)MPP;
                      updateGoal(x, y);
                  })));
 
@@ -108,8 +108,8 @@ namespace ROS_ImageWPF
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
                     
-                    float x = (i.data.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
-                    float y = (i.data.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
+                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
+                    float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
                     updatePOS(x,y);
                 })), "*");
         }

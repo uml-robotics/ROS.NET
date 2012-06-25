@@ -411,7 +411,7 @@ namespace Ros_CSharp
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
-                    if (nocopy && ti != MsgTypes.Unknown || ser && (msg.type == MsgTypes.Unknown || ti != msg.type))
+                    if (nocopy && ti != MsgTypes.Unknown || ser && (msg.msgtype == MsgTypes.Unknown || ti != msg.msgtype))
                     {
                         IMessageDeserializer deserializer = null;
                         if (cached_deserializers.ContainsKey(ti))
@@ -508,7 +508,7 @@ namespace Ros_CSharp
                                     IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
                                                                                         latch_info.connection_header);
                                     bool was_full = false;
-                                    ((Callback<TypedMessage<M>>) info.subscription_queue).push(info.helper, des, true,
+                                    ((Callback<M>) info.subscription_queue).push(info.helper, des, true,
                                                                                                ref was_full,
                                                                                                latch_info.receipt_time);
                                     if (!was_full)
@@ -568,7 +568,7 @@ namespace Ros_CSharp
         {
             public CallbackInfo()
             {
-                base.helper = new SubscriptionCallbackHelper<M>(new M().type);
+                base.helper = new SubscriptionCallbackHelper<M>(new M().msgtype);
             }
         }
 

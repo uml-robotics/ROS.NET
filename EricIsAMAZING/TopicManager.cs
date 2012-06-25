@@ -133,7 +133,7 @@ namespace Ros_CSharp
             }
         }
 
-        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : class, new()
+        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : IRosMessage, new()
         {
             if (ops.datatype == "*")
                 throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
@@ -201,7 +201,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        public bool subscribe<T>(SubscribeOptions<TypedMessage<T>> ops) where T : class, new()
+        public bool subscribe<T>(SubscribeOptions<T> ops) where T : IRosMessage, new()
         {
             lock (subs_mutex)
             {
@@ -230,7 +230,7 @@ namespace Ros_CSharp
             }
         }
 
-        public Exception subscribeFail<T>(SubscribeOptions<TypedMessage<T>> ops, string reason) where T : class, new()
+        public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : IRosMessage, new()
         {
             return new Exception("Subscribing to topic [" + ops.topic + "] " + reason);
         }
@@ -303,7 +303,7 @@ namespace Ros_CSharp
             }
         }
 
-        public void publish<M>(string topic, TypedMessage<M> message) where M : class, new()
+        public void publish<M>(string topic, M message) where M : IRosMessage, new()
         {
             publish(topic, message.Serialize, message);
         }
@@ -327,9 +327,9 @@ namespace Ros_CSharp
                 {
                     bool nocopy = false;
                     bool serialize = false;
-                    if (msg != null && msg.type != MsgTypes.Unknown)
+                    if (msg != null && msg.msgtype != MsgTypes.Unknown)
                     {
-                        p.getPublishTypes(ref serialize, ref nocopy, ref msg.type);
+                        p.getPublishTypes(ref serialize, ref nocopy, ref msg.msgtype);
                     }
                     else
                         serialize = true;

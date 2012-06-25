@@ -59,7 +59,7 @@ namespace Ros_CSharp
 
         public virtual IRosMessage deserialize()
         {
-            return new IRosMessage {type = MsgTypes.Unknown};
+            return new IRosMessage {msgtype = MsgTypes.Unknown};
         }
     }
 }

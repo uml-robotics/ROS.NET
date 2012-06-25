@@ -34,7 +34,7 @@ namespace Ros_CSharp
         static Thread mythread;
 
         private static NodeHandle tfhandle;
-        private static Subscriber<TypedMessage<tf.tfMessage>> tfsub;
+        private static Subscriber<tf.tfMessage> tfsub;
 
        /*private void waitfunc()
         {
@@ -79,7 +79,7 @@ namespace Ros_CSharp
                   tfsub = tfhandle.subscribe<tf.tfMessage>("/tf", 1, tfCallback);
         }
 
-        private static void tfCallback(TypedMessage<tf.tfMessage> msg)
+        private static void tfCallback(tf.tfMessage msg)
         {
 
             //if (msg.data.transforms.Length > frames.Count)
@@ -87,7 +87,7 @@ namespace Ros_CSharp
             if (frames ==null)
                 frames = new Dictionary<string,tf_frame>();
 
-                foreach (Messages.geometry_msgs.TransformStamped t in msg.data.transforms)
+                foreach (Messages.geometry_msgs.TransformStamped t in msg.transforms)
                 {
                     addFrame(t);
                 }

@@ -23,7 +23,7 @@ namespace Ros_CSharp
                 Console.WriteLine("WTF");
             if (m == MsgTypes.sensor_msgs__LaserScan)
                 Console.WriteLine("WTF");
-            string hashme = TypeHelper.TypeInformation[m].MessageDefinition.Trim('\n', '\t', '\r', ' ');
+            string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
             while (hashme.Contains("\r\n"))
@@ -36,11 +36,8 @@ namespace Ros_CSharp
             foreach (string l in lines) if (l.Contains("=")) haves.Enqueue(l); else havenots.Enqueue(l); hashme = "";            
             while(haves.Count + havenots.Count > 0) hashme += (haves.Count > 0 ? haves.Dequeue() : havenots.Dequeue()) + (haves.Count + havenots.Count >= 1 ? "\n" : "");
 
-            IRosMessage irm =
-                (IRosMessage)
-                Activator.CreateInstance(
-                    typeof (TypedMessage<>).MakeGenericType(TypeHelper.TypeInformation[m].Type.GetGenericArguments()));
-            if (irm.IsMeta)
+            IRosMessage irm = IRosMessage.generate(m);
+            if (irm.IsMetaType)
             {
                 Type t = irm.GetType().GetGenericArguments()[0];
                 FieldInfo[] fields = t.GetFields();
@@ -67,8 +64,6 @@ namespace Ros_CSharp
                     MsgTypes T =
                         (MsgTypes)
                         Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
-                    if (!TypeHelper.TypeInformation.ContainsKey(T))
-                        throw new Exception("SOME SHIT BE FUCKED!");
                     //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
                     Console.WriteLine(FieldType.Name);
                     if ( hashme == "geometry_msgs/TransformStamped[] transforms")

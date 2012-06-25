@@ -161,11 +161,7 @@ namespace Ros_CSharp
             if (success)
             {
                 string ty = "Messages." + parent.datatype.Replace("/", ".");
-                Type t = TypeHelper.GetType(ty);
-                if (t == null)
-                    throw new Exception("string fail!");
-                IRosMessage msg = new IRosMessage();
-                // ROS.MakeMessage((MsgTypes)Enum.Parse(typeof(MsgTypes), parent.datatype.Replace("/", "__")));
+                IRosMessage msg = IRosMessage.generate((MsgTypes)(Enum.Parse(typeof(MsgTypes), ty)));
                 msg.Serialized = new byte[buffer.Length];
                 Array.Copy(buffer, msg.Serialized, buffer.Length);
                 handleMessage(msg, true, false);

@@ -34,15 +34,15 @@ namespace Ros_CSharp
             this.topic = topic;
             this.queue_size = queue_size;
             if (CALL != null)
-                helper = new SubscriptionCallbackHelper<T>(new T().type, CALL);
+                helper = new SubscriptionCallbackHelper<T>(new T().msgtype, CALL);
             else
-                helper = new SubscriptionCallbackHelper<T>(new T().type);
+                helper = new SubscriptionCallbackHelper<T>(new T().msgtype);
 
 
             Type msgtype = typeof (T).GetGenericArguments()[0];
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
-            md5sum = thisisveryverybad == null ? MD5.Sum(new T().type) : thisisveryverybad;
+            md5sum = thisisveryverybad ?? MD5.Sum(new T().msgtype);
         }
     }
 

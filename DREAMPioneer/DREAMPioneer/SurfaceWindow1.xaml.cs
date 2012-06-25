@@ -78,7 +78,7 @@ namespace DREAMPioneer
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
+        private Subscriber<sm.LaserScan> laserSub;
         private Publisher<gm.PoseStamped> goalSub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
@@ -398,19 +398,19 @@ namespace DREAMPioneer
                 Close();
         }
 
-        public void robotCallback(TypedMessage<gm.PolygonStamped> poly)
+        public void robotCallback(gm.PolygonStamped poly)
         {
             
             //xPos = (poly.data.polygon.points[0].x /*- 0.19f*/) * 100;
             //yPos = (poly.data.polygon.points[0].y /*- 0.19f*/) * 100;
         }
 
-        public void videoCallback(TypedMessage<sm.Image> image)
+        public void videoCallback(sm.Image image)
         {
             
             d.Size size = new d.Size();
-            size.Height = (int)image.data.height;
-            size.Width = (int)image.data.width;
+            size.Height = (int)image.height;
+            size.Width = (int)image.width;
 
 //            t1 = t2;
 //            t2 = DateTime.Now;
@@ -419,22 +419,22 @@ namespace DREAMPioneer
 
             Dispatcher.BeginInvoke(new Action(() => { RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; if (rcp != null)
             
-                rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
+                rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
 
             //Console.WriteLine("UPDATING ZE IMAGES!");
         }
 
-        public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
+        public void laserCallback(sm.LaserScan laserScan)
         {
-            double[] scan = new double[laserScan.data.ranges.Length];
-            for (int i = 0; i < laserScan.data.ranges.Length; i++)
+            double[] scan = new double[laserScan.ranges.Length];
+            for (int i = 0; i < laserScan.ranges.Length; i++)
             {
-                scan[i] = laserScan.data.ranges[i];
+                scan[i] = laserScan.ranges[i];
             }
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
-                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min); 
+                    lcp.newRangeCanvas.SetLaser(scan, laserScan.angle_increment, laserScan.angle_min); 
             }));
         }
 
