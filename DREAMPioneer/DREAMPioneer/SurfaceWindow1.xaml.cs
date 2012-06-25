@@ -89,7 +89,7 @@ namespace DREAMPioneer
         private ScaleTransform dotscale;
         private TranslateTransform dottranslate;
 
-        private TypedMessage<String> android;
+        private int android = -1;
 
         private Timer YellowTimer;
         private Timer GreenTimer;
@@ -426,7 +426,15 @@ namespace DREAMPioneer
 
         private void androidCallback(TypedMessage<m.String> str)
         {
-            android = str;
+            //android = str.data.data;
+
+            if (str.data.data == "robot_brain_1")
+                android = 0;
+            else if (str.data.data == "robot_brain_2")
+                android = 1;
+            else if (str.data.data == "robot_brain_3")
+                android = 2;
+            else android = -1;
         }
 
         public void videoCallback(TypedMessage<sm.Image> image)
@@ -717,7 +725,7 @@ namespace DREAMPioneer
         public void AddSelected(int robot, Touch e)
         {
             Console.WriteLine("SELECTING " + robot);
-            if ( /* NEED SPECIAL FOR MANUAL &&*/ !selectedList.Contains(robot))
+            if ( manualRobot != robot && android != robot && !selectedList.Contains(robot))
             {
                 selectedList.Add(robot);
                 PulseYellow(robot);
@@ -744,7 +752,7 @@ namespace DREAMPioneer
                         {   //- distance(captureOldVis[e.Id], captureOldVis[p.Id])
                             if (scale.ScaleX + Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 2)
                             {
-                                Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
+                                //Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
                                 if ( ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
@@ -1255,6 +1263,17 @@ namespace DREAMPioneer
                                             zoomUp();
                                             List<int> beforeLasso = new List<int>();
                                             List<int> newSelection = new List<int>();
+                                            int index = robotsCD(e);
+                                            if(manualRobot == -1 && index != -1)
+                                            {
+                                                if (!timers.IsRunning(ref turboFingering[index]))
+                                                {
+                                                    manualRobot = index;
+                                                    selectedList.RemoveAt(index);
+                                                    PulseGreen(manualRobot);
+                                                }
+                                            }
+
                                             switch (state)
                                             {
                                                 case RMState.Start:
