@@ -395,6 +395,9 @@ namespace DREAMPioneer
         }
 
         public void robotCallback(gm.PolygonStamped poly)
+        {
+
+        }
         public void videoCallback(sm.Image image)
         {
             
@@ -419,17 +422,17 @@ namespace DREAMPioneer
             {
                  if (i - 1 >= 0)
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
+                    if (laserScan.ranges[i] < 0.3f)
                         scan[i] = scan[i-1];
                     else
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
                 else
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
-                        scan[i] = laserScan.data.ranges[i+1];
+                    if (laserScan.ranges[i] < 0.3f)
+                        scan[i] = laserScan.ranges[i+1];
                     else 
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
             }
 

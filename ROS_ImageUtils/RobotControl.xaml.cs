@@ -60,7 +60,7 @@ namespace ROS_ImageWPF
         private static NodeHandle imagehandle;
         private Subscriber<gm.PolygonStamped> robotsub;
         private Subscriber<gm.PoseStamped> goalsub;
-        private Subscriber<TypedMessage<gm.PoseWithCovarianceStamped>> robotposesub;
+        private Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -109,8 +109,8 @@ namespace ROS_ImageWPF
             robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose",1,(k)=>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    double x = (k.data.pose.pose.position.x) * (double)MPP;
-                    double y = (k.data.pose.pose.position.y) * (double)MPP;
+                    double x = (k.pose.pose.position.x) * (double)MPP;
+                    double y = (k.pose.pose.position.y) * (double)MPP;
                     updatePOS(x, y);
                     
                 })));
@@ -130,7 +130,6 @@ namespace ROS_ImageWPF
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
-                    float x = ((float)vec.x ) * MPP;
                     float x = (i.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
                     {
