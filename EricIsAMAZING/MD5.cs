@@ -39,8 +39,9 @@ namespace Ros_CSharp
             IRosMessage irm = IRosMessage.generate(m);
             if (irm.IsMetaType)
             {
-                Type t = irm.GetType().GetGenericArguments()[0];
-                FieldInfo[] fields = t.GetFields();
+                Type t = irm.GetType();
+                object o = irm;
+                FieldInfo[] fields = SerializationHelper.GetFields(t, ref o, out irm); ;
                 for (int i = 0; i < fields.Length; i++)
                 {
                     Type FieldType = fields[i].FieldType;
