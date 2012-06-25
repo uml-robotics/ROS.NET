@@ -42,9 +42,6 @@ namespace ROS_ImageWPF
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<nm.OccupancyGrid> mapsub;
-        float aspectratio = 5.085f;
-
-
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",

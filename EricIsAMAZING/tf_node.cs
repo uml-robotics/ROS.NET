@@ -31,38 +31,9 @@ namespace Ros_CSharp
         static Dictionary<string, tf_frame> frames;
         static List<tf_frame> currFrames;
         static tf.tfMessage msg;
-        static Thread mythread;
 
         private static NodeHandle tfhandle;
         private static Subscriber<tf.tfMessage> tfsub;
-
-       /*private void waitfunc()
-        {
-            while (!ROS.initialized)
-            {
-                Thread.Sleep(100);
-            }
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
-        }
-       
-              private void SetupTopic()
-              {
-
-                  if (tfhandle == null)
-                      tfhandle = new NodeHandle();
-                  if (tfsub != null)
-                      tfsub.shutdown();
-
-                  tfsub = tfhandle.subscribe<tf.tfMessage>("/tf", 1, (n) =>
-                      Dispatcher.BeginInvoke(new Action(() =>
-                      {
-                          int j = 0; 
-                          while (j < msg.transforms.Length)
-                          {
-                              addFrame(msg.transforms[j]);
-                          }
-                      })), "*");
-              }*/
 
         public static void init()
         {
@@ -81,9 +52,6 @@ namespace Ros_CSharp
 
         private static void tfCallback(tf.tfMessage msg)
         {
-
-            //if (msg.data.transforms.Length > frames.Count)
-            //{
             if (frames ==null)
                 frames = new Dictionary<string,tf_frame>();
 
@@ -93,37 +61,20 @@ namespace Ros_CSharp
                 }
         }
 
-  /*      public tf_node()
-        {
-            frames = new Dictionary<string,tf_frame>();
-            //subscribes
-            msg = new tf.tfMessage();
-            init();
-            mythread = new Thread( new ThreadStart( init ));
-        } */
-
         public static void addFrame(gm.TransformStamped t)
         {
             if (!frames.ContainsKey(t.header.frame_id.data))
             {
                 frames.Add(t.header.frame_id.data, new tf_frame(t));
-                //Console.WriteLine(frames.Count + " " + frames[t.header.frame_id.data].frame_id.data);
             }
             else
             {
                 frames[t.header.frame_id.data].transform = t.transform;
-                //Console.WriteLine(frames.Count + " " + frames[t.header.frame_id.data].frame_id.data);
             }
         }
 
-
         public static tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
-            /*if (!frames.ContainsKey(source))
-                throw new Exception("Arrg! Source key does not exist!");
-            if (!frames.ContainsKey(target))
-                throw new Exception("Arrg! Target key does not exist!");*/
-
             try
             {
                 currFrames = new List<tf_frame>();
@@ -136,7 +87,6 @@ namespace Ros_CSharp
 
                 foreach (tf_frame k in currFrames)
                 {
-
                     quat.w += k.transform.rotation.w;
                     quat.x += k.transform.rotation.x;
                     quat.y += k.transform.rotation.y;

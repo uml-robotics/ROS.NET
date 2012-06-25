@@ -11,7 +11,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Point = System.Drawing.Point;
+//using Point = System.Drawing.Point;
+using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 using d = System.Drawing;
 using Messages;
@@ -34,23 +35,32 @@ namespace ROS_ImageWPF
 {
     public partial class RobotControl : UserControl
     {
-        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side
+        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
         private static float PPM = 0.02868f;
         private static float MPP = 1.0f / PPM;
-        public float xPos;
-        public float yPos;
+        public double xPos;
+        public double yPos;
+        public double transx;
+        public double transy;
+        public double scalex;
+        public double scaley;
+        public bool sendnext;
 
+        public List<Point> waypoint = new List<Point>();
+
+        private Publisher<gm.PoseStamped> goalPub;
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
             set { SetValue(TopicProperty, value); }
         }
 
+
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<gm.PolygonStamped> robotsub;
         private Subscriber<gm.PoseStamped> goalsub;
-
+        private Subscriber<TypedMessage<gm.PoseWithCovarianceStamped>> robotposesub;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -92,6 +102,18 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
+            
+
+            goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
+
+            robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose",1,(k)=>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    double x = (k.data.pose.pose.position.x) * (double)MPP;
+                    double y = (k.data.pose.pose.position.y) * (double)MPP;
+                    updatePOS(x, y);
+                    
+                })));
 
             goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
                  Dispatcher.BeginInvoke(new Action(() =>
@@ -101,17 +123,51 @@ namespace ROS_ImageWPF
                      updateGoal(x, y);
                  })));
 
+
             robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
-                    
+                    float x = ((float)vec.x ) * MPP;
                     float x = (i.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
-                    updatePOS(x,y);
+                    {
+                        Point p = new Point(x, y);
+                        if (compare(p, waypoint[0]))
+                        {
+                            waypoint.RemoveAt(0);
+                            sendnext = true;
+                        }
+                        if (waypoint.Count > 0 && sendnext)
+                        {
+                            //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
+                            goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, 
+                                pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, 
+                                    orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
+                            sendnext = false;
+                        }
+                    }
+                    //updatePOS(x,y);
                 })), "*");
+        }
+
+        public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
+        {
+
+            lock (waypoint)
+            {
+                foreach (Point p in wayp)
+                {
+                    waypoint.Add(p);
+                }
+            }
+            transx = x;
+            transy = y;
+            scalex = xx;
+            scaley = yy;
+            sendnext = true;
         }
 
         private void updatePOS(float x, float y)
@@ -120,8 +176,36 @@ namespace ROS_ImageWPF
             {
                 xPos = x;
                 yPos = y;
-                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y }; 
+                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
             }
+        }
+
+        private void updatePOS(double x, double y)
+        {
+            if (x + y > 0 || x + y < 0)
+            {
+                xPos = x;
+                yPos = y;
+                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+            }
+        }
+
+        private bool compare(Point pos, Point waypoint)
+        {
+            if (distance(pos, waypoint) < 20)
+                return true;
+            else return false;
+        }
+        public double distance(Point q, Point p)
+        {
+            return distance(q.X + transx, q.Y + transy, p.X , p.Y);
+        }
+
+        public double distance(double x2, double y2, double x1, double y1)
+        {
+            return Math.Sqrt(
+                (x2 - x1) * (x2 - x1)
+                + (y2 - y1) * (y2 - y1));
         }
 
         public void SetColor(System.Windows.Media.SolidColorBrush color)

@@ -34,7 +34,6 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using DREAMController;
 using GenericTouchTypes;
-//using WPFImageHelper;
 using System.IO;
 using System.Threading;
 using Messages;
@@ -79,7 +78,7 @@ namespace DREAMPioneer
         private Publisher<cm.ptz> servosPub;
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
         private Subscriber<sm.LaserScan> laserSub;
-        private Publisher<gm.PoseStamped> goalSub;
+        private Publisher<gm.PoseStamped> goalPub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
 
@@ -95,11 +94,6 @@ namespace DREAMPioneer
         int numRobots;
 
         private TimerManager timers = new TimerManager();
-
-        /// <summary>
-        ///   The pending is add.
-        /// </summary>
-        private bool pendingIsAdd;
 
         // <summary>
         ///   Should contain all the robots in existance.
@@ -121,9 +115,6 @@ namespace DREAMPioneer
         /// </summary>
         private const int TimeDT = 600;
 
-        private double width;
-        private double height;
-        private double oldDist;
         private DateTime n;
         private Touch lastt;
         private static float PPM = 0.02868f;
@@ -254,8 +245,7 @@ namespace DREAMPioneer
                 em3m.UpEvent += Up;
                 
             }
-            width = 1078;
-            height = 212;
+
         }
 
         private void rosStart()
@@ -264,22 +254,25 @@ namespace DREAMPioneer
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
           //  ROS.ROS_HOSTNAME = "10.0.2.163";
             ROS.Init(new string[0], "DREAM");
-            node = new NodeHandle();            
-            t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
-            goal = new gm.PoseStamped();
-            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
-            pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 }, position = new gm.Point { x = .65, y = 3.3, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
+            node = new NodeHandle();
 
-            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000);
+            t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
+            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000); 
+
+            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
             servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
-            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/filtered_scan", 1000, laserCallback);
-            initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
-            goalSub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal",1000);
-            initialPub.publish(pose);
+            
+            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
+            goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 1000);
+
+            //Deprecated until I make an abstraction in ros that can publish transforms
+            //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
+            //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
+
+            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/scan", 1000, laserCallback);
+            
+            
             currtime = DateTime.Now;
-            width = 0;
-            height = 0;
             tf_node.init();
             Dispatcher.Invoke(new Action(() =>
             {
@@ -299,12 +292,15 @@ namespace DREAMPioneer
             DotCanvas.RenderTransform = dotgroup;
                 n = DateTime.Now;
                 lastupdown = DateTime.Now;
+            for (int i = 0; i < 1; i++)
+            {
                 AddRobot();
+            }
 
             timers.StartTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
             timers.StartTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
             timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
-            numRobots = 1;
+            
 
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
@@ -399,12 +395,6 @@ namespace DREAMPioneer
         }
 
         public void robotCallback(gm.PolygonStamped poly)
-        {
-            
-            //xPos = (poly.data.polygon.points[0].x /*- 0.19f*/) * 100;
-            //yPos = (poly.data.polygon.points[0].y /*- 0.19f*/) * 100;
-        }
-
         public void videoCallback(sm.Image image)
         {
             
@@ -420,8 +410,6 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => { RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; if (rcp != null)
             
                 rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
-
-            //Console.WriteLine("UPDATING ZE IMAGES!");
         }
 
         public void laserCallback(sm.LaserScan laserScan)
@@ -429,8 +417,23 @@ namespace DREAMPioneer
             double[] scan = new double[laserScan.ranges.Length];
             for (int i = 0; i < laserScan.ranges.Length; i++)
             {
-                scan[i] = laserScan.ranges[i];
+                 if (i - 1 >= 0)
+                {
+                    if (laserScan.data.ranges[i] < 0.3f)
+                        scan[i] = scan[i-1];
+                    else
+                        scan[i] = laserScan.data.ranges[i];
+                }
+                else
+                {
+                    if (laserScan.data.ranges[i] < 0.3f)
+                        scan[i] = laserScan.data.ranges[i+1];
+                    else 
+                        scan[i] = laserScan.data.ranges[i];
+                }
             }
+
+            
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
@@ -441,6 +444,7 @@ namespace DREAMPioneer
         public void AddRobot()
         {
             robots.Add(0,robot_brain_1);
+            numRobots += 1;
         }
 
         public double distance(Touch c1, Touch c2)
@@ -467,16 +471,9 @@ namespace DREAMPioneer
         private int CloseToRobot(Point p)
         {
             double distance;
-            double closestDist = 2 * scale.ScaleX;
+            double closestDist = robots[0].robot.Width / scale.ScaleX;
             int id = -1;
 
-            // see below
-            //if (NumRobotsOnScreen() > 2)
-            //{
-            //    return -1;
-            //}
-
-            // Go through all the robots.
             for (int i = 0; i < robots.Count; i++)
             {
                 distance = Math.Sqrt(Math.Pow(p.X - robots[i].xPos, 2) + Math.Pow(p.Y - robots[i].yPos, 2));
@@ -691,7 +688,6 @@ namespace DREAMPioneer
             {
                 selectedList.Add(robot);
                 PulseYellow(robot);
-                pendingIsAdd = true;
             }
         }
 
@@ -700,8 +696,9 @@ namespace DREAMPioneer
         public void moveStuff(Touch e)
         {
             n = DateTime.Now;
-            bool SITSTILL =  (n.Subtract(lastupdown).TotalMilliseconds <= 1);
+            bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
+            Console.WriteLine(joymgr.FreeTouches);
             if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
@@ -712,9 +709,10 @@ namespace DREAMPioneer
                     {
                         if (p.Id != e.Id )
                         {   //- distance(captureOldVis[e.Id], captureOldVis[p.Id])
-                            if (Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 4)
+                            if (scale.ScaleX + Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 2)
                             {
-                                if (scale.ScaleX + ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
+                                Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
+                                if ( ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
                                     scale.ScaleY += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
@@ -810,7 +808,6 @@ namespace DREAMPioneer
         /// </summary>
         private void RM5DoIt()
         {
-            //Log(String.Format("Waypoint - {0} - Single Tap", FormatTargets(selectedList.ToArray())));
             AddWaypointDot(lastTouch);
             HandOutWaypoints();
             EndState("CD-G (t<dt && d<dD)");
@@ -892,31 +889,6 @@ namespace DREAMPioneer
             waypointDots.Clear();
         }
 
-
-        //REPLACED::Will delete eventually.
-        private bool checkHit(Touch e)
-        {
-            //Console.WriteLine(e.Position.X+" " +e.Position.Y);
-
-            Double xPos = ((e.Position.X - translate.X ) / scale.ScaleX * PPM);
-            Double yPos = ((e.Position.Y - translate.Y) / scale.ScaleY * PPM);
-
-            Double _xPos = ((robot_brain_1.xPos ) * PPM);
-            Double _yPos = ((robot_brain_1.yPos) * PPM);
-
-            
-            Console.WriteLine(Math.Round(2 * xPos) +" " + Math.Round(2 * _xPos));
-            if ( Math.Round( 2 * xPos) == Math.Round(2 * _xPos) && Math.Round(2 * yPos) == Math.Round(2 * _yPos))
-            {
-                //robotSelected();
-            }
-            else if (e.Position.X ==2 && e.Position.Y ==2)
-            {
-                
-            }
-            return true;
-        }
-
         private Timer[] turboFingering = new Timer[40];
 
         /// <summary>
@@ -957,7 +929,6 @@ namespace DREAMPioneer
         {
             selectedList.Remove(robot);
             NoPulse(robot);
-            pendingIsAdd = false;
         }
         /// <summary>
         ///   Returns the id of the robot that was responsible for the contact event.
@@ -1236,40 +1207,6 @@ namespace DREAMPioneer
                                             });
         }
 
-/*                                                                int n = robotsCD(t);
-                                                        if (n != -1 /*!checkHit(t)*//*)
-                                                        {
-                                                            ToggleSelected(n, t);
-                                                        }
-                                                        else
-                                                        {
-                                                            switch (captureOldVis.Count)
-                                                            {
-                                                                case 1:
-                                                                    if (selectedList.Count > 0)
-                                                                    {
-                                                                        AddWaypointDot(new Point(t.Position.X, t.Position.Y));
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        lassoPoints.Add(e.Position);
-                                                                        if (lassoId == -1)
-                                                                        {
-                                                                            startLasso(e);
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            addToLasso(e.Position);
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                                default:
-                                                                    moveStuff(t);
-                                                                    break;
-                                                            }
-                                                        }
-*/
-
         private void Up(Touch e)
         {
             joymgr.Up(e, (t, b) =>
@@ -1279,9 +1216,11 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
+                                            }
+                                            if (captureOldVis.ContainsKey(t.Id))
+                                            {
                                                 captureOldVis.Remove(t.Id);
                                             }
-
                                             if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
                                             zoomUp();
                                             List<int> beforeLasso = new List<int>();
@@ -1348,7 +1287,11 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                                captureOldVis.Remove(t.Id);
+                                                captureOldVis.Remove(e.Id);
+                                            }
+                                            if(captureOldVis.ContainsKey(e.Id))
+                                            {
+                                                captureOldVis.Remove(e.Id);
                                             }
                                         }
                                     });
@@ -1469,10 +1412,49 @@ namespace DREAMPioneer
         {
             lock (waypointDots)
             {
+                if (waypointDots.Count == 0)
+                    return;
+            }
+
+            List<Point> waypoints;
+            int[] sel;
+            Action asyncWaypointStuff;
+            double newx;
+            double newy;
+            double newwx;
+            double newwy;
+            lock (translate)
+            {
+                newx = translate.X;
+                newy = translate.Y;
+            }
+            lock (scale)
+            {
+                newwx = scale.ScaleX;
+                newwy = scale.ScaleY;
+            }
+            lock (waypointDots)
+            {
+                waypoints = waypointDots.Keys.ToList();
+                sel = selectedList.ToArray();
+                asyncWaypointStuff = new Action(() =>
+                {
+                    foreach (int k in sel)
+                    {
+                        robots[k].updateWaypoints(waypoints, newx, newy, newwx, newwy);
+                    }
+                });
                 foreach (Ellipse el in waypointDots.Values)
                     DotCanvas.Children.Remove(el);
                 waypointDots.Clear();
             }
+            asyncWaypointStuff.BeginInvoke((iar) =>
+            {
+                waypoints.Clear();
+                waypoints = null;
+                sel = null;
+            }, null);
+
             NoPulse();
             selectedList.Clear();
         }
@@ -1497,7 +1479,6 @@ namespace DREAMPioneer
 
         private void ZoomDown(Touch e)
         {
-            //lastupdown = DateTime.Now;
             if (FREE.Count == 1)
             {
                 lassoDontThrowAway.AddRange(lassoPoints.Except(lassoDontThrowAway));
@@ -1518,10 +1499,8 @@ namespace DREAMPioneer
             }
         }
 
-
         private void zoomUp()
         {
-            //lastupdown = DateTime.Now;
             if (FREE.Count > 1)
             {
                 lassoPoints = lassoPoints.Intersect(lassoDontThrowAway.AsEnumerable()).ToList();
