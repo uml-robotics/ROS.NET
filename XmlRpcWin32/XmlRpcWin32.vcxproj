@@ -64,6 +64,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>"$(VSInstallDir)VC\bin\dumpbin.exe" /EXPORTS "$(TargetPath)"</Command>

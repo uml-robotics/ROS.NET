@@ -93,6 +93,18 @@ namespace DREAMPioneer
         private Timer GreenTimer;
         TimeData checkHold;
         int numRobots;
+        int manualRobot;
+        int androidRobot;
+
+        string manualVelocity;
+        string manualCamera;
+        string manualPTZ;
+        string manualLaser;
+
+        string androidVelocity;
+        string androidCamera;
+        string androidPTZ;
+        string androidLaser;
 
         private TimerManager timers = new TimerManager();
 
@@ -250,19 +262,23 @@ namespace DREAMPioneer
         }
 
         private void rosStart()
-        {            
+        {
             ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = "10.0.2.82";
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();
+            manualCamera = "fakecam";
+            manualLaser = "fakelaser";
+            manualPTZ = "fakeptz";
+            manualVelocity = "fakevel";
 
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
-            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000); 
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
 
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
-            servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
-            
+            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
+
             goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
             goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 1000);
 
@@ -270,27 +286,31 @@ namespace DREAMPioneer
             //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
             //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/scan", 1000, laserCallback);
-            
-            
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
             currtime = DateTime.Now;
             tf_node.init();
             lastt = new Touch();
-            scale = new ScaleTransform();
-            translate = new TranslateTransform();
-            dotscale = new ScaleTransform();
-            dottranslate = new TranslateTransform();
 
-            TransformGroup group = new TransformGroup();
-            TransformGroup dotgroup = new TransformGroup();
-            group.Children.Add(scale);
-            group.Children.Add(translate);
-            dotgroup.Children.Add(dotscale);
-            dotgroup.Children.Add(dottranslate);
-            SubCanvas.RenderTransform = group;
-            DotCanvas.RenderTransform = dotgroup;
+            Dispatcher.BeginInvoke( new ThreadStart(()=>
+                {
+                    TransformGroup group = new TransformGroup();
+                    TransformGroup dotgroup = new TransformGroup();
+                    scale = new ScaleTransform();
+                    translate = new TranslateTransform();
+                    dotscale = new ScaleTransform();
+                    dottranslate = new TranslateTransform();
+                    group.Children.Add(scale);
+                    group.Children.Add(translate);
+                    dotgroup.Children.Add(dotscale);
+                    dotgroup.Children.Add(dottranslate);
+                    SubCanvas.RenderTransform = group;
+                    DotCanvas.RenderTransform = dotgroup;
+                }));
+            
             n = DateTime.Now;
             lastupdown = DateTime.Now;
+            manualRobot = -1;
+            androidRobot = -1;
             for (int i = 0; i < 1; i++)
             {
                 AddRobot();
@@ -303,7 +323,6 @@ namespace DREAMPioneer
 
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
-
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -332,7 +351,26 @@ namespace DREAMPioneer
 
 
 
-            rosStart();
+            new Thread(rosStart).Start();
+        }
+
+        private void changeManual(string vel, string ptz, string cam, string urg)
+        {
+            manualVelocity = vel;
+            manualPTZ = ptz;
+            manualCamera = cam;
+            manualLaser = urg;
+
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
+
+            Dispatcher.BeginInvoke(new Action(() => {
+                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
+                if (rcp != null)
+                    rcp.webcam.TopicName = manualCamera;
+            }));
+
         }
 
         private void JoymgrFireUpEvent(Touch e)
@@ -385,7 +423,6 @@ namespace DREAMPioneer
 
         public void videoCallback(TypedMessage<sm.Image> image)
         {
-            
             d.Size size = new d.Size();
             size.Height = (int)image.data.height;
             size.Width = (int)image.data.width;
@@ -686,7 +723,7 @@ namespace DREAMPioneer
             n = DateTime.Now;
             bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
-            Console.WriteLine(joymgr.FreeTouches);
+            //Console.WriteLine(joymgr.FreeTouches);
             if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
@@ -713,14 +750,13 @@ namespace DREAMPioneer
                     }
                     if (!zoomed)
                     {
+                        changeManual("/robot_brain_1/virtual_joystick/cmd_vel", "/robot_brain_1/servos", "/robot_brain_1/camera/rgb/image_color", "/robot_brain_1/scan");
                         translate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
                         translate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
                         dottranslate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
                         dottranslate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
                     }
                 }
-
-
             } if (captureOldVis.ContainsKey(e.Id))
                 captureOldVis.Remove(e.Id);
             captureOldVis.Add(e.Id, e);
@@ -931,8 +967,6 @@ namespace DREAMPioneer
         {
             Double xPos = ((e.Position.X - translate.X) / scale.ScaleX * PPM);
             Double yPos = ((e.Position.Y - translate.Y) / scale.ScaleY * PPM);
-
-
             for (int i = 0; i < numRobots; i++)
             {
                 if (!robots.ContainsKey(i)) continue;
@@ -944,7 +978,6 @@ namespace DREAMPioneer
                     return i;
                 }
             }
-
             return -1;
         }
 
@@ -963,6 +996,7 @@ namespace DREAMPioneer
                                         {
                                             if (!b)
                                             {
+                                                
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
                                                 if(!captureOldVis.ContainsKey(e.Id) )
                                                     captureOldVis.Add(t.Id, e);
