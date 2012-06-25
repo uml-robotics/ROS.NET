@@ -13,10 +13,10 @@ namespace Messages
 {
     public class IRosMessage
     {
-        public static Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>> constructors = new Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>>();
+        internal static Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>> constructors = new Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>>();
         private static Dictionary<MsgTypes, Type> _typeregistry = new Dictionary<MsgTypes, Type>();
         [DebuggerStepThrough]
-        public static IRosMessage generate(MsgTypes t)
+        internal static IRosMessage generate(MsgTypes t)
         {
             if (constructors.ContainsKey(t))
                 return constructors[t].Invoke(t);
@@ -41,13 +41,13 @@ namespace Messages
                 throw new Exception("OH NOES IRosMessage.generate is borked!");
         }
 
-        public bool HasHeader;
-        public bool IsMetaType;
-        public string MessageDefinition;
-        public byte[] Serialized;
-        public IDictionary connection_header;
-        public MsgTypes msgtype;
-        public Dictionary<string, MsgFieldInfo> Fields;
+        internal bool HasHeader;
+        internal bool IsMetaType;
+        internal string MessageDefinition;
+        internal byte[] Serialized;
+        internal IDictionary connection_header;
+        internal MsgTypes msgtype;
+        internal Dictionary<string, MsgFieldInfo> Fields;
 
         public IRosMessage()
             : this(MsgTypes.Unknown, "", false, false, null)

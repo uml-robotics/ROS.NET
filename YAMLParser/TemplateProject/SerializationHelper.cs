@@ -103,7 +103,7 @@ namespace Messages
             return b;
         }
 
-        public static T Deserialize<T>(byte[] bytes, Type container = null) where T : IRosMessage, new()
+        internal static T Deserialize<T>(byte[] bytes, Type container = null) where T : IRosMessage, new()
         {
             int dontcare = 0;
             return _deserialize(typeof(T), container, bytes, out dontcare, IsSizeKnown(typeof(T), true)) as T;
@@ -384,7 +384,7 @@ namespace Messages
             return thestructure;
         }
 
-        public static byte[] Serialize<T>(T outgoing, bool partofsomethingelse = false)
+        internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse = false)
             where T : IRosMessage, new()
         {
             if (outgoing.Serialized != null)
