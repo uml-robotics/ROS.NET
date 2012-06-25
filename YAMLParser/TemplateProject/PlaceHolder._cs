@@ -11,29 +11,26 @@ namespace Messages
 	{
 		$$DOLLADOLLABILLS
 
+		[System.Diagnostics.DebuggerStepThrough]
 		public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)
 		{
 			$NULLCONSTBODY
 		}
 
+		[System.Diagnostics.DebuggerStepThrough]
 		public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)
 		{
-			Deserialize(SERIALIZEDSTUFF);
 		}
 
 $EXTRACONSTRUCTOR		
 
+		[System.Diagnostics.DebuggerStepThrough]
 		public static $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
 		{			
-			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF);
+			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
 		}
 
-		public override void Deserialize(byte[] SERIALIZEDSTUFF)
-		{
-            int dontcare = 0;
-            SerializationHelper.deserialize(GetType(), SERIALIZEDSTUFF, out dontcare, false);			
-		}
-
+		[System.Diagnostics.DebuggerStepThrough]
 		public override byte[] Serialize(bool partofsomethingelse = false)
 		{
 			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);

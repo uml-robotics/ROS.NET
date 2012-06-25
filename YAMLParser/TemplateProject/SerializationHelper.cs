@@ -74,11 +74,10 @@ namespace Messages
         //[DebuggerStepThrough]
         public static bool IsSizeKnown(Type T, bool recurse)
         {
-            Console.WriteLine(T.FullName);
             if (T == typeof(string) || T == typeof(String) ||
                 (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
                 return false;
-            if (T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
+            if (T.FullName.Contains("System.") || T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
                 return true;
             if (!recurse || !T.FullName.Contains("Messages")) return true;
             FieldInfo[] infos = T.GetFields();
@@ -104,17 +103,17 @@ namespace Messages
             return b;
         }
 
-        public static T Deserialize<T>(byte[] bytes) where T : IRosMessage, new()
+        public static T Deserialize<T>(byte[] bytes, Type container = null) where T : IRosMessage, new()
         {
             int dontcare = 0;
-            return _deserialize(typeof(T), bytes, out dontcare, IsSizeKnown(typeof(T), true)) as T;
+            return _deserialize(typeof(T), container, bytes, out dontcare, IsSizeKnown(typeof(T), true)) as T;
         }
 
-        public static object deserialize(Type T, byte[] bytes, out int amountread, bool sizeknown = false)
+        public static object deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
         {
             try
             {
-                return _deserialize(T, bytes, out amountread, sizeknown);
+                return _deserialize(T, container, bytes, out amountread, sizeknown);
             }
             catch (Exception e)
             {
@@ -145,9 +144,35 @@ namespace Messages
             throw new Exception("GetFields is weaksauce");
         }
 
-        private static object _deserialize(Type T, byte[] bytes, out int amountread, bool sizeknown = false)
+        private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
         {
+            bool isoutermost = false;
+            int totallength = -1;
+            if (container == null)
+            {
+                totallength = BitConverter.ToInt32(bytes, 0);
+                isoutermost = true;
+                byte[] allbutlength = new byte[bytes.Length - 4];
+                Array.Copy(bytes, 4, allbutlength, 0, allbutlength.Length);
+                int read = 0;
+                object o = _deserialize(T, T, allbutlength, out read);
+                if (o == null || read != totallength)
+                {
+                    throw new Exception("FAILSERIALIZATION");
+                }
+                amountread = bytes.Length;
+                return o;
+            }
             object thestructure = null;
+            if (T.FullName.Contains("System.") && !T.IsCOMObject && !T.IsArray && T != typeof(string))
+            {
+                thestructure = new object();
+                int size = Marshal.SizeOf(T);
+                IntPtr mem = Marshal.AllocHGlobal(size);
+                Marshal.Copy(bytes, 0, mem, size);
+                amountread = size;
+                return Marshal.PtrToStructure(mem, T);
+            }
             IRosMessage MSG;
             int startingpos = 0, currpos = 0;
             MsgTypes MT = MsgTypes.Unknown;
@@ -221,7 +246,7 @@ namespace Messages
                                 byte[] piece = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                 int len = 0;
-                                object obj = _deserialize(type, piece, out len,
+                                object obj = _deserialize(realtype, T, piece, out len,
                                                          IsSizeKnown(realtype, true));
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
@@ -276,7 +301,7 @@ namespace Messages
                                 byte[] chunk = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, chunk, 0, chunk.Length);
                                 int len = 0;
-                                object data = _deserialize(TT, chunk, out len,
+                                object data = _deserialize(TT, T, chunk, out len,
                                                           IsSizeKnown(TT, false));
                                 val.SetValue(data, i);
                                 currpos += len;
@@ -312,11 +337,10 @@ namespace Messages
                                 byte[] smallerpiece = new byte[len + 4];
                                 Array.Copy(bytes, currpos, smallerpiece, 0, smallerpiece.Length);
                                 int dontcare = 0;
-                                object data = _deserialize(t, smallerpiece, out dontcare, false);
+                                msg = _deserialize(t, T, smallerpiece, out dontcare, false) as IRosMessage;
                                 if (dontcare != len + 4)
                                     throw new Exception("WTF?!");
-                                msg.GetType().GetField("data").SetValue(msg, data);
-                                infos[currinfo].SetValue(thestructure, data);
+                                infos[currinfo].SetValue(thestructure, msg);
                                 currpos += len + 4;
                             }
                             else // if (!knownsize)
@@ -324,9 +348,8 @@ namespace Messages
                                 byte[] smallerpiece = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, smallerpiece, 0, smallerpiece.Length);
                                 int len = 0;
-                                _deserialize(t, smallerpiece, out len, knownsize);
-                                object data = msg.GetType().GetField("data").GetValue(msg);
-                                infos[currinfo].SetValue(thestructure, data);
+                                msg = _deserialize(t, T, smallerpiece, out len, knownsize) as IRosMessage;
+                                infos[currinfo].SetValue(thestructure, msg);
                                 currpos += len;
                             }
                             /*else
@@ -370,9 +393,8 @@ namespace Messages
             return outgoing.Serialized;
         }
 
-        public static byte[] SlapChop(Type T, object t, bool partofsomethingelse = false)
+        public static byte[] SlapChop(Type T, object instance, bool partofsomethingelse = false)
         {
-            object instance = null;
             IRosMessage msg;
             FieldInfo[] infos = GetFields(T, ref instance, out msg);
             Queue<byte[]> chunks = new Queue<byte[]>();
@@ -382,20 +404,20 @@ namespace Messages
             {
                 if (info.Name.Contains("(")) continue;
                 if (msg.Fields[info.Name].IsConst) continue;
-                if (info.GetValue(t) == null)
+                if (info.GetValue(instance) == null)
                 {
                     if (info.FieldType == typeof(string))
-                        info.SetValue(t, "");
+                        info.SetValue(instance, "");
                     else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
-                        info.SetValue(t, 0);
+                        info.SetValue(instance, 0);
                     else
-                        info.SetValue(t, Activator.CreateInstance(info.FieldType));
+                        info.SetValue(instance, Activator.CreateInstance(info.FieldType));
                 }
                 bool knownpiecelength = msg.Fields[info.Name].Type !=
                                         typeof(string) &&
                                         (!msg.Fields[info.Name].IsArray ||
                                          msg.Fields[info.Name].Length != -1);
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref knownpiecelength);
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(instance), ref knownpiecelength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -429,7 +451,7 @@ namespace Messages
                         msg = val as IRosMessage;
                     else
                         msg = (IRosMessage)Activator.CreateInstance(T);
-                    thischunk = IRosMessage.generate(msg.msgtype).Serialize(true);
+                    thischunk = msg.Serialize(true);
                 }
                 else if (T == typeof(byte) || T.HasElementType && T.GetElementType() == typeof(byte))
                 {
@@ -1174,8 +1196,8 @@ namespace Messages
 
     public struct TimeData
     {
-        public uint nsec;
         public uint sec;
+        public uint nsec;
 
         public TimeData(uint s, uint ns)
         {

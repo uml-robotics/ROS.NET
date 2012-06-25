@@ -11,17 +11,11 @@ using String = Messages.std_msgs.String;
 
 namespace Messages
 {
-    public interface IIRosMessage
-    {
-        void Deserialize(byte[] SERIALIZEDSTUFF);
-        byte[] Serialize(bool partofsomethingelse = false);
-
-    }
-
-    public class IRosMessage : IIRosMessage
+    public class IRosMessage
     {
         public static Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>> constructors = new Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>>();
         private static Dictionary<MsgTypes, Type> _typeregistry = new Dictionary<MsgTypes, Type>();
+        [DebuggerStepThrough]
         public static IRosMessage generate(MsgTypes t)
         {
             if (constructors.ContainsKey(t))
@@ -72,13 +66,8 @@ namespace Messages
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
-            Deserialize(SERIALIZEDSTUFF);
-        }
-
-        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
-        {
             int dontcare = 0;
-            SerializationHelper.deserialize(GetType(), SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+            SerializationHelper.deserialize(GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
         }
 
         public virtual byte[] Serialize(bool partofsomethingelse = false)
