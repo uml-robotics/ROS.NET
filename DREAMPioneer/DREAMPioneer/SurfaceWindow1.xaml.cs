@@ -80,6 +80,7 @@ namespace DREAMPioneer
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
         private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         private Publisher<gm.PoseStamped> goalPub;
+        private Subscriber<TypedMessage<m.String>> androidSub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
 
@@ -88,6 +89,7 @@ namespace DREAMPioneer
         private ScaleTransform dotscale;
         private TranslateTransform dottranslate;
 
+        private TypedMessage<String> android;
 
         private Timer YellowTimer;
         private Timer GreenTimer;
@@ -287,6 +289,7 @@ namespace DREAMPioneer
             //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
             laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
+            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl",1000,androidCallback);
             currtime = DateTime.Now;
             tf_node.init();
             lastt = new Touch();
@@ -419,6 +422,11 @@ namespace DREAMPioneer
         {
             if (e.Key == Key.Q && e.KeyStates == KeyStates.Down)
                 Close();
+        }
+
+        private void androidCallback(TypedMessage<m.String> str)
+        {
+            android = str;
         }
 
         public void videoCallback(TypedMessage<sm.Image> image)
