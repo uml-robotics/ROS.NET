@@ -13,8 +13,8 @@ namespace ServiceTester
     class Program
     {
         static NodeHandle nh;
-         static Publisher<Messages.std_msgs.String> easy;
-         static Subscriber<Messages.std_msgs.String> easyecho;
+         static Publisher<Messages.sensor_msgs.Image> easy;
+         static Subscriber<Messages.sensor_msgs.Image> easyecho;
         static void Main(string[] args)
         {
             ROS.ROS_MASTER_URI = "http://192.13.37.129";
@@ -22,12 +22,19 @@ namespace ServiceTester
             ROS.ROS_IP = "192.13.37.1";
             ROS.Init(args, "tester");
             nh = new NodeHandle();
-           easy = nh.advertise<Messages.std_msgs.String>("/easy", 1000);
-            easyecho = nh.subscribe<Messages.std_msgs.String>("/easyecho", 1000, (s) => Console.WriteLine("RECEIVED ECHO: " + s.data));
+            easy = nh.advertise<Messages.sensor_msgs.Image>("/easy", 1000);
+            easyecho = nh.subscribe<Messages.sensor_msgs.Image>("/easyecho", 1000, (s) => Console.WriteLine("RECEIVED ECHO: " + s.width+"x"+s.height));
             int cnt = 0;
+            Messages.sensor_msgs.Image img = new Messages.sensor_msgs.Image { header = new Header(), width = 10, height = 10 };
+            img.encoding = new Messages.std_msgs.String("WTF8");
+            img.header.seq = 0;
             while (true)
             {
-                easy.publish(new Messages.std_msgs.String("BLADAZAAAAMMMNNN   " + (cnt++)));
+                img.header.stamp = ROS.GetTime();
+                img.data = new byte[300];
+                new Random().NextBytes(img.data);
+                easy.publish(img);
+                img.header.seq++;
                 ROS.spinOnce();
                 Thread.Sleep(10);
             }
