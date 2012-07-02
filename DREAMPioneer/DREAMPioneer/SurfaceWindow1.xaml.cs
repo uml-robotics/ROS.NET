@@ -63,6 +63,7 @@ namespace DREAMPioneer
     /// </summary>
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
+        private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
         private SortedList<int, Touch> captureOldVis = new SortedList<int, Touch>();
@@ -77,8 +78,9 @@ namespace DREAMPioneer
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        private Subscriber<sm.LaserScan> laserSub;
+        private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
         private Publisher<gm.PoseStamped> goalPub;
+        private Subscriber<TypedMessage<m.String>> androidSub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
 
@@ -87,11 +89,24 @@ namespace DREAMPioneer
         private ScaleTransform dotscale;
         private TranslateTransform dottranslate;
 
+        private int android = -1;
 
         private Timer YellowTimer;
         private Timer GreenTimer;
         TimeData checkHold;
         int numRobots;
+        int manualRobot;
+        int androidRobot;
+
+        string manualVelocity;
+        string manualCamera;
+        string manualPTZ;
+        string manualLaser;
+
+        string androidVelocity;
+        string androidCamera;
+        string androidPTZ;
+        string androidLaser;
 
         private TimerManager timers = new TimerManager();
 
@@ -250,18 +265,22 @@ namespace DREAMPioneer
 
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.182:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-          //  ROS.ROS_HOSTNAME = "10.0.2.163";
+            ROS.ROS_HOSTNAME = "10.0.2.82";
             ROS.Init(new string[0], "DREAM");
             node = new NodeHandle();
+            manualCamera = "fakecam";
+            manualLaser = "fakelaser";
+            manualPTZ = "fakeptz";
+            manualVelocity = "fakevel";
 
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
-            joyPub = node.advertise<gm.Twist>("/robot_brain_1/virtual_joystick/cmd_vel", 1000); 
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
 
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS };
-            servosPub = node.advertise<cm.ptz>("/robot_brain_1/servos", 1000);
-            
+            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
+
             goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
             goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 1000);
 
@@ -269,29 +288,32 @@ namespace DREAMPioneer
             //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
             //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-            laserSub = node.subscribe<sm.LaserScan>("/robot_brain_1/scan", 1000, laserCallback);
-            
-            
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
+            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl",1000,androidCallback);
             currtime = DateTime.Now;
             tf_node.init();
-            Dispatcher.Invoke(new Action(() =>
-            {
-                lastt = new Touch();
-                scale = new ScaleTransform();
-                translate = new TranslateTransform();
-            dotscale = new ScaleTransform();
-            dottranslate = new TranslateTransform();
+            lastt = new Touch();
 
-                TransformGroup group = new TransformGroup();
-            TransformGroup dotgroup = new TransformGroup();
-                group.Children.Add(scale);
-                group.Children.Add(translate);
-            dotgroup.Children.Add(dotscale);
-            dotgroup.Children.Add(dottranslate);
-                SubCanvas.RenderTransform = group;
-            DotCanvas.RenderTransform = dotgroup;
-                n = DateTime.Now;
-                lastupdown = DateTime.Now;
+            Dispatcher.BeginInvoke( new ThreadStart(()=>
+                {
+                    TransformGroup group = new TransformGroup();
+                    TransformGroup dotgroup = new TransformGroup();
+                    scale = new ScaleTransform();
+                    translate = new TranslateTransform();
+                    dotscale = new ScaleTransform();
+                    dottranslate = new TranslateTransform();
+                    group.Children.Add(scale);
+                    group.Children.Add(translate);
+                    dotgroup.Children.Add(dotscale);
+                    dotgroup.Children.Add(dottranslate);
+                    SubCanvas.RenderTransform = group;
+                    DotCanvas.RenderTransform = dotgroup;
+                }));
+            
+            n = DateTime.Now;
+            lastupdown = DateTime.Now;
+            manualRobot = -1;
+            androidRobot = -1;
             for (int i = 0; i < 1; i++)
             {
                 AddRobot();
@@ -304,18 +326,6 @@ namespace DREAMPioneer
 
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
-
-
-            }));
-
-            timers.StartTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
-            timers.StartTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
-            timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
-            numRobots = 1;
-
-            for (int i = 0; i < turboFingering.Length; i++)
-                timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
-
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -343,7 +353,27 @@ namespace DREAMPioneer
                 });
 
 
+
             new Thread(rosStart).Start();
+        }
+
+        private void changeManual(string vel, string ptz, string cam, string urg)
+        {
+            manualVelocity = vel;
+            manualPTZ = ptz;
+            manualCamera = cam;
+            manualLaser = urg;
+
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
+
+            Dispatcher.BeginInvoke(new Action(() => {
+                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
+                if (rcp != null)
+                    rcp.webcam.TopicName = manualCamera;
+            }));
+
         }
 
         private void JoymgrFireUpEvent(Touch e)
@@ -394,16 +424,24 @@ namespace DREAMPioneer
                 Close();
         }
 
-        public void robotCallback(gm.PolygonStamped poly)
+        private void androidCallback(TypedMessage<m.String> str)
         {
+            //android = str.data.data;
 
+            if (str.data.data == "robot_brain_1")
+                android = 0;
+            else if (str.data.data == "robot_brain_2")
+                android = 1;
+            else if (str.data.data == "robot_brain_3")
+                android = 2;
+            else android = -1;
         }
-        public void videoCallback(sm.Image image)
+
+        public void videoCallback(TypedMessage<sm.Image> image)
         {
-            
             d.Size size = new d.Size();
-            size.Height = (int)image.height;
-            size.Width = (int)image.width;
+            size.Height = (int)image.data.height;
+            size.Width = (int)image.data.width;
 
 //            t1 = t2;
 //            t2 = DateTime.Now;
@@ -412,27 +450,27 @@ namespace DREAMPioneer
 
             Dispatcher.BeginInvoke(new Action(() => { RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; if (rcp != null)
             
-                rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
+                rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
         }
 
-        public void laserCallback(sm.LaserScan laserScan)
+        public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
         {
-            double[] scan = new double[laserScan.ranges.Length];
-            for (int i = 0; i < laserScan.ranges.Length; i++)
+            double[] scan = new double[laserScan.data.ranges.Length];
+            for (int i = 0; i < laserScan.data.ranges.Length; i++)
             {
                  if (i - 1 >= 0)
                 {
-                    if (laserScan.ranges[i] < 0.3f)
+                    if (laserScan.data.ranges[i] < 0.3f)
                         scan[i] = scan[i-1];
                     else
-                        scan[i] = laserScan.ranges[i];
+                        scan[i] = laserScan.data.ranges[i];
                 }
                 else
                 {
-                    if (laserScan.ranges[i] < 0.3f)
-                        scan[i] = laserScan.ranges[i+1];
+                    if (laserScan.data.ranges[i] < 0.3f)
+                        scan[i] = laserScan.data.ranges[i+1];
                     else 
-                        scan[i] = laserScan.ranges[i];
+                        scan[i] = laserScan.data.ranges[i];
                 }
             }
 
@@ -440,7 +478,7 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
-                    lcp.newRangeCanvas.SetLaser(scan, laserScan.angle_increment, laserScan.angle_min); 
+                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min);
             }));
         }
 
@@ -687,7 +725,7 @@ namespace DREAMPioneer
         public void AddSelected(int robot, Touch e)
         {
             Console.WriteLine("SELECTING " + robot);
-            if ( /* NEED SPECIAL FOR MANUAL &&*/ !selectedList.Contains(robot))
+            if ( manualRobot != robot && android != robot && !selectedList.Contains(robot))
             {
                 selectedList.Add(robot);
                 PulseYellow(robot);
@@ -701,7 +739,7 @@ namespace DREAMPioneer
             n = DateTime.Now;
             bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
-            Console.WriteLine(joymgr.FreeTouches);
+            //Console.WriteLine(joymgr.FreeTouches);
             if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
@@ -714,7 +752,7 @@ namespace DREAMPioneer
                         {   //- distance(captureOldVis[e.Id], captureOldVis[p.Id])
                             if (scale.ScaleX + Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 2)
                             {
-                                Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
+                                //Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
                                 if ( ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
@@ -728,14 +766,13 @@ namespace DREAMPioneer
                     }
                     if (!zoomed)
                     {
+                        changeManual("/robot_brain_1/virtual_joystick/cmd_vel", "/robot_brain_1/servos", "/robot_brain_1/camera/rgb/image_color", "/robot_brain_1/scan");
                         translate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
                         translate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
                         dottranslate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
                         dottranslate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
                     }
                 }
-
-
             } if (captureOldVis.ContainsKey(e.Id))
                 captureOldVis.Remove(e.Id);
             captureOldVis.Add(e.Id, e);
@@ -946,8 +983,6 @@ namespace DREAMPioneer
         {
             Double xPos = ((e.Position.X - translate.X) / scale.ScaleX * PPM);
             Double yPos = ((e.Position.Y - translate.Y) / scale.ScaleY * PPM);
-
-
             for (int i = 0; i < numRobots; i++)
             {
                 if (!robots.ContainsKey(i)) continue;
@@ -959,7 +994,6 @@ namespace DREAMPioneer
                     return i;
                 }
             }
-
             return -1;
         }
 
@@ -978,6 +1012,7 @@ namespace DREAMPioneer
                                         {
                                             if (!b)
                                             {
+                                                
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
                                                 if(!captureOldVis.ContainsKey(e.Id) )
                                                     captureOldVis.Add(t.Id, e);
@@ -1228,6 +1263,17 @@ namespace DREAMPioneer
                                             zoomUp();
                                             List<int> beforeLasso = new List<int>();
                                             List<int> newSelection = new List<int>();
+                                            int index = robotsCD(e);
+                                            if(manualRobot == -1 && index != -1)
+                                            {
+                                                if (!timers.IsRunning(ref turboFingering[index]))
+                                                {
+                                                    manualRobot = index;
+                                                    selectedList.RemoveAt(index);
+                                                    PulseGreen(manualRobot);
+                                                }
+                                            }
+
                                             switch (state)
                                             {
                                                 case RMState.Start:

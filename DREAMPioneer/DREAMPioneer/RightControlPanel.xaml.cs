@@ -48,6 +48,11 @@ namespace DREAMPioneer
             InitializeComponent();
         }
 
+        public void SetTopic(string name)
+        {
+            webcam.TopicName = name;
+        }
+
         /// <summary>
         ///   The dolayout.
         /// </summary>

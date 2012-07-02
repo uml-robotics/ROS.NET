@@ -102,6 +102,7 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
+            updatePOS(30.0 * MPP, 3.3 * MPP);
             
 
             goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
@@ -191,7 +192,7 @@ namespace ROS_ImageWPF
 
         private bool compare(Point pos, Point waypoint)
         {
-            if (distance(pos, waypoint) < 20)
+            if (distance(pos, waypoint) < 40)
                 return true;
             else return false;
         }
