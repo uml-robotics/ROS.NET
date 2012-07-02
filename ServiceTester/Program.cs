@@ -23,11 +23,12 @@ namespace ServiceTester
             ROS.Init(args, "tester");
             nh = new NodeHandle();
             easy = nh.advertise<Messages.sensor_msgs.Image>("/easy", 1000);
-            easyecho = nh.subscribe<Messages.sensor_msgs.Image>("/easyecho", 1000, (s) => Console.WriteLine("RECEIVED ECHO: " + s.width+"x"+s.height));
+            easyecho = nh.subscribe<Messages.sensor_msgs.Image>("/easyecho", 1000, ImgDump);
             int cnt = 0;
             Messages.sensor_msgs.Image img = new Messages.sensor_msgs.Image { header = new Header(), width = 10, height = 10 };
             img.encoding = new Messages.std_msgs.String("WTF8");
             img.header.seq = 0;
+            img.header.frame_id = new Messages.std_msgs.String("muhfuckaville");
             while (true)
             {
                 img.header.stamp = ROS.GetTime();
@@ -42,6 +43,23 @@ namespace ServiceTester
             easyecho = null;
             nh.shutdown();
             ROS.shutdown();
+        }
+
+        public static void ImgDump(Messages.sensor_msgs.Image img)
+        {
+            StringBuilder sb = new StringBuilder("Image:");
+            sb.AppendLine("data: #");
+            foreach (byte b in img.data)
+                sb.Append("" + b + " ");
+            sb.AppendLine("header: " + HeaderDump(img.header));
+            sb.AppendLine("width: " + img.width);
+            sb.AppendLine("height: " + img.height);
+            sb.AppendLine("encoding: " + img.encoding.data);
+            Console.WriteLine(sb);
+        }
+        public static string HeaderDump(Messages.std_msgs.Header h)
+        {
+            return "\n\tframe_id: " + h.frame_id.data + "\n\tstamp: " + h.stamp.data.sec + "." + h.stamp.data.nsec + "\n\tseq: " + h.seq;
         }
 
 

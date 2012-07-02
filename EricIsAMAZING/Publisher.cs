@@ -26,6 +26,7 @@ namespace Ros_CSharp
 
         public void publish(M msg)
         {
+            msg.Serialized = null;
             TopicManager.Instance.publish(topic, msg);
         }
     }
