@@ -29,7 +29,7 @@ namespace Ros_CSharp
                 uri = ROS.ROS_MASTER_URI;
             if (!network.splitURI(uri, ref host, ref port))
             {
-                throw new Exception("FAILED TO SPLIT THE URI!");
+                port = 11311;
             }
         }
 

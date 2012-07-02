@@ -2,19 +2,50 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Messages.std_msgs;
+using Ros_CSharp;
+using Messages;
+using Header = Messages.std_msgs.Header;
 
 namespace ServiceTester
 {
     class Program
     {
+        static NodeHandle nh;
+         static Publisher<Messages.std_msgs.String> easy;
+         static Subscriber<Messages.std_msgs.String> easyecho;
         static void Main(string[] args)
         {
-            SerDeser test = new SerDeser();
-            test.Easy();
-            test.Medium();
-            test.Hard();
-            Console.ReadLine();
+            ROS.ROS_MASTER_URI = "http://192.13.37.129";
+            ROS.ROS_HOSTNAME = "192.13.37.1";
+            ROS.ROS_IP = "192.13.37.1";
+            ROS.Init(args, "tester");
+            nh = new NodeHandle();
+           easy = nh.advertise<Messages.std_msgs.String>("/easy", 1000);
+            easyecho = nh.subscribe<Messages.std_msgs.String>("/easyecho", 1000, (s) => Console.WriteLine("RECEIVED ECHO: " + s.data));
+            int cnt = 0;
+            while (true)
+            {
+                easy.publish(new Messages.std_msgs.String("BLADAZAAAAMMMNNN   " + (cnt++)));
+                ROS.spinOnce();
+                Thread.Sleep(10);
+            }
+            easy = null;
+            easyecho = null;
+            nh.shutdown();
+            ROS.shutdown();
+        }
+
+
+        public static string dumphex(byte[] test)
+        {
+            if (test == null)
+                return "dumphex(null)";
+            string s = "";
+            for (int i = 0; i < test.Length; i++)
+                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
+            return s;
         }
     }
 
@@ -26,10 +57,9 @@ namespace ServiceTester
             Messages.std_msgs.String outbound = new Messages.std_msgs.String(original);
             byte[] serd = outbound.Serialize();
             Messages.std_msgs.String inbound = Messages.std_msgs.String.DeserializeIt(serd);
+            if (inbound == null || inbound.data == null) { Console.WriteLine("NULL"); return; }
             if (original == inbound.data)
                 Console.WriteLine("YAY!");
-            else
-                Console.WriteLine("GAY!");
         }
         public void Medium()
         {
@@ -41,6 +71,7 @@ namespace ServiceTester
                 };
             byte[] serd = header.Serialize();
             Header inbound = Header.DeserializeIt(serd);
+            if (inbound == null) { Console.WriteLine("NULL"); return; }
             Console.WriteLine(HeaderDump(header));
             Console.WriteLine(HeaderDump(inbound));
             if (header == inbound)
@@ -67,6 +98,7 @@ namespace ServiceTester
             };
             byte[] serd = original.Serialize();
             Messages.sensor_msgs.Image inbound = Messages.sensor_msgs.Image.DeserializeIt(serd);
+            if (inbound == null || inbound.data == null) { Console.WriteLine("NULL"); return; }
             ImgDump(original);
             ImgDump(inbound);
             if (original == inbound)

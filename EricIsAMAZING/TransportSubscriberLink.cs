@@ -50,6 +50,7 @@ namespace Ros_CSharp
             if (!header.Values.Contains("topic"))
             {
                 string msg = "Header from subscriber did not have the required element: topic";
+                EDB.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
                 return false;
             }
@@ -60,6 +61,7 @@ namespace Ros_CSharp
             {
                 string msg = "received a connection for a nonexistent topic [" + topic + "] from [" +
                              connection.transport + "] [" + client_callerid + "]";
+                EDB.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
                 return false;
             }
@@ -67,6 +69,7 @@ namespace Ros_CSharp
             if (!pt.validateHeader(header, ref error_message))
             {
                 connection.sendHeaderError(ref error_message);
+                EDB.WriteLine(error_message);
                 return false;
             }
             destination_caller_id = client_callerid;
@@ -82,6 +85,7 @@ namespace Ros_CSharp
             m["latching"] = pt.Latch;
             connection.writeHeader(m, onHeaderWritten);
             pt.addSubscriberLink(this);
+            EDB.WriteLine("Exchanged headers for " + topic);
             return true;
         }
 
