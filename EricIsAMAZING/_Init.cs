@@ -80,7 +80,8 @@ namespace Ros_CSharp
 
         public static IRosMessage MakeMessage(MsgTypes type, byte[] data)
         {
-            IRosMessage msg = IRosMessage.generate(type).Deserialize(data);
+            IRosMessage msg = IRosMessage.generate(type);
+            msg.Deserialize(data);
             return msg;
         }
 

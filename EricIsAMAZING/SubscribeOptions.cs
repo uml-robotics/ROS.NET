@@ -39,12 +39,12 @@ namespace Ros_CSharp
                 helper = new SubscriptionCallbackHelper<T>(new T().msgtype);
 
 
-            Type msgtype = typeof (T).GetGenericArguments()[0];
+            Type msgtype = new T().GetType();
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
             md5sum = thisisveryverybad ?? MD5.Sum(new T().msgtype);
         }
     }
 
-    public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();
+    public delegate void CallbackDelegate<in T>(T argument) where T : IRosMessage, new();
 }

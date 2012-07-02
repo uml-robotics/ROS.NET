@@ -160,7 +160,7 @@ namespace Ros_CSharp
             if (!success && conn == null || conn != connection) return;
             if (success)
             {
-                string ty = "Messages." + parent.datatype.Replace("/", ".");
+                string ty = parent.datatype.Replace("/", "__");
                 IRosMessage msg = IRosMessage.generate((MsgTypes)(Enum.Parse(typeof(MsgTypes), ty)));
                 msg.Serialized = new byte[buffer.Length];
                 Array.Copy(buffer, msg.Serialized, buffer.Length);

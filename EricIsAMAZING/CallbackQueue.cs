@@ -217,7 +217,7 @@ namespace Ros_CSharp
                 if (!enabled) return CallOneResult.Disabled;
                 if (callbacks.Count == 0 && timeout != 0)
                 {
-                    sem.WaitOne(timeout);
+                    sem.WaitOne(timeout, false);
                 }
                 if (callbacks.Count == 0) return CallOneResult.Empty;
                 if (!enabled) return CallOneResult.Disabled;
@@ -238,6 +238,7 @@ namespace Ros_CSharp
                         break;
                     }
                 }
+                sem.Release();
                 if (cbinfo.Callback == null) return CallOneResult.TryAgain;
                 calling++;
             }
@@ -328,6 +329,7 @@ namespace Ros_CSharp
                 tail.next = new CallbackInfoNode(info);
                 tail = tail.next;
             }
+            if (current == null) current = head;
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)

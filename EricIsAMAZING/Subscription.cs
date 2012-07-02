@@ -411,7 +411,7 @@ namespace Ros_CSharp
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
-                    if (nocopy && ti != MsgTypes.Unknown || ser && (msg.msgtype == MsgTypes.Unknown || ti != msg.msgtype))
+                    if (nocopy || ser)
                     {
                         IMessageDeserializer deserializer = null;
                         if (cached_deserializers.ContainsKey(ti))

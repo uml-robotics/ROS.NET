@@ -31,11 +31,9 @@ namespace Ros_CSharp
                     {
                         if (b.Serialized != null)
                         {
-                            T t = new T();
-                            //byte[] FUCKNOZZLE = new byte[b.Serialized.Length];
-                            //Array.Copy(b.Serialized, FUCKNOZZLE, FUCKNOZZLE.Length);
-                            t.Deserialize(b.Serialized);
-                            f(t);
+                            IRosMessage t = new T();
+                            t = t.Deserialize(b.Serialized);
+                            f(t as T);
                         }
                         else
                             f(b as T);
@@ -43,7 +41,7 @@ namespace Ros_CSharp
             //func = f;
         }
 
-        public event CallbackDelegate<T> Event;
+        public new event CallbackDelegate<T> Event;
 
         public bool _full;
         public bool allow_concurrent_callbacks;

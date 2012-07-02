@@ -252,8 +252,7 @@ namespace Ros_CSharp
 
             if (HasHeader)
             {
-                object val = msg.GetType().GetField("data").GetValue(msg);
-                object h = val.GetType().GetField("header").GetValue(val);
+                object h = msg.GetType().GetField("header").GetValue(msg);
                 Messages.std_msgs.Header header;
                 if (h == null)
                     header = new Messages.std_msgs.Header();
@@ -262,8 +261,7 @@ namespace Ros_CSharp
                 header.seq = seq;
                 header.stamp = ROS.GetTime();
                 header.frame_id = new String();
-                val.GetType().GetField("header").SetValue(val, header);
-                msg.GetType().GetField("data").SetValue(msg, val);
+                msg.GetType().GetField("header").SetValue(msg, header);
             }
 
             foreach (SubscriberLink sub_link in subscriber_links)
