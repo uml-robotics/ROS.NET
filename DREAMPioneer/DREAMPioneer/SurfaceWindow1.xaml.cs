@@ -369,11 +369,14 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
             laserSub = node.subscribe<sm.LaserScan>(manualLaser, 2, laserCallback); 
 
-             /*Dispatcher.BeginInvoke(new Action(() => {
+             Dispatcher.BeginInvoke(new Action(() => {
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
                 if (rcp != null)
-                    rcp.webcam.TopicName = manualCamera;
-            }));*/ //JORDAN
+                {
+                    //rcp.webcam.TopicName = manualCamera;
+                    rcp.webcam.changeTopic(manualCamera);
+                }
+            }));
 
         }
 

@@ -89,13 +89,27 @@ namespace ROS_ImageWPF
             if (imgsub != null)
                 imgsub.shutdown();
             wtf = DateTime.Now;
+            
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     UpdateImage(i.data.data, new Size((int)i.data.width, (int)i.data.height), false, i.data.encoding.data);
-                })));
+                }))); 
         }
 
+        public void changeTopic(string s)
+        {
+            if (imgsub != null)
+            {
+                imgsub.unsubscribe();
+                imgsub = imagehandle.subscribe<sm.Image>(s, 1, (i) =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    UpdateImage(i.data.data, new Size((int)i.data.width, (int)i.data.height), false, i.data.encoding.data);
+                }))); 
+            }
+            
+        }
 
         #region variables and such
 
