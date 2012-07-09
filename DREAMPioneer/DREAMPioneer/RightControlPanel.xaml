@@ -7,7 +7,8 @@
              xmlns:E="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils" >
     <Grid Name="ButtonGrid" Background="Transparent" SnapsToDevicePixels="True">
         <Viewbox Stretch="Fill" StretchDirection="Both" >
-            <E:ImageControl E:ImageControl.TopicName="notopicselected" x:FieldModifier="public" x:Name="webcam" />
+            <!-- <E:ImageControl E:ImageControl.TopicName="{Binding Path=Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:FieldModifier="public" x:Name="webcam" /> -->
+            <E:ImageControl E:ImageControl.TopicName="/robot_brain_1/camera/rgb/image_color" x:FieldModifier="public" x:Name="webcam" />
          </Viewbox>
     </Grid>
 </DREAM:ControlPanel>

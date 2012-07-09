@@ -53,6 +53,7 @@ using tf = Messages.tf;
 using System.Text;
 using EM3MTouchLib;
 using System.ComponentModel;
+using otherTimer = System.Timers;
 
 #endregion
 
@@ -61,6 +62,43 @@ namespace DREAMPioneer
     /// <summary>
     ///   Interaction logic for SurfaceWindow1.xaml
     /// </summary>
+    /// 
+    public class touchTimer
+    {
+        System.Timers.Timer aTimer;
+        public int id;
+        public bool selected;
+        public touchTimer(int _id)
+        {
+            id = _id;
+            setTimer();
+        }
+
+
+        private void setTimer()
+        {
+            Console.WriteLine("SETTING TIMER");
+            selected = false;
+            aTimer = new System.Timers.Timer();
+            aTimer.Elapsed += new otherTimer.ElapsedEventHandler(OnTimedEvent);
+            aTimer.Interval = 2000;
+            aTimer.Enabled = true;
+        }
+
+        private void disposeTimer()
+        {
+            Console.WriteLine("TIMER FINISHED");
+            aTimer.Enabled = false;
+        }
+
+        private void OnTimedEvent(object source, otherTimer.ElapsedEventArgs e)
+        {
+            selected = true;
+            disposeTimer();
+        }
+
+    }
+
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
@@ -90,10 +128,13 @@ namespace DREAMPioneer
         private TranslateTransform dottranslate;
 
         private int android = -1;
+        private bool touchHold;
 
         private Timer YellowTimer;
         private Timer GreenTimer;
-        TimeData checkHold;
+        //private otherTimer.Timer touchHold;
+        //private Timer touchHold;
+        Timer checkHold;
         int numRobots;
         int manualRobot;
         int androidRobot;
@@ -107,6 +148,8 @@ namespace DREAMPioneer
         string androidCamera;
         string androidPTZ;
         string androidLaser;
+
+        System.Timers.Timer aTimer;
 
         private TimerManager timers = new TimerManager();
 
@@ -134,6 +177,8 @@ namespace DREAMPioneer
         private Touch lastt;
         private static float PPM = 0.02868f;
         private static float MPP = 1.0f / PPM;
+
+        touchTimer[] ttime;
 
         /// <summary>
         ///   The waypoint dots.
@@ -320,10 +365,20 @@ namespace DREAMPioneer
                 AddRobot();
             }
 
+            touchHold = false;
             timers.StartTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
             timers.StartTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
             timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
+            //timers.MakeTimer(ref touchHold, TouchHold, 0, 200);
+
+            ttime = new touchTimer[40];
+
+           // for( int i =0; i< ttime.Length; i++)
+           // {
+                //ttime[i] = new touchTimer();
+           // }
             
+            //= new touchTimer();
 
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
@@ -352,9 +407,6 @@ namespace DREAMPioneer
                     rp.Init(this);
                     return (ControlPanel)rp;
                 });
-
-
-
             new Thread(rosStart).Start();
         }
 
@@ -367,17 +419,16 @@ namespace DREAMPioneer
 
             joyPub = node.advertise<gm.Twist>(manualVelocity, 5);
             servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 2, laserCallback); 
-
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 2, laserCallback);
+            ROS_ImageWPF.ImageControl.newTopicName = manualCamera;
+            /*
              Dispatcher.BeginInvoke(new Action(() => {
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
                 if (rcp != null)
                 {
-                    //rcp.webcam.TopicName = manualCamera;
-                    rcp.webcam.changeTopic(manualCamera);
+                    
                 }
-            }));
-
+            }));*/
         }
 
         private void JoymgrFireUpEvent(Touch e)
@@ -446,12 +497,10 @@ namespace DREAMPioneer
             d.Size size = new d.Size();
             size.Height = (int)image.data.height;
             size.Width = (int)image.data.width;
-
 //            t1 = t2;
 //            t2 = DateTime.Now;
 //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
 //            Console.WriteLine(fps);
-
             Dispatcher.BeginInvoke(new Action(() => { 
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; 
                 if (rcp != null)
@@ -946,7 +995,7 @@ namespace DREAMPioneer
             bool res = true;
             if (robot == -1)
                 return false;
-
+            ttime[robot] = new touchTimer(robot);
             if (!timers.IsRunning(ref turboFingering[robot]))
             {
                 if (selectedList.Contains(robot))
@@ -965,6 +1014,10 @@ namespace DREAMPioneer
             }
             timers.StartTimer(ref turboFingering[robot]);
             turboFingerCount[robot]++;
+            //touchHold = new otherTimer.Timer(2000);
+            //timers.StartTimer(ref checkHold);
+            
+
             return res;
         }
 
@@ -1271,7 +1324,8 @@ namespace DREAMPioneer
                                             int index = robotsCD(e);
                                             if(manualRobot == -1 && index != -1)
                                             {
-                                                if (!timers.IsRunning(ref turboFingering[index]))
+                                                if ( ttime[index] != null && ttime[index].selected)
+                                                //if (!timers.IsRunning(ref turboFingering[index]))
                                                 {
                                                     manualRobot = index;
                                                     selectedList.RemoveAt(index);
