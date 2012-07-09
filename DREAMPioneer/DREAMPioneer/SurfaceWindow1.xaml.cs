@@ -132,9 +132,9 @@ namespace DREAMPioneer
 
         private Timer YellowTimer;
         private Timer GreenTimer;
-        //private otherTimer.Timer touchHold;
-        //private Timer touchHold;
-        Timer checkHold;
+
+        string[] _namespace;
+
         int numRobots;
         int manualRobot;
         int androidRobot;
@@ -371,6 +371,12 @@ namespace DREAMPioneer
             timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
             //timers.MakeTimer(ref touchHold, TouchHold, 0, 200);
 
+            _namespace = new string[16];
+            _namespace[0] = "/robot_brain_1";
+            _namespace[1] = "/robot_brain_2";
+            _namespace[2] = "/robot_brain_3";
+            _namespace[3] = "";
+            _namespace[4] = "";
             ttime = new touchTimer[40];
 
            // for( int i =0; i< ttime.Length; i++)
@@ -797,17 +803,16 @@ namespace DREAMPioneer
             if ( distance(e, oldFREE[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
-
                 if(oldFREE.Count > 1)
                 {
                     foreach (Touch p in oldFREE.Values)
                     {
                         if (p.Id != e.Id )
                         {   //- distance(oldFREE[e.Id], oldFREE[p.Id])
-                            if (scale.ScaleX + Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id]) ) > 2)
+                            if (Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id]) ) > .5)
                             {
                                 //Console.WriteLine(Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])));
-                                if ( ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.5)
+                                if ( scale.ScaleX+ ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.2)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
                                     scale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
@@ -818,14 +823,14 @@ namespace DREAMPioneer
                             }
                         }
                     }
-                    if (!zoomed)
-                    {
+                    //if (!zoomed)
+                    //{
                         
                         translate.X += (e.Position.X - oldFREE[e.Id].Position.X);
                         translate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
                         dottranslate.X += (e.Position.X - oldFREE[e.Id].Position.X);
                         dottranslate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
-                    }
+                    //}
                 }
             } if (oldFREE.ContainsKey(e.Id))
                 oldFREE.Remove(e.Id);
@@ -1330,7 +1335,7 @@ namespace DREAMPioneer
                                                     manualRobot = index;
                                                     selectedList.RemoveAt(index);
                                                     PulseGreen(manualRobot);
-                                                    changeManual("/robot_brain_1/virtual_joystick/cmd_vel", "/robot_brain_1/servos", "/robot_brain_1/camera/rgb/image_color", "/robot_brain_1/scan");
+                                                    changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
                                                 }
                                             }
 
