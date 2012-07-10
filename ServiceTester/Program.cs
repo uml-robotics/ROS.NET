@@ -13,8 +13,8 @@ namespace ServiceTester
     class Program
     {
         static NodeHandle nh;
-         static Publisher<Messages.sensor_msgs.Image> easy;
-         static Subscriber<Messages.sensor_msgs.Image> easyecho;
+        static Publisher<Messages.sensor_msgs.Image> easy;
+        static Subscriber<Messages.sensor_msgs.Image> easyecho;
         static void Main(string[] args)
         {
             ROS.ROS_MASTER_URI = "http://192.13.37.129";

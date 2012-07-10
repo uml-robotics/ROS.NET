@@ -41,6 +41,7 @@ namespace Messages
                 throw new Exception("OH NOES IRosMessage.generate is borked!");
         }
 
+        public string MD5Sum;
         public bool HasHeader;
         public bool IsMetaType;
         public string MessageDefinition;
@@ -55,13 +56,14 @@ namespace Messages
         }
 
         [DebuggerStepThrough]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields)
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5=null)
         {
             msgtype = t;
             MessageDefinition = def;
             HasHeader = hasheader;
             IsMetaType = meta;
             Fields = fields;
+            MD5Sum = ms5;
         }
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)

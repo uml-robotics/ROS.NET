@@ -20,6 +20,8 @@ namespace YAMLParser
         public static string fronthalf;
 
         public static string outputdir = "..\\..\\..\\Messages";
+        public static string outputdir_firstpass = "..\\..\\..\\TempMessages";
+        public static string outputdir_secondpass = "..\\..\\..\\SecondPass";
 
         private static void Main(string[] args)
         {
@@ -123,6 +125,7 @@ namespace YAMLParser
                 GenerateFiles(msgsFiles, srvFiles);
                 GenerateProject(msgsFiles, srvFiles);
                 BuildProject();
+                Finalize();
             }
             else
             {
@@ -141,6 +144,14 @@ namespace YAMLParser
                     if (s != "Properties")
                         Directory.Delete(s, true);
             }
+            if (!Directory.Exists(outputdir_firstpass)) Directory.CreateDirectory(outputdir_firstpass);
+            else
+            {
+                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) File.Delete(s);
+                foreach (string s in Directory.GetDirectories(outputdir_firstpass))
+                    if (s != "Properties")
+                        Directory.Delete(s, true);
+            }
         }
 
         public static void GenerateFiles(List<MsgsFile> files, List<SrvsFile> srvfiles)
@@ -148,23 +159,31 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
+                file.Write(outputdir_firstpass);
             }
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
+                file.Write(outputdir_firstpass);
             }
+            File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString());
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }
 
         public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles)
         {
+            if (!Directory.Exists(outputdir_firstpass + "\\Properties"))
+                Directory.CreateDirectory(outputdir_firstpass + "\\Properties");
             if (!Directory.Exists(outputdir + "\\Properties"))
                 Directory.CreateDirectory(outputdir + "\\Properties");
+            File.WriteAllLines
+                (outputdir_firstpass + "\\Properties\\AssemblyInfo.cs",
+                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
             File.WriteAllLines
                 (outputdir + "\\Properties\\AssemblyInfo.cs",
                  File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
 
-            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\Messages._csproj");
+            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\TempMessages._csproj");
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -182,10 +201,13 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
                     output += "\t<Compile Include=\"Interfaces.cs\" />\n";
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
-                    File.Copy("TemplateProject\\SerializationHelper.cs", outputdir + "\\SerializationHelper.cs");
-                    File.Copy("TemplateProject\\Interfaces.cs", outputdir + "\\Interfaces.cs");
                 }
             }
+            File.Copy("TemplateProject\\SerializationHelper.cs", outputdir_firstpass + "\\SerializationHelper.cs");
+            File.Copy("TemplateProject\\Interfaces.cs", outputdir_firstpass + "\\Interfaces.cs");
+            File.WriteAllText(outputdir_firstpass + "\\TempMessages.csproj", output);
+            File.Copy("TemplateProject\\SerializationHelper.cs", outputdir + "\\SerializationHelper.cs");
+            File.Copy("TemplateProject\\Interfaces.cs", outputdir + "\\Interfaces.cs");
             File.WriteAllText(outputdir + "\\Messages.csproj", output);
         }
 
@@ -209,7 +231,7 @@ namespace YAMLParser
             }
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
-            string args = "/nologo \"" + outputdir+"\\Messages.csproj\"";
+            string args = "/nologo \"" +outputdir_firstpass+"\\TempMessages.csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
@@ -220,12 +242,12 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (File.Exists(outputdir + "\\bin\\Debug\\Messages.dll"))
+            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\TempMessages.dll"))
             {
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t"+outputdir+"\\Messages.dll\n\n");
-                if (File.Exists(outputdir + "\\Messages.dll"))
-                    File.Delete(outputdir + "\\Messages.dll");
-                File.Copy(outputdir + "\\bin\\Debug\\Messages.dll", outputdir + "\\Messages.dll");
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\TempMessages.dll\n\n");
+                if (File.Exists(outputdir_firstpass + "\\TempMessages.dll"))
+                    File.Delete(outputdir_firstpass + "\\TempMessages.dll");
+                File.Copy(outputdir_firstpass + "\\bin\\Debug\\TempMessages.dll", outputdir_firstpass + "\\TempMessages.dll");
             }
             else
             {
@@ -237,39 +259,106 @@ namespace YAMLParser
             }
         }
 
+        public static void Finalize()
+        {
+            string VCDir = "";
+            foreach (
+                string dir in
+                    Directory.GetDirectories
+                        (Environment.GetFolderPath(Environment.SpecialFolder.Windows) +
+                         (Environment.Is64BitOperatingSystem
+                              ? "\\Microsoft.NET\\Framework64\\"
+                              : "\\Microsoft.NET\\Framework")))
+            {
+                string[] tmp = dir.Split('\\');
+                if (tmp[tmp.Length - 1].Contains("v4.0"))
+                {
+                    VCDir = dir;
+                    break;
+                }
+            }
+            string F = VCDir + "\\msbuild.exe";
+            Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
+            string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
+            Process proc = new Process();
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.FileName = F;
+            proc.StartInfo.Arguments = args;
+            proc.Start();
+            string output = proc.StandardOutput.ReadToEnd();
+            string error = proc.StandardError.ReadToEnd();
+            string output2="", error2="";
+            if (File.Exists(outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe"))
+            {
+                Process proc2 = new Process();
+                proc2.StartInfo.RedirectStandardOutput = true;
+                proc2.StartInfo.RedirectStandardError = true;
+                proc2.StartInfo.UseShellExecute = false;
+                proc2.StartInfo.CreateNoWindow = true;
+                proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";
+                proc2.Start();
+                output2 = proc2.StandardOutput.ReadToEnd();
+                error2 = proc2.StandardError.ReadToEnd();
+            }
+            else
+            {
+                if (output.Length > 0)
+                    Console.WriteLine(output);
+                if (error.Length > 0)
+                    Console.WriteLine(error);
+                Console.WriteLine("AMG BUILD FAIL!");
+            }
+            if (output2.Length > 0)
+                Console.WriteLine(output2);
+            if (error2.Length > 0)
+                Console.WriteLine(error2);
+            Console.WriteLine("DO SOMETHING HERE TO CHANGE THE FILES IN: outputdir\\Messages.csproj !!!!");
+            proc = new Process { StartInfo = { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true, FileName = F, Arguments = "/nologo \"" + outputdir + "\\Messages.csproj\"" } };
+            proc.Start();
+            string output3 = proc.StandardOutput.ReadToEnd();
+            string error3 = proc.StandardError.ReadToEnd();
+            if (output3.Length > 0)
+                Console.WriteLine(output3);
+            if (error3.Length > 0)
+                Console.WriteLine(error3);
+            Console.WriteLine("FINAL PASS DONE");
+        }
+
+        private static string uberpwnage;
         public new static string ToString()
         {
-            
-            if (fronthalf == null)
+            if (uberpwnage == null)
             {
-                fronthalf = "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\nusing Messages.roscsharp;\n\nnamespace Messages\n{\n";
-                backhalf = "\n}";
-            }
-            
-            List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
-            foreach (SrvsFile sf in srvFiles)
-            {
-                everything.Add(sf.Request);
-                everything.Add(sf.Response);
-            }
+                if (fronthalf == null)
+                {
+                    fronthalf = "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\nusing Messages.roscsharp;\n\nnamespace Messages\n{\n";
+                    backhalf = "\n}";
+                }
 
-            /*GenDict
-                ("TypeInformation", "MsgTypes", "TypeInfo", ref fronthalf, 0, everything.Count,
-                 (i) => string.Format("{0}", everything[i].GeneratedDictHelper));*/
-            fronthalf += "\n\tpublic enum MsgTypes\n\t{";
-            fronthalf += "\n\t\tUnknown,";
-            for (int i = 0; i < everything.Count; i++)
-            {
-                fronthalf += "\n\t\t";
-                if (everything[i].classname == "Request" || everything[i].classname == "Response")
-                    everything[i].Name += "." + everything[i].classname;
-                fronthalf += everything[i].Name.Replace(".", "__");
-                if (i < everything.Count - 1)
-                    fronthalf += ",";
+                List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
+                foreach (SrvsFile sf in srvFiles)
+                {
+                    everything.Add(sf.Request);
+                    everything.Add(sf.Response);
+                }
+                fronthalf += "\n\tpublic enum MsgTypes\n\t{";
+                fronthalf += "\n\t\tUnknown,";
+                for (int i = 0; i < everything.Count; i++)
+                {
+                    fronthalf += "\n\t\t";
+                    if (everything[i].classname == "Request" || everything[i].classname == "Response")
+                        everything[i].Name += "." + everything[i].classname;
+                    fronthalf += everything[i].Name.Replace(".", "__");
+                    if (i < everything.Count - 1)
+                        fronthalf += ",";
+                }
+                fronthalf += "\n\t}\n";
+                uberpwnage = fronthalf + backhalf;
             }
-            fronthalf += "\n\t}\n";
-            string ret = fronthalf + backhalf;
-            return ret;
+            return uberpwnage;
         }
 
         public static void GenDict
