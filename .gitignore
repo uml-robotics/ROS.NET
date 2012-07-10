@@ -13,3 +13,4 @@ Messages/
 *.suo
 *.sdf
 *.vcxproj.user
+TempMessages/

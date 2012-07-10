@@ -43,7 +43,7 @@ namespace Ros_CSharp
 
         internal void initialize(Connection connection)
         {
-            throw new NotImplementedException();
+            this.connection = connection;
         }
     }
 
@@ -53,7 +53,11 @@ namespace Ros_CSharp
     {
         internal bool call<MReq, MRes>(MReq request, ref MRes response)
         {
-            Console.WriteLine("HOLLA FOR A DOLLA");
+            //THIS IS WRONG!!!
+            TransportSubscriberLink bisexual = new TransportSubscriberLink();
+            bisexual.initialize(connection);
+            bisexual.enqueueMessage(request as IRosMessage, true, true);
+            Console.WriteLine("FINISH ME!");
             return true;
         }
 

@@ -167,7 +167,12 @@ namespace Ros_CSharp
             {
                 tls.current = tls.head;
             }
-            if (tls.current == null)
+            TLS.CallbackInfoNode curr = null;
+            lock (tls.current)
+            {
+                curr = tls.current;
+            }
+            if (curr == null)
                 return CallOneResult.Empty;
             ICallbackInfo info = tls.current.info;
             CallbackInterface cb = info.Callback;
@@ -217,7 +222,7 @@ namespace Ros_CSharp
                 if (!enabled) return CallOneResult.Disabled;
                 if (callbacks.Count == 0 && timeout != 0)
                 {
-                    sem.WaitOne(timeout);
+                    sem.WaitOne(timeout, false);
                 }
                 if (callbacks.Count == 0) return CallOneResult.Empty;
                 if (!enabled) return CallOneResult.Disabled;
@@ -238,6 +243,7 @@ namespace Ros_CSharp
                         break;
                     }
                 }
+                sem.Release();
                 if (cbinfo.Callback == null) return CallOneResult.TryAgain;
                 calling++;
             }
@@ -323,11 +329,16 @@ namespace Ros_CSharp
                 head = new CallbackInfoNode(info);
                 tail = head;
             }
+            else if (tail == null)
+            {
+                tail = head;
+            }
             else
             {
                 tail.next = new CallbackInfoNode(info);
                 tail = tail.next;
             }
+            if (current == null) current = head;
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)

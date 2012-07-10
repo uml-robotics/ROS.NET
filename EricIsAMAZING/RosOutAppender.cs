@@ -62,9 +62,8 @@ namespace Ros_CSharp
             l.topics = new String[advert.Length];
             for (int i = 0; i < advert.Length; i++)
                 l.topics[i] = new String(advert[i]);
-            TypedMessage<Log> MSG = new TypedMessage<Log>(l);
             lock (queue_mutex)
-                log_queue.Enqueue(MSG);
+                log_queue.Enqueue(l);
         }
 
         public void logThread()

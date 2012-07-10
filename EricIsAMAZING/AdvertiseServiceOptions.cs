@@ -30,7 +30,7 @@ namespace Ros_CSharp
             this.srv_func = callback;
             IRosMessage irm = new MReq();
             IRosMessage irs = new MRes();
-            md5sum = MD5.Sum(MD5.Sum(irm.type) + MD5.Sum(irs.type));
+            md5sum = MD5.Sum(MD5.Sum(irm.msgtype) + MD5.Sum(irs.msgtype));
         }
     }
 }

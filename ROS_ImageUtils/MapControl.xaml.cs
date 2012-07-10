@@ -41,7 +41,7 @@ namespace ROS_ImageWPF
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<TypedMessage<nm.OccupancyGrid>> mapsub;
+        private Subscriber<nm.OccupancyGrid> mapsub;
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -85,11 +85,7 @@ namespace ROS_ImageWPF
                 mapsub.shutdown();
             
             mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() =>
-                {                    
-                    UpdateImage( createRGBA( i.data.data ), new Size((int)i.data.info.width, (int)i.data.info.height), false);
-                    //Console.WriteLine(i.data.info.width + " " + i.data.info.height);
-                })), "*");
+                Dispatcher.BeginInvoke(new Action(() => UpdateImage( createRGBA( i.data ), new Size((int)i.info.width, (int)i.info.height), false))), "*");
         } 
         private byte[] createRGBA(sbyte[] map)
         {

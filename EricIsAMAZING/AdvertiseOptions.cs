@@ -6,7 +6,7 @@ using Messages;
 
 namespace Ros_CSharp
 {
-    public class AdvertiseOptions<T> where T : class, new()
+    public class AdvertiseOptions<T> where T : IRosMessage, new()
     {
         public CallbackQueueInterface callback_queue;
         public SubscriberStatusCallback connectCB;
@@ -30,15 +30,15 @@ namespace Ros_CSharp
             topic = t;
             queue_size = q_size;
             md5sum = md5;
-            TypedMessage<T> tt = new TypedMessage<T>();
+            T tt = new T();
             if (dt.Length > 0)
                 datatype = dt;
             else
             {
-                datatype = tt.type.ToString().Replace("__", "/");
+                datatype = tt.msgtype.ToString().Replace("__", "/");
             }
             if (message_def.Length == 0)
-                message_definition = TypeHelper.TypeInformation[tt.type].MessageDefinition;
+                message_definition = tt.MessageDefinition;
             else
                 message_definition = message_def;
             has_header = tt.HasHeader;
@@ -49,16 +49,16 @@ namespace Ros_CSharp
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null,
                                 SubscriberStatusCallback disconnectcallback = null) :
                                     this(
-                                    t, q_size, MD5.Sum((new TypedMessage<T>()).type),
-                                    new TypedMessage<T>().type.ToString().Replace("__", "/"),
-                                    TypeHelper.TypeInformation[new TypedMessage<T>().type].MessageDefinition,
+                                    t, q_size, MD5.Sum(new T().msgtype),
+                                    new T().msgtype.ToString().Replace("__", "/"),
+                                    new T().MessageDefinition,
                                     connectcallback, disconnectcallback)
         {
         }
 
         public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback,
                                                     SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
-            where M : class, new()
+            where M : IRosMessage, new()
         {
             return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};
         }

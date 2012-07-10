@@ -18,7 +18,7 @@ namespace Messages
     public static class SerializationHelper
     {
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
-        //[DebuggerStepThrough]
+        [DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
             //gross, but it gets the job done            
@@ -31,27 +31,13 @@ namespace Messages
             return mt;
         }
 
-        static Dictionary<string, Type> GetTypeMemo = new Dictionary<string, Type>();
         [DebuggerStepThrough]
         public static Type GetType(string s)
         {
-            if (GetTypeMemo.ContainsKey(s))
-                return GetTypeMemo[s];
             MsgTypes mt = GetMessageType(s);
             if (mt == MsgTypes.Unknown)
-                return default(Type);
-            Type t = TypeHelper.TypeInformation[mt].Type;
-            GetTypeMemo.Add(s, t);
-            return t;
-        }
-
-        [DebuggerStepThrough]
-        public static Type GetTypeSmart(Type info)
-        {
-            Type t = info;
-            if (t.FullName != null && t.FullName.Contains("TypedMessage`1["))
-                t = t.GetField("data").FieldType;
-            return t;
+                return Type.GetType(s, true, true);
+            return IRosMessage.generate(mt).GetType();
         }
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
@@ -63,8 +49,6 @@ namespace Messages
                 return GetMessageTypeMemoString[s];
             if (s.Contains("TimeData"))
                 return MsgTypes.std_msgs__Time;
-            if (s.Contains("TypedMessage`1["))
-                s = Type.GetType(s).GetField("data").FieldType.FullName;
             if (!s.Contains("Messages"))
             {
                 if (s.Contains("System."))
@@ -87,14 +71,14 @@ namespace Messages
             return ms;
         }
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static bool IsSizeKnown(Type T, bool recurse)
         {
-            if (T.FullName != null && T.FullName.Contains("Messages.TypedMessage`1["))
-                return IsSizeKnown(T.GetField("data").FieldType, recurse);
             if (T == typeof(string) || T == typeof(String) ||
                 (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
                 return false;
+            if (T.FullName.Contains("System.") || T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
+                return true;
             if (!recurse || !T.FullName.Contains("Messages")) return true;
             FieldInfo[] infos = T.GetFields();
             bool b = true;
@@ -107,13 +91,11 @@ namespace Messages
                     if (fullName.Contains("Messages."))
                     {
                         MsgTypes MT = GetMessageType(info.FieldType);
-                        if (!TypeHelper.TypeInformation.ContainsKey(MT) || !TypeHelper.TypeInformation[MT].Fields.ContainsKey(info.Name))
-                            return false;
-                        TypeInfo TI = TypeHelper.TypeInformation[MT];
-                        b = TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
+                        IRosMessage TI = IRosMessage.generate(MT);
+                        b &= IsSizeKnown(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
                     }
                     else
-                        b = !info.FieldType.IsArray && info.FieldType != typeof(string);
+                        b &= !info.FieldType.IsArray && info.FieldType != typeof(string);
                 }
                 if (!b)
                     break;
@@ -121,23 +103,17 @@ namespace Messages
             return b;
         }
 
-        public static TypedMessage<T> Deserialize<T>(byte[] bytes) where T : class, new()
+        internal static T Deserialize<T>(byte[] bytes, Type container = null) where T : IRosMessage, new()
         {
-            if (typeof(T).FullName.Contains("TypedMessage"))
-                Console.WriteLine("TYPE FAIL!");
             int dontcare = 0;
-            return
-                new TypedMessage<T>(
-                    (T)
-                    deserialize(typeof(T), bytes, out dontcare,
-                                IsSizeKnown(TypeHelper.TypeInformation[GetMessageType(typeof(T))].Type, false)));
+            return _deserialize(typeof(T), container, bytes, out dontcare, IsSizeKnown(typeof(T), true)) as T;
         }
 
-        public static object deserialize(Type T, byte[] bytes, out int amountread, bool sizeknown = false)
+        public static object deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
         {
             try
             {
-                return _deserialize(T, bytes, out amountread, sizeknown);
+                return _deserialize(T, container, bytes, out amountread, sizeknown);
             }
             catch (Exception e)
             {
@@ -147,36 +123,88 @@ namespace Messages
             return null;
         }
 
-        private static object _deserialize(Type T, byte[] bytes, out int amountread, bool sizeknown = false)
+        private static Dictionary<MsgTypes, FieldInfo[]> speedyFields = new Dictionary<MsgTypes, FieldInfo[]>();
+        private static Dictionary<MsgTypes, List<string>> importantfieldnames = new Dictionary<MsgTypes, List<string>>();
+        public static FieldInfo[] GetFields(Type T, ref object instance, out IRosMessage msg)
         {
+            if (instance == null)
+                instance = Activator.CreateInstance(T);
+            IRosMessage MSG = instance as IRosMessage;
+            if (MSG == null)
+            {
+                msg = MSG;
+                return instance.GetType().GetFields();
+            }
+            MsgTypes MT = MSG.msgtype;
+            if (MT != MsgTypes.Unknown)
+            {
+                msg = MSG;
+                return msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name))).ToArray();
+            }
+            throw new Exception("GetFields is weaksauce");
+        }
+        public static string dumphex(byte[] test)
+        {
+            if (test == null)
+                return "dumphex(null)";
+            string s = "";
+            for (int i = 0; i < test.Length; i++)
+                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
+            return s;
+        }
 
-            object thestructure = Activator.CreateInstance(T);
+        private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
+        {
+            Console.WriteLine("_deserialize: " + dumphex(bytes));
+            if (bytes.Length == 0)
+            {
+                amountread = 0;
+                return null;
+            }
+            bool isoutermost = false;
+            int totallength = -1;
+
+            /*if (container == null)
+            {
+                totallength = BitConverter.ToInt32(bytes, 0);
+                isoutermost = true;
+                byte[] allbutlength = new byte[bytes.Length - 4];
+                Array.Copy(bytes, 4, allbutlength, 0, allbutlength.Length);
+                int read = 0;
+                object o = _deserialize(T, T, allbutlength, out read);
+                if (o == null || read != totallength)
+                {
+                    throw new Exception("FAILSERIALIZATION");
+                }
+                amountread = bytes.Length;
+                return o;
+            }*/
+            object thestructure = null;
+            if (T.FullName.Contains("System.") && !T.IsCOMObject && !T.IsArray && T != typeof(string))
+            {
+                thestructure = new object();
+                int size = Marshal.SizeOf(T);
+                IntPtr mem = Marshal.AllocHGlobal(size);
+                Marshal.Copy(bytes, 0, mem, size);
+                amountread = size;
+                return Marshal.PtrToStructure(mem, T);
+            }
+            IRosMessage MSG;
             int startingpos = 0, currpos = 0;
-            MsgTypes MT = GetMessageType(T);
-            FieldInfo[] infos = T.GetFields();
+            MsgTypes MT = MsgTypes.Unknown;
+            FieldInfo[] infos = GetFields(T, ref thestructure, out MSG);
+            if (MSG != null)
+                MT = MSG.msgtype;
             currpos = 0; // sizeknown ? 0 : 4;
             startingpos = currpos;
             int currinfo = 0;
-            if (T.FullName != null && T.FullName.Contains("TypedMessage`1["))
-            {
-                return _deserialize(T.GetField("data").FieldType, bytes, out amountread,
-                                   IsSizeKnown(T.GetFields()[0].FieldType, false) &&
-                                   (!TypeHelper.TypeInformation[MT].Fields[infos[0].Name].IsArray ||
-                                    TypeHelper.TypeInformation[MT].Fields[infos[0].Name].Length != -1));
-            }
-
             while (currpos < bytes.Length && currinfo < infos.Length)
             {
-                Type type =
-                    GetTypeSmart(TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name].Type);
-                Type realtype = GetTypeSmart(infos[currinfo].FieldType);
+                Type type = GetType(infos[currinfo].FieldType.FullName);
+                Type realtype = infos[currinfo].FieldType;
                 MsgTypes msgtype = GetMessageType(type);
 
-                bool knownpiecelength = IsSizeKnown(realtype, false) &&
-                                        (!TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name]
-                                              .IsArray ||
-                                         TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name].
-                                             Length != -1);
+                bool knownpiecelength = IsSizeKnown(realtype, true) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
                 if (knownpiecelength)
                 {
                     if (infos[currinfo].FieldType.IsArray && msgtype == MsgTypes.std_msgs__Byte)
@@ -194,7 +222,7 @@ namespace Messages
                     else if (infos[currinfo].FieldType.IsArray && msgtype != MsgTypes.std_msgs__String)
                     //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
                     {
-                        Type TT = GetTypeSmart(realtype.GetElementType());
+                        Type TT = GetType(realtype.GetElementType().FullName);
                         if (TT.IsArray)
                             throw new Exception("ERIC, YOU NEED TO MAKE DESERIALIZATION RECURSE!!!");
                         Array vals = (infos[currinfo].GetValue(thestructure) as Array);
@@ -221,13 +249,6 @@ namespace Messages
                     {
                         if (type.FullName != null && type.FullName.Contains("Message"))
                         {
-                            //bool IKNOWWHATTHATISZOMG = IsSizeKnown(realtype, true);
-                            //if (!IKNOWWHATTHATISZOMG)
-                            //{
-
-                            // }
-                            // else
-                            //{
                             if (GetMessageType(realtype) == MsgTypes.std_msgs__Time)
                             {
                                 uint u1 = BitConverter.ToUInt32(bytes, currpos);
@@ -241,16 +262,11 @@ namespace Messages
                                 byte[] piece = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                 int len = 0;
-                                object obj = _deserialize(type, piece, out len,
-                                                         IsSizeKnown(realtype, true)/* &&
-                                                         (!TypeHelper.TypeInformation[MT].Fields[
-                                                             infos[currinfo].Name].IsArray ||
-                                                          TypeHelper.TypeInformation[MT].Fields[infos[currinfo].Name
-                                                              ].Length != -1)*/);
+                                object obj = _deserialize(realtype, T, piece, out len,
+                                                         IsSizeKnown(realtype, true));
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
                             }
-                            // }
                         }
                         else
                         {
@@ -268,7 +284,7 @@ namespace Messages
                     Type ft = realtype;
                     if (ft.IsArray)
                     {
-                        Type TT = GetTypeSmart(ft.GetElementType());
+                        Type TT = GetType(ft.GetElementType().FullName);
                         Array val = infos[currinfo].GetValue(thestructure) as Array;
                         int chunklen;
                         if (val == null)
@@ -301,12 +317,8 @@ namespace Messages
                                 byte[] chunk = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, chunk, 0, chunk.Length);
                                 int len = 0;
-                                object data = _deserialize(TT, chunk, out len,
-                                                          IsSizeKnown(TT, false) /*&&
-                                                          (!TypeHelper.TypeInformation[mt].Fields[
-                                                              infos[currinfo].Name].IsArray ||
-                                                           TypeHelper.TypeInformation[mt].Fields[
-                                                               infos[currinfo].Name].Length != -1)*/);
+                                object data = _deserialize(TT, T, chunk, out len,
+                                                          IsSizeKnown(TT, false));
                                 val.SetValue(data, i);
                                 currpos += len;
                             }
@@ -332,45 +344,34 @@ namespace Messages
                     {
                         if (ft.FullName != null && ft.FullName.Contains("Message"))
                         {
-                            IRosMessage msg =
-                                (IRosMessage)
-                                Activator.CreateInstance(
-                                    typeof(TypedMessage<>).MakeGenericType(
-                                        TypeHelper.TypeInformation[GetMessageType(infos[currinfo].FieldType)].Type.
-                                            GetGenericArguments()));
-                            Type t = GetTypeSmart(msg.GetType());
-                            bool knownsize = IsSizeKnown(t, false) &&
-                                             (!TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].
-                                                   IsArray ||
-                                              TypeHelper.TypeInformation[msg.type].Fields[infos[currinfo].Name].
-                                                  Length != -1);
+                            IRosMessage msg = (IRosMessage)Activator.CreateInstance(ft);
+                            Type t = GetType(msg.GetType().FullName);
+                            bool knownsize = IsSizeKnown(t, false) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
                             if (!knownsize && t.GetField("data").FieldType == typeof(string))
                             {
                                 int len = BitConverter.ToInt32(bytes, currpos);
                                 byte[] smallerpiece = new byte[len + 4];
                                 Array.Copy(bytes, currpos, smallerpiece, 0, smallerpiece.Length);
                                 int dontcare = 0;
-                                object data = _deserialize(t, smallerpiece, out dontcare, false);
+                                msg = _deserialize(t, T, smallerpiece, out dontcare, false) as IRosMessage;
                                 if (dontcare != len + 4)
                                     throw new Exception("WTF?!");
-                                msg.GetType().GetField("data").SetValue(msg, data);
-                                infos[currinfo].SetValue(thestructure, data);
+                                infos[currinfo].SetValue(thestructure, msg);
                                 currpos += len + 4;
                             }
-                            else if (!knownsize)
+                            else // if (!knownsize)
                             {
                                 byte[] smallerpiece = new byte[bytes.Length - currpos];
                                 Array.Copy(bytes, currpos, smallerpiece, 0, smallerpiece.Length);
                                 int len = 0;
-                                _deserialize(t, smallerpiece, out len, knownsize);
-                                object data = msg.GetType().GetField("data").GetValue(msg);
-                                infos[currinfo].SetValue(thestructure, data);
+                                msg = _deserialize(t, T, smallerpiece, out len, knownsize) as IRosMessage;
+                                infos[currinfo].SetValue(thestructure, msg);
                                 currpos += len;
                             }
-                            else
+                            /*else
                             {
-                                Console.WriteLine("MESSAGE OF KNOWN SIZE... PIZZA CAKE!");
-                            }
+                                throw new Exception("THIS BROKE SOMEHOW! FIX IT!");
+                            }*/
                         }
                         else
                         {
@@ -399,39 +400,40 @@ namespace Messages
             return thestructure;
         }
 
-        public static byte[] Serialize<T>(TypedMessage<T> outgoing, bool partofsomethingelse = false)
-            where T : class, new()
+        internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse = false)
+            where T : IRosMessage, new()
         {
             if (outgoing.Serialized != null)
                 return outgoing.Serialized;
-            outgoing.Serialized = SlapChop(outgoing.data.GetType(), outgoing.data, partofsomethingelse);
+            outgoing.Serialized = SlapChop(outgoing.GetType(), outgoing, partofsomethingelse);
             return outgoing.Serialized;
         }
 
-        public static byte[] SlapChop(Type T, object t, bool partofsomethingelse = false)
+        public static byte[] SlapChop(Type T, object instance, bool partofsomethingelse = false)
         {
-            FieldInfo[] infos = t.GetType().GetFields();
+            IRosMessage msg;
+            FieldInfo[] infos = GetFields(T, ref instance, out msg);
             Queue<byte[]> chunks = new Queue<byte[]>();
             int totallength = 0;
-            MsgTypes MT = GetMessageType(T);
+            MsgTypes MT = msg.msgtype;
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
-                if (TypeHelper.TypeInformation[MT].Fields[info.Name].IsConst) continue;
-                if (info.GetValue(t) == null)
+                if (msg.Fields[info.Name].IsConst) continue;
+                if (info.GetValue(instance) == null)
                 {
                     if (info.FieldType == typeof(string))
-                        info.SetValue(t, "");
+                        info.SetValue(instance, "");
                     else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
-                        info.SetValue(t, 0);
+                        info.SetValue(instance, 0);
                     else
-                        info.SetValue(t, Activator.CreateInstance(info.FieldType));
+                        info.SetValue(instance, Activator.CreateInstance(info.FieldType));
                 }
-                bool knownpiecelength = TypeHelper.TypeInformation[MT].Fields[info.Name].Type !=
+                bool knownpiecelength = msg.Fields[info.Name].Type !=
                                         typeof(string) &&
-                                        (!TypeHelper.TypeInformation[MT].Fields[info.Name].IsArray ||
-                                         TypeHelper.TypeInformation[MT].Fields[info.Name].Length != -1);
-                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(t), ref knownpiecelength);
+                                        (!msg.Fields[info.Name].IsArray ||
+                                         msg.Fields[info.Name].Length != -1);
+                byte[] thischunk = NeedsMoreChunks(info.FieldType, info.GetValue(instance), ref knownpiecelength);
                 chunks.Enqueue(thischunk);
                 totallength += thischunk.Length;
             }
@@ -462,14 +464,13 @@ namespace Messages
                 {
                     IRosMessage msg = null;
                     if (val != null)
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T), val);
+                        msg = val as IRosMessage;
                     else
-                        msg = (IRosMessage)Activator.CreateInstance(typeof(TypedMessage<>).MakeGenericType(T));
+                        msg = (IRosMessage)Activator.CreateInstance(T);
                     thischunk = msg.Serialize(true);
                 }
                 else if (T == typeof(byte) || T.HasElementType && T.GetElementType() == typeof(byte))
                 {
-                    Console.WriteLine("ERIC RUELZ!");
                     if (T.IsArray)
                     {
                         if (!knownlength)
@@ -560,132 +561,6 @@ namespace Messages
         }
     }
 
-    public class TypedMessage<M> : IRosMessage where M : class, new()
-    {
-        public M data = new M();
-
-        public TypedMessage()
-            : this((MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__")))
-        {
-        }
-
-        public TypedMessage(MsgTypes MT)
-            : base(MT, TypeHelper.TypeInformation[MT].MessageDefinition, TypeHelper.TypeInformation[MT].HasHeader, TypeHelper.TypeInformation[MT].IsMetaType)
-        {
-        }
-
-        public TypedMessage(M d)
-        {
-            data = d;
-            base.type = (MsgTypes)Enum.Parse(typeof(MsgTypes), typeof(M).FullName.Replace("Messages.", "").Replace(".", "__"));
-            base.MessageDefinition = TypeHelper.TypeInformation[base.type].MessageDefinition;
-            base.HasHeader = TypeHelper.TypeInformation[base.type].HasHeader;
-            base.IsMeta = TypeHelper.TypeInformation[base.type].IsMetaType;
-        }
-
-        public TypedMessage(byte[] SERIALIZEDSTUFF)
-        {
-            Deserialize(SERIALIZEDSTUFF);
-        }
-
-        public override void Deserialize(byte[] SERIALIZEDSTUFF)
-        {
-            data = SerializationHelper.Deserialize<M>(SERIALIZEDSTUFF).data;
-        }
-
-        public override byte[] Serialize()
-        {
-            return Serialize(false);
-        }
-
-        public override byte[] Serialize(bool partofsomethingelse = false)
-        {
-            return SerializationHelper.Serialize(this, partofsomethingelse);
-        }
-    }
-
-    public class IRosMessage
-    {
-        public bool HasHeader;
-        public bool IsMeta;
-
-        public string MessageDefinition;
-
-        public byte[] Serialized;
-        public IDictionary connection_header;
-        public MsgTypes type;
-
-        public IRosMessage()
-            : this(MsgTypes.Unknown, "", false, false)
-        {
-        }
-
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta)
-        {
-            type = t;
-            MessageDefinition = def;
-            HasHeader = hasheader;
-            IsMeta = meta;
-        }
-
-        public IRosMessage(byte[] SERIALIZEDSTUFF)
-        {
-            Deserialize(SERIALIZEDSTUFF);
-        }
-
-        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual byte[] Serialize()
-        {
-            return Serialize(false);
-        }
-
-        public virtual byte[] Serialize(bool partofsomethingelse = false)
-        {
-            return null;
-        }
-    }
-
-    public class TypeInfo
-    {
-        public Dictionary<string, MsgFieldInfo> Fields;
-        public bool HasHeader;
-        public bool IsMetaType;
-        public string MessageDefinition = "";
-        public Type Type;
-
-        public TypeInfo(Type t, bool hasheader, bool meta, string def, Dictionary<string, MsgFieldInfo> fields)
-        {
-            Type = t;
-            HasHeader = hasheader;
-            MessageDefinition = def;
-            IsMetaType = meta;
-            Fields = fields;
-        }
-
-        public static string Generate(string name, string ns, bool HasHeader, bool meta, List<string> defs,
-                                      List<SingleType> types)
-        {
-            string def = defs.Aggregate("", (current, d) => current + (d + "\n"));
-            def = def.Trim('\n');
-            string ret = string.Format
-                ("MsgTypes.{0}{1}, new TypeInfo({2}, {3}, {4},\n@\"{5}\",\n\t\t\t\t new Dictionary<string, MsgFieldInfo>{{\n",
-                 (ns.Length > 0 ? (ns + "__") : ""), name,
-                 "typeof(TypedMessage<" + (ns.Length > 0 ? (ns + ".") : "") + name + ">)",
-                 HasHeader.ToString().ToLower(), meta.ToString().ToLower(), def);
-            for (int i = 0; i < types.Count; i++)
-            {
-                ret += "\t\t\t\t\t{\"" + types[i].Name + "\", " + MsgFieldInfo.Generate(types[i]) + "}";
-                if (i < types.Count - 1)
-                    ret += ",\n";
-            }
-            return ret + "\n\t\t\t})";
-        }
-    }
-
     public class MsgFieldInfo
     {
         public string ConstVal;
@@ -696,7 +571,7 @@ namespace Messages
         public int Length = -1;
         public string Name;
         public Type Type;
-
+        [DebuggerStepThrough]
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
                             string lengths, bool meta)
         {
@@ -713,613 +588,9 @@ namespace Messages
                 Length = int.Parse(lengths);
             }
         }
-
-        public static string Generate(SingleType members)
-        {
-            return string.Format
-                ("new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
-                 members.Name,
-                 members.IsLiteral.ToString().ToLower(),
-                 (members.IsLiteral ? ("typeof(" + members.Type + ")") : ("typeof(TypedMessage<" + members.Type + ">)")),
-                 members.Const.ToString().ToLower(),
-                 members.ConstValue,
-                 members.IsArray.ToString().ToLower(),
-                 members.length,
-                //FIX MEEEEEEEE
-                 members.meta.ToString().ToLower());
-        }
     }
 
-    public class SrvsFile
-    {
-        private string GUTS;
-        public string GeneratedDictHelper;
-        private bool HasHeader;
-        public string Name;
-        public string Namespace = "Messages";
-        public List<SingleType> Stuff = new List<SingleType>();
-        public string backhalf;
-        public string classname;
-        private List<string> def = new List<string>();
-        public string dimensions = "";
-        public string fronthalf;
-        private string memoizedcontent;
-        private bool meta;
-        public MsgsFile Request, Response;
-        public SrvsFile(string filename)
-        {
-            string[] lines = File.ReadAllLines(filename);
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".srv", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".srv", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            Namespace = Namespace.Trim('.');
-            def = new List<string>(lines);
-            int mid = 0;
-            bool found = false;
-            List<string> request = new List<string>(), response = new List<string>();
-            for (; mid < lines.Length; mid++)
-            {
-                if (lines[mid].Contains("---"))
-                {
-                    found = true;
-                    continue;
-                }
-                if (found)
-                    response.Add(lines[mid]);
-                else
-                    request.Add(lines[mid]);
-            }
-            Request = new MsgsFile(filename, true, request);
-            Response = new MsgsFile(filename, false, response);
-        }
 
-        public void Write(string outdir)
-        {
-            string[] chunks = Name.Split('.');
-            for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
-            if (!Directory.Exists(outdir))
-                Directory.CreateDirectory(outdir);
-            string localcn = classname;
-            localcn = classname.Replace("Request", "").Replace("Response", "");
-            File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
-        }
-
-        public override string ToString()
-        {
-            if (fronthalf == null)
-            {
-                fronthalf = "";
-                backhalf = "";
-                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
-                bool hitvariablehole = false;
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
-                    {
-                        hitvariablehole = true;
-                        continue;
-                    }
-                    if (lines[i].Contains("namespace"))
-                    {
-                        fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
-                        fronthalf += "namespace " + Namespace + "\n";
-                        continue;
-                    }
-                    if (!hitvariablehole)
-                        fronthalf += lines[i] + "\n";
-                    else
-                        backhalf += lines[i] + "\n";
-                }
-            }
-
-            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t\t{" + Request.GetSrvHalf() + "\n" + Response.GetSrvHalf() + "\n" + "\t\t}" + "\n" +
-                   backhalf;
-            return GUTS;
-        }
-    }
-
-    public class MsgsFile
-    {
-        private string GUTS;
-        public string GeneratedDictHelper;
-        private bool HasHeader;
-        public string Name;
-        public string Namespace = "Messages";
-        public List<SingleType> Stuff = new List<SingleType>();
-        public string backhalf;
-        public string classname;
-        private List<string> def = new List<string>();
-        public string dimensions = "";
-        public string fronthalf;
-        private string memoizedcontent;
-        private bool meta;
-        public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
-        public MsgsFile(string filename, bool isrequest, List<string> lines)
-        {
-            serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
-            filename = filename.Replace(".srv", ".msg");
-            if (!filename.Contains(".msg"))
-                throw new Exception("" + filename + " IS NOT A VALID SRV FILE!");
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            classname = (isrequest ? "Request" : "Response");
-            Namespace = Namespace.Trim('.');
-            def = new List<string>();
-            for (int i = 0; i < lines.Count; i++)
-            {
-                def.Add(lines[i]);
-                if (Name.ToLower() == "string")
-                    lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i]);
-                if (test != null)
-                    Stuff.Add(test);
-            }
-        }
-        public MsgsFile(string filename)
-        {
-            if (!filename.Contains(".msg"))
-                throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            Namespace = Namespace.Trim('.');
-            List<string> lines = new List<string>(File.ReadAllLines(filename));
-            lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
-            for (int i = 0; i < lines.Count; i++)
-                lines[i] = lines[i].Split('#')[0].Trim();
-            //lines = lines.Where((st) => (st.Length > 0)).ToList();
-
-            lines.ForEach(new Action<string>((s) =>
-            {
-                if (s.Contains('#') && s.Split('#')[0].Length != 0)
-                    s = s.Split('#')[0];
-                if (s.Contains('#'))
-                    s = "";
-            }));
-            lines = lines.Where((st) => (st.Length > 0)).ToList();
-
-
-            def = new List<string>();
-            for (int i = 0; i < lines.Count; i++)
-            {
-                def.Add(lines[i]);
-                if (Name.ToLower() == "string")
-                    lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i]);
-                if (test != null)
-                    Stuff.Add(test);
-            }
-        }
-
-        public string GetSrvHalf()
-        {
-            classname = classname.Contains("Request") ? "Request" : "Response";
-            if (memoizedcontent == null)
-            {
-                memoizedcontent = "";
-                for (int i = 0; i < Stuff.Count; i++)
-                {
-                    SingleType thisthing = Stuff[i];
-                    if (thisthing.Type == "Header")
-                    {
-                        HasHeader = true;
-                    }
-                    else if (classname == "String")
-                    {
-                        thisthing.input = thisthing.input.Replace("String", "string");
-                        thisthing.Type = thisthing.Type.Replace("String", "string");
-                        thisthing.output = thisthing.output.Replace("String", "string");
-                    }
-                    else if (classname == "Time")
-                    {
-                        thisthing.input = thisthing.input.Replace("Time", "TimeData");
-                        thisthing.Type = thisthing.Type.Replace("Time", "TimeData");
-                        thisthing.output = thisthing.output.Replace("Time", "TimeData");
-                    }
-                    else if (classname == "Duration")
-                    {
-                        thisthing.input = thisthing.input.Replace("Duration", "TimeData");
-                        thisthing.Type = thisthing.Type.Replace("Duration", "TimeData");
-                        thisthing.output = thisthing.output.Replace("Duration", "TimeData");
-                    }
-                    meta |= thisthing.meta;
-                    memoizedcontent += "\t" + thisthing.output + "\n";
-                }
-                if (classname.ToLower() == "string")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\tpublic String(){ data = \"\"; }\n\n";
-                }
-                else if (classname == "Time")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\tpublic Time() : this(0,0){}\n\n";
-                }
-                else if (classname == "Duration")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\t\tpublic Duration(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\tpublic Duration(TimeData s){ data = s; }\n\t\t\t\tpublic Duration() : this(0,0){}\n\n";
-                }
-                string ns = Namespace.Replace("Messages.", "");
-                if (ns == "Messages")
-                    ns = "";
-                while (memoizedcontent.Contains("DataData"))
-                    memoizedcontent = memoizedcontent.Replace("DataData", "Data");
-                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
-            }
-            GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
-                   backhalf;
-            return GUTS;
-        }
-
-        public override string ToString()
-        {
-            bool wasnull = false;
-            if (fronthalf == null)
-            {
-                wasnull = true;
-                fronthalf = "";
-                backhalf = "";
-                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
-                bool hitvariablehole = false;
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
-                    {
-                        hitvariablehole = true;
-                        continue;
-                    }
-                    if (lines[i].Contains("namespace"))
-                    {
-                        fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
-                        fronthalf += "namespace " + Namespace + "\n";
-                        continue;
-                    }
-                    if (!hitvariablehole)
-                        fronthalf += lines[i] + "\n";
-                    else
-                        backhalf += lines[i] + "\n";
-                }
-            }
-
-            if (memoizedcontent == null)
-            {
-                memoizedcontent = "";
-                for (int i = 0; i < Stuff.Count; i++)
-                {
-                    SingleType thisthing = Stuff[i];
-                    if (thisthing.Type == "Header")
-                    {
-                        HasHeader = true;
-                    }
-                    else if (classname == "String")
-                    {
-                        thisthing.input = thisthing.input.Replace("String", "string");
-                        thisthing.Type = thisthing.Type.Replace("String", "string");
-                        thisthing.output = thisthing.output.Replace("String", "string");
-                    }
-                    else if (classname == "Time")
-                    {
-                        thisthing.input = thisthing.input.Replace("Time", "TimeData");
-                        thisthing.Type = thisthing.Type.Replace("Time", "TimeData");
-                        thisthing.output = thisthing.output.Replace("Time", "TimeData");
-                    }
-                    else if (classname == "Duration")
-                    {
-                        thisthing.input = thisthing.input.Replace("Duration", "TimeData");
-                        thisthing.Type = thisthing.Type.Replace("Duration", "TimeData");
-                        thisthing.output = thisthing.output.Replace("Duration", "TimeData");
-                    }
-                    meta |= thisthing.meta;
-                    memoizedcontent += "\t" + thisthing.output + "\n";
-                }
-                if (classname.ToLower() == "string")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\tpublic String(string s){ data = s; }\n\t\t\tpublic String(){ data = \"\"; }\n\n";
-                }
-                else if (classname == "Time")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\tpublic Time() : this(0,0){}\n\n";
-                }
-                else if (classname == "Duration")
-                {
-                    memoizedcontent +=
-                        "\n\n\t\t\tpublic Duration(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\tpublic Duration(TimeData s){ data = s; }\n\t\t\tpublic Duration() : this(0,0){}\n\n";
-                }
-                string ns = Namespace.Replace("Messages.", "");
-                if (ns == "Messages")
-                    ns = "";
-                while (memoizedcontent.Contains("DataData"))
-                    memoizedcontent = memoizedcontent.Replace("DataData", "Data");
-                GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
-            }
-            if (wasnull)
-            {
-            }
-            GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n\t\tpublic class " + classname + "\n\t\t{\n" + memoizedcontent + "\t\t}" + "\n" +
-                   (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
-            return GUTS;
-        }
-
-
-        public void Write(string outdir)
-        {
-            string[] chunks = Name.Split('.');
-            for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
-            if (!Directory.Exists(outdir))
-                Directory.CreateDirectory(outdir);
-            string localcn = classname;
-            if (serviceMessageType != ServiceMessageType.Not)
-                localcn = classname.Replace("Request", "").Replace("Response", "");
-            if (serviceMessageType == ServiceMessageType.Response)
-                File.AppendAllText(outdir + "\\" + localcn + ".cs", ToString());
-            else
-                File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
-        }
-    }
-
-    public static class KnownStuff
-    {
-        public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
-                                                                  {
-                                                                      {"float64", "double"},
-                                                                      {"float32", "Single"},
-                                                                      {"uint64", "ulong"},
-                                                                      {"uint32", "uint"},
-                                                                      {"uint16", "ushort"},
-                                                                      {"uint8", "byte"},
-                                                                      {"int64", "long"},
-                                                                      {"int32", "int"},
-                                                                      {"int16", "short"},
-                                                                      {"int8", "sbyte"},
-                                                                      {"byte", "byte"},
-                                                                      {"bool", "bool"},
-                                                                      {"char", "char"},
-                                                                      {"time", "Time"},
-                                                                      {"string", "String"},
-                                                                      {"duration", "Duration"}
-                                                                  };
-
-        public static SingleType WhatItIs(string s)
-        {
-            string[] pieces = s.Split('/');
-            if (pieces.Length > 1)
-            {
-                s = pieces[pieces.Length - 1];
-            }
-            return WhatItIs(new SingleType(s));
-        }
-
-        public static SingleType WhatItIs(SingleType t)
-        {
-            foreach (KeyValuePair<string, string> test in KnownTypes)
-            {
-                if (t.Test(test))
-                {
-                    t.rostype = t.Type;
-                    return t.Finalize(test);
-                }
-            }
-            return t.Finalize(t.input.Split(' '), false);
-        }
-    }
-
-    public class SingleType
-    {
-        public bool Const;
-        public string ConstValue = "";
-        public bool IsArray;
-        public bool IsLiteral;
-        public string Name;
-        public string Type;
-        private string[] backup;
-        public string input;
-        public string length = "";
-        public bool meta;
-        public string output;
-        public string rostype = "";
-
-        public SingleType(string s)
-        {
-            if (s.Contains('[') && s.Contains(']'))
-            {
-                string front = "";
-                string back = "";
-                string[] parts = s.Split('[');
-                front = parts[0];
-                parts = parts[1].Split(']');
-                length = parts[0];
-                back = parts[1];
-                IsArray = true;
-                s = front + back;
-            }
-            input = s;
-        }
-
-        public bool Test(KeyValuePair<string, string> candidate)
-        {
-            return (input.Split(' ')[0].ToLower().Equals(candidate.Key));
-        }
-
-        public SingleType Finalize(KeyValuePair<string, string> csharptype)
-        {
-            string[] PARTS = input.Split(' ');
-            rostype = PARTS[0];
-            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
-                meta = true;
-            PARTS[0] = csharptype.Value;
-            return Finalize(PARTS, true);
-        }
-
-        public SingleType Finalize(string[] s, bool isliteral)
-        {
-            backup = new string[s.Length];
-            Array.Copy(s, backup, s.Length);
-            bool isconst = false;
-            IsLiteral = isliteral;
-            string type = s[0];
-            string name = s[1];
-            string othershit = "";
-            if (name.Contains('='))
-            {
-                string[] parts = name.Split('=');
-                isconst = true;
-                name = parts[0];
-                othershit = " = " + parts[1];
-            }
-            for (int i = 2; i < s.Length; i++)
-                othershit += " " + s[i];
-            if (othershit.Contains('=')) isconst = true;
-            if (!IsArray)
-            {
-                if (othershit.Contains('=') && type == "string")
-                {
-                    othershit = othershit.Replace("\\", "\\\\");
-                    othershit = othershit.Replace("\"", "\\\"");
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = \"" + split[1] + "\"";
-                }
-                if (othershit.Contains('=') && type == "bool")
-                {
-                    othershit = othershit.Replace("0", "false").Replace("1", "true");
-                }
-                if (othershit.Contains('=') && type == "byte")
-                {
-                    othershit = othershit.Replace("-1", "255");
-                }
-                output = "\t\tpublic " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
-                Const = isconst;
-                if (othershit.Contains("="))
-                {
-                    string[] chunks = othershit.Split('=');
-                    ConstValue = chunks[chunks.Length - 1].Trim();
-                    ;
-                }
-            }
-            else
-            {
-                if (length.Length > 0)
-                {
-                    IsLiteral = type != "string";
-                    output = "\t\tpublic " + type + "[] " + name + " = new " + type + "[" + length + "];";
-                }
-                else
-                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
-                if (othershit.Contains('='))
-                {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
-                }
-            }
-            Type = type;
-            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
-                meta = true;
-            Name = name.Length == 0 ? othershit.Trim() : name;
-            return this;
-        }
-
-        public void refinalize(string REALTYPE)
-        {
-            bool isconst = false;
-            string type = REALTYPE;
-            string name = backup[1];
-            string othershit = "";
-            if (name.Contains('='))
-            {
-                string[] parts = name.Split('=');
-                isconst = true;
-                name = parts[0];
-                othershit = " = " + parts[1];
-            }
-            for (int i = 2; i < backup.Length; i++)
-                othershit += " " + backup[i];
-            if (othershit.Contains('=')) isconst = true;
-            if (!IsArray)
-            {
-                if (othershit.Contains('=') && type == "string")
-                {
-                    othershit = othershit.Replace("\\", "\\\\");
-                    othershit = othershit.Replace("\"", "\\\"");
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = \"" + split[1] + "\"";
-                }
-                if (othershit.Contains('=') && type == "bool")
-                {
-                    othershit = othershit.Replace("0", "false").Replace("1", "true");
-                }
-                if (othershit.Contains('=') && type == "byte")
-                {
-                    othershit = othershit.Replace("-1", "255");
-                }
-                output = "\t\tpublic " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
-                Const = isconst;
-                if (othershit.Contains("="))
-                {
-                    string[] chunks = othershit.Split('=');
-                    ConstValue = chunks[chunks.Length - 1].Trim();
-                }
-            }
-            else
-            {
-                if (length.Length != 0)
-                {
-                    IsLiteral = type != "string";
-                    output = "\t\tpublic " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
-                }
-                else
-                    output = "\t\tpublic " + "" + type + "[] " + name + othershit + ";";
-                if (othershit.Contains('='))
-                {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
-                }
-            }
-            Type = type;
-            if (!KnownStuff.KnownTypes.ContainsKey(rostype))
-                meta = true;
-            Name = name.Length == 0 ? othershit.Trim() : name;
-        }
-    }
 
     public enum ServiceMessageType
     {
@@ -1330,8 +601,8 @@ namespace Messages
 
     public struct TimeData
     {
-        public uint nsec;
         public uint sec;
+        public uint nsec;
 
         public TimeData(uint s, uint ns)
         {

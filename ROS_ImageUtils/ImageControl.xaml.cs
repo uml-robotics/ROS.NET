@@ -45,7 +45,7 @@ namespace ROS_ImageWPF
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<TypedMessage<sm.Image>> imgsub;
+        private Subscriber<sm.Image> imgsub;
 
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -93,10 +93,7 @@ namespace ROS_ImageWPF
             wtf = DateTime.Now;
 
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    UpdateImage(i.data.data, new Size((int)i.data.width, (int)i.data.height), false, i.data.encoding.data);
-                }))); 
+                Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data))));
         }
 
         #region variables and such

@@ -11,7 +11,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    public class Publisher<M> : IPublisher where M : class, new()
+    public class Publisher<M> : IPublisher where M : IRosMessage, new()
     {
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle,
                          SubscriberCallbacks callbacks)
@@ -26,7 +26,8 @@ namespace Ros_CSharp
 
         public void publish(M msg)
         {
-            TopicManager.Instance.publish(topic, new TypedMessage<M>(msg));
+            msg.Serialized = null;
+            TopicManager.Instance.publish(topic, msg);
         }
     }
 
