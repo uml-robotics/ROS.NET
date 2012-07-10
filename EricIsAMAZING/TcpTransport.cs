@@ -218,7 +218,7 @@ namespace Ros_CSharp
 
             while (!sock.Connected)
             {
-                //EDB.WriteLine("waiting");
+                EDB.WriteLine("waiting");
             }
 
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
@@ -453,6 +453,7 @@ namespace Ros_CSharp
                 else
                     cached_remote_host = ClientURI + " on socket " + sock;
             }
+            Console.WriteLine("cached_remote_host = "+cached_remote_host);
 
             if (poll_set != null)
             {

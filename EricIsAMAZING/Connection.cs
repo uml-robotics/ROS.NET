@@ -84,7 +84,7 @@ namespace Ros_CSharp
                 i = j - 4;
                 full_msg[j] = buffer[i];
             }
-            write(full_msg, msg_len, onHeaderWritten, false);
+            write(full_msg, msg_len, onHeaderWritten, true);
         }
 
         public void read(int size, ReadFinishedFunc finished_func)

@@ -167,7 +167,12 @@ namespace Ros_CSharp
             {
                 tls.current = tls.head;
             }
-            if (tls.current == null)
+            TLS.CallbackInfoNode curr = null;
+            lock (tls.current)
+            {
+                curr = tls.current;
+            }
+            if (curr == null)
                 return CallOneResult.Empty;
             ICallbackInfo info = tls.current.info;
             CallbackInterface cb = info.Callback;
@@ -322,6 +327,10 @@ namespace Ros_CSharp
             if (head == null)
             {
                 head = new CallbackInfoNode(info);
+                tail = head;
+            }
+            else if (tail == null)
+            {
                 tail = head;
             }
             else

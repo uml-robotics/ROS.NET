@@ -143,9 +143,19 @@ namespace Messages
             }
             throw new Exception("GetFields is weaksauce");
         }
+        public static string dumphex(byte[] test)
+        {
+            if (test == null)
+                return "dumphex(null)";
+            string s = "";
+            for (int i = 0; i < test.Length; i++)
+                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
+            return s;
+        }
 
         private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
         {
+            Console.WriteLine("_deserialize: " + dumphex(bytes));
             if (bytes.Length == 0)
             {
                 amountread = 0;
@@ -153,7 +163,8 @@ namespace Messages
             }
             bool isoutermost = false;
             int totallength = -1;
-            if (container == null)
+
+            /*if (container == null)
             {
                 totallength = BitConverter.ToInt32(bytes, 0);
                 isoutermost = true;
@@ -167,7 +178,7 @@ namespace Messages
                 }
                 amountread = bytes.Length;
                 return o;
-            }
+            }*/
             object thestructure = null;
             if (T.FullName.Contains("System.") && !T.IsCOMObject && !T.IsArray && T != typeof(string))
             {
@@ -579,7 +590,7 @@ namespace Messages
         }
     }
 
-    
+
 
     public enum ServiceMessageType
     {
