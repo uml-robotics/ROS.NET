@@ -202,93 +202,7 @@ namespace DREAMPioneer
             StrokeDashArray = new DoubleCollection(new double[] { 2, 1 })
         };
 
-        /// <summary>
-        ///   The lasso line dash style.
-        /// </summary>
-        private DoubleCollection lassoLineDashStyle = new DoubleCollection(2);
-
-
-        /// <summary>
-        ///   The yellow current.
-        /// </summary>
-        private double yellowCurrent = 0.2;
-
-        /// <summary>
-        ///   The yellow min.
-        /// </summary>
-        private double yellowMin = 0.2;
-
-        /// <summary>
-        ///   The yellow max.
-        /// </summary>
-        private double yellowMax = 0.7;
-
-        /// <summary>
-        ///   The yellow delta.
-        /// </summary>
-        private double yellowDelta = 0.02;
-
-        /// <summary>
-        ///   The green current.
-        /// </summary>
-        private double greenCurrent = 0.1;
-
-        /// <summary>
-        ///   The green min.
-        /// </summary>
-        private double greenMin = 0.1;
-
-        /// <summary>
-        ///   The green max.
-        /// </summary>
-        private double greenMax = 0.9;
-
-        /// <summary>
-        ///   The green delta.
-        /// </summary>
-        private double greenDelta = 0.05;
-
-        /// <summary>
-        ///   These are the possible states for the robot movement FSM.
-        /// </summary>
-        public enum RMState
-        {
-            /// <summary>
-            ///   The start.
-            /// </summary>
-            Start = 0,
-
-            /// <summary>
-            ///   The r m 1.
-            /// </summary>
-            State1,
-
-            /// <summary>
-            ///   The r m 2.
-            /// </summary>
-            State2,
-
-            /// <summary>
-            ///   The r m 3.
-            /// </summary>
-            State3,
-
-            /// <summary>
-            ///   The r m 4.
-            /// </summary>
-            State4,
-
-            /// <summary>
-            ///   The r m 7.
-            /// </summary>
-            State5
-        } ;
-
-        /// <summary>
-        ///   The RM FSM state.
-        /// </summary>
-        private RMState state = RMState.Start;
-
+       
         public SurfaceWindow1()
         {
             current = this;
@@ -864,79 +778,7 @@ namespace DREAMPioneer
             }
         }
 
-        /// <summary>
-        ///   The r m 5 start.
-        /// </summary>
-        /// <param name = "last">
-        ///   The last.
-        /// </param>
-        public void RM5Start(Point last)
-        {
-            if (!turnedIntoDrag && Math.Abs(distance(last, lastTouch)) < DTDistance && timers.IsRunning(ref RM5Timer))
-            {
-                RM5DoIt();
-                RM5End();
-                return;
-            }
-            else
-            {
-                ChangeState(RMState.State3);
-                if (timers.IsRunning(ref RM5Timer))
-                {
-                    AddWaypointDot(lastTouch);
-                    RM5End();
-                }
-
-                lastTouch = last;
-                timers.StartTimer(ref RM5Timer);
-            }
-        }
-
-        private double DTDistance
-        {
-            get
-            {
-                if (joymgr != null)
-                    return 0.5 * joymgr.DPI;
-                return 30;
-            }
-        }
-
-        /// <summary>
-        ///   The r m 5 do it.
-        /// </summary>
-        private void RM5DoIt()
-        {
-            AddWaypointDot(lastTouch);
-            HandOutWaypoints();
-            EndState("CD-G (t<dt && d<dD)");
-        }
-
-        /// <summary>
-        ///   The r m 5 timer_ tick.
-        /// </summary>
-        /// <param name = "sender">
-        ///   The sender.
-        /// </param>
-        private void RM5Timer_Tick(object sender)
-        {
-            RM5End();
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (!turnedIntoDrag && captureVis.Count >= 1)
-                {
-                    AddWaypointDot(lastTouch);
-                }
-            }));
-        }
-
-        /// <summary>
-        ///   The r m 5 end.
-        /// </summary>
-        public void RM5End()
-        {
-            timers.StopTimer(ref RM5Timer);
-        }
+        
 
         /// <summary>
         ///   The last waypoint dot.
@@ -1658,6 +1500,168 @@ namespace DREAMPioneer
             lastTouch = last;
             timers.StartTimer(ref RM5Timer);
         }
+
+        /// <summary>
+        ///   The r m 5 start.
+        /// </summary>
+        /// <param name = "last">
+        ///   The last.
+        /// </param>
+        public void RM5Start(Point last)
+        {
+            if (!turnedIntoDrag && Math.Abs(distance(last, lastTouch)) < DTDistance && timers.IsRunning(ref RM5Timer))
+            {
+                RM5DoIt();
+                RM5End();
+                return;
+            }
+            else
+            {
+                ChangeState(RMState.State3);
+                if (timers.IsRunning(ref RM5Timer))
+                {
+                    AddWaypointDot(lastTouch);
+                    RM5End();
+                }
+
+                lastTouch = last;
+                timers.StartTimer(ref RM5Timer);
+            }
+        }
+
+        private double DTDistance
+        {
+            get
+            {
+                if (joymgr != null)
+                    return 0.5 * joymgr.DPI;
+                return 30;
+            }
+        }
+
+        /// <summary>
+        ///   The r m 5 do it.
+        /// </summary>
+        private void RM5DoIt()
+        {
+            AddWaypointDot(lastTouch);
+            HandOutWaypoints();
+            EndState("CD-G (t<dt && d<dD)");
+        }
+
+        /// <summary>
+        ///   The r m 5 timer_ tick.
+        /// </summary>
+        /// <param name = "sender">
+        ///   The sender.
+        /// </param>
+        private void RM5Timer_Tick(object sender)
+        {
+            RM5End();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!turnedIntoDrag && captureVis.Count >= 1)
+                {
+                    AddWaypointDot(lastTouch);
+                }
+            }));
+        }
+
+        /// <summary>
+        ///   The r m 5 end.
+        /// </summary>
+        public void RM5End()
+        {
+            timers.StopTimer(ref RM5Timer);
+        }
+
+        /// <summary>
+        ///   The lasso line dash style.
+        /// </summary>
+        private DoubleCollection lassoLineDashStyle = new DoubleCollection(2);
+
+
+        /// <summary>
+        ///   The yellow current.
+        /// </summary>
+        private double yellowCurrent = 0.2;
+
+        /// <summary>
+        ///   The yellow min.
+        /// </summary>
+        private double yellowMin = 0.2;
+
+        /// <summary>
+        ///   The yellow max.
+        /// </summary>
+        private double yellowMax = 0.7;
+
+        /// <summary>
+        ///   The yellow delta.
+        /// </summary>
+        private double yellowDelta = 0.02;
+
+        /// <summary>
+        ///   The green current.
+        /// </summary>
+        private double greenCurrent = 0.1;
+
+        /// <summary>
+        ///   The green min.
+        /// </summary>
+        private double greenMin = 0.1;
+
+        /// <summary>
+        ///   The green max.
+        /// </summary>
+        private double greenMax = 0.9;
+
+        /// <summary>
+        ///   The green delta.
+        /// </summary>
+        private double greenDelta = 0.05;
+
+        /// <summary>
+        ///   These are the possible states for the robot movement FSM.
+        /// </summary>
+        public enum RMState
+        {
+            /// <summary>
+            ///   The start.
+            /// </summary>
+            Start = 0,
+
+            /// <summary>
+            ///   The r m 1.
+            /// </summary>
+            State1,
+
+            /// <summary>
+            ///   The r m 2.
+            /// </summary>
+            State2,
+
+            /// <summary>
+            ///   The r m 3.
+            /// </summary>
+            State3,
+
+            /// <summary>
+            ///   The r m 4.
+            /// </summary>
+            State4,
+
+            /// <summary>
+            ///   The r m 7.
+            /// </summary>
+            State5
+        } ;
+
+        /// <summary>
+        ///   The RM FSM state.
+        /// </summary>
+        private RMState state = RMState.Start;
+
 
         #region Nested type: SlipAndSlide
 
