@@ -116,9 +116,9 @@ namespace DREAMPioneer
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
+        private Subscriber<sm.LaserScan> laserSub;
         private Publisher<gm.PoseStamped> goalPub;
-        private Subscriber<TypedMessage<m.String>> androidSub;
+        private Subscriber<m.String> androidSub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
 
@@ -399,24 +399,24 @@ namespace DREAMPioneer
                 Close();
         }
 
-        private void androidCallback(TypedMessage<m.String> str)
+        private void androidCallback(m.String str)
         {
             //android = str.data.data;
 
-            if (str.data.data == "robot_brain_1")
+            if (str.data == "robot_brain_1")
                 android = 0;
-            else if (str.data.data == "robot_brain_2")
+            else if (str.data == "robot_brain_2")
                 android = 1;
-            else if (str.data.data == "robot_brain_3")
+            else if (str.data == "robot_brain_3")
                 android = 2;
             else android = -1;
         }
 
-        public void videoCallback(TypedMessage<sm.Image> image)
+        public void videoCallback(sm.Image image)
         {
             d.Size size = new d.Size();
-            size.Height = (int)image.data.height;
-            size.Width = (int)image.data.width;
+            size.Height = (int)image.height;
+            size.Width = (int)image.width;
 //            t1 = t2;
 //            t2 = DateTime.Now;
 //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
@@ -424,27 +424,27 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => { 
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; 
                 if (rcp != null)
-                    rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
+                    rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
         }
 
-        public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
+        public void laserCallback(sm.LaserScan laserScan)
         {
-            double[] scan = new double[laserScan.data.ranges.Length];
-            for (int i = 0; i < laserScan.data.ranges.Length; i++)
+            double[] scan = new double[laserScan.ranges.Length];
+            for (int i = 0; i < laserScan.ranges.Length; i++)
             {
                  if (i - 1 >= 0)
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
+                    if (laserScan.ranges[i] < 0.3f)
                         scan[i] = scan[i-1];
                     else
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
                 else
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
-                        scan[i] = laserScan.data.ranges[i+1];
+                    if (laserScan.ranges[i] < 0.3f)
+                        scan[i] = laserScan.ranges[i+1];
                     else 
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
             }
 
@@ -452,7 +452,7 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
-                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min);
+                    lcp.newRangeCanvas.SetLaser(scan, laserScan.angle_increment, laserScan.angle_min);
             }));
         }
 

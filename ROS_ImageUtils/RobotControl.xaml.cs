@@ -135,7 +135,7 @@ namespace ROS_ImageWPF
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
                     {
                         Point p = new Point(x, y);
-                        if (compare(p, waypoint[0]))
+                        if (waypoint.Count > 0 && compare(p, waypoint[0]))
                         {
                             waypoint.RemoveAt(0);
                             sendnext = true;
