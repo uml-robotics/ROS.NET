@@ -11,13 +11,12 @@ namespace SecondPass
     {
         static void Main(string[] args)
         {
+            SerializationHelper.ShowDeserializationSteps();
             foreach (MsgTypes mt in Enum.GetValues(typeof(MsgTypes)))
             {
                 if (mt == MsgTypes.Unknown) continue;
-                Console.WriteLine("********** "+mt+" ************");
-                Console.WriteLine(IRosMessage.generate(mt).MessageDefinition);
-                Console.WriteLine("md5: "+IRosMessage.generate(mt).MD5Sum);
-                Console.WriteLine();
+                byte[] PWNED = new byte[0];
+                IRosMessage.generate(mt).Deserialize(PWNED);
             }
         }
     }
