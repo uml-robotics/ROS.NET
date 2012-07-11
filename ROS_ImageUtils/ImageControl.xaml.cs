@@ -36,7 +36,7 @@ namespace ROS_ImageWPF
     
     public partial class ImageControl : UserControl
     {
-
+        public static string newTopicName;
         DateTime wtf;
         public string TopicName
         {
@@ -59,6 +59,8 @@ namespace ROS_ImageWPF
                     {
                         ImageControl target = obj as ImageControl;
                         target.TopicName = (string)args.NewValue;
+                        if (newTopicName != null)
+                            target.TopicName = newTopicName;
                         if (!ROS.isStarted())
                         {
                             if (target.waitforinit == null)
@@ -89,10 +91,10 @@ namespace ROS_ImageWPF
             if (imgsub != null)
                 imgsub.shutdown();
             wtf = DateTime.Now;
+
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data))));
         }
-
 
         #region variables and such
 
@@ -128,7 +130,6 @@ namespace ROS_ImageWPF
         /// </param>
         public void UpdateImage(Bitmap bmp)
         {
-
             try
             {
                 // look up the image's dress

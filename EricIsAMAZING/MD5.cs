@@ -15,14 +15,6 @@ namespace Ros_CSharp
     {
         public static string Sum(MsgTypes m)
         {
-            if (m == MsgTypes.tf__tfMessage)
-                Console.WriteLine("WTF");
-            if (m == MsgTypes.geometry_msgs__TransformStamped)
-                Console.WriteLine("WTF");
-            if (m == MsgTypes.geometry_msgs__Transform)
-                Console.WriteLine("WTF");
-            if (m == MsgTypes.sensor_msgs__LaserScan)
-                Console.WriteLine("WTF");
             string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
@@ -66,7 +58,7 @@ namespace Ros_CSharp
                         (MsgTypes)
                         Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
                     //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
-                    Console.WriteLine(FieldType.Name);
+                    //Console.WriteLine(FieldType.Name);
                     if ( hashme == "geometry_msgs/TransformStamped[] transforms")
                         hashme = hashme.Replace(FieldType.Name, Sum(T)).Replace("geometry_msgs/", "").Replace("[]",""); //.Replace("geometry_msgs/","")
                     else

@@ -53,6 +53,7 @@ using tf = Messages.tf;
 using System.Text;
 using EM3MTouchLib;
 using System.ComponentModel;
+using otherTimer = System.Timers;
 
 #endregion
 
@@ -61,12 +62,49 @@ namespace DREAMPioneer
     /// <summary>
     ///   Interaction logic for SurfaceWindow1.xaml
     /// </summary>
+    /// 
+    public class touchTimer
+    {
+        System.Timers.Timer aTimer;
+        public int id;
+        public bool selected;
+        public touchTimer(int _id)
+        {
+            id = _id;
+            setTimer();
+        }
+
+
+        private void setTimer()
+        {
+            Console.WriteLine("SETTING TIMER");
+            selected = false;
+            aTimer = new System.Timers.Timer();
+            aTimer.Elapsed += new otherTimer.ElapsedEventHandler(OnTimedEvent);
+            aTimer.Interval = 2000;
+            aTimer.Enabled = true;
+        }
+
+        private void disposeTimer()
+        {
+            Console.WriteLine("TIMER FINISHED");
+            aTimer.Enabled = false;
+        }
+
+        private void OnTimedEvent(object source, otherTimer.ElapsedEventArgs e)
+        {
+            selected = true;
+            disposeTimer();
+        }
+
+    }
+
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
-        private SortedList<int, Touch> captureOldVis = new SortedList<int, Touch>();
+        private SortedList<int, Touch> oldFREE = new SortedList<int, Touch>();
         private JoystickManager joymgr;
         private NodeHandle node;
 
@@ -78,9 +116,9 @@ namespace DREAMPioneer
         private Publisher<gm.Twist> joyPub;
         private Publisher<cm.ptz> servosPub;
         private Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        private Subscriber<TypedMessage<sm.LaserScan>> laserSub;
+        private Subscriber<sm.LaserScan> laserSub;
         private Publisher<gm.PoseStamped> goalPub;
-        private Subscriber<TypedMessage<m.String>> androidSub;
+        private Subscriber<m.String> androidSub;
         private gm.PoseWithCovarianceStamped pose;
         private gm.PoseStamped goal;
 
@@ -90,10 +128,13 @@ namespace DREAMPioneer
         private TranslateTransform dottranslate;
 
         private int android = -1;
+        private bool touchHold;
 
         private Timer YellowTimer;
         private Timer GreenTimer;
-        TimeData checkHold;
+
+        string[] _namespace;
+
         int numRobots;
         int manualRobot;
         int androidRobot;
@@ -107,6 +148,8 @@ namespace DREAMPioneer
         string androidCamera;
         string androidPTZ;
         string androidLaser;
+
+        System.Timers.Timer aTimer;
 
         private TimerManager timers = new TimerManager();
 
@@ -135,6 +178,8 @@ namespace DREAMPioneer
         private static float PPM = 0.02868f;
         private static float MPP = 1.0f / PPM;
 
+        touchTimer[] ttime;
+
         /// <summary>
         ///   The waypoint dots.
         /// </summary>
@@ -157,93 +202,7 @@ namespace DREAMPioneer
             StrokeDashArray = new DoubleCollection(new double[] { 2, 1 })
         };
 
-        /// <summary>
-        ///   The lasso line dash style.
-        /// </summary>
-        private DoubleCollection lassoLineDashStyle = new DoubleCollection(2);
-
-
-        /// <summary>
-        ///   The yellow current.
-        /// </summary>
-        private double yellowCurrent = 0.2;
-
-        /// <summary>
-        ///   The yellow min.
-        /// </summary>
-        private double yellowMin = 0.2;
-
-        /// <summary>
-        ///   The yellow max.
-        /// </summary>
-        private double yellowMax = 0.7;
-
-        /// <summary>
-        ///   The yellow delta.
-        /// </summary>
-        private double yellowDelta = 0.02;
-
-        /// <summary>
-        ///   The green current.
-        /// </summary>
-        private double greenCurrent = 0.1;
-
-        /// <summary>
-        ///   The green min.
-        /// </summary>
-        private double greenMin = 0.1;
-
-        /// <summary>
-        ///   The green max.
-        /// </summary>
-        private double greenMax = 0.9;
-
-        /// <summary>
-        ///   The green delta.
-        /// </summary>
-        private double greenDelta = 0.05;
-
-        /// <summary>
-        ///   These are the possible states for the robot movement FSM.
-        /// </summary>
-        public enum RMState
-        {
-            /// <summary>
-            ///   The start.
-            /// </summary>
-            Start = 0,
-
-            /// <summary>
-            ///   The r m 1.
-            /// </summary>
-            State1,
-
-            /// <summary>
-            ///   The r m 2.
-            /// </summary>
-            State2,
-
-            /// <summary>
-            ///   The r m 3.
-            /// </summary>
-            State3,
-
-            /// <summary>
-            ///   The r m 4.
-            /// </summary>
-            State4,
-
-            /// <summary>
-            ///   The r m 7.
-            /// </summary>
-            State5
-        } ;
-
-        /// <summary>
-        ///   The RM FSM state.
-        /// </summary>
-        private RMState state = RMState.Start;
-
+       
         public SurfaceWindow1()
         {
             current = this;
@@ -269,27 +228,28 @@ namespace DREAMPioneer
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = "10.0.2.82";
             ROS.Init(new string[0], "DREAM");
-            node = new NodeHandle();
-            manualCamera = "fakecam";
+            node = new NodeHandle(); 
+
+            manualCamera = "/robot_brain_1/camera/rgb/image_color";
             manualLaser = "fakelaser";
-            manualPTZ = "fakeptz";
+            manualPTZ = "/robot_brain_1/servos";
             manualVelocity = "fakevel";
 
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 5);
 
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
 
             goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
-            goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 1000);
+            goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
 
             //Deprecated until I make an abstraction in ros that can publish transforms
             //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
             //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
-            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl",1000,androidCallback);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 3, laserCallback);
+            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 2, androidCallback);
             currtime = DateTime.Now;
             tf_node.init();
             lastt = new Touch();
@@ -319,10 +279,26 @@ namespace DREAMPioneer
                 AddRobot();
             }
 
+            touchHold = false;
             timers.StartTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
             timers.StartTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
             timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
+            //timers.MakeTimer(ref touchHold, TouchHold, 0, 200);
+
+            _namespace = new string[16];
+            _namespace[0] = "/robot_brain_1";
+            _namespace[1] = "/robot_brain_2";
+            _namespace[2] = "/robot_brain_3";
+            _namespace[3] = "";
+            _namespace[4] = "";
+            ttime = new touchTimer[40];
+
+           // for( int i =0; i< ttime.Length; i++)
+           // {
+                //ttime[i] = new touchTimer();
+           // }
             
+            //= new touchTimer();
 
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
@@ -351,9 +327,6 @@ namespace DREAMPioneer
                     rp.Init(this);
                     return (ControlPanel)rp;
                 });
-
-
-
             new Thread(rosStart).Start();
         }
 
@@ -364,16 +337,18 @@ namespace DREAMPioneer
             manualCamera = cam;
             manualLaser = urg;
 
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1000);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1000);
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1000, laserCallback);
-
-            Dispatcher.BeginInvoke(new Action(() => {
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 5);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 2, laserCallback);
+            ROS_ImageWPF.ImageControl.newTopicName = manualCamera;
+            /*
+             Dispatcher.BeginInvoke(new Action(() => {
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
                 if (rcp != null)
-                    rcp.webcam.TopicName = manualCamera;
-            }));
-
+                {
+                    
+                }
+            }));*/
         }
 
         private void JoymgrFireUpEvent(Touch e)
@@ -394,9 +369,9 @@ namespace DREAMPioneer
             {
                 if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
                 {
-                    pt.x = (float)(rx /* 10.0*/);
-                    pt.y = (float)(ry * 1 /* -10.0*/);
-                    pt.CAM_MODE = ptz.CAM_ABS;
+                    pt.x = (float)(rx / 10 /* 10.0*/);
+                    pt.y = (float)(ry / 10 * 1 /* -10.0*/);
+                    pt.CAM_MODE = ptz.CAM_REL;
                     servosPub.publish(pt);
                     currtime = DateTime.Now;
                 }
@@ -424,53 +399,52 @@ namespace DREAMPioneer
                 Close();
         }
 
-        private void androidCallback(TypedMessage<m.String> str)
+        private void androidCallback(m.String str)
         {
             //android = str.data.data;
 
-            if (str.data.data == "robot_brain_1")
+            if (str.data == "robot_brain_1")
                 android = 0;
-            else if (str.data.data == "robot_brain_2")
+            else if (str.data == "robot_brain_2")
                 android = 1;
-            else if (str.data.data == "robot_brain_3")
+            else if (str.data == "robot_brain_3")
                 android = 2;
             else android = -1;
         }
 
-        public void videoCallback(TypedMessage<sm.Image> image)
+        public void videoCallback(sm.Image image)
         {
             d.Size size = new d.Size();
-            size.Height = (int)image.data.height;
-            size.Width = (int)image.data.width;
-
+            size.Height = (int)image.height;
+            size.Width = (int)image.width;
 //            t1 = t2;
 //            t2 = DateTime.Now;
 //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
 //            Console.WriteLine(fps);
-
-            Dispatcher.BeginInvoke(new Action(() => { RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; if (rcp != null)
-            
-                rcp.webcam.UpdateImage(image.data.data, new System.Windows.Size(size.Width, size.Height), false); }));
+            Dispatcher.BeginInvoke(new Action(() => { 
+                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; 
+                if (rcp != null)
+                    rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
         }
 
-        public void laserCallback(TypedMessage<sm.LaserScan> laserScan)
+        public void laserCallback(sm.LaserScan laserScan)
         {
-            double[] scan = new double[laserScan.data.ranges.Length];
-            for (int i = 0; i < laserScan.data.ranges.Length; i++)
+            double[] scan = new double[laserScan.ranges.Length];
+            for (int i = 0; i < laserScan.ranges.Length; i++)
             {
                  if (i - 1 >= 0)
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
+                    if (laserScan.ranges[i] < 0.3f)
                         scan[i] = scan[i-1];
                     else
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
                 else
                 {
-                    if (laserScan.data.ranges[i] < 0.3f)
-                        scan[i] = laserScan.data.ranges[i+1];
+                    if (laserScan.ranges[i] < 0.3f)
+                        scan[i] = laserScan.ranges[i+1];
                     else 
-                        scan[i] = laserScan.data.ranges[i];
+                        scan[i] = laserScan.ranges[i];
                 }
             }
 
@@ -478,7 +452,7 @@ namespace DREAMPioneer
             Dispatcher.BeginInvoke(new Action(() => {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
-                    lcp.newRangeCanvas.SetLaser(scan, laserScan.data.angle_increment, laserScan.data.angle_min);
+                    lcp.newRangeCanvas.SetLaser(scan, laserScan.angle_increment, laserScan.angle_min);
             }));
         }
 
@@ -740,42 +714,41 @@ namespace DREAMPioneer
             bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
             //Console.WriteLine(joymgr.FreeTouches);
-            if ( distance(e, captureOldVis[e.Id] ) > .1 && !SITSTILL)
+            if ( distance(e, oldFREE[e.Id] ) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
-
-                if(captureOldVis.Count > 1)
+                if(oldFREE.Count > 1)
                 {
-                    foreach (Touch p in captureOldVis.Values)
+                    foreach (Touch p in oldFREE.Values)
                     {
                         if (p.Id != e.Id )
-                        {   //- distance(captureOldVis[e.Id], captureOldVis[p.Id])
-                            if (scale.ScaleX + Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id]) ) > 2)
+                        {   //- distance(oldFREE[e.Id], oldFREE[p.Id])
+                            if (Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id]) ) > .5)
                             {
-                                //Console.WriteLine(Math.Abs(distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])));
-                                if ( ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400) > 0.5)
+                                //Console.WriteLine(Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])));
+                                if ( scale.ScaleX+ ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.2)
                                 {
-                                    scale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
-                                    scale.ScaleY += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
-                                    dotscale.ScaleX += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
-                                    dotscale.ScaleY += ((distance(e, p) - distance(captureOldVis[e.Id], captureOldVis[p.Id])) / 400);
+                                    scale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
+                                    scale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
+                                    dotscale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
+                                    dotscale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
                                     zoomed = true;
                                 }
                             }
                         }
                     }
-                    if (!zoomed)
-                    {
-                        changeManual("/robot_brain_1/virtual_joystick/cmd_vel", "/robot_brain_1/servos", "/robot_brain_1/camera/rgb/image_color", "/robot_brain_1/scan");
-                        translate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
-                        translate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
-                        dottranslate.X += (e.Position.X - captureOldVis[e.Id].Position.X);
-                        dottranslate.Y += (e.Position.Y - captureOldVis[e.Id].Position.Y);
-                    }
+                    //if (!zoomed)
+                    //{
+                        
+                        translate.X += (e.Position.X - oldFREE[e.Id].Position.X);
+                        translate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
+                        dottranslate.X += (e.Position.X - oldFREE[e.Id].Position.X);
+                        dottranslate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
+                    //}
                 }
-            } if (captureOldVis.ContainsKey(e.Id))
-                captureOldVis.Remove(e.Id);
-            captureOldVis.Add(e.Id, e);
+            } if (oldFREE.ContainsKey(e.Id))
+                oldFREE.Remove(e.Id);
+            oldFREE.Add(e.Id, e);
      
         }
 
@@ -805,79 +778,7 @@ namespace DREAMPioneer
             }
         }
 
-        /// <summary>
-        ///   The r m 5 start.
-        /// </summary>
-        /// <param name = "last">
-        ///   The last.
-        /// </param>
-        public void RM5Start(Point last)
-        {
-            if (!turnedIntoDrag && Math.Abs(distance(last, lastTouch)) < DTDistance && timers.IsRunning(ref RM5Timer))
-            {
-                RM5DoIt();
-                RM5End();
-                return;
-            }
-            else
-            {
-                ChangeState(RMState.State3);
-                if (timers.IsRunning(ref RM5Timer))
-                {
-                    AddWaypointDot(lastTouch);
-                    RM5End();
-                }
-
-                lastTouch = last;
-                timers.StartTimer(ref RM5Timer);
-            }
-        }
-
-        private double DTDistance
-        {
-            get
-            {
-                if (joymgr != null)
-                    return 0.5 * joymgr.DPI;
-                return 30;
-            }
-        }
-
-        /// <summary>
-        ///   The r m 5 do it.
-        /// </summary>
-        private void RM5DoIt()
-        {
-            AddWaypointDot(lastTouch);
-            HandOutWaypoints();
-            EndState("CD-G (t<dt && d<dD)");
-        }
-
-        /// <summary>
-        ///   The r m 5 timer_ tick.
-        /// </summary>
-        /// <param name = "sender">
-        ///   The sender.
-        /// </param>
-        private void RM5Timer_Tick(object sender)
-        {
-            RM5End();
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (!turnedIntoDrag && captureVis.Count >= 1)
-                {
-                    AddWaypointDot(lastTouch);
-                }
-            }));
-        }
-
-        /// <summary>
-        ///   The r m 5 end.
-        /// </summary>
-        public void RM5End()
-        {
-            timers.StopTimer(ref RM5Timer);
-        }
+        
 
         /// <summary>
         ///   The last waypoint dot.
@@ -941,7 +842,7 @@ namespace DREAMPioneer
             bool res = true;
             if (robot == -1)
                 return false;
-
+            ttime[robot] = new touchTimer(robot);
             if (!timers.IsRunning(ref turboFingering[robot]))
             {
                 if (selectedList.Contains(robot))
@@ -960,6 +861,10 @@ namespace DREAMPioneer
             }
             timers.StartTimer(ref turboFingering[robot]);
             turboFingerCount[robot]++;
+            //touchHold = new otherTimer.Timer(2000);
+            //timers.StartTimer(ref checkHold);
+            
+
             return res;
         }
 
@@ -1014,8 +919,8 @@ namespace DREAMPioneer
                                             {
                                                 
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
-                                                if(!captureOldVis.ContainsKey(e.Id) )
-                                                    captureOldVis.Add(t.Id, e);
+                                                if(!oldFREE.ContainsKey(e.Id) )
+                                                    oldFREE.Add(t.Id, e);
                                                 captureVis[t.Id].dot.Stroke = Brushes.White;
 
                                                 ZoomDown(e);
@@ -1176,7 +1081,7 @@ namespace DREAMPioneer
                                                             break;
                                                         case RMState.State1:
                                                             if (cc.Count > 1) break;
-                                                            /* indexdistfuck idf = DistToNearestGestureObject(e.Position); NEED TO FIX
+                                                            /* indexdistfuck idf = DistToNearestGestureObject(e.Position); // NEED TO FIX
 
                                                             if (selectedList.Count > 0 && selectedList.Contains(idf.index) &&
                                                                 (idf.distance > ScaleDotToCameraHeight()))
@@ -1255,9 +1160,9 @@ namespace DREAMPioneer
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
                                             }
-                                            if (captureOldVis.ContainsKey(t.Id))
+                                            if (oldFREE.ContainsKey(t.Id))
                                             {
-                                                captureOldVis.Remove(t.Id);
+                                                oldFREE.Remove(t.Id);
                                             }
                                             if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
                                             zoomUp();
@@ -1266,11 +1171,13 @@ namespace DREAMPioneer
                                             int index = robotsCD(e);
                                             if(manualRobot == -1 && index != -1)
                                             {
-                                                if (!timers.IsRunning(ref turboFingering[index]))
+                                                if ( ttime[index] != null && ttime[index].selected)
+                                                //if (!timers.IsRunning(ref turboFingering[index]))
                                                 {
                                                     manualRobot = index;
                                                     selectedList.RemoveAt(index);
                                                     PulseGreen(manualRobot);
+                                                    changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
                                                 }
                                             }
 
@@ -1336,11 +1243,11 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                                captureOldVis.Remove(e.Id);
+                                                oldFREE.Remove(e.Id);
                                             }
-                                            if(captureOldVis.ContainsKey(e.Id))
+                                            if(oldFREE.ContainsKey(e.Id))
                                             {
-                                                captureOldVis.Remove(e.Id);
+                                                oldFREE.Remove(e.Id);
                                             }
                                         }
                                     });
@@ -1593,6 +1500,168 @@ namespace DREAMPioneer
             lastTouch = last;
             timers.StartTimer(ref RM5Timer);
         }
+
+        /// <summary>
+        ///   The r m 5 start.
+        /// </summary>
+        /// <param name = "last">
+        ///   The last.
+        /// </param>
+        public void RM5Start(Point last)
+        {
+            if (!turnedIntoDrag && Math.Abs(distance(last, lastTouch)) < DTDistance && timers.IsRunning(ref RM5Timer))
+            {
+                RM5DoIt();
+                RM5End();
+                return;
+            }
+            else
+            {
+                ChangeState(RMState.State3);
+                if (timers.IsRunning(ref RM5Timer))
+                {
+                    AddWaypointDot(lastTouch);
+                    RM5End();
+                }
+
+                lastTouch = last;
+                timers.StartTimer(ref RM5Timer);
+            }
+        }
+
+        private double DTDistance
+        {
+            get
+            {
+                if (joymgr != null)
+                    return 0.5 * joymgr.DPI;
+                return 30;
+            }
+        }
+
+        /// <summary>
+        ///   The r m 5 do it.
+        /// </summary>
+        private void RM5DoIt()
+        {
+            AddWaypointDot(lastTouch);
+            HandOutWaypoints();
+            EndState("CD-G (t<dt && d<dD)");
+        }
+
+        /// <summary>
+        ///   The r m 5 timer_ tick.
+        /// </summary>
+        /// <param name = "sender">
+        ///   The sender.
+        /// </param>
+        private void RM5Timer_Tick(object sender)
+        {
+            RM5End();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!turnedIntoDrag && captureVis.Count >= 1)
+                {
+                    AddWaypointDot(lastTouch);
+                }
+            }));
+        }
+
+        /// <summary>
+        ///   The r m 5 end.
+        /// </summary>
+        public void RM5End()
+        {
+            timers.StopTimer(ref RM5Timer);
+        }
+
+        /// <summary>
+        ///   The lasso line dash style.
+        /// </summary>
+        private DoubleCollection lassoLineDashStyle = new DoubleCollection(2);
+
+
+        /// <summary>
+        ///   The yellow current.
+        /// </summary>
+        private double yellowCurrent = 0.2;
+
+        /// <summary>
+        ///   The yellow min.
+        /// </summary>
+        private double yellowMin = 0.2;
+
+        /// <summary>
+        ///   The yellow max.
+        /// </summary>
+        private double yellowMax = 0.7;
+
+        /// <summary>
+        ///   The yellow delta.
+        /// </summary>
+        private double yellowDelta = 0.02;
+
+        /// <summary>
+        ///   The green current.
+        /// </summary>
+        private double greenCurrent = 0.1;
+
+        /// <summary>
+        ///   The green min.
+        /// </summary>
+        private double greenMin = 0.1;
+
+        /// <summary>
+        ///   The green max.
+        /// </summary>
+        private double greenMax = 0.9;
+
+        /// <summary>
+        ///   The green delta.
+        /// </summary>
+        private double greenDelta = 0.05;
+
+        /// <summary>
+        ///   These are the possible states for the robot movement FSM.
+        /// </summary>
+        public enum RMState
+        {
+            /// <summary>
+            ///   The start.
+            /// </summary>
+            Start = 0,
+
+            /// <summary>
+            ///   The r m 1.
+            /// </summary>
+            State1,
+
+            /// <summary>
+            ///   The r m 2.
+            /// </summary>
+            State2,
+
+            /// <summary>
+            ///   The r m 3.
+            /// </summary>
+            State3,
+
+            /// <summary>
+            ///   The r m 4.
+            /// </summary>
+            State4,
+
+            /// <summary>
+            ///   The r m 7.
+            /// </summary>
+            State5
+        } ;
+
+        /// <summary>
+        ///   The RM FSM state.
+        /// </summary>
+        private RMState state = RMState.Start;
+
 
         #region Nested type: SlipAndSlide
 
