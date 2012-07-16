@@ -103,7 +103,11 @@ namespace Ros_CSharp
             }
         }
 
-        public void write(byte[] data, int size, WriteFinishedFunc finished_func, bool immediate = true)
+        public void write(byte[] data, int size, WriteFinishedFunc finished_func)
+        {
+           write(data,size,finished_func,true);
+        }
+        public void write(byte[] data, int size, WriteFinishedFunc finished_func, bool immediate)
         {
             if (dropped || sendingHeaderError) return;
             lock (write_callback_mutex)

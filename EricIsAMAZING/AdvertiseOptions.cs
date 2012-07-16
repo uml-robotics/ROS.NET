@@ -24,8 +24,21 @@ namespace Ros_CSharp
         }
 
         public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def,
-                                SubscriberStatusCallback connectcallback = null,
-                                SubscriberStatusCallback disconnectcallback = null)
+                                SubscriberStatusCallback connectcallback)
+            :this(t,q_size,md5,dt, message_def,connectcallback ,null)
+        {
+        }
+
+
+        public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def)
+        :this(t,q_size,md5,dt, message_def,null,null)
+        {
+            
+        }
+
+        public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def,
+                                SubscriberStatusCallback connectcallback ,
+                                SubscriberStatusCallback disconnectcallback)
         {
             topic = t;
             queue_size = q_size;
@@ -46,8 +59,13 @@ namespace Ros_CSharp
             disconnectCB = disconnectcallback;
         }
 
-        public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback = null,
-                                SubscriberStatusCallback disconnectcallback = null) :
+        public AdvertiseOptions(string t, int q_size) 
+           :this( t, q_size,null,null)
+        {
+        }
+
+        public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback,
+                                SubscriberStatusCallback disconnectcallback) :
                                     this(
                                     t, q_size, MD5.Sum(new T().msgtype),
                                     new T().msgtype.ToString().Replace("__", "/"),

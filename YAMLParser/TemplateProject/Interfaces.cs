@@ -56,7 +56,10 @@ namespace Messages
         }
 
         [DebuggerStepThrough]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5=null)
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields)
+        :this(t,def,hasheader,meta,fields,"")
+        {}
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5)
         {
             msgtype = t;
             MessageDefinition = def;

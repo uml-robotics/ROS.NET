@@ -115,13 +115,18 @@ namespace Ros_CSharp
                 srv.impl.unadvertise();
         }
 
-        public Publisher<M> advertise<M>(string topic, int q_size, bool l = false) where M : IRosMessage, new()
+         public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
+        {
+            return advertise<M>(topic, q_size, false);
+        }
+
+        public Publisher<M> advertise<M>(string topic, int q_size, bool l) where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
-                                         SubscriberStatusCallback disconnectcallback, bool l = false)
+                                         SubscriberStatusCallback disconnectcallback, bool l)
             where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
@@ -150,13 +155,26 @@ namespace Ros_CSharp
             return null;
         }
 
-        public Subscriber<M> subscribe<M>(string topic, int queue_size,
-                                                        CallbackDelegate<M> cb, string thisisveryverybad = null) where M : IRosMessage, new()
+        public Subscriber<M> subscribe<M>(string topic, int queue_size,CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), "");
         }
 
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad = null)
+        public Subscriber<M> subscribe<M>(string topic, int queue_size,
+                                                        CallbackDelegate<M> cb, string thisisveryverybad ) where M : IRosMessage, new()
+        {
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
+
+        }
+         
+         public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
+            where M : IRosMessage, new()
+        {
+              subscribe<M>( topic, queue_size, cb, null);
+       }
+
+
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad)
             where M : IRosMessage, new()
         {
             if (_callback == null)
@@ -224,8 +242,21 @@ namespace Ros_CSharp
             return new ServiceServer<T, MReq, MRes>();
         }
 
-        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent = false,
-                                                                   IDictionary header_values = null)
+        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
+        {
+            return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, false, null));
+        }
+
+        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name,bool persistent)
+            where MReq : IRosMessage, new()
+            where MRes : IRosMessage, new()
+        {
+            return serviceClient<MReq, MRes>(new ServiceClientOptions(persistent, null));
+        }
+        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent,
+                                                                   IDictionary header_values)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
@@ -310,8 +341,13 @@ namespace Ros_CSharp
                 return (string) remappings[resolved];
             return names.remap(resolved);
         }
+        public string resolveName(string name)
+        {
+           resolveName(name, true);
+        }
 
-        public string resolveName(string name, bool remap = true)
+
+        public string resolveName(string name, bool remap )
         {
             string error = "";
             if (!names.validate(name, ref error))

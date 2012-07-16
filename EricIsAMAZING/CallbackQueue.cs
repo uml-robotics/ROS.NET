@@ -393,7 +393,12 @@ namespace Ros_CSharp
 
     public class CallbackQueueInterface
     {
-        public virtual void addCallback(CallbackInterface callback, UInt64 owner_id = 0)
+        public virtual void addCallback(CallbackInterface callback)
+        {
+            addCallback(callback, 0);
+               
+        }
+        public virtual void addCallback(CallbackInterface callback, UInt64 owner_id)
         {
             throw new NotImplementedException();
         }

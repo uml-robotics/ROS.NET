@@ -21,7 +21,11 @@ namespace Ros_CSharp
             return ret;
         }
 
-        public static void Init(string n, IDictionary remappings, int options = 0)
+        public static void Init(string n, IDictionary remappings)
+        {
+             Init( n,  remappings, 0);
+        }
+        public static void Init(string n, IDictionary remappings, int options)
         {
             Name = n;
             bool disable_anon = false;

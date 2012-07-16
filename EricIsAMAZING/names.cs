@@ -65,9 +65,9 @@ namespace Ros_CSharp
             return resolve(name, false);
         }
 
-        public static string resolve(string name, bool doremap = true)
+        public static string resolve(string name, bool doremap)
         {
-            return resolve(this_node.Namespace, name, doremap);
+            return resolve(this_node.Namespace, name, true);
         }
 
         internal static Exception InvalidName(string error)
@@ -75,7 +75,7 @@ namespace Ros_CSharp
             return new InvalidNameException(error);
         }
 
-        public static string resolve(string ns, string name, bool doremap = true)
+        public static string resolve(string ns, string name, bool doremap)
         {
             string error = "";
             if (!validate(name, ref error))

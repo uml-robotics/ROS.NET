@@ -20,14 +20,18 @@ namespace Ros_CSharp
 
         #endregion
 
-        public virtual void spin(CallbackQueue queue = null)
+        public void spin()            
+        {
+            spin(null);
+        
+        }
+    public virtual void spin(CallbackQueue queue)
         {
         }
-    }
-
+}
     public class SingleThreadSpinner : Spinner
     {
-        public override void spin(CallbackQueue callbackInterface = null)
+        public override void spin(CallbackQueue callbackInterface)
         {
             if (callbackInterface == null)
                 callbackInterface = ROS.GlobalCallbackQueue;
@@ -48,13 +52,15 @@ namespace Ros_CSharp
     {
         private int thread_count;
 
-        public MultiThreadSpinner(int tc = 0)
+        public MultiThreadSpinner(int tc )
         {
         }
-
-        public override void spin(CallbackQueue callbackInterface = null)
+        public MultiThreadSpinner()
+            : this(0)
         {
         }
+        
+        
 
         public override void Dispose()
         {

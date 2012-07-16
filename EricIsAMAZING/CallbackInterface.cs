@@ -63,8 +63,14 @@ namespace Ros_CSharp
             this.queue_size = 0;
         }
 
+        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,ref bool was_full)
+        {
+            push(helper, deserializer, nonconst_need_copy, was_full, new TimeData());
+        }
+
+
         public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,
-                         ref bool was_full, TimeData receipt_time = new TimeData())
+                         ref bool was_full, TimeData receipt_time)
         {
             if (Event != null)
             {

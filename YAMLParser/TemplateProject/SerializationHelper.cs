@@ -109,13 +109,25 @@ namespace Messages
             return b;
         }
 
-        internal static T Deserialize<T>(byte[] bytes, Type container = null) where T : IRosMessage, new()
+        internal static T Deserialize<T>(byte[] bytes) where T : IRosMessage, new()
+        {          
+            
+            return Deserialize<T>(bytes, null);
+            
+        }
+
+        internal static T Deserialize<T>(byte[] bytes, Type container) where T : IRosMessage, new()
         {
             int dontcare = 0;
             return _deserialize(typeof(T), container, bytes, out dontcare, IsSizeKnown(typeof(T), true)) as T;
         }
+         public static object deserialize(Type T, Type container, byte[] bytes, out int amountread)
+         {
+                  return deserialize(T,container, bytes,out amountread, false);
+         }
 
-        public static object deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
+
+        public static object deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown)
         {
             try
             {
@@ -164,7 +176,7 @@ namespace Messages
             return s;
         }
 
-        private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown = false)
+        private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown)
         {
             if (bytes.Length == 0 && !WHAT_IS_HAPPENING)
             {
@@ -382,7 +394,7 @@ namespace Messages
                                     o = Marshal.PtrToStructure(pIP, TT);
                                 val.SetValue(o, i / len);
                                 if (pIP != IntPtr.Zero)
-                                    pIP = pIP + len;
+                                    pIP = new IntPtr(pIP.ToInt32()+ len);
                             }
                             infos[currinfo].SetValue(thestructure, val);
                             currpos += chunklen * len;
@@ -455,7 +467,14 @@ namespace Messages
             return thestructure;
         }
 
-        internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse = false)
+       
+        internal static byte[] Serialize<T>(T outgoing)
+            where T : IRosMessage, new()
+        {
+            return Serialize(outgoing, false);
+        }
+
+        internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse)
             where T : IRosMessage, new()
         {
             if (outgoing.Serialized != null)
@@ -464,7 +483,12 @@ namespace Messages
             return outgoing.Serialized;
         }
 
-        public static byte[] SlapChop(Type T, object instance, bool partofsomethingelse = false)
+        public static byte[] SlapChop(Type T, object instance)
+        {
+            return SlapChop(T, instance, false);
+        }
+
+        public static byte[] SlapChop(Type T, object instance, bool partofsomethingelse)
         {
             IRosMessage msg;
             FieldInfo[] infos = GetFields(T, ref instance, out msg);

@@ -136,7 +136,12 @@ namespace Ros_CSharp
             Error((object)string.Format(format, args));
         }
 
-        public static void Init(string[] args, string name, int options = 0)
+         public static void Init(string[] args, string name)
+        {
+               Init(args, name, 0);
+       }
+
+        public static void Init(string[] args, string name, int options)
         {
             Console.WriteLine("INIT!");
             IDictionary remapping = new Hashtable();
@@ -167,7 +172,11 @@ namespace Ros_CSharp
             Init(remapping, name, options);
         }
 
-        public static void Init(IDictionary remapping_args, string name, int options = 0)
+        public static void Init(IDictionary remapping_args, string name)
+        {
+             Init(remapping_args, name, 0);
+       }
+        public static void Init(IDictionary remapping_args, string name, int options)
         {
             if (!atexit_registered)
             {

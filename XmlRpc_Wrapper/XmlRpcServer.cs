@@ -286,7 +286,12 @@ namespace XmlRpc_Wrapper
             return XMLRPCCallWrapper.LookUp(ret);
         }
 
-        public bool BindAndListen(int port, int backlog = 5)
+        public bool BindAndListen(int port)
+        {
+                return BindAndListen(port,5);
+        }
+
+        public bool BindAndListen(int port, int backlog)
         {
             SegFault();
             return bindandlisten(instance, port, backlog);

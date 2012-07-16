@@ -99,7 +99,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -132,7 +132,12 @@ namespace Messages
         private string memoizedcontent;
         private bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
-        public MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent = "")
+
+        public MsgsFile(string filename, bool isrequest, List<string> lines)
+        :this(filename, isrequest,lines,  "")
+        {}
+
+        public MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
         {
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
             filename = filename.Replace(".srv", ".msg");
@@ -165,7 +170,13 @@ namespace Messages
                     Stuff.Add(test);
             }
         }
-        public MsgsFile(string filename, string extraindent = "")
+
+        public MsgsFile(string filename)
+        :this(filename,"")
+        {
+        }
+        
+        public MsgsFile(string filename, string extraindent )
         {
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
@@ -472,7 +483,11 @@ namespace Messages
         public string rostype = "";
         public string lowestindent = "\t\t";
 
-        public SingleType(string s, string extraindent = "")
+        public SingleType(string s)
+        :this( s,  "")
+        {}
+
+        public SingleType(string s, string extraindent)
         {
             lowestindent += extraindent;
             if (s.Contains('[') && s.Contains(']'))

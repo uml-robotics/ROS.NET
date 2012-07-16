@@ -64,13 +64,22 @@ namespace Ros_CSharp
         public TcpTransport()
         {
         }
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(pollset, flags)
+        {
+            TcpTransport(s,pollset,0);
+        }
 
-        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset, int flags = 0) : this(pollset, flags)
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(pollset, flags)
         {
             setSocket(new Socket(s));
         }
+        public TcpTransport(PollSet pollset) : this()
+        {
+            TcpTransport(pollset, 0);
+        }
 
-        public TcpTransport(PollSet pollset, int flags = 0) : this()
+
+        public TcpTransport(PollSet pollset, int flags) : this()
         {
             poll_set = pollset;
             this.flags = flags;

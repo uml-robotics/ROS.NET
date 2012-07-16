@@ -49,7 +49,12 @@ namespace Ros_CSharp
 			FATAL = 16
         }
 
-        public void Append(string m, ROSOUT_LEVEL lvl = ROSOUT_LEVEL.INFO)
+        public void Append(string m)
+        {
+            Append(m, ROSOUT_LEVEL.INFO);
+        }
+
+        public void Append(string m, ROSOUT_LEVEL lvl)
         {
             Log l = new Log();
             l.msg = new String(m);
