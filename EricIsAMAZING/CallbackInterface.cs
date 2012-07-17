@@ -65,7 +65,7 @@ namespace Ros_CSharp
 
         public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,ref bool was_full)
         {
-            push(helper, deserializer, nonconst_need_copy, was_full, new TimeData());
+            push(helper, deserializer, nonconst_need_copy, ref was_full, new TimeData());
         }
 
 

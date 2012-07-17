@@ -65,9 +65,20 @@ namespace Ros_CSharp
             return resolve(name, false);
         }
 
+
+        public static string resolve(string name)
+        {
+            return resolve(name, true);
+        }
+
+        public static string resolve(string ns, string name)
+        {
+            return resolve(ns, name, true);
+        }
+        
         public static string resolve(string name, bool doremap)
         {
-            return resolve(this_node.Namespace, name, true);
+            return resolve(this_node.Namespace, name, doremap);
         }
 
         internal static Exception InvalidName(string error)

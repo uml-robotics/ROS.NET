@@ -34,9 +34,9 @@ namespace Ros_CSharp
         public static void WriteLine(string format, params object[] args)
         {
 #if DEBUG
-            Debug.WriteLine(format, args);
+            Debug.WriteLine(string.Format(format, args));
 #else
-            Console.WriteLine(format, args);
+            Console.WriteLine(string.Format(format, args));
 #endif
         }
     }

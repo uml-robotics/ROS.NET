@@ -64,21 +64,21 @@ namespace Ros_CSharp
         public TcpTransport()
         {
         }
-        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(pollset, flags)
-        {
-            TcpTransport(s,pollset,0);
-        }
 
-        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(pollset, flags)
+
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset)
+            : this(s, pollset, 0)
+        {
+        }
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset, int flags) : this(pollset, flags)
         {
             setSocket(new Socket(s));
         }
-        public TcpTransport(PollSet pollset) : this()
+
+        public TcpTransport(PollSet pollset)
+            : this(pollset,0)
         {
-            TcpTransport(pollset, 0);
         }
-
-
         public TcpTransport(PollSet pollset, int flags) : this()
         {
             poll_set = pollset;
@@ -228,6 +228,7 @@ namespace Ros_CSharp
             while (!sock.Connected)
             {
                 EDB.WriteLine("waiting");
+                System.Threading.Thread.Sleep(10);
             }
 
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
@@ -566,7 +567,7 @@ namespace Ros_CSharp
                         if (sock.Connected)
                             sock.Shutdown(SocketShutdown.Both);
                         sock.Close();
-                        sock.Dispose();
+                        sock.GTFO();
                         sock = null;
                         disconnect_cb = this.disconnect_cb;
                         this.disconnect_cb = null;

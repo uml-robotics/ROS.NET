@@ -99,7 +99,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages;\nusing Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "\nusing Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }

@@ -157,7 +157,7 @@ namespace Ros_CSharp
 
         public Subscriber<M> subscribe<M>(string topic, int queue_size,CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<M>(cb), "");
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), new M().MD5Sum);
         }
 
         public Subscriber<M> subscribe<M>(string topic, int queue_size,
@@ -170,7 +170,7 @@ namespace Ros_CSharp
          public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
             where M : IRosMessage, new()
         {
-              subscribe<M>( topic, queue_size, cb, null);
+              return subscribe<M>( topic, queue_size, cb, null);
        }
 
 
@@ -253,7 +253,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
-            return serviceClient<MReq, MRes>(new ServiceClientOptions(persistent, null));
+            return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, null));
         }
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent,
                                                                    IDictionary header_values)
@@ -343,7 +343,7 @@ namespace Ros_CSharp
         }
         public string resolveName(string name)
         {
-           resolveName(name, true);
+           return resolveName(name, true);
         }
 
 

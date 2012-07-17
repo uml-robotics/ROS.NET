@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Messages;
 
 #endregion
@@ -199,29 +200,44 @@ namespace YAMLParser
             }
             File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs");
             File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs");
-            File.WriteAllText((istemp ? outputdir_firstpass : outputdir) + "\\TempMessages.csproj", output);
+            File.WriteAllText((istemp ? (outputdir_firstpass + "\\TempMessages.csproj") : (outputdir+"\\Messages.csproj")), output);
+        }
+
+        private static string __where_be_at_my_vc____is;
+        public static string VCDir
+        {
+            get
+            {
+                if (__where_be_at_my_vc____is != null) return __where_be_at_my_vc____is;
+                foreach (string possibledir in new string[] { "\\Microsoft.NET\\Framework64\\", "\\Microsoft.NET\\Framework" })
+                {
+                    foreach (string possibleversion in new string[] { "v3.5", "v4.0" })
+                    {
+                        if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir)) continue;
+                        foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir))
+                        {
+                            if (!Directory.Exists(dir)) continue;
+                            string[] tmp = dir.Split('\\');
+                            if (tmp[tmp.Length - 1].Contains(possibleversion))
+                            {
+                                __where_be_at_my_vc____is = dir;
+                                return __where_be_at_my_vc____is;                            
+                            }
+                        }
+                    }             
+                }
+                return __where_be_at_my_vc____is;
+            }
         }
 
         public static void BuildProject()
-        {
-            
-            string VCDir = "";
-            foreach (
-                string dir in
-                    Directory.GetDirectories
-                        (Environment.GetFolderPath(Environment.SpecialFolder.System)+ "..\\" +
-                         ((IntPtr.Size == 8)
-                              ? "\\Microsoft.NET\\Framework64\\"
-                              : "\\Microsoft.NET\\Framework")))
-            {
-                string[] tmp = dir.Split('\\');
-                if (tmp[tmp.Length - 1].Contains("v4.0"))
-                {
-                    VCDir = dir;
-                    break;
-                }
-            }
+        {   
             string F = VCDir + "\\msbuild.exe";
+            if (!File.Exists(F))
+            {
+                Exception up = new Exception("ALL OVER YOUR FACE\n"+F);
+                throw up;
+            }
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
             string args = "/nologo \"" +outputdir_firstpass+"\\TempMessages.csproj\"";
             Process proc = new Process();
@@ -252,23 +268,7 @@ namespace YAMLParser
         }
 
         public static void Finalize()
-        {
-            string VCDir = "";
-            foreach (
-                string dir in
-                    Directory.GetDirectories
-                        (Environment.GetFolderPath(Environment.SpecialFolder.System) + "..\\" +
-                         ((IntPtr.Size == 8)
-                              ? "\\Microsoft.NET\\Framework64\\"
-                              : "\\Microsoft.NET\\Framework")))
-            {
-                string[] tmp = dir.Split('\\');
-                if (tmp[tmp.Length - 1].Contains("v4.0"))
-                {
-                    VCDir = dir;
-                    break;
-                }
-            }
+        {            
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";

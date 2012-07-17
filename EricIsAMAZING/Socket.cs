@@ -103,6 +103,11 @@ namespace Ros_CSharp.CustomSocket
             Dispose(true);
         }
 
+        public void GTFO()
+        {
+            Dispose(true);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (!disposed)
