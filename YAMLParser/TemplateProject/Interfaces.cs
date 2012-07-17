@@ -75,12 +75,6 @@ namespace Messages
             SerializationHelper.deserialize(GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
         }
 
-        /*[System.Diagnostics.DebuggerStepThrough]
-		public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
-		{
-            throw new NotImplementedException();
-		}*/
-
         [System.Diagnostics.DebuggerStepThrough]
         public virtual IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
         {
@@ -95,11 +89,6 @@ namespace Messages
         public virtual byte[] Serialize(bool partofsomethingelse)
         {
             throw new NotImplementedException();
-        }
-
-        public static IRosMessage DeserializeIt(byte[] SERIALIZEDSTUFF)
-        {
-            return new IRosMessage(SERIALIZEDSTUFF);
         }
     }
 }

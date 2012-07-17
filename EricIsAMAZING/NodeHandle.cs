@@ -63,7 +63,6 @@ namespace Ros_CSharp
         {
             while (ROS.GlobalNodeHandle == null)
             {
-                Console.WriteLine("GLOBALNODEHANDLE IS NULL ZOMG!");
                 Thread.Sleep(100);
             }
             return ROS.GlobalNodeHandle;

@@ -244,6 +244,10 @@ namespace YAMLParser
         }
 
         public static void BuildProject()
+        {
+            BuildProject("BUILDING GENERATED PROJECT WITH MSBUILD!");
+        }
+        public static void BuildProject(string spam)
         {   
             string F = VCDir + "\\msbuild.exe";
             if (!File.Exists(F))
@@ -251,7 +255,7 @@ namespace YAMLParser
                 Exception up = new Exception("ALL OVER YOUR FACE\n"+F);
                 throw up;
             }
-            Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
+            Console.WriteLine("\n\n"+spam);
             string args = "/nologo \"" +outputdir_firstpass+"\\"+name_firstpass+".csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
@@ -263,13 +267,8 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
-            {
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
-                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
-            }
-            else
-            {
+            if (!File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
+            {                
                 if (output.Length > 0)
                     Console.WriteLine(output);
                 if (error.Length > 0)
@@ -281,7 +280,7 @@ namespace YAMLParser
         public static void Finalize()
         {            
             string F = VCDir + "\\msbuild.exe";
-            Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
+            Console.WriteLine("\n\nBUILDING A THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
@@ -305,6 +304,9 @@ namespace YAMLParser
                 proc2.Start();
                 output2 = proc2.StandardOutput.ReadToEnd();
                 error2 = proc2.StandardError.ReadToEnd();
+                BuildProject("REBUILDING THE REFINED GENERATED CODE!");
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
+                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
             }
             else
             {
