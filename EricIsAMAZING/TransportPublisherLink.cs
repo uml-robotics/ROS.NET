@@ -134,7 +134,7 @@ namespace Ros_CSharp
             //do nothing
         }
 
-        private void onMessageLength(Connection conn, byte[] buffer, int size, bool success)
+        private void onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
@@ -145,7 +145,7 @@ namespace Ros_CSharp
                 return;
             }
             if (conn != connection || size != 4) return;
-            int len = BitConverter.ToInt32(buffer, 0);
+            uint len = BitConverter.ToUInt32(buffer, 0);
             if (len > 1000000000)
             {
                 EDB.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
@@ -155,7 +155,7 @@ namespace Ros_CSharp
             connection.read(len, onMessage);
         }
 
-        private void onMessage(Connection conn, byte[] buffer, int size, bool success)
+        private void onMessage(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success && conn == null || conn != connection) return;
             if (success)

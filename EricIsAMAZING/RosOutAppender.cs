@@ -21,7 +21,7 @@ namespace Ros_CSharp
         public bool shutting_down;
 
         public RosOutAppender()
-        {
+        {            
             publish_thread = new Thread(logThread);
             publish_thread.IsBackground = true;
             publish_thread.Start();

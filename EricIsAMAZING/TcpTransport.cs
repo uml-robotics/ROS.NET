@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
@@ -137,6 +138,14 @@ namespace Ros_CSharp
             }
         }
 
+        public string _topic;
+        public string Topic
+        {
+            get
+            {                
+                return _topic != null ? _topic : "?!?!?!"; 
+            }
+        }
         public void enableRead()
         {
             lock (close_mutex)
@@ -145,6 +154,7 @@ namespace Ros_CSharp
             }
             if (!expecting_read)
             {
+                Console.WriteLine("ENABLE READ:   " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLIN);
                 expecting_read = true;
             }
@@ -158,6 +168,7 @@ namespace Ros_CSharp
             }
             if (expecting_read)
             {
+                Console.WriteLine("DISABLE READ:  " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLIN);
                 expecting_read = false;
             }
@@ -171,6 +182,7 @@ namespace Ros_CSharp
             }
             if (!expecting_write)
             {
+                Console.WriteLine("ENABLE WRITE:  " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLOUT);
                 expecting_write = true;
             }
@@ -184,6 +196,7 @@ namespace Ros_CSharp
             }
             if (expecting_write)
             {
+                Console.WriteLine("DISABLE WRITE: " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLOUT);
                 expecting_write = false;
             }
@@ -248,8 +261,8 @@ namespace Ros_CSharp
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-                enableRead();
+//            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+//                enableRead();
             return true;
         }
 
@@ -368,9 +381,12 @@ namespace Ros_CSharp
         public static string ByteDump(byte[] b)
         {
             string s = "";
+            string bs = "";
             for (int i = 0; i < b.Length; i++)
             {
-                s += "" + b[i].ToString("x") + " ";
+                bs = b[i].ToString("x");
+                if (b[i] < 16) bs = ""+0 + bs;
+                s += "" + bs + " ";
                 if (i%4 == 0) s += "     ";
                 if (i%16 == 0 && i != b.Length - 1) s += "\n";
             }
@@ -396,7 +412,7 @@ namespace Ros_CSharp
             }
         }
 
-        public int read(ref byte[] buffer, int pos, int length)
+        public int read(ref byte[] buffer, uint pos, uint length)
         {
             lock (close_mutex)
             {
@@ -405,7 +421,11 @@ namespace Ros_CSharp
             }
             int num_bytes = 0;
             SocketError err;
-            num_bytes = sock.Receive(buffer, pos, length, SocketFlags.None, out err);
+            if (buffer.LongLength - (length + pos) != 0 || buffer.LongLength > 65535)
+            {
+                Console.WriteLine(string.Format("{0} != {1}... ASSHOLE!", (pos + length), buffer.LongLength));
+            }
+            num_bytes = sock.Receive(buffer, (int)Math.Min(pos,int.MaxValue), (int)Math.Min(length,int.MaxValue), SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
@@ -418,12 +438,19 @@ namespace Ros_CSharp
                 else
                     return 0;
             }
-            /*else
-                EDB.WriteLine("READ: " + num_bytes);*/
+            else
+            {
+                //hack to only print non-length buffer length
+                if (num_bytes > 4)
+                {
+                    EDB.WriteLine("READ: " + num_bytes);                 
+                }
+                //EDB.WriteLine(ByteDumpCondensed(buffer));
+            }            
             return num_bytes;
         }
 
-        public int write(byte[] buffer, int pos, int size)
+        public int write(byte[] buffer, uint pos, uint size)
         {
             lock (close_mutex)
             {
@@ -431,7 +458,7 @@ namespace Ros_CSharp
                     return -1;
             }
             SocketError err;
-            int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None, out err);
+            int num_bytes = sock.Send(buffer, (int)Math.Min(pos, int.MaxValue), (int)Math.Min(size, int.MaxValue), SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)

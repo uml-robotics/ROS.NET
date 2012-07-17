@@ -429,7 +429,7 @@ namespace DREAMPioneer
             tf_node.init();
             lastt = new Touch();
 
-            Dispatcher.BeginInvoke(new ThreadStart(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
                 {
                     TransformGroup group = new TransformGroup();
                     TransformGroup dotgroup = new TransformGroup();
@@ -502,8 +502,10 @@ namespace DREAMPioneer
                     rp.Init(this);
                     return (ControlPanel)rp;
                 });
-            new Thread(rosStart).Start();
+            DONTGCMEPLZZOMG = new Thread(rosStart);
+            DONTGCMEPLZZOMG.Start();
         }
+        private Thread DONTGCMEPLZZOMG;
 
         private void changeManual(string vel, string ptz, string cam, string urg)
         {

@@ -29,9 +29,9 @@ namespace Ros_CSharp
         public bool is_server;
         public byte[] read_buffer;
         public ReadFinishedFunc read_callback;
-        public int read_filled;
+        public uint read_filled;
         public object read_mutex = new object();
-        public int read_size;
+        public uint read_size;
         public bool reading;
         public bool sendingHeaderError;
         public TcpTransport transport;
@@ -39,7 +39,7 @@ namespace Ros_CSharp
         public WriteFinishedFunc write_callback;
         public object write_callback_mutex = new object();
         public object write_mutex = new object();
-        public int write_sent, write_size;
+        public uint write_sent, write_size;
         public bool writing;
 
         public string CallerID
@@ -73,13 +73,13 @@ namespace Ros_CSharp
             int len = 0;
             byte[] buffer = null;
             header.Write(key_vals, ref buffer, ref len);
-            int msg_len = len + 4;
+            uint msg_len = (uint)len + 4;
             byte[] full_msg = new byte[msg_len];
-            int j = 0;
+            uint j = 0;
             byte[] blen = Header.ByteLength(len);
             for (; j < 4; j++)
                 full_msg[j] = blen[j];
-            for (int i = 0; j < msg_len; j++)
+            for (uint i = 0; j < msg_len; j++)
             {
                 i = j - 4;
                 full_msg[j] = buffer[i];
@@ -87,7 +87,7 @@ namespace Ros_CSharp
             write(full_msg, msg_len, onHeaderWritten, true);
         }
 
-        public void read(int size, ReadFinishedFunc finished_func)
+        public void read(uint size, ReadFinishedFunc finished_func)
         {
             if (dropped || sendingHeaderError) return;
             lock (read_mutex)
@@ -103,11 +103,11 @@ namespace Ros_CSharp
             }
         }
 
-        public void write(byte[] data, int size, WriteFinishedFunc finished_func)
+        public void write(byte[] data, uint size, WriteFinishedFunc finished_func)
         {
            write(data,size,finished_func,true);
         }
-        public void write(byte[] data, int size, WriteFinishedFunc finished_func, bool immediate)
+        public void write(byte[] data, uint size, WriteFinishedFunc finished_func, bool immediate)
         {
             if (dropped || sendingHeaderError) return;
             lock (write_callback_mutex)
@@ -176,7 +176,7 @@ namespace Ros_CSharp
             drop(DropReason.TransportDisconnect);
         }
 
-        private void onHeaderRead(Connection conn, byte[] data, int size, bool success)
+        private void onHeaderRead(Connection conn, byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (!success)
@@ -184,7 +184,7 @@ namespace Ros_CSharp
                 return;
             }
             string error_msg = "";
-            if (!header.Parse(data, size, ref error_msg))
+            if (!header.Parse(data, (int)size, ref error_msg))
             {
                 drop(DropReason.HeaderError);
             }
@@ -229,7 +229,7 @@ namespace Ros_CSharp
                 read(4, onHeaderLengthRead);
         }
 
-        private void onHeaderLengthRead(Connection conn, byte[] data, int size, bool success)
+        private void onHeaderLengthRead(Connection conn, byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (size != 4) throw new Exception("THAT SIZE ISN'T 4! SDKJSDLKJHSDLKJSHD");
@@ -237,7 +237,7 @@ namespace Ros_CSharp
             {
                 return;
             }
-            int len = BitConverter.ToInt32(data, 0);
+            uint len = BitConverter.ToUInt32(data, 0);
             if (len > 1000000000)
             {
                 conn.drop(DropReason.HeaderError);
@@ -252,11 +252,13 @@ namespace Ros_CSharp
             lock (read_mutex)
             {
                 reading = true;
+                ReadFinishedFunc callback;
+                uint size;
                 while (!dropped && read_callback != null)
                 {
                     if (read_buffer == null || read_callback == null)
                         throw new Exception("YOU SUCK!");
-                    int to_read = read_size - read_filled;
+                    uint to_read = read_size - read_filled;
                     if (to_read > 0)
                     {
                         int bytes_read = transport.read(ref read_buffer, read_filled, to_read);
@@ -264,23 +266,25 @@ namespace Ros_CSharp
                             return;
                         else if (bytes_read < 0)
                         {
-                            ReadFinishedFunc callback = read_callback;
+                            callback = read_callback;
                             read_callback = null;
+                            byte[] buffer = new byte[read_buffer.Length];
+                            Array.Copy(read_buffer, buffer, buffer.Length);
                             read_buffer = null;
-                            int size = read_size;
+                            size = read_size;
                             read_size = 0;
                             read_filled = 0;
                             callback(this, read_buffer, size, false);
                             break;
                         }
-                        read_filled += bytes_read;
+                        read_filled += (uint)bytes_read;
                     }
                     else
                         break;
                     if (read_filled == read_size && !dropped)
                     {
-                        ReadFinishedFunc callback = read_callback;
-                        int size = read_size;
+                        callback = read_callback;
+                        size = read_size;
                         byte[] buffer = new byte[read_buffer.Length];
                         Array.Copy(read_buffer, buffer, buffer.Length);
                         read_buffer = null;
@@ -288,7 +292,8 @@ namespace Ros_CSharp
                         read_size = 0;
                         callback(this, buffer, size, true);
                     }
-                    else break;
+                    else 
+                        break;
                 }
                 if (read_callback == null)
                     transport.disableRead();
@@ -305,14 +310,14 @@ namespace Ros_CSharp
                 bool can_write_more = true;
                 while (write_callback != null && can_write_more && !dropped)
                 {
-                    int to_write = write_size - write_sent;
+                    uint to_write = write_size - write_sent;
                     int bytes_sent = transport.write(write_buffer, write_sent, to_write);
                     if (bytes_sent <= 0)
                     {
                         writing = false;
                         return;
                     }
-                    write_sent += bytes_sent;
+                    write_sent += (uint)bytes_sent;
                     if (bytes_sent < write_size - write_sent)
                         can_write_more = false;
                     if (write_sent == write_size && !dropped)
@@ -342,5 +347,5 @@ namespace Ros_CSharp
 
     public delegate void WriteFinishedFunc(Connection connection);
 
-    public delegate void ReadFinishedFunc(Connection connection, byte[] data, int size, bool success);
+    public delegate void ReadFinishedFunc(Connection connection, byte[] data, uint size, bool success);
 }

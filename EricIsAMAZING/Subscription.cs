@@ -357,6 +357,7 @@ namespace Ros_CSharp
 #endif
 
                 TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set);
+                transport._topic = name;
                 if (transport.connect(pub_host, pub_port))
                 {
                     Connection connection = new Connection();
