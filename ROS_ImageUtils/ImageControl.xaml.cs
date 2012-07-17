@@ -201,6 +201,13 @@ namespace ROS_ImageWPF
                 Console.WriteLine("FUCK YOUR BPP!");
         }
 
+
+
+
+        public void UpdateImage(byte[] data, Size size, bool hasHeader)
+        {
+            UpdateImage(data, size, hasHeader, null);
+        }
         /// <summary>
         ///   if hasHeader is true, then UpdateImage(byte[]) is called
         ///   otherwise, the size is compared to lastSize, 
@@ -215,7 +222,7 @@ namespace ROS_ImageWPF
         /// <param name = "hasHeader">
         ///   whether or not a header needs to be concatinated
         /// </param>
-        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
+        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding)
         {
 
             //Console.WriteLine(1 / DateTime.Now.Subtract(wtf).TotalSeconds);

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Messages;
 
 #endregion
@@ -123,7 +124,8 @@ namespace YAMLParser
             {
                 MakeTempDir();
                 GenerateFiles(msgsFiles, srvFiles);
-                GenerateProject(msgsFiles, srvFiles);
+                GenerateProject(msgsFiles, srvFiles, false);
+                GenerateProject(msgsFiles, srvFiles, true);
                 BuildProject();
                 Finalize();
             }
@@ -170,20 +172,13 @@ namespace YAMLParser
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }
 
-        public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles)
+        public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
         {
-            if (!Directory.Exists(outputdir_firstpass + "\\Properties"))
-                Directory.CreateDirectory(outputdir_firstpass + "\\Properties");
-            if (!Directory.Exists(outputdir + "\\Properties"))
-                Directory.CreateDirectory(outputdir + "\\Properties");
-            File.WriteAllLines
-                (outputdir_firstpass + "\\Properties\\AssemblyInfo.cs",
-                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
-            File.WriteAllLines
-                (outputdir + "\\Properties\\AssemblyInfo.cs",
-                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
-
-            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\TempMessages._csproj");
+            if (!Directory.Exists((istemp?outputdir_firstpass:outputdir) + "\\Properties"))
+                Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
+            File.WriteAllLines((istemp?outputdir_firstpass:outputdir) + "\\Properties\\AssemblyInfo.cs",
+                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));            
+            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + (istemp?"\\TemplateProject\\TempMessages._csproj":"\\TemplateProject\\Messages._csproj"));
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -203,33 +198,46 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
-            File.Copy("TemplateProject\\SerializationHelper.cs", outputdir_firstpass + "\\SerializationHelper.cs");
-            File.Copy("TemplateProject\\Interfaces.cs", outputdir_firstpass + "\\Interfaces.cs");
-            File.WriteAllText(outputdir_firstpass + "\\TempMessages.csproj", output);
-            File.Copy("TemplateProject\\SerializationHelper.cs", outputdir + "\\SerializationHelper.cs");
-            File.Copy("TemplateProject\\Interfaces.cs", outputdir + "\\Interfaces.cs");
-            File.WriteAllText(outputdir + "\\Messages.csproj", output);
+            File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs");
+            File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs");
+            File.WriteAllText((istemp ? (outputdir_firstpass + "\\TempMessages.csproj") : (outputdir+"\\Messages.csproj")), output);
+        }
+
+        private static string __where_be_at_my_vc____is;
+        public static string VCDir
+        {
+            get
+            {
+                if (__where_be_at_my_vc____is != null) return __where_be_at_my_vc____is;
+                foreach (string possibledir in new string[] { "\\Microsoft.NET\\Framework64\\", "\\Microsoft.NET\\Framework" })
+                {
+                    foreach (string possibleversion in new string[] { "v3.5", "v4.0" })
+                    {
+                        if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir)) continue;
+                        foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir))
+                        {
+                            if (!Directory.Exists(dir)) continue;
+                            string[] tmp = dir.Split('\\');
+                            if (tmp[tmp.Length - 1].Contains(possibleversion))
+                            {
+                                __where_be_at_my_vc____is = dir;
+                                return __where_be_at_my_vc____is;                            
+                            }
+                        }
+                    }             
+                }
+                return __where_be_at_my_vc____is;
+            }
         }
 
         public static void BuildProject()
-        {
-            string VCDir = "";
-            foreach (
-                string dir in
-                    Directory.GetDirectories
-                        (Environment.GetFolderPath(Environment.SpecialFolder.Windows) +
-                         (Environment.Is64BitOperatingSystem
-                              ? "\\Microsoft.NET\\Framework64\\"
-                              : "\\Microsoft.NET\\Framework")))
-            {
-                string[] tmp = dir.Split('\\');
-                if (tmp[tmp.Length - 1].Contains("v4.0"))
-                {
-                    VCDir = dir;
-                    break;
-                }
-            }
+        {   
             string F = VCDir + "\\msbuild.exe";
+            if (!File.Exists(F))
+            {
+                Exception up = new Exception("ALL OVER YOUR FACE\n"+F);
+                throw up;
+            }
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
             string args = "/nologo \"" +outputdir_firstpass+"\\TempMessages.csproj\"";
             Process proc = new Process();
@@ -260,23 +268,7 @@ namespace YAMLParser
         }
 
         public static void Finalize()
-        {
-            string VCDir = "";
-            foreach (
-                string dir in
-                    Directory.GetDirectories
-                        (Environment.GetFolderPath(Environment.SpecialFolder.Windows) +
-                         (Environment.Is64BitOperatingSystem
-                              ? "\\Microsoft.NET\\Framework64\\"
-                              : "\\Microsoft.NET\\Framework")))
-            {
-                string[] tmp = dir.Split('\\');
-                if (tmp[tmp.Length - 1].Contains("v4.0"))
-                {
-                    VCDir = dir;
-                    break;
-                }
-            }
+        {            
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
@@ -361,9 +353,22 @@ namespace YAMLParser
             return uberpwnage;
         }
 
+        public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
+             Func<int, string> genKey)
+        {
+             GenDict(dictname,keytype,valuetype,ref appendto,start, end, genKey, null, null);
+        }
+
+        public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
+                  Func<int, string> genKey, Func<int, string> genVal)
+        {
+            GenDict(dictname, keytype, valuetype, ref appendto, start, end, genKey, genVal, null);
+        }
+
+
         public static void GenDict
             (string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
-             Func<int, string> genKey, Func<int, string> genVal = null, string DEFAULT = null)
+             Func<int, string> genKey, Func<int, string> genVal, string DEFAULT)
         {
             appendto +=
                 string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{",

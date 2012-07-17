@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -7,7 +7,7 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RootNamespace>DREAMPioneer</RootNamespace>
     <AssemblyName>DREAMPioneer</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <WarningLevel>4</WarningLevel>
     <OutputType>winexe</OutputType>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -17,6 +17,7 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
     <PublishUrl>Publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
@@ -31,7 +32,6 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,7 +49,21 @@
     <DefineConstants>TRACE</DefineConstants>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Surface|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Surface\</OutputPath>
+    <DefineConstants>TRACE;SURFACEWINDOW</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Surface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Surface.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Surface.Presentation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Surface.Presentation.Generic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Surface.Tools, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Petzold.Media3D">
       <HintPath>..\..\..\trust\Interface\Petzold.Media3D.dll</HintPath>
     </Reference>
@@ -58,7 +72,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -102,7 +116,6 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -149,7 +162,22 @@
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -164,19 +192,23 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\multitouch\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
+    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
       <Project>{5062C99F-6244-4C4E-873F-46F6CCD15EE0}</Project>
       <Name>EM3MTouchLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\DREAMController.csproj">
+    <ProjectReference Include="..\..\..\multirobot\lib_dreamcontroller\DREAMController.csproj">
       <Project>{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}</Project>
       <Name>DREAMController</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
+    <ProjectReference Include="..\..\..\multirobot\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
       <Project>{A97E4991-EC24-4A9E-9073-CD1E37D50405}</Project>
       <Name>GenericTouchTypes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multitouch\lib_dreamcontroller\lib_xmlconfigurator\XMLConfigurator.csproj">
+    <ProjectReference Include="..\..\..\multirobot\lib_generictouchtypes\SurfaceAdapter\GenericTypes-Surface_Adapter.csproj">
+      <Project>{94F5F99C-DB1F-467C-8F76-8357677051AD}</Project>
+      <Name>GenericTypes-Surface_Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\multirobot\lib_xmlconfigurator\XMLConfigurator.csproj">
       <Project>{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}</Project>
       <Name>XMLConfigurator</Name>
     </ProjectReference>

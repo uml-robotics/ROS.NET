@@ -33,20 +33,20 @@ namespace videoView
 
         private static void Main(string[] args)
         {
-            tellmehowawesomeiam = thisishowawesomeyouare;
-            WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.177";
-            ROS.Init(args, "add_two_ints_client_csharp");
-            NodeHandle node = new NodeHandle();
-            ServiceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>> testclient = node.serviceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>>("/add_two_ints");
-            TypedMessage<AddTwoInts.Response> resp = new TypedMessage<AddTwoInts.Response>();
-            if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, ""))
-                Console.WriteLine(resp.data.sum);
-            else
-                Console.WriteLine("figured it wouldn't work on the first go... ballsass");
-            Console.WriteLine("Going down");
-            Console.ReadLine();
+            //tellmehowawesomeiam = thisishowawesomeyouare;
+            //WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
+            //ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            //ROS.ROS_HOSTNAME = "10.0.2.177";
+            //ROS.Init(args, "add_two_ints_client_csharp");
+            //NodeHandle node = new NodeHandle();
+            //ServiceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>> testclient = node.serviceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>>("/add_two_ints");
+            //TypedMessage<AddTwoInts.Response> resp = new TypedMessage<AddTwoInts.Response>();
+            //if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, ""))
+            //    Console.WriteLine(resp.data.sum);
+            //else
+            //    Console.WriteLine("figured it wouldn't work on the first go... ballsass");
+            //Console.WriteLine("Going down");
+            //Console.ReadLine();
         }
     }
 }

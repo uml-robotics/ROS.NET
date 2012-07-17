@@ -28,6 +28,15 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+#if SURFACEWINDOW
+using GenericTypes_Surface_Adapter;
+using Microsoft.Surface;
+using Microsoft.Surface.Core;
+using Microsoft.Surface.Presentation;
+using Microsoft.Surface.Presentation.Controls;
+#else
+using EM3MTouchLib;
+#endif
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -51,14 +60,14 @@ using Touch = GenericTouchTypes.Touch;
 using cm = Messages.custom_msgs;
 using tf = Messages.tf;
 using System.Text;
-using EM3MTouchLib;
 using System.ComponentModel;
 using otherTimer = System.Timers;
 
 #endregion
 
+
 namespace DREAMPioneer
-{ 
+{
     /// <summary>
     ///   Interaction logic for SurfaceWindow1.xaml
     /// </summary>
@@ -101,6 +110,18 @@ namespace DREAMPioneer
 
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
+        private IntPtr _winhandle = IntPtr.Zero;
+        public IntPtr WindowHandle
+        {
+            get
+            {
+                if (_winhandle == IntPtr.Zero)
+                {
+                    _winhandle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                }
+                return _winhandle;
+            }
+        }
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
@@ -110,7 +131,23 @@ namespace DREAMPioneer
 
         private Messages.geometry_msgs.Twist t;
         private cm.ptz pt;
+
+#if SURFACEWINDOW
+        private Microsoft.Surface.Core.ContactTarget contactTarget;
+        private bool applicationLoadCompleteSignalled;
+
+        private UserOrientation currentOrientation = UserOrientation.Bottom;
+        private Matrix screenTransform = Matrix.Identity;
+        private Matrix inverted;
+
+        // application state: Activated, Previewed, Deactivated,
+        // start in Activated state
+        private bool isApplicationActivated = true;
+        private bool isApplicationPreviewed;
+        private object em3m;
+#else
         private EM3MTouch em3m;
+#endif
         private DateTime currtime;
 
         private Publisher<gm.Twist> joyPub;
@@ -202,11 +239,112 @@ namespace DREAMPioneer
             StrokeDashArray = new DoubleCollection(new double[] { 2, 1 })
         };
 
-       
+#if SURFACEWINDOW
+        #region Initialization
+
+        /// <summary>
+        /// Moves and sizes the window to cover the input surface.
+        /// </summary>
+        private void SetWindowOnSurface()
+        {
+            System.Diagnostics.Debug.Assert(WindowHandle != System.IntPtr.Zero,
+                "Window initialization must be complete before SetWindowOnSurface is called");
+            if (WindowHandle == System.IntPtr.Zero)
+                return;
+            Left = Microsoft.Surface.Core.InteractiveSurface.DefaultInteractiveSurface.Left;
+            Top = Microsoft.Surface.Core.InteractiveSurface.DefaultInteractiveSurface.Top;
+            Width = Microsoft.Surface.Core.InteractiveSurface.DefaultInteractiveSurface.Width;
+            Height = Microsoft.Surface.Core.InteractiveSurface.DefaultInteractiveSurface.Height;
+        }
+
+        /// <summary>
+        /// Initializes the surface input system. This should be called after any window
+        /// initialization is done, and should only be called once.
+        /// </summary>
+        private void InitializeSurfaceInput()
+        {
+            System.Diagnostics.Debug.Assert(WindowHandle != System.IntPtr.Zero,
+                "Window initialization must be complete before InitializeSurfaceInput is called");
+            if (WindowHandle == System.IntPtr.Zero)
+                return;
+            System.Diagnostics.Debug.Assert(contactTarget == null,
+                "Surface input already initialized");
+            if (contactTarget != null)
+                return;
+
+            // Create a target for surface input.
+            contactTarget = new ContactTarget(WindowHandle, EventThreadChoice.OnBackgroundThread);
+            contactTarget.EnableInput();
+        }
+
+        /// <summary>
+        /// Reset the application's orientation and transform based on the current launcher orientation.
+        /// </summary>
+        private void ResetOrientation()
+        {
+            UserOrientation newOrientation = ApplicationLauncher.Orientation;
+
+            if (newOrientation == currentOrientation) { return; }
+
+            currentOrientation = newOrientation;
+
+            if (currentOrientation == UserOrientation.Top)
+            {
+                screenTransform = inverted;
+            }
+            else
+            {
+                screenTransform = Matrix.Identity;
+            }
+        }
+
+        #endregion
+#endif
+
         public SurfaceWindow1()
         {
             current = this;
             InitializeComponent();
+#if SURFACEWINDOW
+            new Thread(() =>
+            {
+                while (WindowHandle == IntPtr.Zero)
+                {
+                    Thread.Sleep(10);
+                }
+                try
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        Width = 1024;
+                        Height = 768;
+                        SetWindowOnSurface();
+                        InitializeSurfaceInput();
+
+                        contactTarget.ContactAdded += new EventHandler<Microsoft.Surface.Core.ContactEventArgs>(surfaceDown);
+                        contactTarget.ContactChanged += new EventHandler<Microsoft.Surface.Core.ContactEventArgs>(surfaceChanged);
+                        contactTarget.ContactRemoved += new EventHandler<Microsoft.Surface.Core.ContactEventArgs>(surfaceUp);
+
+                        // Set the application's orientation based on the current launcher orientation
+                        currentOrientation = ApplicationLauncher.Orientation;
+
+                        /*// Subscribe to surface application activation events
+                        ApplicationLauncher.ApplicationActivated += OnApplicationActivated;
+                        ApplicationLauncher.ApplicationPreviewed += OnApplicationPreviewed;
+                        ApplicationLauncher.ApplicationDeactivated += OnApplicationDeactivated;*/
+
+                        if (currentOrientation == UserOrientation.Top)
+                        {
+                            screenTransform = inverted;
+                        }
+                    }));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }).Start();
+#else
             em3m = new EM3MTouch();
             if (!em3m.Connect())
             {
@@ -219,16 +357,53 @@ namespace DREAMPioneer
                 em3m.UpEvent += Up;
                 
             }
-
+#endif
         }
 
+        void surfaceDown(object sender, Microsoft.Surface.Core.ContactEventArgs e)
+        {
+            Down(GenericTypes_Surface_Adapter.SurfaceAdapter.Down(e));
+        }
+        void surfaceChanged(object sender, Microsoft.Surface.Core.ContactEventArgs e)
+        {
+            Changed(GenericTypes_Surface_Adapter.SurfaceAdapter.Change(e));
+        }
+        void surfaceUp(object sender, Microsoft.Surface.Core.ContactEventArgs e)
+        {
+            Up(GenericTypes_Surface_Adapter.SurfaceAdapter.Up(e));
+        }
+
+        private byte[] CMP = new byte[] { 10, 0, 2 };
+        private const string DEFAULT_HOSTNAME = "10.0.2.82";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-            ROS.ROS_HOSTNAME = "10.0.2.82";
+            ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
+            System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
+                foreach (System.Net.IPAddress addr in FUCKYOUDEBUGGER)
+                {
+                    if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        byte[] myballs = addr.GetAddressBytes();
+                        for (int i = 0; i < CMP.Length; i++)
+                        {
+                            if (myballs[i] != CMP[i])
+                            {
+                                ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
+                                break;
+                            }
+                            else
+                                ROS.ROS_HOSTNAME = "";
+                        }
+                        if (ROS.ROS_HOSTNAME == DEFAULT_HOSTNAME)
+                            continue;
+                        ROS.ROS_HOSTNAME = string.Format("{0}.{1}.{2}.{3}", myballs[0], myballs[1], myballs[2], myballs[3]);
+                        break;
+                    }
+                }
             ROS.Init(new string[0], "DREAM");
-            node = new NodeHandle(); 
+            node = new NodeHandle();
 
             manualCamera = "/robot_brain_1/camera/rgb/image_color";
             manualLaser = "fakelaser";
@@ -241,7 +416,7 @@ namespace DREAMPioneer
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
             servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
 
-            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point {x=1, y= 1, z = 0 }, orientation = new gm.Quaternion {w = 0, x = 0, y = 0, z = 0 } } };
+            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
             goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
 
             //Deprecated until I make an abstraction in ros that can publish transforms
@@ -254,7 +429,7 @@ namespace DREAMPioneer
             tf_node.init();
             lastt = new Touch();
 
-            Dispatcher.BeginInvoke( new ThreadStart(()=>
+            Dispatcher.BeginInvoke(new ThreadStart(() =>
                 {
                     TransformGroup group = new TransformGroup();
                     TransformGroup dotgroup = new TransformGroup();
@@ -269,7 +444,7 @@ namespace DREAMPioneer
                     SubCanvas.RenderTransform = group;
                     DotCanvas.RenderTransform = dotgroup;
                 }));
-            
+
             n = DateTime.Now;
             lastupdown = DateTime.Now;
             manualRobot = -1;
@@ -293,11 +468,11 @@ namespace DREAMPioneer
             _namespace[4] = "";
             ttime = new touchTimer[40];
 
-           // for( int i =0; i< ttime.Length; i++)
-           // {
-                //ttime[i] = new touchTimer();
-           // }
-            
+            // for( int i =0; i< ttime.Length; i++)
+            // {
+            //ttime[i] = new touchTimer();
+            // }
+
             //= new touchTimer();
 
             for (int i = 0; i < turboFingering.Length; i++)
@@ -311,7 +486,7 @@ namespace DREAMPioneer
             joymgr.Joystick += joymgr_Joystick;
             joymgr.UpEvent += JoymgrFireUpEvent;
             joymgr.SetDesiredControlPanelWidthToHeightRatios(1, 1.333);
-            
+
             //tell the joystick manager HOW TO INITIALIZE YOUR CUSTOM CONTROL PANELS... and register for events, if your control panel fires them
             //EVERY JOYSTICK'S CONTROL PANEL IS (now) A NEW INSTANCE! TO MAKE VALUES PERSIST, USE STATICS OR A STORAGE CLASS!
             joymgr.InitControlPanels(
@@ -367,7 +542,7 @@ namespace DREAMPioneer
             }
             else
             {
-                if(currtime.Ticks + (long)(Math.Pow(10,6)) <= ( DateTime.Now.Ticks ))
+                if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
                 {
                     pt.x = (float)(rx / 10 /* 10.0*/);
                     pt.y = (float)(ry / 10 * 1 /* -10.0*/);
@@ -380,7 +555,7 @@ namespace DREAMPioneer
 
         private void joymgr_Button(int action, bool down)
         {
-           // Console.WriteLine("" + action + " = " + down);
+            // Console.WriteLine("" + action + " = " + down);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -417,14 +592,16 @@ namespace DREAMPioneer
             d.Size size = new d.Size();
             size.Height = (int)image.height;
             size.Width = (int)image.width;
-//            t1 = t2;
-//            t2 = DateTime.Now;
-//            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
-//            Console.WriteLine(fps);
-            Dispatcher.BeginInvoke(new Action(() => { 
-                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel; 
+            //            t1 = t2;
+            //            t2 = DateTime.Now;
+            //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
+            //            Console.WriteLine(fps);
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
                 if (rcp != null)
-                    rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false); }));
+                    rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false);
+            }));
         }
 
         public void laserCallback(sm.LaserScan laserScan)
@@ -432,24 +609,25 @@ namespace DREAMPioneer
             double[] scan = new double[laserScan.ranges.Length];
             for (int i = 0; i < laserScan.ranges.Length; i++)
             {
-                 if (i - 1 >= 0)
+                if (i - 1 >= 0)
                 {
                     if (laserScan.ranges[i] < 0.3f)
-                        scan[i] = scan[i-1];
+                        scan[i] = scan[i - 1];
                     else
                         scan[i] = laserScan.ranges[i];
                 }
                 else
                 {
                     if (laserScan.ranges[i] < 0.3f)
-                        scan[i] = laserScan.ranges[i+1];
-                    else 
+                        scan[i] = laserScan.ranges[i + 1];
+                    else
                         scan[i] = laserScan.ranges[i];
                 }
             }
 
-            
-            Dispatcher.BeginInvoke(new Action(() => {
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
                 LeftControlPanel lcp = joymgr.LeftPanel as LeftControlPanel;
                 if (lcp != null)
                     lcp.newRangeCanvas.SetLaser(scan, laserScan.angle_increment, laserScan.angle_min);
@@ -458,7 +636,7 @@ namespace DREAMPioneer
 
         public void AddRobot()
         {
-            robots.Add(0,robot_brain_1);
+            robots.Add(0, robot_brain_1);
             numRobots += 1;
         }
 
@@ -601,7 +779,7 @@ namespace DREAMPioneer
         {
             for (int i = 0; i < numRobots; i++)
             {
-                    NoPulse(i);
+                NoPulse(i);
             }
         }
 
@@ -699,7 +877,7 @@ namespace DREAMPioneer
         public void AddSelected(int robot, Touch e)
         {
             Console.WriteLine("SELECTING " + robot);
-            if ( manualRobot != robot && android != robot && !selectedList.Contains(robot))
+            if (manualRobot != robot && android != robot && !selectedList.Contains(robot))
             {
                 selectedList.Add(robot);
                 PulseYellow(robot);
@@ -714,19 +892,19 @@ namespace DREAMPioneer
             bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
             bool zoomed = false;
             //Console.WriteLine(joymgr.FreeTouches);
-            if ( distance(e, oldFREE[e.Id] ) > .1 && !SITSTILL)
+            if (distance(e, oldFREE[e.Id]) > .1 && !SITSTILL)
             {
                 lastupdown = DateTime.Now;
-                if(oldFREE.Count > 1)
+                if (oldFREE.Count > 1)
                 {
                     foreach (Touch p in oldFREE.Values)
                     {
-                        if (p.Id != e.Id )
+                        if (p.Id != e.Id)
                         {   //- distance(oldFREE[e.Id], oldFREE[p.Id])
-                            if (Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id]) ) > .5)
+                            if (Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) > .5)
                             {
                                 //Console.WriteLine(Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])));
-                                if ( scale.ScaleX+ ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.2)
+                                if (scale.ScaleX + ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.2)
                                 {
                                     scale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
                                     scale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
@@ -739,17 +917,17 @@ namespace DREAMPioneer
                     }
                     //if (!zoomed)
                     //{
-                        
-                        translate.X += (e.Position.X - oldFREE[e.Id].Position.X);
-                        translate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
-                        dottranslate.X += (e.Position.X - oldFREE[e.Id].Position.X);
-                        dottranslate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
+
+                    translate.X += (e.Position.X - oldFREE[e.Id].Position.X);
+                    translate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
+                    dottranslate.X += (e.Position.X - oldFREE[e.Id].Position.X);
+                    dottranslate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
                     //}
                 }
             } if (oldFREE.ContainsKey(e.Id))
                 oldFREE.Remove(e.Id);
             oldFREE.Add(e.Id, e);
-     
+
         }
 
         /// <summary>
@@ -778,7 +956,7 @@ namespace DREAMPioneer
             }
         }
 
-        
+
 
         /// <summary>
         ///   The last waypoint dot.
@@ -808,7 +986,8 @@ namespace DREAMPioneer
                 lock (waypointDots)
                     waypointDots.Add(p, newEllipse);
                 DotCanvas.Children.Add(newEllipse);
-            }else
+            }
+            else
             {
                 ;
             }
@@ -818,14 +997,14 @@ namespace DREAMPioneer
         private void clearAllDot()
         {
             List<Point> temp = new List<Point>();
-            
+
             foreach (Point p in waypointDots.Keys)
             {
-                temp.Add( p );
+                temp.Add(p);
             }
             foreach (Point p in temp)
             {
-                DotCanvas.Children.Remove( waypointDots[p] );
+                DotCanvas.Children.Remove(waypointDots[p]);
             }
             waypointDots.Clear();
         }
@@ -863,7 +1042,7 @@ namespace DREAMPioneer
             turboFingerCount[robot]++;
             //touchHold = new otherTimer.Timer(2000);
             //timers.StartTimer(ref checkHold);
-            
+
 
             return res;
         }
@@ -893,7 +1072,7 @@ namespace DREAMPioneer
                 if (!robots.ContainsKey(i)) continue;
                 Double _xPos = ((robots[i].xPos) * PPM);
                 Double _yPos = ((robots[i].yPos) * PPM);
-                Double Width = robots[i].robot.ActualWidth  * scale.ScaleX * PPM;
+                Double Width = robots[i].robot.ActualWidth * scale.ScaleX * PPM;
                 if (distance(xPos, yPos, _xPos, _yPos) < Width / 2)
                 {
                     return i;
@@ -917,9 +1096,9 @@ namespace DREAMPioneer
                                         {
                                             if (!b)
                                             {
-                                                
+
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
-                                                if(!oldFREE.ContainsKey(e.Id) )
+                                                if (!oldFREE.ContainsKey(e.Id))
                                                     oldFREE.Add(t.Id, e);
                                                 captureVis[t.Id].dot.Stroke = Brushes.White;
 
@@ -1092,8 +1271,9 @@ namespace DREAMPioneer
                                                                 ChangeState(RMState.State5);
                                                                 break;
                                                             }
-                                                            else */if ((lassoId == -1 || lassoId == e.Id) && index == -1 &&
-                                                                                 selectedList.Count == 0)
+                                                            else */
+                                                            if ((lassoId == -1 || lassoId == e.Id) && index == -1 &&
+                                                                          selectedList.Count == 0)
                                                             {
                                                                 lassoPoints.Add(e.Position);
                                                                 if (lassoId == -1)
@@ -1129,7 +1309,7 @@ namespace DREAMPioneer
                                                         case RMState.State4:
                                                             break;
                                                         case RMState.State5:
-                                                            if (cc.Count == 1 && index == -1 )
+                                                            if (cc.Count == 1 && index == -1)
                                                             {
                                                                 WPDrag++;
                                                                 AddWaypointDot(e.Position);
@@ -1146,7 +1326,7 @@ namespace DREAMPioneer
                                                         captureVis[t.Id].dot.Stroke = Brushes.Red;
                                                     }
                                                 }
-                                                
+
                                             });
         }
 
@@ -1169,9 +1349,9 @@ namespace DREAMPioneer
                                             List<int> beforeLasso = new List<int>();
                                             List<int> newSelection = new List<int>();
                                             int index = robotsCD(e);
-                                            if(manualRobot == -1 && index != -1)
+                                            if (manualRobot == -1 && index != -1)
                                             {
-                                                if ( ttime[index] != null && ttime[index].selected)
+                                                if (ttime[index] != null && ttime[index].selected)
                                                 //if (!timers.IsRunning(ref turboFingering[index]))
                                                 {
                                                     manualRobot = index;
@@ -1186,7 +1366,7 @@ namespace DREAMPioneer
                                                 case RMState.Start:
                                                     beforeLasso.AddRange(selectedList);
                                                     FinishLasso(e);
-                                                    
+
                                                     newSelection = selectedList.Except(beforeLasso).ToList();
                                                     if (newSelection.Count > 0)
                                                     {
@@ -1245,7 +1425,7 @@ namespace DREAMPioneer
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
                                                 oldFREE.Remove(e.Id);
                                             }
-                                            if(oldFREE.ContainsKey(e.Id))
+                                            if (oldFREE.ContainsKey(e.Id))
                                             {
                                                 oldFREE.Remove(e.Id);
                                             }
@@ -1312,7 +1492,7 @@ namespace DREAMPioneer
                 {
                     for (int i = 0; i < numRobots; i++)
                     {
-                        Point p = new Point((robots[i].xPos + (translate.X )) , (robots[i].yPos + (translate.Y))  );
+                        Point p = new Point((robots[i].xPos + (translate.X)), (robots[i].yPos + (translate.Y)));
                         if (PointInPoly(lassoPoints, p))
                         {
                             if (!selectedList.Exists(item => item == i))
@@ -1424,7 +1604,7 @@ namespace DREAMPioneer
                 lock (waypointDots)
                 {
                     foreach (Ellipse el in waypointDots.Values)
-                       DotCanvas.Children.Remove(el);
+                        DotCanvas.Children.Remove(el);
                     waypointDots.Clear();
                 }
                 NoPulse();

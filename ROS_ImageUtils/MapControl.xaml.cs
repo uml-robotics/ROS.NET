@@ -247,7 +247,12 @@ namespace ROS_ImageWPF
         /// <param name = "hasHeader">
         ///   whether or not a header needs to be concatinated
         /// </param>
-        public void  UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
+        /// 
+        public void  UpdateImage(byte[] data, Size size, bool hasHeader)
+        {
+            UpdateImage(data, size, hasHeader, null);
+        }
+        public void  UpdateImage(byte[] data, Size size, bool hasHeader, string encoding)
         {
             if (hasHeader)
             {

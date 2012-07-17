@@ -27,8 +27,18 @@ namespace Ros_CSharp
         {
             allow_concurrent_callbacks = false;
         }
+         public SubscribeOptions(string topic, int queue_size)
+         :this ( topic, queue_size, null, null)
+         {
+         }
+            
+            public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL)
+            :this(topic, queue_size, CALL,null)
+            {
+            }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL = null, string thisisveryverybad = null)
+
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL , string thisisveryverybad)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -46,5 +56,5 @@ namespace Ros_CSharp
         }
     }
 
-    public delegate void CallbackDelegate<in T>(T argument) where T : IRosMessage, new();
+    public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();
 }
