@@ -1,5 +1,5 @@
 ﻿#define NO_SRVS_RIGHT_NOW
-
+#define ON_TOP_OF_ITSELF
 #region USINGZ
 
 using System;
@@ -21,8 +21,15 @@ namespace YAMLParser
         public static string fronthalf;
 
         public static string outputdir = "..\\..\\..\\Messages";
-        public static string outputdir_firstpass = "..\\..\\..\\TempMessages";
+        public static string name = "Messages";
         public static string outputdir_secondpass = "..\\..\\..\\SecondPass";
+#if ON_TOP_OF_ITSELF
+        public static string outputdir_firstpass = outputdir;
+        public static string name_firstpass = name;
+#else
+        public static string outputdir_firstpass = "..\\..\\..\\TempMessages";
+        public static string name_firstpass = "TempMessages";
+#endif
 
         private static void Main(string[] args)
         {
@@ -161,14 +168,20 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
+                #if !ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
+                #endif
             }
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
+                #if !ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
+                #endif
             }
+            #if !ON_TOP_OF_ITSELF
             File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString());
+            #endif
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
         }
 
@@ -177,8 +190,8 @@ namespace YAMLParser
             if (!Directory.Exists((istemp?outputdir_firstpass:outputdir) + "\\Properties"))
                 Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
             File.WriteAllLines((istemp?outputdir_firstpass:outputdir) + "\\Properties\\AssemblyInfo.cs",
-                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));            
-            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + (istemp?"\\TemplateProject\\TempMessages._csproj":"\\TemplateProject\\Messages._csproj"));
+                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
+            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\" +(istemp ? name_firstpass : name) + "._csproj");
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -198,9 +211,9 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
-            File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs");
-            File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs");
-            File.WriteAllText((istemp ? (outputdir_firstpass + "\\TempMessages.csproj") : (outputdir+"\\Messages.csproj")), output);
+            File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
+            File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
+            File.WriteAllText((istemp ? (outputdir_firstpass + "\\"+(istemp?name_firstpass:name)+".csproj") : (outputdir+"\\"+(istemp?name_firstpass:name)+".csproj")), output);
         }
 
         private static string __where_be_at_my_vc____is;
@@ -239,7 +252,7 @@ namespace YAMLParser
                 throw up;
             }
             Console.WriteLine("\n\nBUILDING GENERATED PROJECT WITH MSBUILD!");
-            string args = "/nologo \"" +outputdir_firstpass+"\\TempMessages.csproj\"";
+            string args = "/nologo \"" +outputdir_firstpass+"\\"+name_firstpass+".csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
@@ -250,12 +263,10 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\TempMessages.dll"))
+            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
             {
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\TempMessages.dll\n\n");
-                if (File.Exists(outputdir_firstpass + "\\TempMessages.dll"))
-                    File.Delete(outputdir_firstpass + "\\TempMessages.dll");
-                File.Copy(outputdir_firstpass + "\\bin\\Debug\\TempMessages.dll", outputdir_firstpass + "\\TempMessages.dll");
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
+                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
             }
             else
             {

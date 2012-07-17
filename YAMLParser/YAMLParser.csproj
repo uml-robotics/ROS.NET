@@ -76,6 +76,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'GunItAndRunIt|AnyCPU' ">
     <OutputPath>bin\GunItAndRunIt\</OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -27,8 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLConfigurator", "..\multi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EM3MTouchLib", "..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj", "{5062C99F-6244-4C4E-873F-46F6CCD15EE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TempMessages", "TempMessages\TempMessages.csproj", "{5B749749-56DE-47EF-BBCC-E3F9B4057A56}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondPass", "SecondPass\SecondPass.csproj", "{92E82652-FE4F-40DA-8749-F976E29183A4}"
 EndProject
 Global
@@ -113,8 +111,8 @@ Global
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Release|x86.Build.0 = Release|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Any CPU.ActiveCfg = GunItAndRunIt|Any CPU
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Any CPU.Build.0 = GunItAndRunIt|Any CPU
-		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Mixed Platforms.ActiveCfg = GunItAndRunIt|Any CPU
-		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Mixed Platforms.Build.0 = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Mixed Platforms.Build.0 = Debug|Any CPU
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|Win32.ActiveCfg = GunItAndRunIt|Any CPU
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Surface|x86.ActiveCfg = GunItAndRunIt|Any CPU
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Template|Any CPU.ActiveCfg = Release|x86
@@ -347,30 +345,6 @@ Global
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Template|Win32.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Template|x86.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Template|x86.Build.0 = Release|x86
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|Win32.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Release|x86.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|Any CPU.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|Any CPU.Build.0 = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|Win32.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Surface|x86.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|Any CPU.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|Any CPU.Build.0 = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|Mixed Platforms.Build.0 = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|Win32.ActiveCfg = Release|Any CPU
-		{5B749749-56DE-47EF-BBCC-E3F9B4057A56}.Template|x86.ActiveCfg = Release|Any CPU
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Debug|Mixed Platforms.Build.0 = Debug|x86
