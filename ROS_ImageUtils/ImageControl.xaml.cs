@@ -55,24 +55,28 @@ namespace ROS_ImageWPF
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
                 {
-                    if (obj is ImageControl)
+                    try
                     {
-                        ImageControl target = obj as ImageControl;
-                        target.TopicName = (string)args.NewValue;
-                        if (newTopicName != null)
-                            target.TopicName = newTopicName;
-                        if (!ROS.isStarted())
+                        if (obj is ImageControl)
                         {
-                            if (target.waitforinit == null)
-                                target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
-                            if (!target.waitforinit.IsAlive)
+                            ImageControl target = obj as ImageControl;
+                            target.TopicName = (string)args.NewValue;
+                            if (newTopicName != null)
+                                target.TopicName = newTopicName;
+                            if (!ROS.isStarted())
                             {
-                                target.waitforinit.Start();
+                                if (target.waitforinit == null)
+                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
+                                if (!target.waitforinit.IsAlive)
+                                {
+                                    target.waitforinit.Start();
+                                }
                             }
+                            else
+                                target.SetupTopic();
                         }
-                        else
-                            target.SetupTopic();
                     }
+                    catch (Exception e) { Console.WriteLine(e); }
                 }));
 
         private void waitfunc()

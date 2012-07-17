@@ -50,22 +50,26 @@ namespace ROS_ImageWPF
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
                 {
-                    if (obj is MapControl)
+                    try
                     {
-                       MapControl target = obj as MapControl;
-                        target.TopicName = (string)args.NewValue;
-                        if (!ROS.isStarted())
+                        if (obj is MapControl)
                         {
-                            if (target.waitforinit == null)
-                                target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
-                            if (!target.waitforinit.IsAlive)
+                            MapControl target = obj as MapControl;
+                            target.TopicName = (string)args.NewValue;
+                            if (!ROS.isStarted())
                             {
-                                target.waitforinit.Start();
+                                if (target.waitforinit == null)
+                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
+                                if (!target.waitforinit.IsAlive)
+                                {
+                                    target.waitforinit.Start();
+                                }
                             }
+                            else
+                                target.SetupTopic();
                         }
-                        else
-                            target.SetupTopic();
                     }
+                    catch (Exception e) { Console.WriteLine(e); }
                 }));
 
         private void waitfunc()
@@ -74,6 +78,7 @@ namespace ROS_ImageWPF
             {
                 Thread.Sleep(100);
             }
+            Thread.Sleep(1000);
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
 
@@ -83,9 +88,21 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (mapsub != null)
                 mapsub.shutdown();
-            
+            Console.WriteLine("MAP TOPIC = " + TopicName);
             mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() => UpdateImage( createRGBA( i.data ), new Size((int)i.info.width, (int)i.info.height), false))), "*");
+                {
+                    if ((i.info.width & i.info.height) == 0)
+                    {
+                        i.info.width = (uint)Math.Floor(Math.Sqrt((double)i.data.Length));
+                        i.info.height = i.info.width;
+                        if (i.info.width * i.info.height == i.data.Length)
+                            return;
+                    }
+                Dispatcher.BeginInvoke(new Action(() =>                    
+                    UpdateImage( createRGBA( i.data ), 
+                    new Size((int)i.info.width, 
+                    (int)i.info.height), false)));
+                },"*");
         } 
         private byte[] createRGBA(sbyte[] map)
         {

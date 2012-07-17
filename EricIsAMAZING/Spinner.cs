@@ -20,17 +20,21 @@ namespace Ros_CSharp
 
         #endregion
 
-        public void spin()            
+        public virtual void spin()            
         {
             spin(null);
         
         }
-    public virtual void spin(CallbackQueue queue)
+        public virtual void spin(CallbackQueue queue)
         {
         }
 }
     public class SingleThreadSpinner : Spinner
     {
+        public override void spin()
+        {
+            this.spin(null);
+        }
         public override void spin(CallbackQueue callbackInterface)
         {
             if (callbackInterface == null)
@@ -52,8 +56,9 @@ namespace Ros_CSharp
     {
         private int thread_count;
 
-        public MultiThreadSpinner(int tc )
+        public MultiThreadSpinner(int tc)
         {
+            thread_count = tc;
         }
         public MultiThreadSpinner()
             : this(0)

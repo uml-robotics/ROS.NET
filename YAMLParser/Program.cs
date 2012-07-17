@@ -267,8 +267,13 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (!File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
-            {                
+            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
+            {
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
+                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
+            }
+            else
+            {
                 if (output.Length > 0)
                     Console.WriteLine(output);
                 if (error.Length > 0)
@@ -304,9 +309,7 @@ namespace YAMLParser
                 proc2.Start();
                 output2 = proc2.StandardOutput.ReadToEnd();
                 error2 = proc2.StandardError.ReadToEnd();
-                BuildProject("REBUILDING THE REFINED GENERATED CODE!");
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
-                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
+                BuildProject("REBUILDING THE REFINED GENERATED CODE!");                
             }
             else
             {

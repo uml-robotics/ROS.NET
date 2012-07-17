@@ -17,7 +17,7 @@ namespace Ros_CSharp
 
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
+            EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
             base.callback(new Callback<M>(cb));
             //if you think about this one too hard, you might die.
@@ -25,32 +25,32 @@ namespace Ros_CSharp
 
         public SubscriptionCallbackHelper(MsgTypes t)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: type constructor");
+            EDB.WriteLine("SubscriptionCallbackHelper: type constructor");
             type = t;
         }
 
         public SubscriptionCallbackHelper(CallbackInterface q)
             : base(q)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
+            EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
         }
 
         public M deserialize(SubscriptionCallbackHelperDeserializeParams parms)
         {
-           // EDB.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
+            EDB.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
             return deserialize<M>(parms);
         }
 
         public override T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
+            EDB.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
             T t = base.deserialize<T>(parms);
             return t;
         }
 
         public override void call(SubscriptionCallbackHelperCallParams parms)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: call");
+            EDB.WriteLine("SubscriptionCallbackHelper: call");
             MessageEvent<M> e = (MessageEvent<M>) parms.Event;
             (callback()).func(new ParameterAdapter<M>().getParameter(e));
         }

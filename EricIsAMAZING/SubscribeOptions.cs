@@ -32,10 +32,10 @@ namespace Ros_CSharp
          {
          }
             
-            public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL)
-            :this(topic, queue_size, CALL,null)
-            {
-            }
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL)
+        :this(topic, queue_size, CALL, null)
+        {
+        }
 
 
         public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL , string thisisveryverybad)

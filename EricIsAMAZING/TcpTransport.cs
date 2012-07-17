@@ -227,8 +227,6 @@ namespace Ros_CSharp
 
             while (!sock.Connected)
             {
-                EDB.WriteLine("waiting");
-                System.Threading.Thread.Sleep(10);
             }
 
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
@@ -250,8 +248,8 @@ namespace Ros_CSharp
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            //if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-            //    enableRead();
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+                enableRead();
             return true;
         }
 
@@ -463,7 +461,7 @@ namespace Ros_CSharp
                 else
                     cached_remote_host = ClientURI + " on socket " + sock;
             }
-            Console.WriteLine("cached_remote_host = "+cached_remote_host);
+            //Console.WriteLine("cached_remote_host = "+cached_remote_host);
 
             if (poll_set != null)
             {

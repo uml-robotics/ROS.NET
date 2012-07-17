@@ -125,6 +125,13 @@ namespace Ros_CSharp
         }
 
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
+                                         SubscriberStatusCallback disconnectcallback)
+            where M : IRosMessage, new()
+        {
+            return advertise<M>(topic, queue_size, connectcallback, disconnectcallback, false);
+        }
+
+        public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
                                          SubscriberStatusCallback disconnectcallback, bool l)
             where M : IRosMessage, new()
         {
