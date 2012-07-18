@@ -11,13 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_ImageWPF", "ROS_ImageUt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DREAMPioneer", "DREAMPioneer\DREAMPioneer\DREAMPioneer.csproj", "{48F383FF-33CE-4AB0-9D80-E9B3E7521318}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DREAMController", "..\multirobot\lib_dreamcontroller\DREAMController.csproj", "{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DREAMController", "..\lib_dreamcontroller\DREAMController.csproj", "{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTouchTypes", "..\multirobot\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj", "{A97E4991-EC24-4A9E-9073-CD1E37D50405}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTouchTypes", "..\lib_dreamcontroller\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj", "{A97E4991-EC24-4A9E-9073-CD1E37D50405}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTypes-Surface_Adapter", "..\multirobot\lib_generictouchtypes\SurfaceAdapter\GenericTypes-Surface_Adapter.csproj", "{94F5F99C-DB1F-467C-8F76-8357677051AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTypes-Surface_Adapter", "..\lib_dreamcontroller\lib_generictouchtypes\SurfaceAdapter\GenericTypes-Surface_Adapter.csproj", "{94F5F99C-DB1F-467C-8F76-8357677051AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLConfigurator", "..\multirobot\lib_xmlconfigurator\XMLConfigurator.csproj", "{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLConfigurator", "..\lib_dreamcontroller\lib_xmlconfigurator\XMLConfigurator.csproj", "{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EM3MTouchLib", "..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj", "{5062C99F-6244-4C4E-873F-46F6CCD15EE0}"
 EndProject
@@ -127,8 +127,8 @@ Global
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Release|x86.ActiveCfg = Release|Any CPU
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Any CPU.ActiveCfg = Surface|Any CPU
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Any CPU.Build.0 = Surface|Any CPU
-		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Mixed Platforms.ActiveCfg = Surface|Any CPU
-		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Mixed Platforms.Build.0 = Surface|Any CPU
+		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Mixed Platforms.ActiveCfg = Surface|x86
+		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Mixed Platforms.Build.0 = Surface|x86
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|Win32.ActiveCfg = Surface|Any CPU
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Surface|x86.ActiveCfg = Surface|Any CPU
 		{48F383FF-33CE-4AB0-9D80-E9B3E7521318}.Template|Any CPU.ActiveCfg = Release|Any CPU

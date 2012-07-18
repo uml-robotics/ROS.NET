@@ -58,6 +58,32 @@
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Surface|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Surface\</OutputPath>
+    <DefineConstants>TRACE;SURFACEWINDOW</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -77,6 +103,9 @@
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Presentation">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -85,9 +114,18 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
+    <Reference Include="UIAutomationProvider">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -114,6 +152,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GoalDot.xaml.cs">
+      <DependentUpon>GoalDot.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -137,12 +178,17 @@
     <Compile Include="SurfaceWindow1.xaml.cs">
       <DependentUpon>SurfaceWindow1.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WayPoint.cs" />
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="EButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="GoalDot.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="LeftControlPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -196,23 +242,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
-      <Project>{5062C99F-6244-4C4E-873F-46F6CCD15EE0}</Project>
-      <Name>EM3MTouchLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\multirobot\lib_dreamcontroller\DREAMController.csproj">
+    <ProjectReference Include="..\..\..\lib_dreamcontroller\DREAMController.csproj">
       <Project>{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}</Project>
       <Name>DREAMController</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multirobot\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
+    <ProjectReference Include="..\..\..\lib_dreamcontroller\lib_generictouchtypes\GenericTouchTypes\GenericTouchTypes.csproj">
       <Project>{A97E4991-EC24-4A9E-9073-CD1E37D50405}</Project>
       <Name>GenericTouchTypes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multirobot\lib_generictouchtypes\SurfaceAdapter\GenericTypes-Surface_Adapter.csproj">
+    <ProjectReference Include="..\..\..\lib_dreamcontroller\lib_generictouchtypes\SurfaceAdapter\GenericTypes-Surface_Adapter.csproj">
       <Project>{94F5F99C-DB1F-467C-8F76-8357677051AD}</Project>
       <Name>GenericTypes-Surface_Adapter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\multirobot\lib_xmlconfigurator\XMLConfigurator.csproj">
+    <ProjectReference Include="..\..\..\lib_dreamcontroller\lib_xmlconfigurator\XMLConfigurator.csproj">
       <Project>{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}</Project>
       <Name>XMLConfigurator</Name>
     </ProjectReference>

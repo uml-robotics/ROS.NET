@@ -122,10 +122,72 @@ namespace DREAMPioneer
                 return _winhandle;
             }
         }
+
+        private double dZoom
+        {
+            get
+            {
+                if (scale == null) return 0;
+                return scale.ScaleX;
+            }
+
+            set
+            {
+                if (scale != null)
+                    scale.ScaleX= value;
+                    scale.ScaleY = value;
+            }
+        }
+
+        /// <summary>
+        ///   The d max zoom.
+        /// </summary>
+        private const double dMaxZoom = 5;
+
+
+        /// <summary>
+        ///   The d min zoom.
+        /// </summary>
+        private const double dMinZoom = .1;
+
+
+        /// <summary>
+        ///   Amount to change dZoom by for each zoom increment
+        /// </summary>
+        private double dZoomIncrements
+        {
+            get
+            {
+                double x = scale.ScaleX;
+                if (x <.5)
+                    return 0.001;
+                else if (x < 1)
+                    return 0.002;
+                else if (x < 2)
+                    return 0.003;
+                else if (x < 3)
+                    return 0.004;
+                return 0.005;
+            }
+        }
+
+        /// <summary>
+        ///   Distance between contacts required before a change is interpreted as a zoom event
+        /// </summary>
+        private double zoomDistanceThreshold = 2;
+
+        /// <summary>
+        ///   duh
+        /// </summary>
+        private double previousZoomDistance;
+
+
+         private Point DRAG_START = new Point(-1, -1);
+
         private const string ROS_MASTER_URI = "http://robot-brain-1:11311/";
         public static SurfaceWindow1 current;
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
-        private SortedList<int, Touch> oldFREE = new SortedList<int, Touch>();
+        //private SortedList<int, Touch> FREE = new SortedList<int, Touch>();
         private JoystickManager joymgr;
         private NodeHandle node;
 
@@ -220,7 +282,7 @@ namespace DREAMPioneer
         /// <summary>
         ///   The waypoint dots.
         /// </summary>
-        private Dictionary<Point, Ellipse> waypointDots = new Dictionary<Point, Ellipse>();
+        private List<Waypoint> waypointDots = new List<Waypoint>();
 
         /// <summary>
         ///   The lasso points.
@@ -429,14 +491,14 @@ namespace DREAMPioneer
             tf_node.init();
             lastt = new Touch();
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.Invoke(new Action(() =>
                 {
                     TransformGroup group = new TransformGroup();
                     TransformGroup dotgroup = new TransformGroup();
-                    scale = new ScaleTransform();
-                    translate = new TranslateTransform();
-                    dotscale = new ScaleTransform();
-                    dottranslate = new TranslateTransform();
+                    scale = new ScaleTransform(1,1);
+                    translate = new TranslateTransform(0,0);
+                    dotscale = new ScaleTransform(1,1);
+                    dottranslate = new TranslateTransform(0,0);
                     group.Children.Add(scale);
                     group.Children.Add(translate);
                     dotgroup.Children.Add(dotscale);
@@ -888,49 +950,98 @@ namespace DREAMPioneer
 
         DateTime lastupdown = DateTime.Now;
 
-        public void moveStuff(Touch e)
+        public void moveStuff(Dictionary<int, Touch> cc)
         {
             n = DateTime.Now;
-            bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds <= 1);
+            bool SITSTILL = (n.Subtract(lastupdown).TotalMilliseconds > 1);
+            lastupdown = DateTime.Now;
             bool zoomed = false;
-            //Console.WriteLine(joymgr.FreeTouches);
-            if (distance(e, oldFREE[e.Id]) > .1 && !SITSTILL)
+            double dTmp = 0;
+            double XSum = 0, YSum = 0;
+            for (int i = 0; i < cc.Count; i++)
             {
-                lastupdown = DateTime.Now;
-                if (oldFREE.Count > 1)
-                {
-                    foreach (Touch p in oldFREE.Values)
-                    {
-                        if (p.Id != e.Id)
-                        {   //- distance(oldFREE[e.Id], oldFREE[p.Id])
-                            if (Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) > .5)
-                            {
-                                //Console.WriteLine(Math.Abs(distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])));
-                                if (scale.ScaleX + ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400) > 0.2)
-                                {
-                                    scale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
-                                    scale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
-                                    dotscale.ScaleX += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
-                                    dotscale.ScaleY += ((distance(e, p) - distance(oldFREE[e.Id], oldFREE[p.Id])) / 400);
-                                    zoomed = true;
-                                }
-                            }
-                        }
-                    }
+                XSum += cc[cc.Keys.ElementAt(i)].Position.X;
+                YSum += cc[cc.Keys.ElementAt(i)].Position.Y;
+                if (i < cc.Count - 1)
+                    dTmp += distance(cc[cc.Keys.ElementAt(i)], cc[cc.Keys.ElementAt(i + 1)]);
+            }
+            //Console.WriteLine(joymgr.FreeTouches);
+            //if (distance(e, FREE[e.Id]) > .1 && !SITSTILL)
+            //{
+            //    lastupdown = DateTime.Now;
+            //    if (FREE.Count > 1)
+            //    {
+            //        foreach (Touch p in FREE.Values)
+            //        {
+            //            if (p.Id != e.Id)
+            //            {   //- distance(FREE[e.Id], FREE[p.Id])
+            //                if (Math.Abs(distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) > .5)
+            //                {
+            //                    //Console.WriteLine(Math.Abs(distance(e, p) - distance(FREE[e.Id], FREE[p.Id])));
+            //                    if (scale.ScaleX + ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400) > 0.2)
+            //                    {
+            //                        scale.ScaleX += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
+            //                        scale.ScaleY += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
+            //                        dotscale.ScaleX += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
+            //                        dotscale.ScaleY += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
+            //                        zoomed = true;
+            //                    }
+            //                }
+            //            }
+            //        }
                     //if (!zoomed)
-                    //{
+                   //{
+            if (Math.Abs(previousZoomDistance - dTmp) > zoomDistanceThreshold)
+            {
+                if ((previousZoomDistance - dTmp) > zoomDistanceThreshold)
+                {
+                    if (!SITSTILL)
+                    {
+                        if (dZoom + dZoomIncrements > dMaxZoom)
+                        {
+                            dZoom = dMaxZoom;
+                        }
+                        else
+                        {
+                            dZoom = dZoom - dZoomIncrements;
+                        }
+                        // ZOOM.ScaleX = (WindowEquivalent(OBLIVION, -OBLIVION).X - WindowEquivalent(-OBLIVION, -OBLIVION).X) / WayPointCanvas.Width;
+                        //ZOOM.ScaleY = (WindowEquivalent(-OBLIVION, OBLIVION).Y - WindowEquivalent(-OBLIVION, -OBLIVION).Y) / WayPointCanvas.Height;
+                    }
+                    previousZoomDistance = dTmp;
 
-                    translate.X += (e.Position.X - oldFREE[e.Id].Position.X);
-                    translate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
-                    dottranslate.X += (e.Position.X - oldFREE[e.Id].Position.X);
-                    dottranslate.Y += (e.Position.Y - oldFREE[e.Id].Position.Y);
-                    //}
                 }
-            } if (oldFREE.ContainsKey(e.Id))
-                oldFREE.Remove(e.Id);
-            oldFREE.Add(e.Id, e);
-
-        }
+                else if ((dTmp - previousZoomDistance) > zoomDistanceThreshold)
+                {
+                    if (!SITSTILL)
+                    {
+                        if (dZoom - dZoomIncrements < dMinZoom)
+                        {
+                            dZoom = dMinZoom;
+                        }
+                        else
+                        {
+                            dZoom = dZoom + dZoomIncrements;
+                        }
+                        //ZOOM.ScaleX = (WindowEquivalent(OBLIVION, -OBLIVION).X - WindowEquivalent(-OBLIVION, -OBLIVION).X) / WayPointCanvas.Width;
+                        // ZOOM.ScaleY = (WindowEquivalent(-OBLIVION, OBLIVION).Y - WindowEquivalent(-OBLIVION, -OBLIVION).Y) / WayPointCanvas.Height;
+                    }
+                    previousZoomDistance = dTmp;
+                }
+            }
+                Point p = new Point(XSum / cc.Count, YSum / cc.Count);
+                Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
+                DRAG_START = p;
+                if (!SITSTILL){
+                    translate.X -= drag.X/ scale.ScaleY *cc.Count/2;
+                    translate.Y -= drag.Y / scale.ScaleY * cc.Count / 2;
+                    dottranslate.X -= drag.X / dotscale.ScaleY * cc.Count / 2;
+                    dottranslate.Y -= drag.Y / dotscale.ScaleY * cc.Count / 2;
+                }
+                    
+         }
+            
+        
 
         /// <summary>
         ///   Gets FREE.
@@ -949,9 +1060,9 @@ namespace DREAMPioneer
                 selectedList.Clear();
                 lock (waypointDots)
                 {
-                    foreach (KeyValuePair<Point, Ellipse> kvp in waypointDots)
+                    foreach (Waypoint wp in waypointDots)
                     {
-                        MainCanvas.Children.Remove(kvp.Value);
+                        MainCanvas.Children.Remove(wp.dot);
                     }
                     waypointDots.Clear();
                 }
@@ -976,7 +1087,8 @@ namespace DREAMPioneer
             if (Math.Abs(distance(lastWaypointDot, p)) > (joymgr.DPI / 43) * 10)
             {
                 lock (waypointDots)
-                    if (waypointDots.ContainsKey(p)) return;
+                    foreach(Point point in Waypoint.PointLocations)
+                        if (p == point) return;
                 lastWaypointDot = p;
                 Ellipse newEllipse = new Ellipse
                 {
@@ -986,13 +1098,10 @@ namespace DREAMPioneer
                     Margin = new Thickness { Bottom = 0, Top = 1 / dotscale.ScaleY * (p.Y - dottranslate.Y), Left = 1 / dotscale.ScaleX * (p.X - dottranslate.X), Right = 0 }
                 };
                 lock (waypointDots)
-                    waypointDots.Add(p, newEllipse);
-                DotCanvas.Children.Add(newEllipse);
+                    waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas,scale,dottranslate,Brushes.Yellow));
             }
             else
-            {
-                ;
-            }
+            {}
             /*if (waypointDots.Count > 10)
                 clearAllDot();*/
         }
@@ -1000,13 +1109,13 @@ namespace DREAMPioneer
         {
             List<Point> temp = new List<Point>();
 
-            foreach (Point p in waypointDots.Keys)
+            foreach (Point p in Waypoint.PointLocations)
             {
                 temp.Add(p);
             }
-            foreach (Point p in temp)
+            foreach (Waypoint wp in waypointDots)
             {
-                DotCanvas.Children.Remove(waypointDots[p]);
+                DotCanvas.Children.Remove(wp.dot);
             }
             waypointDots.Clear();
         }
@@ -1100,8 +1209,6 @@ namespace DREAMPioneer
                                             {
 
                                                 captureVis.Add(t.Id, new SlipAndSlide(t));
-                                                if (!oldFREE.ContainsKey(e.Id))
-                                                    oldFREE.Add(t.Id, e);
                                                 captureVis[t.Id].dot.Stroke = Brushes.White;
 
                                                 ZoomDown(e);
@@ -1231,7 +1338,7 @@ namespace DREAMPioneer
 
                                                     if (cc.Count > 1)
                                                     {
-                                                        moveStuff(e);
+                                                        moveStuff(cc);
                                                         if (!cleanedUpDragPoints.Contains(e.Id))
                                                         {
                                                             if (lassoPoints.Contains(e.Position))
@@ -1342,10 +1449,6 @@ namespace DREAMPioneer
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
                                             }
-                                            if (oldFREE.ContainsKey(t.Id))
-                                            {
-                                                oldFREE.Remove(t.Id);
-                                            }
                                             if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
                                             zoomUp();
                                             List<int> beforeLasso = new List<int>();
@@ -1357,6 +1460,7 @@ namespace DREAMPioneer
                                                 //if (!timers.IsRunning(ref turboFingering[index]))
                                                 {
                                                     manualRobot = index;
+                                                    if (selectedList.Count > index && index > 0)
                                                     selectedList.RemoveAt(index);
                                                     PulseGreen(manualRobot);
                                                     changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
@@ -1425,11 +1529,6 @@ namespace DREAMPioneer
                                             if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                                oldFREE.Remove(e.Id);
-                                            }
-                                            if (oldFREE.ContainsKey(e.Id))
-                                            {
-                                                oldFREE.Remove(e.Id);
                                             }
                                         }
                                     });
@@ -1573,7 +1672,7 @@ namespace DREAMPioneer
             }
             lock (waypointDots)
             {
-                waypoints = waypointDots.Keys.ToList();
+                waypoints = (Get_Offset(Waypoint.PointLocations));
                 sel = selectedList.ToArray();
                 asyncWaypointStuff = new Action(() =>
                 {
@@ -1582,8 +1681,8 @@ namespace DREAMPioneer
                         robots[k].updateWaypoints(waypoints, newx, newy, newwx, newwy);
                     }
                 });
-                foreach (Ellipse el in waypointDots.Values)
-                    DotCanvas.Children.Remove(el);
+                foreach (Waypoint wp in waypointDots)
+                    DotCanvas.Children.Remove(wp.dot);
                 waypointDots.Clear();
             }
             asyncWaypointStuff.BeginInvoke((iar) =>
@@ -1596,7 +1695,21 @@ namespace DREAMPioneer
             NoPulse();
             selectedList.Clear();
         }
+        public List<Point> Get_Offset(List<Point> PIn)
+        {
+            List<Point> POut = new List<Point>();
 
+            Dispatcher.Invoke(new Action(() =>
+            {
+                foreach (Point p in PIn)
+                {
+                    POut.Add(new Point(((p.X + dottranslate.X) * dotscale.ScaleX) - (DotCanvas.Width * scale.ScaleX / 2) + (MainCanvas.ActualWidth / 2)
+                        , ((p.Y + dottranslate.Y) * scale.ScaleY) - (DotCanvas.Width * scale.ScaleY / 2) + (MainCanvas.ActualHeight / 2)));
+                }
+            }));
+            return POut;
+
+        }
         public void EndState(string s)
         {
             Dispatcher.BeginInvoke(new Action(() =>
@@ -1605,8 +1718,8 @@ namespace DREAMPioneer
                 ChangeState(RMState.Start);
                 lock (waypointDots)
                 {
-                    foreach (Ellipse el in waypointDots.Values)
-                        DotCanvas.Children.Remove(el);
+                    foreach (Waypoint wp in waypointDots)
+                        DotCanvas.Children.Remove(wp.dot);
                     waypointDots.Clear();
                 }
                 NoPulse();
