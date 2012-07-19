@@ -17,15 +17,16 @@ using Microsoft.Surface.Presentation.Controls;
 
 namespace DREAMPioneer
 {
-    class Waypoint
+    public class Waypoint
     {
-        public Ellipse dot;
+        
         private Point _Location;
-        private Canvas mycanv;
-        private Canvas Maincanv;
-        private ScaleTransform Zoom;
-        private TranslateTransform Translation;
-        private static List<Point> _PointLocations = new List<Point>();
+        public Ellipse dot;
+        public Canvas mycanv;
+        public Canvas Maincanv;
+        public ScaleTransform Zoom;
+        public TranslateTransform Translation;
+        public static List<Point> _PointLocations = new List<Point>();
 
 
         public static List<Point> PointLocations
@@ -69,16 +70,18 @@ namespace DREAMPioneer
             get { return _Location; }
             set
             {
-                _Location = ToWayPointCanvas(value);
+                _Location = SurfaceWindow1.current.MainCanvas.TranslatePoint(value, mycanv);
                 Canvas.SetTop(dot, Location.Y);
                 Canvas.SetLeft(dot, Location.X);
+                //Console.WriteLine(SurfaceWindow1.current.MainCanvas.TranslatePoint).Transform(new Point()));
             }
         }
 
         public Point ToWayPointCanvas(Point p)
         {
-            return new Point((p.X - Maincanv.ActualWidth / 2 + mycanv.Width * Zoom.ScaleX / 2) / Zoom.ScaleX - Translation.X - dot.Width / 2,
-                                       (p.Y - Maincanv.ActualHeight / 2 + mycanv.Height * Zoom.ScaleY / 2) / Zoom.ScaleY - Translation.Y - dot.Height / 2);
+
+            return new Point((p.X - Maincanv.ActualWidth / 2 + (mycanv.Width * Zoom.ScaleX) / 2)  / Zoom.ScaleX - Translation.X - dot.Width / 2,
+                                       (p.Y - Maincanv.ActualHeight / 2 + (mycanv.Height * Zoom.ScaleY) / 2)  / Zoom.ScaleY - Translation.Y - dot.Height / 2);
         }
 
 

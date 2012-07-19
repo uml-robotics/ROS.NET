@@ -46,6 +46,7 @@ namespace ROS_ImageWPF
         public double scaley;
         public bool sendnext;
 
+        
         public List<Point> waypoint = new List<Point>();
 
         private Publisher<gm.PoseStamped> goalPub;

@@ -134,8 +134,12 @@ namespace DREAMPioneer
             set
             {
                 if (scale != null)
+                {
+                    dotscale.ScaleX = value;
+                    dotscale.ScaleY = value;
                     scale.ScaleX= value;
                     scale.ScaleY = value;
+                }
             }
         }
 
@@ -283,6 +287,7 @@ namespace DREAMPioneer
         ///   The waypoint dots.
         /// </summary>
         private List<Waypoint> waypointDots = new List<Waypoint>();
+        private List<GoalDot> GoalDots = new List<GoalDot>();
 
         /// <summary>
         ///   The lasso points.
@@ -1062,9 +1067,10 @@ namespace DREAMPioneer
                 {
                     foreach (Waypoint wp in waypointDots)
                     {
-                        MainCanvas.Children.Remove(wp.dot);
+                        DotCanvas.Children.Remove(wp.dot);
                     }
                     waypointDots.Clear();
+                    Waypoint.PointLocations.Clear();
                 }
             }
         }
@@ -1089,16 +1095,9 @@ namespace DREAMPioneer
                 lock (waypointDots)
                     foreach(Point point in Waypoint.PointLocations)
                         if (p == point) return;
-                lastWaypointDot = p;
-                Ellipse newEllipse = new Ellipse
-                {
-                    Width = 5 * joymgr.DPI / 80,// / dotscale.ScaleX,
-                    Height = 5 * joymgr.DPI / 80,// / dotscale.ScaleY,
-                    Fill = Brushes.Yellow,
-                    Margin = new Thickness { Bottom = 0, Top = 1 / dotscale.ScaleY * (p.Y - dottranslate.Y), Left = 1 / dotscale.ScaleX * (p.X - dottranslate.X), Right = 0 }
-                };
+                lastWaypointDot = p;                
                 lock (waypointDots)
-                    waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas,scale,dottranslate,Brushes.Yellow));
+                    waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas,dotscale,dottranslate,Brushes.Yellow));
             }
             else
             {}
@@ -1118,6 +1117,7 @@ namespace DREAMPioneer
                 DotCanvas.Children.Remove(wp.dot);
             }
             waypointDots.Clear();
+            Waypoint.PointLocations.Clear();
         }
 
         private Timer[] turboFingering = new Timer[40];
@@ -1594,7 +1594,7 @@ namespace DREAMPioneer
                     for (int i = 0; i < numRobots; i++)
                     {
                         Point p = new Point((robots[i].xPos + (translate.X)), (robots[i].yPos + (translate.Y)));
-                        if (PointInPoly(lassoPoints, p))
+                        if (PointInPoly(lassoPoints, p, SubCanvas))
                         {
                             if (!selectedList.Exists(item => item == i))
                             {
@@ -1622,10 +1622,16 @@ namespace DREAMPioneer
         /// <returns>
         ///   The point in poly.
         /// </returns>
-        public static bool PointInPoly(List<Point> polygonPoints, Point testPoint)
+        public static bool PointInPoly(List<Point> polygonPoints, Point testPoint,System.Windows.Controls.Canvas canv)
         {
+            
             bool isIn = false;
             int i, j = 0;
+            //for (i = 0; i < polygonPoints.Count; i++)
+            //{
+            //    polygonPoints[i] = SurfaceWindow1.current.MainCanvas.TranslatePoint(polygonPoints[i], canv);
+            //     Console.WriteLine(polygonPoints[i].X + "," +polygonPoints[i].Y);
+            //}
             for (i = 0, j = polygonPoints.Count - 1; i < polygonPoints.Count; j = i++)
             {
                 if (
@@ -1682,12 +1688,20 @@ namespace DREAMPioneer
                     }
                 });
                 foreach (Waypoint wp in waypointDots)
+                {
+                    GoalDot temp = new GoalDot(wp);
+                    GoalDots.Add(temp);
+                    if (Waypoint.PointLocations[0] == wp.Location)
+                        temp.NextC2.Visibility = Visibility.Visible;
                     DotCanvas.Children.Remove(wp.dot);
+                }
                 waypointDots.Clear();
+                Waypoint.PointLocations.Clear();
             }
             asyncWaypointStuff.BeginInvoke((iar) =>
             {
                 waypoints.Clear();
+                
                 waypoints = null;
                 sel = null;
             }, null);
@@ -1703,8 +1717,8 @@ namespace DREAMPioneer
             {
                 foreach (Point p in PIn)
                 {
-                    POut.Add(new Point(((p.X + dottranslate.X) * dotscale.ScaleX) - (DotCanvas.Width * scale.ScaleX / 2) + (MainCanvas.ActualWidth / 2)
-                        , ((p.Y + dottranslate.Y) * scale.ScaleY) - (DotCanvas.Width * scale.ScaleY / 2) + (MainCanvas.ActualHeight / 2)));
+                    POut.Add(new Point(((p.X + dottranslate.X) * dotscale.ScaleX) - (DotCanvas.Width * scale.ScaleX / 2) + (SubCanvas.ActualWidth / 2)
+                        , ((p.Y + dottranslate.Y) * scale.ScaleY) - (DotCanvas.Width * scale.ScaleY / 2) + (SubCanvas.ActualHeight / 2)));
                 }
             }));
             return POut;
@@ -1721,6 +1735,7 @@ namespace DREAMPioneer
                     foreach (Waypoint wp in waypointDots)
                         DotCanvas.Children.Remove(wp.dot);
                     waypointDots.Clear();
+                    Waypoint.PointLocations.Clear();
                 }
                 NoPulse();
                 selectedList.Clear();

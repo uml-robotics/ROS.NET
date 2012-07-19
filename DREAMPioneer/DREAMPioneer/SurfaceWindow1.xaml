@@ -1,17 +1,19 @@
-﻿<Window x:Class="DREAMPioneer.SurfaceWindow1" Width="1680" Height="1050"
+﻿<Window x:Class="DREAMPioneer.SurfaceWindow1"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ros="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
     xmlns:System="clr-namespace:System;assembly=mscorlib"
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
-     Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize">
+     Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize"
+        VerticalAlignment="Center" HorizontalAlignment="Center">
 
-    <Canvas Name="MainCanvas" Background="Gray" Width="1680" Height="1080"  >
-        <Canvas Name="SubCanvas" Background="AliceBlue" Width="auto" Height="auto" >
-             <ros:RobotControl Background="Black" Name="robot_brain_1" ros:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1078" Height="212"  > </ros:RobotControl>
-             <ros:MapControl Name="map" ros:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212"  /> 
+    <Canvas Name="MainCanvas" Background="Gray" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Canvas Name="SubCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center" >
+            <ros:MapControl Name="map" ros:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212" VerticalAlignment="Center" HorizontalAlignment="Center" />  
+            <ros:RobotControl Background="Black" Name="robot_brain_1" ros:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1078" Height="212"  > </ros:RobotControl>
+             
         </Canvas>
-        <Canvas Name="DotCanvas" Background="AliceBlue" Width="auto" Height="auto">
+        <Canvas Name="DotCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">
             
         </Canvas>
     </Canvas> 

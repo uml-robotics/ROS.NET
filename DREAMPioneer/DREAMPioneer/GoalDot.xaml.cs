@@ -55,6 +55,26 @@ namespace DREAMPioneer
 
         }
 
+        public GoalDot(Waypoint wp)
+        {
+            InitializeComponent();
+
+            mycanv = wp.mycanv;
+            mycanv.Children.Add(this);
+            Zoom = wp.Zoom;
+            Translation = wp.Translation;
+            Maincanv = wp.Maincanv;
+            NextC1.Fill= wp.dot.Fill;
+            BeenThereC2.Fill = wp.dot.Fill;
+            _Location = wp.Location;
+            Canvas.SetTop(this, Location.Y);
+            Canvas.SetLeft(this, Location.X);
+
+
+
+
+        }
+
         public bool BeenHere
         {
             get { return _BeenHere; }
@@ -101,7 +121,7 @@ namespace DREAMPioneer
             get { return _Location; }
             set
             {
-                _Location = ToWayPointCanvas(value);
+                _Location = SurfaceWindow1.current.MainCanvas.TranslatePoint(value, mycanv);
                 Canvas.SetTop(this, Location.Y);
                 Canvas.SetLeft(this, Location.X);
 
