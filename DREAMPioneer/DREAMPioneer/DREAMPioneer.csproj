@@ -152,6 +152,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonList.cs" />
     <Compile Include="GoalDot.xaml.cs">
       <DependentUpon>GoalDot.xaml</DependentUpon>
     </Compile>
@@ -175,6 +176,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Robot Info.cs" />
     <Compile Include="SurfaceWindow1.xaml.cs">
       <DependentUpon>SurfaceWindow1.xaml</DependentUpon>
     </Compile>

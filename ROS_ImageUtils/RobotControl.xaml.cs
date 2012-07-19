@@ -173,21 +173,25 @@ namespace ROS_ImageWPF
 
         private void updatePOS(float x, float y)
         {
-            if (x + y > 0 || x + y < 0)
+            if (x + y > 0 || x + y < 0) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
                 xPos = x;
                 yPos = y;
-                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+                Canvas.SetLeft(robot, x - robot.ActualWidth / 2);
+                Canvas.SetTop(robot, y - robot.ActualHeight / 2);
             }
         }
 
-        private void updatePOS(double x, double y)
+        private void updatePOS(double x, double y) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
         {
             if (x + y > 0 || x + y < 0)
             {
                 xPos = x;
                 yPos = y;
-                robot.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+                Canvas.SetLeft(robot,x - robot.ActualWidth /2);
+                Canvas.SetTop(robot, y - robot.ActualHeight/2);
+                robot.DotHeight = 50;
+                robot.DotWidth = 50;
             }
         }
 
@@ -211,10 +215,12 @@ namespace ROS_ImageWPF
 
         public void SetColor(System.Windows.Media.SolidColorBrush color)
         {
-            robot.Fill = color;
+            robot.Dot.Fill = color;
+            //robot.Fill = color;
         }
         public void SetOpacity(Double opa)
         {
+            robot.Dot.Opacity = opa;
             //robot.Opacity = opa;
         }
 

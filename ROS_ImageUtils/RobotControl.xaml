@@ -11,9 +11,10 @@
     </UserControl.DataContext> -->
     <Grid SnapsToDevicePixels="True" Width="1680" Height="1050" >
         <Canvas Name="RobotCanvas" Width="auto" Height="auto" >
+            
+            <c:GestureObject x:Name="robot" x:FieldModifier="public" Height= "100" Width = "100" Background="Transparent"/>
 
-            <Ellipse Name="robot" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Blue" />
-            <Rectangle Name="goal" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Red" />
+            <Rectangle x:Name="goal" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Red" />
         </Canvas>
     </Grid>
 </UserControl>

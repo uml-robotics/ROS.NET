@@ -907,7 +907,7 @@ namespace DREAMPioneer
         public void RemoveYellow(int i)
         {
             YellowDots.Remove(robots[i]);
-            robots[i].SetColor(Brushes.Blue);
+            robots[i].SetColor(Brushes.Transparent);
             if (YellowDots.Count == 0)
                 timers.StopTimer(ref YellowTimer);
         }
@@ -1687,8 +1687,16 @@ namespace DREAMPioneer
                         robots[k].updateWaypoints(waypoints, newx, newy, newwx, newwy);
                     }
                 });
+
+
+                foreach (GoalDot GD in GoalDots)
+                {
+                    DotCanvas.Children.Remove(GD);
+                }
+                GoalDots.Clear();
                 foreach (Waypoint wp in waypointDots)
                 {
+                    
                     GoalDot temp = new GoalDot(wp);
                     GoalDots.Add(temp);
                     if (Waypoint.PointLocations[0] == wp.Location)
