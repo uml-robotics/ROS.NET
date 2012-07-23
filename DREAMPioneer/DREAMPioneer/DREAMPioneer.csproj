@@ -153,6 +153,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonList.cs" />
+    <Compile Include="GestureObject.xaml.cs">
+      <DependentUpon>GestureObject.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GoalDot.xaml.cs">
       <DependentUpon>GoalDot.xaml</DependentUpon>
     </Compile>
@@ -177,6 +180,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Robot Info.cs" />
+    <Compile Include="RobotControl.xaml.cs">
+      <DependentUpon>RobotControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SurfaceWindow1.xaml.cs">
       <DependentUpon>SurfaceWindow1.xaml</DependentUpon>
     </Compile>
@@ -188,9 +194,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="GoalDot.xaml">
+    <Page Include="GestureObject.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GoalDot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="LeftControlPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -199,6 +209,10 @@
     <Page Include="RightControlPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="RobotControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SurfaceWindow1.xaml">
       <Generator>MSBuild:Compile</Generator>

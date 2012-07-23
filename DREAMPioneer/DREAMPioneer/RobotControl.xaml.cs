@@ -1,8 +1,9 @@
-﻿#region
+﻿
+#region
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+//using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -29,9 +30,10 @@ using sm = Messages.sensor_msgs;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using System.ComponentModel;
 using System.Windows.Data;
+using window = DREAMPioneer.SurfaceWindow1;
 #endregion
 
-namespace ROS_ImageWPF
+namespace DREAMPioneer
 {
     public partial class RobotControl : UserControl
     {
@@ -46,8 +48,8 @@ namespace ROS_ImageWPF
         public double scaley;
         public bool sendnext;
 
-        
-        public List<Point> waypoint = new List<Point>();
+
+        public static List<CommonList> OneInAMillion = new List<CommonList>();
 
         private Publisher<gm.PoseStamped> goalPub;
         public string TopicName
@@ -71,7 +73,7 @@ namespace ROS_ImageWPF
                 {
                     if (obj is RobotControl)
                     {
-                       RobotControl target = obj as RobotControl;
+                        RobotControl target = obj as RobotControl;
                         target.TopicName = (string)args.NewValue;
                         if (!ROS.isStarted())
                         {
@@ -98,30 +100,30 @@ namespace ROS_ImageWPF
 
         private void SetupTopic()
         {
-            
+
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
             updatePOS(30.0 * MPP, 3.3 * MPP);
-            
+
 
             goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
 
-            robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose",1,(k)=>
+            robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose", 1, (k) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     double x = (k.pose.pose.position.x) * (double)MPP;
                     double y = (k.pose.pose.position.y) * (double)MPP;
                     updatePOS(x, y);
-                    
+
                 })));
 
-            goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal",1,(j)=>
+            goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1, (j) =>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
-                     double x = (j.pose.position.x  ) * (double)MPP;
-                     double y = (j.pose.position.y ) * (double)MPP;
+                     double x = (j.pose.position.x) * (double)MPP;
+                     double y = (j.pose.position.y) * (double)MPP;
                      updateGoal(x, y);
                  })));
 
@@ -131,39 +133,43 @@ namespace ROS_ImageWPF
                 {
                     gm.Vector3 vec;
                     gm.Quaternion quat;
-                    tf_node.transformFrame("/robot_brain_1/odom","/robot_brain_1/map",out vec,out quat);
-                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x ) * MPP;
+                    tf_node.transformFrame("/robot_brain_1/odom", "/robot_brain_1/map", out vec, out quat);
+                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * MPP;
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
-                    {
-                        Point p = new Point(x, y);
-                        if (waypoint.Count > 0 && compare(p, waypoint[0]))
-                        {
-                            waypoint.RemoveAt(0);
-                            sendnext = true;
-                        }
-                        if (waypoint.Count > 0 && sendnext)
-                        {
-                            //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
-                            goalPub.publish(new gm.PoseStamped { header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } }, 
-                                pose = new gm.Pose { position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 }, 
-                                    orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 } } });
-                            sendnext = false;
-                        }
-                    }
+                    //{
+                    //    Point p = new Point(x, y);
+                    //    if (waypoint.Count > 0 && compare(p, waypoint[0]))
+                    //    {
+                    //        waypoint.RemoveAt(0);
+                    //        sendnext = true;
+                    //    }
+                    //    if (waypoint.Count > 0 && sendnext)
+                    //    {
+                    //        //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
+                    //        goalPub.publish(new gm.PoseStamped
+                    //        {
+                    //            header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } },
+                    //            pose = new gm.Pose
+                    //            {
+                    //                position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 },
+                    //                orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 }
+                    //            }
+                    //        });
+                    //        sendnext = false;
+                    //    }
+                    //}
                     //updatePOS(x,y);
                 })), "*");
         }
 
         public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
         {
-
-            lock (waypoint)
-            {
-                foreach (Point p in wayp)
+            
+            Dispatcher.Invoke(new Action(() =>
                 {
-                    waypoint.Add(p);
-                }
-            }
+                    CheckUnique(wayp, robot.ID);
+                }));
+            
             transx = x;
             transy = y;
             scalex = xx;
@@ -188,8 +194,8 @@ namespace ROS_ImageWPF
             {
                 xPos = x;
                 yPos = y;
-                Canvas.SetLeft(robot,x - robot.ActualWidth /2);
-                Canvas.SetTop(robot, y - robot.ActualHeight/2);
+                Canvas.SetLeft(robot, x - robot.ActualWidth / 2);
+                Canvas.SetTop(robot, y - robot.ActualHeight / 2);
                 robot.DotHeight = 50;
                 robot.DotWidth = 50;
             }
@@ -203,7 +209,7 @@ namespace ROS_ImageWPF
         }
         public double distance(Point q, Point p)
         {
-            return distance(q.X + transx, q.Y + transy, p.X , p.Y);
+            return distance(q.X + transx, q.Y + transy, p.X, p.Y);
         }
 
         public double distance(double x2, double y2, double x1, double y1)
@@ -216,18 +222,18 @@ namespace ROS_ImageWPF
         public void SetColor(System.Windows.Media.SolidColorBrush color)
         {
             robot.Dot.Fill = color;
-            //robot.Fill = color;
+           
         }
         public void SetOpacity(Double opa)
         {
             robot.Dot.Opacity = opa;
-            //robot.Opacity = opa;
+         
         }
 
         private void updateGoal(double x, double y)
         {
             goal.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
-        }
+    }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
@@ -236,7 +242,116 @@ namespace ROS_ImageWPF
         public RobotControl()
         {
             InitializeComponent();
+            robot.ID = 0; //TEMP CODE
         }
+
+         
+
+        public bool CheckUnique(List<Point> P_List, int R)
+        {
+            
+            if (P_List.Count == 0) return false;
+            CommonList DisList;
+            if (OneInAMillion.Count == 0)
+            {
+                //IT IS UNIQUE
+                
+                DisList = new CommonList(P_List, R,robot.Arrow.Fill, 1);
+                OneInAMillion.Add(DisList);
+
+                window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+                if (DisList.Dots.Count >= 2)
+                    DisList.Dots[1].NextOne = true;
+                foreach (Robot_Info RI in DisList.RoboInfo)
+                    if (RI.RoboNum == R)
+                        window.current.SetGoal(R, P_List, DisList, RI);
+
+                return true;
+            }
+
+            foreach (CommonList CL in OneInAMillion)
+            {
+
+                //It's not unique beacause a path already exists for this robot.
+
+                foreach (Robot_Info RI in CL.RoboInfo)
+                    if (RI.RoboNum == R && !RI.done)
+                    {
+
+                        window.current.SetGoal(R, P_List, CL, RI);
+
+
+                        return false;
+                    }
+
+                int j;
+
+                if (P_List.Count < CL.P_List.Count)
+                {
+                    j = CL.P_List.Count - P_List.Count;
+                    for (int i = P_List.Count - 1; i > 0; i--)
+                    {
+                        if (i == 1)
+                            if (P_List[i] == CL.P_List[i + j])
+                            {
+
+                                //NOT UNIQUE Shorter
+
+
+
+                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
+                                foreach (Robot_Info RI in CL.RoboInfo)
+                                    if (RI.RoboNum == R)
+                                       window.current.SetGoal(R, P_List, CL, RI);
+
+                                return false;
+                            }
+
+                            else if (P_List[i] != CL.P_List[i + j]) break;
+                    }
+                }
+                else
+                {
+                    j = P_List.Count - CL.P_List.Count;
+                    for (int i = CL.P_List.Count - 1; i > 0; i--)
+                    {
+                        if (i == 1)
+                            if (P_List[i + j] == CL.P_List[i])
+                            {
+                                //NOT UNIQUE Longer
+
+
+                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
+                               //List<Point> Better_List = new List<Point>(P_List.Except<Point>(CL.P_List));
+
+                                CL.P_List.Clear();
+                                CL.P_List = P_List;
+                               // window.current.AddGoalDots(Better_List, CL.Dots, robot.Arrow.Fill);
+                                foreach (Robot_Info RI in CL.RoboInfo)
+                                    if (RI.RoboNum == R)
+                                        window.current.SetGoal(R, P_List, CL, RI);
+                                return false;
+                            }
+                            else if (P_List[i + j] != CL.P_List[i]) break;
+                    }
+                }
+            }
+            //IT IS UNIQUE
+
+
+            DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1);
+            OneInAMillion.Add(DisList);
+
+            window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+            DisList.Dots[1].NextOne = true;
+            foreach (Robot_Info RI in DisList.RoboInfo)
+                if (RI.RoboNum == R)
+                    window.current.SetGoal(R, P_List, DisList, RI);
+
+            return true;
+        }
+
+
 
         #region Events
 
@@ -257,5 +372,6 @@ namespace ROS_ImageWPF
             //image.Transform = new ScaleTransform(1, -1, ActualWidth / 2, ActualHeight / 2);
         }
         #endregion
+    
     }
 }

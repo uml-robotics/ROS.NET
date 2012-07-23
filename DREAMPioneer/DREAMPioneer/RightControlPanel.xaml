@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:DREAM="clr-namespace:DREAMController;assembly=DREAMController" Width="105" Height="95" Background="TransParent"
-             xmlns:E="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils" >
+             xmlns:E ="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils">
     <Grid Name="ButtonGrid" Background="Transparent" SnapsToDevicePixels="True">
         <Viewbox Stretch="Fill" StretchDirection="Both" >
             <!-- <E:ImageControl E:ImageControl.TopicName="{Binding Path=Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:FieldModifier="public" x:Name="webcam" /> -->

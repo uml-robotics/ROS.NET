@@ -34,7 +34,7 @@ using System.Collections.Generic;
 
 #endregion
 
-namespace ROS_ImageWPF
+namespace DREAMPioneer
 {
     /// <summary>
     ///   The gesture object.

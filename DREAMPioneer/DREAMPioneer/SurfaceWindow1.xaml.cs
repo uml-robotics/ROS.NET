@@ -107,9 +107,10 @@ namespace DREAMPioneer
         }
 
     }
-
+   
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {
+        public static SurfaceWindow window;
         private IntPtr _winhandle = IntPtr.Zero;
         public IntPtr WindowHandle
         {
@@ -227,8 +228,8 @@ namespace DREAMPioneer
 
         private ScaleTransform scale;
         private TranslateTransform translate;
-        private ScaleTransform dotscale;
-        private TranslateTransform dottranslate;
+        public ScaleTransform dotscale;
+        public TranslateTransform dottranslate;
 
         private int android = -1;
         private bool touchHold;
@@ -259,17 +260,17 @@ namespace DREAMPioneer
         // <summary>
         ///   Should contain all the robots in existance.
         /// </summary>
-        public SortedList<int, ROS_ImageWPF.RobotControl> robots = new SortedList<int, ROS_ImageWPF.RobotControl>();
+        public SortedList<int, DREAMPioneer.RobotControl> robots = new SortedList<int, DREAMPioneer.RobotControl>();
 
         /// <summary>
         ///   The yellow dots.
         /// </summary>
-        private List<ROS_ImageWPF.RobotControl> YellowDots = new List<ROS_ImageWPF.RobotControl>();
+        private List<DREAMPioneer.RobotControl> YellowDots = new List<DREAMPioneer.RobotControl>();
 
         /// <summary>
         ///   The green dots.
         /// </summary>
-        private List<ROS_ImageWPF.RobotControl> GreenDots = new List<ROS_ImageWPF.RobotControl>();
+        private List<DREAMPioneer.RobotControl> GreenDots = new List<DREAMPioneer.RobotControl>();
 
         /// <summary>
         ///   The time in seconds after which the 'double tap' gesture can be considered activated.
@@ -287,7 +288,7 @@ namespace DREAMPioneer
         ///   The waypoint dots.
         /// </summary>
         private List<Waypoint> waypointDots = new List<Waypoint>();
-        private List<GoalDot> GoalDots = new List<GoalDot>();
+       
 
         /// <summary>
         ///   The lasso points.
@@ -733,7 +734,7 @@ namespace DREAMPioneer
         private int CloseToRobot(Point p)
         {
             double distance;
-            double closestDist = robots[0].robot.Width / scale.ScaleX;
+           // double closestDist = robots[0].robot.Width / scale.ScaleX;
             int id = -1;
 
             for (int i = 0; i < robots.Count; i++)
@@ -741,11 +742,11 @@ namespace DREAMPioneer
                 distance = Math.Sqrt(Math.Pow(p.X - robots[i].xPos, 2) + Math.Pow(p.Y - robots[i].yPos, 2));
 
                 // Find the shortest distance and record the id and distance of that robot.
-                if (distance < closestDist)
-                {
-                    closestDist = distance;
-                    id = i;
-                }
+                //if (distance < closestDist)
+                //{
+                //    closestDist = distance;
+                //    id = i;
+                //}
             }
 
             return id;
@@ -768,7 +769,7 @@ namespace DREAMPioneer
             yellowCurrent += yellowDelta;
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                foreach (ROS_ImageWPF.RobotControl el in YellowDots)
+                foreach (DREAMPioneer.RobotControl el in YellowDots)
                     el.SetOpacity(yellowCurrent);
             }));
             if (((yellowDelta > 0) && (yellowCurrent >= yellowMax))
@@ -787,7 +788,7 @@ namespace DREAMPioneer
             greenCurrent += greenDelta;
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                foreach (ROS_ImageWPF.RobotControl el in GreenDots)
+                foreach (DREAMPioneer.RobotControl el in GreenDots)
                     el.SetOpacity(greenCurrent);
             }));
             if (((greenDelta > 0) && (greenCurrent >= greenMax))
@@ -970,32 +971,7 @@ namespace DREAMPioneer
                 if (i < cc.Count - 1)
                     dTmp += distance(cc[cc.Keys.ElementAt(i)], cc[cc.Keys.ElementAt(i + 1)]);
             }
-            //Console.WriteLine(joymgr.FreeTouches);
-            //if (distance(e, FREE[e.Id]) > .1 && !SITSTILL)
-            //{
-            //    lastupdown = DateTime.Now;
-            //    if (FREE.Count > 1)
-            //    {
-            //        foreach (Touch p in FREE.Values)
-            //        {
-            //            if (p.Id != e.Id)
-            //            {   //- distance(FREE[e.Id], FREE[p.Id])
-            //                if (Math.Abs(distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) > .5)
-            //                {
-            //                    //Console.WriteLine(Math.Abs(distance(e, p) - distance(FREE[e.Id], FREE[p.Id])));
-            //                    if (scale.ScaleX + ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400) > 0.2)
-            //                    {
-            //                        scale.ScaleX += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
-            //                        scale.ScaleY += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
-            //                        dotscale.ScaleX += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
-            //                        dotscale.ScaleY += ((distance(e, p) - distance(FREE[e.Id], FREE[p.Id])) / 400);
-            //                        zoomed = true;
-            //                    }
-            //                }
-            //            }
-            //        }
-                    //if (!zoomed)
-                   //{
+            
             if (Math.Abs(previousZoomDistance - dTmp) > zoomDistanceThreshold)
             {
                 if ((previousZoomDistance - dTmp) > zoomDistanceThreshold)
@@ -1010,8 +986,6 @@ namespace DREAMPioneer
                         {
                             dZoom = dZoom - dZoomIncrements;
                         }
-                        // ZOOM.ScaleX = (WindowEquivalent(OBLIVION, -OBLIVION).X - WindowEquivalent(-OBLIVION, -OBLIVION).X) / WayPointCanvas.Width;
-                        //ZOOM.ScaleY = (WindowEquivalent(-OBLIVION, OBLIVION).Y - WindowEquivalent(-OBLIVION, -OBLIVION).Y) / WayPointCanvas.Height;
                     }
                     previousZoomDistance = dTmp;
 
@@ -1028,8 +1002,7 @@ namespace DREAMPioneer
                         {
                             dZoom = dZoom + dZoomIncrements;
                         }
-                        //ZOOM.ScaleX = (WindowEquivalent(OBLIVION, -OBLIVION).X - WindowEquivalent(-OBLIVION, -OBLIVION).X) / WayPointCanvas.Width;
-                        // ZOOM.ScaleY = (WindowEquivalent(-OBLIVION, OBLIVION).Y - WindowEquivalent(-OBLIVION, -OBLIVION).Y) / WayPointCanvas.Height;
+                       
                     }
                     previousZoomDistance = dTmp;
                 }
@@ -1120,6 +1093,140 @@ namespace DREAMPioneer
             Waypoint.PointLocations.Clear();
         }
 
+        public void AddGoalDots(List<Point> p_list, List<GoalDot> GDL, Brush b)
+        {
+            List<GoalDot> TempList = new List<GoalDot>(GDL);
+            GDL.Clear();
+            foreach (Point p in p_list)
+            {
+                GDL.Add(new GoalDot(DotCanvas, p, joymgr.DPI, MainCanvas, dotscale, dottranslate, b));
+            }
+            foreach (GoalDot GD in TempList)
+            {
+                GDL.Add(GD);
+                GD.BeenHere = false;
+            }
+        }
+        
+        /// <summary>
+        ///   The set goal.
+        /// </summary>
+        /// <param name = "i">
+        ///   The i.
+        /// </param>
+        /// <param name = "sim">
+        ///   The sim.
+        /// </param>
+        public void SetGoal(int r, List<Point> PList, CommonList CL, Robot_Info RI)
+        {
+
+
+            RI.CurrentLength = PList.Count;
+            RI.Next = PList.First();
+
+            List<Point> WindowEQ = new List<Point>(PList);
+            
+
+
+
+
+            foreach (Robot_Info LengthCheck in CL.RoboInfo)
+            {
+                if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position < RI.Position)
+                {
+                    int temp = RI.Position;
+                    RI.Position = LengthCheck.Position;
+                    LengthCheck.Position = temp;
+                }
+                else if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position == RI.Position)
+                {
+                    if (LengthCheck.Position != CL.RoboInfo.Count)
+                        LengthCheck.Position++;
+                    else
+                        RI.Position--;
+                }
+//                foreach (Robot_Info CheckOthers in CL.RoboInfo)
+//                    if (LengthCheck.CurrentLength == CheckOthers.CurrentLength)
+//                    {
+//                        if (Math.Abs(distance(LengthCheck.Next, LengthCheck.Location)) >
+//Math.Abs(distance(CheckOthers.Next,  CheckOthers.Location)) && LengthCheck.Position < CheckOthers.Position)
+//                        {
+//                            int temp = CheckOthers.Position;
+//                            CheckOthers.Position = LengthCheck.Position;
+//                            LengthCheck.Position = temp;
+//                        }
+//                    }
+            }
+
+            List<GoalDot> Handled = new List<GoalDot>();
+            List<GoalDot> UnHandled = new List<GoalDot>(CL.Dots);
+
+            PassBack(CL.RoboInfo, 1, UnHandled, Handled);
+
+
+
+
+
+
+        }
+
+        public void PassBack(List<Robot_Info> RI, int Position, List<GoalDot> UnHandled, List<GoalDot> Handled)
+        {
+            int already_done = Handled.Count;
+            int donecount = 0;
+            foreach (Robot_Info DoneCheck in RI)
+                if (DoneCheck.done) donecount++;
+            foreach (Robot_Info PosCheck in RI)
+                if (PosCheck.Position == Position)
+                {
+                    if (!PosCheck.done)
+                    {
+                        for (int i = 0; i < PosCheck.CurrentLength - already_done - 1; i++)
+                        {
+                            if (UnHandled.Count == 0)
+                                return;
+
+                            if (i == PosCheck.CurrentLength - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
+                            else UnHandled[(UnHandled.Count - 1)].NextOne = false;
+                            UnHandled[(UnHandled.Count - 1)].NextC1.Fill = PosCheck.Color;
+                            UnHandled[(UnHandled.Count - 1)].BeenThereC2.Fill = PosCheck.Color;
+                            Handled.Add(UnHandled[(UnHandled.Count - 1)]);
+                            UnHandled.Remove(UnHandled[(UnHandled.Count - 1)]);
+
+                        }
+                        const int const_thingy = 10;
+                        if (!(PosCheck.Position == RI.Count - donecount))
+                            PassBack(RI, Position + 1, UnHandled, Handled);
+                        else
+
+                            for (int i = 0; i < UnHandled.Count; i++)
+                            {
+                                if (i < UnHandled.Count - const_thingy)
+                                {
+                                    UnHandled[i].BeenThereC1.Visibility = Visibility.Hidden;
+                                    UnHandled[i].BeenThereC2.Visibility = Visibility.Hidden;
+                                }
+                                else
+                                {
+                                    UnHandled[i].BeenThereC2.Fill = PosCheck.Color;
+                                    UnHandled[i].BeenHere = true;
+                                }
+                            }
+                        return;
+
+
+                    }
+                    else
+                        PassBack(RI, Position + 1, UnHandled, Handled);
+                }
+
+
+
+
+        }
+
+
+
         private Timer[] turboFingering = new Timer[40];
 
         /// <summary>
@@ -1176,11 +1283,11 @@ namespace DREAMPioneer
         /// </returns>
         private int robotsCD(Touch e)
         {
+            if (scale == null || translate == null) return -1;
             Double xPos = ((e.Position.X - translate.X) / scale.ScaleX * PPM);
             Double yPos = ((e.Position.Y - translate.Y) / scale.ScaleY * PPM);
             for (int i = 0; i < numRobots; i++)
             {
-                if (!robots.ContainsKey(i)) continue;
                 Double _xPos = ((robots[i].xPos) * PPM);
                 Double _yPos = ((robots[i].yPos) * PPM);
                 Double Width = robots[i].robot.ActualWidth * scale.ScaleX * PPM;
@@ -1593,6 +1700,7 @@ namespace DREAMPioneer
                 {
                     for (int i = 0; i < numRobots; i++)
                     {
+                        if (!robots.ContainsKey(i)) continue;
                         Point p = new Point((robots[i].xPos + (translate.X)), (robots[i].yPos + (translate.Y)));
                         if (PointInPoly(lassoPoints, p, SubCanvas))
                         {
@@ -1659,7 +1767,7 @@ namespace DREAMPioneer
                     return;
             }
 
-            List<Point> waypoints;
+            List<Point> waypoints = new List<Point>(Waypoint.PointLocations);
             int[] sel;
             Action asyncWaypointStuff;
             double newx;
@@ -1678,7 +1786,7 @@ namespace DREAMPioneer
             }
             lock (waypointDots)
             {
-                waypoints = (Get_Offset(Waypoint.PointLocations));
+                
                 sel = selectedList.ToArray();
                 asyncWaypointStuff = new Action(() =>
                 {
@@ -1689,19 +1797,10 @@ namespace DREAMPioneer
                 });
 
 
-                foreach (GoalDot GD in GoalDots)
-                {
-                    DotCanvas.Children.Remove(GD);
-                }
-                GoalDots.Clear();
+                
                 foreach (Waypoint wp in waypointDots)
                 {
-                    
-                    GoalDot temp = new GoalDot(wp);
-                    GoalDots.Add(temp);
-                    if (Waypoint.PointLocations[0] == wp.Location)
-                        temp.NextC2.Visibility = Visibility.Visible;
-                    DotCanvas.Children.Remove(wp.dot);
+                   DotCanvas.Children.Remove(wp.dot);
                 }
                 waypointDots.Clear();
                 Waypoint.PointLocations.Clear();
@@ -1709,8 +1808,8 @@ namespace DREAMPioneer
             asyncWaypointStuff.BeginInvoke((iar) =>
             {
                 waypoints.Clear();
-                
                 waypoints = null;
+                             
                 sel = null;
             }, null);
 
@@ -2006,7 +2105,8 @@ namespace DREAMPioneer
             }
 
             public int DIEDIEDIE()
-            {
+           
+           {
                 current.MainCanvas.Children.Remove(dot);
                 return id;
             }
