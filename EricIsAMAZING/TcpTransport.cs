@@ -421,11 +421,11 @@ namespace Ros_CSharp
             }
             int num_bytes = 0;
             SocketError err;
-            if (buffer.LongLength - (length + pos) != 0 || buffer.LongLength > 65535)
+            /*if (buffer.LongLength - (length + pos) != 0 || buffer.LongLength > 65535)
             {
                 Console.WriteLine(string.Format("{0} != {1}... ASSHOLE!", (pos + length), buffer.LongLength));
-            }
-            num_bytes = sock.Receive(buffer, (int)Math.Min(pos,int.MaxValue), (int)Math.Min(length,int.MaxValue), SocketFlags.None, out err);
+            }*/
+            num_bytes = sock.Receive(buffer, (int)pos, (int)length, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
@@ -443,7 +443,7 @@ namespace Ros_CSharp
                 //hack to only print non-length buffer length
                 if (num_bytes > 4)
                 {
-                    EDB.WriteLine("READ: " + num_bytes);                 
+                    //EDB.WriteLine("READ: " + num_bytes);                 
                 }
                 //EDB.WriteLine(ByteDumpCondensed(buffer));
             }            
@@ -458,7 +458,7 @@ namespace Ros_CSharp
                     return -1;
             }
             SocketError err;
-            int num_bytes = sock.Send(buffer, (int)Math.Min(pos, int.MaxValue), (int)Math.Min(size, int.MaxValue), SocketFlags.None, out err);
+            int num_bytes = sock.Send(buffer, (int)pos, (int)size, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)

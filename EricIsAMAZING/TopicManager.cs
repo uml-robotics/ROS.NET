@@ -333,10 +333,8 @@ namespace Ros_CSharp
                     }
                     else
                         serialize = true;
-                    if (serialize)
-                    {
-                        msg.Serialized = serfunc();
-                    }
+                    msg.Serialized = serfunc();
+                    
 
                     p.publish(msg);
 

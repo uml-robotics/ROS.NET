@@ -476,9 +476,7 @@ namespace Messages
 
         internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse)
             where T : IRosMessage, new()
-        {
-            if (outgoing.Serialized != null)
-                return outgoing.Serialized;
+        {            
             outgoing.Serialized = SlapChop(outgoing.GetType(), outgoing, partofsomethingelse);
             return outgoing.Serialized;
         }

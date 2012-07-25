@@ -33,8 +33,8 @@ namespace DREAMPioneer
 
         public static Dictionary<int, Brush> ColorInUse = new Dictionary<int, Brush>()
              {
-             {-1,Brushes.DodgerBlue}, {-2,Brushes.Red}, {-3,Brushes.YellowGreen}, {-4,Brushes.Orange},
-             {-5,Brushes.White}, {-6,Brushes.DeepPink}, {-7,Brushes.Fuchsia}, {-8,Brushes.LightSeaGreen}
+             {-1,Brushes.LimeGreen}, {-2,Brushes.Red}, {-3,Brushes.Fuchsia}, {-4,Brushes.Orange},
+             {-5,Brushes.White}, {-6,Brushes.DeepPink}, {-7,Brushes.DodgerBlue}, {-8,Brushes.LightSeaGreen}
              };
 
         public GoalDot(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, ScaleTransform z, TranslateTransform t, Brush b)

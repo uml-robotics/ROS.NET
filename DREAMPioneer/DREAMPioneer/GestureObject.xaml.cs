@@ -78,7 +78,7 @@ namespace DREAMPioneer
         /// <summary>
         ///   The circles.
         /// </summary>
-        public List<Brush> circles = new List<Brush>(new Brush[] {Brushes.Black, Brushes.CornflowerBlue, Brushes.LightGreen});
+        public List<Brush> circles = new List<Brush>(new Brush[] {Brushes.Blue, Brushes.CornflowerBlue, Brushes.LightGreen});
 
         /// <summary>
         ///   Allows changing the background color for the gesture object.

@@ -478,11 +478,11 @@ namespace DREAMPioneer
             manualPTZ = "/robot_brain_1/servos";
             manualVelocity = "fakevel";
 
-            t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = .1, y = .1, z = 0 } };
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 5);
+            t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
 
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
 
             goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
             goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
@@ -491,8 +491,8 @@ namespace DREAMPioneer
             //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
             //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 3, laserCallback);
-            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 2, androidCallback);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
+            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 1, androidCallback);
             currtime = DateTime.Now;
             tf_node.init();
             lastt = new Touch();
@@ -582,9 +582,9 @@ namespace DREAMPioneer
             manualCamera = cam;
             manualLaser = urg;
 
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 5);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 5);
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 2, laserCallback);
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
+            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
             ROS_ImageWPF.ImageControl.newTopicName = manualCamera;
             /*
              Dispatcher.BeginInvoke(new Action(() => {
@@ -606,9 +606,12 @@ namespace DREAMPioneer
         {
             if (!RightJoystick)
             {
-                t.linear.x = ry / -10.0;
-                t.angular.z = rx / -10.0;
-                joyPub.publish(t);
+                Messages.geometry_msgs.Twist CRAZY_PLAN = new Messages.geometry_msgs.Twist();
+                CRAZY_PLAN.linear = new Messages.geometry_msgs.Vector3();
+                CRAZY_PLAN.angular = new Messages.geometry_msgs.Vector3();
+                CRAZY_PLAN.linear.x = ry / -10.0;
+                CRAZY_PLAN.angular.z = rx / -10.0;                
+                joyPub.publish(CRAZY_PLAN);
             }
             else
             {
@@ -894,6 +897,49 @@ namespace DREAMPioneer
         /// </param>
         public void AddGreen(int i)
         {
+            Brush Tmp_Brush;
+            lock (GoalDot.ColorInUse)
+            {
+                if (GoalDot.ColorInUse.ContainsKey(i))
+                {
+                    Tmp_Brush = GoalDot.ColorInUse[i];
+                    GoalDot.ColorInUse.Remove(i);
+                    for (int c = 1; c <= GoalDot.ColorInUse.Count + 1; c++)
+                        if (!GoalDot.ColorInUse.ContainsKey(-c))
+                        {
+                            GoalDot.ColorInUse.Add((-c), Tmp_Brush);
+                            break;
+                        }
+                   robots[i].robot.ChangeIconColors(robots[i].robot.circles.IndexOf(robots[i].robot.Border.Stroke));
+                }
+            }
+            bool Done = false;
+            foreach (CommonList CL in RobotControl.OneInAMillion)
+            {
+
+                foreach (Robot_Info RI in CL.RoboInfo)
+                    if (RI.RoboNum == i && !RI.done)
+                    {
+                        Done = true;
+                        RI.done = true;
+                        RI.CurrentLength = CL.P_List.Count;
+                        foreach (Robot_Info DoneCheck in CL.RoboInfo)
+                            if (!DoneCheck.done)
+                                Done = false;
+
+                        if (Done)
+                        {
+                            foreach (GoalDot GD in CL.Dots)
+                                DotCanvas.Children.Remove(GD);
+                            CL.P_List.Clear();
+                            CL.RoboInfo.Clear();
+                            lock (RobotControl.OneInAMillion)
+                                RobotControl.OneInAMillion.Remove(CL);
+                            break;
+                        }
+                    }
+                if (Done) break;
+            }
             robots[i].SetColor(Brushes.Green);
             GreenDots.Add(robots[i]);
             timers.StartTimer(ref GreenTimer);
@@ -907,10 +953,13 @@ namespace DREAMPioneer
         /// </param>
         public void RemoveYellow(int i)
         {
-            YellowDots.Remove(robots[i]);
-            robots[i].SetColor(Brushes.Transparent);
-            if (YellowDots.Count == 0)
-                timers.StopTimer(ref YellowTimer);
+            if (YellowDots.Contains(robots[i]))
+            {
+                YellowDots.Remove(robots[i]);
+                robots[i].SetColor(Brushes.Transparent);
+                if (YellowDots.Count == 0)
+                    timers.StopTimer(ref YellowTimer);
+            }
         }
 
         /// <summary>
@@ -924,7 +973,7 @@ namespace DREAMPioneer
             if (GreenDots.Contains(robots[i]))
             {
                 GreenDots.Remove(robots[i]);
-                robots[i].SetColor(Brushes.Blue);
+                robots[i].SetColor(Brushes.Transparent);
                 if (GreenDots.Count == 0)
                     timers.StopTimer(ref GreenTimer);
             }
@@ -1063,7 +1112,7 @@ namespace DREAMPioneer
         /// </param>
         private void AddWaypointDot(Point p)
         {
-            if (Math.Abs(distance(lastWaypointDot, p)) > (joymgr.DPI / 43) * 10)
+            if (Math.Abs((distance(lastWaypointDot, p))) / scale.ScaleX > (joymgr.DPI / 43) * 10)
             {
                 lock (waypointDots)
                     foreach(Point point in Waypoint.PointLocations)
@@ -1561,19 +1610,30 @@ namespace DREAMPioneer
                                             List<int> beforeLasso = new List<int>();
                                             List<int> newSelection = new List<int>();
                                             int index = robotsCD(e);
-                                            if (manualRobot == -1 && index != -1)
+                                           
+                                            if(index != -1)
                                             {
-                                                if (ttime[index] != null && ttime[index].selected)
-                                                //if (!timers.IsRunning(ref turboFingering[index]))
+                                                if (manualRobot == -1)
                                                 {
-                                                    manualRobot = index;
-                                                    if (selectedList.Count > index && index > 0)
-                                                    selectedList.RemoveAt(index);
-                                                    PulseGreen(manualRobot);
-                                                    changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
+                                                    if (ttime[index] != null && ttime[index].selected)
+                                                    //if (!timers.IsRunning(ref turboFingering[index]))
+                                                    {
+                                                        manualRobot = index;
+                                                        if (selectedList.Contains(index))
+                                                            selectedList.RemoveAt(index);
+                                                        PulseGreen(manualRobot);
+                                                        changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
+                                                    }
                                                 }
+                                                else {
+                                                    if (ttime[index] != null && ttime[index].selected)
+                                                    {
+                                                        manualRobot = -1;
+                                                        NoPulse(index);
+                                                    }
+                                                }
+                                                
                                             }
-
                                             switch (state)
                                             {
                                                 case RMState.Start:
@@ -1784,6 +1844,66 @@ namespace DREAMPioneer
                 newwx = scale.ScaleX;
                 newwy = scale.ScaleY;
             }
+            Brush Tmp_Brush;
+            foreach (int r in selectedList)
+            {
+                lock (GoalDot.ColorInUse)
+                {
+                    if (GoalDot.ColorInUse.ContainsKey(r))
+                    {
+                        Tmp_Brush = GoalDot.ColorInUse[r];
+                        GoalDot.ColorInUse.Remove(r);
+                        for (int i = 1; i <= GoalDot.ColorInUse.Count + 1; i++)
+                            if (!GoalDot.ColorInUse.ContainsKey(-i))
+                            {
+                                GoalDot.ColorInUse.Add((-i), Tmp_Brush);
+                                break;
+                            }
+                       robots[r].robot.ChangeIconColors(robots[r].robot.circles.IndexOf(robots[r].robot.Border.Stroke));
+                    }
+                }
+                bool Done = false;
+                foreach (CommonList CL in RobotControl.OneInAMillion)
+                {
+
+                    foreach (Robot_Info RI in CL.RoboInfo)
+                        if (RI.RoboNum == r && !RI.done)
+                        {
+                            Done = true;
+                            RI.done = true;
+                            RI.CurrentLength = CL.P_List.Count;
+                            foreach (Robot_Info DoneCheck in CL.RoboInfo)
+                                if (!DoneCheck.done)
+                                    Done = false;
+
+                            if (Done)
+                            {
+                                foreach (GoalDot GD in CL.Dots)
+                                   DotCanvas.Children.Remove(GD);
+                                CL.P_List.Clear();
+                                CL.RoboInfo.Clear();
+                                lock (RobotControl.OneInAMillion)
+                                    RobotControl.OneInAMillion.Remove(CL);
+                                break;
+                            }
+                        }
+                    if (Done) break;
+                }
+
+            }
+
+            foreach (int r in selectedList)
+                for (int i = 0; i < GoalDot.ColorInUse.Count; i++)
+                    if (GoalDot.ColorInUse.ElementAt(i).Key < 0)
+                    {
+                        Tmp_Brush = GoalDot.ColorInUse.ElementAt(i).Value;
+
+
+                        GoalDot.ColorInUse.Remove(GoalDot.ColorInUse.ElementAt(i).Key);
+                        GoalDot.ColorInUse.Add(r, Tmp_Brush);
+                        robots[r].robot.setArrowColor(Tmp_Brush);
+                        break;
+                    }
             lock (waypointDots)
             {
                 

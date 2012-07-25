@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<VSPerformanceSession Version="1.00">
+  <Options>
+    <Solution>C:\Users\john_ouellette\GIT\ros-sharp\ROS_dotNET35.sln</Solution>
+    <CollectionMethod>Instrumentation</CollectionMethod>
+    <AllocationMethod>None</AllocationMethod>
+    <LaunchRuntimeControl>true</LaunchRuntimeControl>
+    <AddReport>true</AddReport>
+    <UniqueReport>Timestamp</UniqueReport>
+    <SamplingMethod>Cycles</SamplingMethod>
+    <CycleCount>10000000</CycleCount>
+    <PageFaultCount>10</PageFaultCount>
+    <SysCallCount>10</SysCallCount>
+    <SamplingCounter Name="" ReloadValue="00000000000f4240" DisplayName="" />
+    <RelocateBinaries>false</RelocateBinaries>
+    <HardwareCounters EnableHWCounters="false" />
+    <EtwSettings />
+    <PdhSettings>
+      <PdhCountersEnabled>false</PdhCountersEnabled>
+      <PdhCountersRate>500</PdhCountersRate>
+      <PdhCounters>
+        <PdhCounter>\Memory\Pages/sec</PdhCounter>
+        <PdhCounter>\PhysicalDisk(_Total)\Avg. Disk Queue Length</PdhCounter>
+        <PdhCounter>\Processor(_Total)\% Processor Time</PdhCounter>
+      </PdhCounters>
+    </PdhSettings>
+  </Options>
+  <ExcludeSmallFuncs>true</ExcludeSmallFuncs>
+  <PreinstrumentEvent>
+    <InstrEventExclude>false</InstrEventExclude>
+  </PreinstrumentEvent>
+  <PostinstrumentEvent>
+    <InstrEventExclude>false</InstrEventExclude>
+  </PostinstrumentEvent>
+  <Binaries>
+    <ProjBinary>
+      <Path>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer\DREAMPioneer\obj\x86\Surface\DREAMPioneer.exe</Path>
+      <ArgumentTimestamp>01/01/0001 00:00:00</ArgumentTimestamp>
+      <Instrument>true</Instrument>
+      <Sample>true</Sample>
+      <LaunchProject>true</LaunchProject>
+      <LaunchMethod>Executable</LaunchMethod>
+      <ExecutablePath>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer\DREAMPioneer\bin\Surface\DREAMPioneer.exe</ExecutablePath>
+      <StartupDirectory>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer\DREAMPioneer\bin\Surface\</StartupDirectory>
+      <Arguments />
+      <NetAppHost>IIS</NetAppHost>
+      <NetBrowser>InternetExplorer</NetBrowser>
+      <ExcludeSmallFuncs>true</ExcludeSmallFuncs>
+      <PreinstrumentEvent>
+        <InstrEventExclude>false</InstrEventExclude>
+      </PreinstrumentEvent>
+      <PostinstrumentEvent>
+        <InstrEventExclude>false</InstrEventExclude>
+      </PostinstrumentEvent>
+      <ProjRef>{48F383FF-33CE-4AB0-9D80-E9B3E7521318}|DREAMPioneer\DREAMPioneer\DREAMPioneer.csproj</ProjRef>
+      <ProjPath>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer\DREAMPioneer\DREAMPioneer.csproj</ProjPath>
+      <ProjName>DREAMPioneer</ProjName>
+    </ProjBinary>
+  </Binaries>
+  <Reports>
+    <Report>
+      <Path>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer120724.vsp</Path>
+    </Report>
+    <Report>
+      <Path>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer120724(1).vsp</Path>
+    </Report>
+    <Report>
+      <Path>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer120724(2).vsp</Path>
+    </Report>
+    <Report>
+      <Path>C:\Users\john_ouellette\GIT\ros-sharp\DREAMPioneer120724(3).vsp</Path>
+    </Report>
+  </Reports>
+  <Launches>
+    <ProjBinary>
+      <Path>:PB:{48F383FF-33CE-4AB0-9D80-E9B3E7521318}|DREAMPioneer\DREAMPioneer\DREAMPioneer.csproj</Path>
+    </ProjBinary>
+  </Launches>
+  <RuntimeMarks>
+    <MarkName>Mark One</MarkName>
+    <MarkName>Mark Two</MarkName>
+    <MarkName>Mark Five</MarkName>
+    <MarkName>Mark Six</MarkName>
+    <MarkName>Mark Seven</MarkName>
+    <MarkName>Mark Eight</MarkName>
+    <MarkName>Mark Nine</MarkName>
+    <MarkName>Mark Ten</MarkName>
+    <MarkName>New Mark</MarkName>
+  </RuntimeMarks>
+</VSPerformanceSession>

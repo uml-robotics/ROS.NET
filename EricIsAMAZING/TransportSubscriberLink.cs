@@ -89,11 +89,12 @@ namespace Ros_CSharp
             return true;
         }
 
+        int triedtosend = 0;
         public override void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
         {
-            if (!ser) return;
             lock (outbox_mutex)
             {
+                
                 int max_queue = 0;
                 if (parent != null)
                     lock (parent)
@@ -110,13 +111,12 @@ namespace Ros_CSharp
                 }
                 else
                     queue_full = false;
+                if (!queue_full)
+                    triedtosend++;
                 outbox.Enqueue(msg);
             }
 
             startMessageWrite(false);
-            stats.messages_sent++;
-            stats.bytes_sent += msg.Serialize().Length;
-            stats.message_data_sent += msg.Serialize().Length;
         }
 
         public override void drop()
@@ -163,9 +163,21 @@ namespace Ros_CSharp
             }
             if (m != null)
             {
-                byte[] M = m.Serialize();
+                byte[] M = m.Serialize();                
+                stats.messages_sent++;
+                EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
+                stats.bytes_sent += M.Length;
+                stats.message_data_sent += M.Length;
                 connection.write(M, (uint)M.Length, onMessageWritten, immediate_write);
             }
+        }
+
+        public string dumphex(byte[] test)
+        {
+            string s = "";
+            for (int i = 0; i < test.Length; i++)
+                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
+            return s;
         }
     }
 }

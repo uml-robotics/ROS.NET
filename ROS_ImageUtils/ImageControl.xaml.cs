@@ -368,7 +368,7 @@ namespace ROS_ImageWPF
                 // tries to turn the memory stream into an image
                 img.BeginInit();
                 img.StreamSource = ms;
-                img.EndInit();
+              //  img.EndInit();
                 lastgood = new byte[data.Length];
                 data.CopyTo(lastgood, 0);
             }
