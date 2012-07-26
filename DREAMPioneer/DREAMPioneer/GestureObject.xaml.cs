@@ -134,8 +134,9 @@ namespace DREAMPioneer
         /// </param>
         public void SetSize(double w, double h)
         {
-            DotWidth = w;
             DotHeight = h;
+            DotWidth = w;
+            
         }
 
         #endregion
@@ -148,15 +149,16 @@ namespace DREAMPioneer
             set
             {
                 Width = value + 20;
+                MainCanvas.Width = value + 20;
                 Dot.Width = value;
                 Border.Width = value + 4;
                 Applez.Width = value + 1;
                 Arrow.Points =
                     new PointCollection(new[]
                                             {
-                                                new Point(MainCanvas.ActualWidth/2, MainCanvas.ActualHeight/2 - Dot.ActualHeight/2 -10),
-                                                new Point((MainCanvas.ActualWidth/2) - 5, MainCanvas.ActualHeight/2 - Dot.ActualHeight/2),
-                                                new Point((MainCanvas.ActualWidth/2) + 5, MainCanvas.ActualHeight/2 - Dot.ActualHeight/2)
+                                                new Point(MainCanvas.Width/2, MainCanvas.Height/2 - Dot.Height/2 -Dot.Height/2),
+                                                new Point((MainCanvas.Width/2) - Dot.Width/4, MainCanvas.Height/2 - Dot.Height/2),
+                                                new Point((MainCanvas.Width/2) + Dot.Width/4, MainCanvas.Height/2 - Dot.Height/2)
                                             });
                 if (rot == null)
                 {
@@ -164,14 +166,14 @@ namespace DREAMPioneer
                     MainCanvas.RenderTransform = rot;
                 }
 
-                rot.CenterX = MainCanvas.ActualWidth/2;
-                rot.CenterY = MainCanvas.ActualHeight/2;
-                Canvas.SetLeft(Dot, MainCanvas.ActualWidth / 2 - Dot.ActualWidth / 2);
-                Canvas.SetTop(Dot, MainCanvas.ActualHeight / 2 - Dot.ActualHeight / 2);
-                Canvas.SetLeft(Border, MainCanvas.ActualWidth / 2 - Border.ActualWidth / 2);
-                Canvas.SetTop(Border, MainCanvas.ActualHeight / 2 - Border.ActualHeight / 2);
-                Canvas.SetLeft(Applez, MainCanvas.ActualWidth / 2 - Applez.ActualWidth / 2);
-                Canvas.SetTop(Applez, MainCanvas.ActualHeight / 2 - Applez.ActualHeight / 2);
+                rot.CenterX = MainCanvas.Width/2;
+                rot.CenterY = MainCanvas.Height/2;
+                Canvas.SetLeft(Dot, MainCanvas.Width / 2 - Dot.Width / 2);
+                Canvas.SetTop(Dot, MainCanvas.Height / 2 - Dot.Height / 2);
+                Canvas.SetLeft(Border, MainCanvas.Width / 2 - Border.Width / 2);
+                Canvas.SetTop(Border, MainCanvas.Height / 2 - Border.Height / 2);
+                Canvas.SetLeft(Applez, MainCanvas.Width / 2 - Applez.Width / 2);
+                Canvas.SetTop(Applez, MainCanvas.Height / 2 - Applez.Height / 2);
             }
         }
 
@@ -203,8 +205,8 @@ namespace DREAMPioneer
                     MainCanvas.RenderTransform = rot;
                 }
 
-                rot.CenterX = ActualWidth/2;
-                rot.CenterY = ActualHeight/2;
+                rot.CenterX = ActualWidth / 2;
+                rot.CenterY = ActualHeight / 2;
                 rot.Angle = value;
             }
         }
@@ -221,10 +223,10 @@ namespace DREAMPioneer
                 Dot.Height = value;
                 Border.Height = value + 4;
                 Applez.Height = value + 1;
-                Canvas.SetLeft(Dot, MainCanvas.ActualWidth / 2 - Dot.ActualWidth / 2);
-                Canvas.SetTop(Dot, MainCanvas.ActualHeight / 2 - Dot.ActualHeight / 2);
-                Canvas.SetLeft(Border, MainCanvas.ActualWidth / 2 - Border.ActualWidth / 2);
-                Canvas.SetTop(Border, MainCanvas.ActualHeight / 2 - Border.ActualHeight / 2);
+                Canvas.SetLeft(Dot, MainCanvas.Width / 2 - Dot.Width / 2);
+                Canvas.SetTop(Dot, MainCanvas.Height / 2 - Dot.Height / 2);
+                Canvas.SetLeft(Border, MainCanvas.Width / 2 - Border.Width / 2);
+                Canvas.SetTop(Border, MainCanvas.Height / 2 - Border.Height / 2);
             }
         }
     }

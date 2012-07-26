@@ -10,8 +10,8 @@
     
         <Canvas Name="MainCanvas" Background="Gray" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">
         <Canvas Name="SubCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center" >
-            <c:MapControl Name="map" c:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212" VerticalAlignment="Center" HorizontalAlignment="Center" />  
-            <d:RobotControl Background="Black" x:Name="robot_brain_1" d:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1078" Height="212"  > </d:RobotControl>
+            <c:MapControl x:Name="map" Background ="Black" c:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212" VerticalAlignment="Center" HorizontalAlignment="Center" />  
+            <d:RobotControl Background="Transparent" x:Name="robot_brain_1" d:RobotControl.TopicName="/robot_brain_1/move_base/local_costmap/robot_footprint" Width="1078" Height="212"  > </d:RobotControl>
            
         </Canvas>
         <Canvas Name="DotCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">

@@ -606,12 +606,12 @@ namespace DREAMPioneer
         {
             if (!RightJoystick)
             {
-                Messages.geometry_msgs.Twist CRAZY_PLAN = new Messages.geometry_msgs.Twist();
-                CRAZY_PLAN.linear = new Messages.geometry_msgs.Vector3();
-                CRAZY_PLAN.angular = new Messages.geometry_msgs.Vector3();
-                CRAZY_PLAN.linear.x = ry / -10.0;
-                CRAZY_PLAN.angular.z = rx / -10.0;                
-                joyPub.publish(CRAZY_PLAN);
+                Messages.geometry_msgs.Twist tempTwist = new Messages.geometry_msgs.Twist();
+                tempTwist.linear = new Messages.geometry_msgs.Vector3();
+                tempTwist.angular = new Messages.geometry_msgs.Vector3();
+                tempTwist.linear.x = ry / -200.0;
+                tempTwist.angular.z = rx / -200.0;
+                joyPub.publish(tempTwist);
             }
             else
             {
@@ -620,7 +620,7 @@ namespace DREAMPioneer
                     pt.x = (float)(rx / 10 /* 10.0*/);
                     pt.y = (float)(ry / 10 * 1 /* -10.0*/);
                     pt.CAM_MODE = ptz.CAM_REL;
-                    servosPub.publish(pt);
+                    //servosPub.publish(pt);
                     currtime = DateTime.Now;
                 }
             }
@@ -668,7 +668,7 @@ namespace DREAMPioneer
             //            t1 = t2;
             //            t2 = DateTime.Now;
             //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
-            //            Console.WriteLine(fps);
+            //            Console.WriteLine(fps); 
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
@@ -1060,10 +1060,10 @@ namespace DREAMPioneer
                 Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
                 DRAG_START = p;
                 if (!SITSTILL){
-                    translate.X -= drag.X/ scale.ScaleY *cc.Count/2;
-                    translate.Y -= drag.Y / scale.ScaleY * cc.Count / 2;
-                    dottranslate.X -= drag.X / dotscale.ScaleY * cc.Count / 2;
-                    dottranslate.Y -= drag.Y / dotscale.ScaleY * cc.Count / 2;
+                    translate.X -= drag.X / scale.ScaleY;
+                    translate.Y -= drag.Y / scale.ScaleY;
+                    dottranslate.X -= drag.X / dotscale.ScaleY;
+                    dottranslate.Y -= drag.Y / dotscale.ScaleY;
                 }
                     
          }
@@ -1339,7 +1339,7 @@ namespace DREAMPioneer
             {
                 Double _xPos = ((robots[i].xPos) * PPM);
                 Double _yPos = ((robots[i].yPos) * PPM);
-                Double Width = robots[i].robot.ActualWidth * scale.ScaleX * PPM;
+                Double Width = robots[i].robot.Width * scale.ScaleX * PPM;
                 if (distance(xPos, yPos, _xPos, _yPos) < Width / 2)
                 {
                     return i;
@@ -1897,8 +1897,6 @@ namespace DREAMPioneer
                     if (GoalDot.ColorInUse.ElementAt(i).Key < 0)
                     {
                         Tmp_Brush = GoalDot.ColorInUse.ElementAt(i).Value;
-
-
                         GoalDot.ColorInUse.Remove(GoalDot.ColorInUse.ElementAt(i).Key);
                         GoalDot.ColorInUse.Add(r, Tmp_Brush);
                         robots[r].robot.setArrowColor(Tmp_Brush);

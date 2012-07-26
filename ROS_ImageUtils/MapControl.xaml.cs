@@ -34,6 +34,31 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class MapControl : UserControl
     {
+
+        public System.Windows.Point origin = new System.Windows.Point(0, 0);
+        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
+        private static float _PPM = 0.02868f;
+        private static float _MPP = 1.0f / PPM;
+        public static float MPP
+        {
+            get { return _MPP; }
+            set
+            {
+                _MPP = value;
+                _PPM = 1.0f / value;
+            }
+        }
+        public static float PPM
+        {
+            get { return _PPM; }
+            set
+            {
+                _PPM = value;
+                _MPP = 1.0f / value;
+            }
+
+        }
+
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
@@ -88,21 +113,23 @@ namespace ROS_ImageWPF
                 imagehandle = new NodeHandle();
             if (mapsub != null)
                 mapsub.shutdown();
-            Console.WriteLine("MAP TOPIC = " + TopicName);
+            Console.WriteLine("MAP TOPIC = " + TopicName);            
             mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
-                {
-                    if ((i.info.width & i.info.height) == 0)
+                {  
+                Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        i.info.width = (uint)Math.Floor(Math.Sqrt((double)i.data.Length));
-                        i.info.height = i.info.width;
-                        if (i.info.width * i.info.height == i.data.Length)
-                            return;
-                    }
-                Dispatcher.BeginInvoke(new Action(() =>                    
-                    UpdateImage( createRGBA( i.data ), 
-                    new Size((int)i.info.width, 
-                    (int)i.info.height), false)));
+                        this.Height = i.info.height;
+                        this.Width = i.info.width;
+                        MPP = i.info.resolution;
+                        this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
+                        UpdateImage(createRGBA(i.data),
+                        new Size((int)i.info.width,
+                        (int)i.info.height), false);
+                        
+                    }));
+                    
                 },"*");
+                 
         } 
         private byte[] createRGBA(sbyte[] map)
         {

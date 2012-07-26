@@ -128,7 +128,7 @@ namespace Ros_CSharp.CustomSocket
             bool res = false;
             try
             {
-                res = base.Poll(timeout, sm);
+                res = Poll(timeout, sm);
             }
             catch 
             {

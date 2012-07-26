@@ -4,11 +4,11 @@
     xmlns:s="http://schemas.microsoft.com/surface/2008" Background="#01000000" IsHitTestVisible="True"
     >
     <Grid>
-        <Canvas Name="MainCanvas" Height="100" Width="100" >
+        <Canvas Name="MainCanvas" Height="100" Width="100">
             <Polygon Name="Arrow" Fill="Blue" IsHitTestVisible="False"></Polygon>
-            <Ellipse Name="Border" Width="54" Height="54" Stroke="Blue" StrokeThickness="2" Opacity="0.8" Fill="Transparent" Canvas.Top="8" Canvas.Left="8" IsHitTestVisible="False" ></Ellipse>
-            <Ellipse Name="Dot" Width="50" Height="50" Fill="Transparent" Opacity=".4" IsHitTestVisible="False" Canvas.Top="10" Canvas.Left="10"></Ellipse>
-            <Image Name= "Applez" Source="C:\Users\john_ouellette\GIT\ros-sharp\simulated_p3dx_1 (1).png" Width="51" Height="51" Canvas.Top="11" Canvas.Left="8" Opacity="0.4" Visibility="Visible"></Image>
+            <Ellipse Name="Border" Width="54" Height="54" Stroke="Blue" StrokeThickness="2" Opacity="0.8" Fill="Transparent" Canvas.Top="23" Canvas.Left="23" IsHitTestVisible="False" ></Ellipse>
+            <Ellipse Name="Dot" Width="50" Height="50" Fill="Transparent" Opacity=".4" IsHitTestVisible="False" Canvas.Top="25" Canvas.Left="25"></Ellipse>
+            <Image Name= "Applez" Source="C:\Users\john_ouellette\GIT\ros-sharp\simulated_p3dx_1 (1).png" Width="51" Height="51" Canvas.Top="25" Canvas.Left="25" Opacity="0.4" Visibility="Visible"></Image>
         </Canvas>
         <Canvas></Canvas>
     </Grid>

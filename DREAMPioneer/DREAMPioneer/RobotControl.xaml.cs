@@ -37,9 +37,6 @@ namespace DREAMPioneer
 {
     public partial class RobotControl : UserControl
     {
-        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
-        private static float PPM = 0.02868f;
-        private static float MPP = 1.0f / PPM;
         public double xPos;
         public double yPos;
         public double transx;
@@ -63,7 +60,7 @@ namespace DREAMPioneer
         private static NodeHandle imagehandle;
         private Subscriber<gm.PolygonStamped> robotsub;
         private Subscriber<gm.PoseStamped> goalsub;
-        private Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
+        private Subscriber<nm.Odometry> robotposesub;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -105,25 +102,41 @@ namespace DREAMPioneer
                 imagehandle = new NodeHandle();
             if (robotsub != null)
                 robotsub.shutdown();
-            updatePOS(30.0 * MPP, 3.3 * MPP);
+            robot.SetSize(10, 10);
+            updatePOS(0, 0);
 
 
             goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
 
-            robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>("/robot_brain_1/amcl_pose", 1, (k) =>
+            robotposesub = imagehandle.subscribe<nm.Odometry>("/robot_brain_1/odom", 1, (k) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    double x = (k.pose.pose.position.x) * (double)MPP;
-                    double y = (k.pose.pose.position.y) * (double)MPP;
-                    updatePOS(x, y);
+                    gm.Vector3 vec;
+                    gm.Quaternion quat;
+                    tf_node.transformFrame("/robot_brain_1/odom", "/robot_brain_1/map", out vec, out quat);
+                    double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                    double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                    double t = getYaw(k.pose.pose.orientation.w, k.pose.pose.orientation.x,
+                                       k.pose.pose.orientation.y, k.pose.pose.orientation.z);
+                    Console.WriteLine(t);
+                    updatePOS(x, y, t);
+                    
+                })),"*");
 
-                })));
+            /*new Thread(() =>
+                {
+                    while (true)
+                    {
+
+                        Thread.Sleep(100);
+                    }
+                });*/
 
             goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1, (j) =>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
-                     double x = (j.pose.position.x) * (double)MPP;
-                     double y = (j.pose.position.y) * (double)MPP;
+                     double x = (j.pose.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                     double y = (j.pose.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
                      updateGoal(x, y);
                  })));
 
@@ -134,8 +147,9 @@ namespace DREAMPioneer
                     gm.Vector3 vec;
                     gm.Quaternion quat;
                     tf_node.transformFrame("/robot_brain_1/odom", "/robot_brain_1/map", out vec, out quat);
-                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * MPP;
-                    float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * MPP;
+                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
+                    float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
+                    //updatePOS(x, y);
                     //{
                     //    Point p = new Point(x, y);
                     //    if (waypoint.Count > 0 && compare(p, waypoint[0]))
@@ -162,6 +176,11 @@ namespace DREAMPioneer
                 })), "*");
         }
 
+        private double getYaw(double w,double x,double y,double z)
+        {
+            return Math.Asin(-2 * (x * z - w * y));
+            
+        }
         public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
         {
             
@@ -176,28 +195,39 @@ namespace DREAMPioneer
             scaley = yy;
             sendnext = true;
         }
-
-        private void updatePOS(float x, float y)
+        public void updatePOS(float x, float y)
         {
-            if (x + y > 0 || x + y < 0) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
+            updatePOS(x, y, 0);
+        }
+
+        public void updatePOS(float x, float y, float t)
+        {
+            //if (x + y > 0 || x + y < 0) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
-                xPos = x;
-                yPos = y;
-                Canvas.SetLeft(robot, x - robot.ActualWidth / 2);
-                Canvas.SetTop(robot, y - robot.ActualHeight / 2);
+                xPos = x + window.current.map.Width / 2;
+                yPos = y + window.current.map.Height / 2;
+                Canvas.SetLeft(robot, x - robot.Width / 2 + window.current.map.Width/2);
+                Canvas.SetTop(robot, y - robot.Height / 2 + window.current.map.Height/2);
+                robot.SetSize(10, 10);
+                robot.Theta = t;
             }
         }
 
-        private void updatePOS(double x, double y) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
+        public void updatePOS(double x, double y)
         {
-            if (x + y > 0 || x + y < 0)
+            updatePOS(x, y, 0);
+        }
+        public void updatePOS(double x, double y, double t)
+        {
+           //if (x + y > 0 || x + y < 0)  // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
-                xPos = x;
-                yPos = y;
-                Canvas.SetLeft(robot, x - robot.ActualWidth / 2);
-                Canvas.SetTop(robot, y - robot.ActualHeight / 2);
-                robot.DotHeight = 50;
-                robot.DotWidth = 50;
+                xPos = x + window.current.map.Width / 2;
+                yPos = y + window.current.map.Height / 2;
+                Canvas.SetLeft(robot, x - robot.Width / 2 + window.current.map.Width/2);
+                Canvas.SetTop(robot, y - robot.Height / 2 + window.current.map.Height/2);
+                robot.SetSize(10, 10);
+                robot.Theta = t;
+
             }
         }
 

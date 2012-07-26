@@ -15,6 +15,8 @@ namespace Ros_CSharp
     {
         public static string Sum(MsgTypes m)
         {
+            if (m == MsgTypes.nav_msgs__Odometry)
+                Console.WriteLine();
             string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
