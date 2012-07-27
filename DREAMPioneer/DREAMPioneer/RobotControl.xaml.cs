@@ -94,10 +94,17 @@ namespace DREAMPioneer
             }
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
-
         private void SetupTopic()
         {
+            SetupTopic(2);
+        }
+        private void SetupTopic(int index)
+        {
+            lock(window.current.ROSStuffs)
+            if (!window.current.ROSStuffs.ContainsKey(index))
+                window.current.ROSStuffs.Add(index, new ROSData(new NodeHandle(), index));
 
+            ROSData myData = window.current.ROSStuffs[index];
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
             if (robotsub != null)
@@ -106,19 +113,18 @@ namespace DREAMPioneer
             updatePOS(0, 0);
 
 
-            goalPub = imagehandle.advertise<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1000);
+             myData.goalPub = imagehandle.advertise<gm.PoseStamped>(myData.Name + "/move_base_simple/goal", 1000);
 
-            robotposesub = imagehandle.subscribe<nm.Odometry>("/robot_brain_1/odom", 1, (k) =>
+            myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/odom", 1, (k) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     gm.Vector3 vec;
                     gm.Quaternion quat;
-                    tf_node.transformFrame("/robot_brain_1/odom", "/robot_brain_1/map", out vec, out quat);
+                    tf_node.transformFrame(myData.Name + "/odom", myData.Name + "/map", out vec, out quat);
                     double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
                     double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                    double t = getYaw(k.pose.pose.orientation.w, k.pose.pose.orientation.x,
-                                       k.pose.pose.orientation.y, k.pose.pose.orientation.z);
-                    Console.WriteLine(t);
+                    double t = convert(quat).z;
+                    //Console.WriteLine(t +"\t"+quat.w+"\t"+quat.z);
                     updatePOS(x, y, t);
                     
                 })),"*");
@@ -132,7 +138,7 @@ namespace DREAMPioneer
                     }
                 });*/
 
-            goalsub = imagehandle.subscribe<gm.PoseStamped>("/robot_brain_1/move_base_simple/goal", 1, (j) =>
+            myData.goalsub = imagehandle.subscribe<gm.PoseStamped>(myData.Name + "/move_base_simple/goal", 1, (j) =>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
                      double x = (j.pose.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
@@ -141,14 +147,18 @@ namespace DREAMPioneer
                  })));
 
 
-            robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
+            myData.robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     gm.Vector3 vec;
                     gm.Quaternion quat;
-                    tf_node.transformFrame("/robot_brain_1/odom", "/robot_brain_1/map", out vec, out quat);
+                    tf_node.transformFrame(myData.Name + "/odom", myData.Name + "/map", out vec, out quat);
                     float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
+                    
+
+                    //SEND POSE ARRAY INSTEAD
+                    
                     //updatePOS(x, y);
                     //{
                     //    Point p = new Point(x, y);
@@ -160,7 +170,7 @@ namespace DREAMPioneer
                     //    if (waypoint.Count > 0 && sendnext)
                     //    {
                     //        //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
-                    //        goalPub.publish(new gm.PoseStamped
+                    //      goalPub.publish(new gm.PoseStamped
                     //        {
                     //            header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } },
                     //            pose = new gm.Pose
@@ -176,11 +186,26 @@ namespace DREAMPioneer
                 })), "*");
         }
 
-        private double getYaw(double w,double x,double y,double z)
-        {
-            return Math.Asin(-2 * (x * z - w * y));
-            
-        }
+       public gm.Vector3 convert(gm.Quaternion q) {
+            gm.Vector3 ret = new gm.Vector3();
+            double sqw = q.w*q.w;
+            double sqx = q.x*q.x;
+            double sqy = q.y*q.y;
+            double sqz = q.z*q.z;
+            double unit = sqx + sqy + sqz + sqw; //normalization coefficient
+            double test = q.x*q.y + q.z*q.w;
+        if (Math.Abs(test) > Math.Abs(0.499*unit)) { // singularity at north pole
+                int sign  = Math.Sign(test);
+                ret.y = 2*sign*Math.Atan2(q.x,q.w);
+                ret.z = sign*Math.PI/2;
+              ret.x = 0;
+         return ret;
+ }
+        ret.y = Math.Atan2(2*q.y*q.w-2*q.x*q.z , sqx - sqy - sqz + sqw);
+        ret.z = Math.Asin(2*test/unit);
+        ret.x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw);
+    return ret;
+}
         public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
         {
             
@@ -262,7 +287,7 @@ namespace DREAMPioneer
 
         private void updateGoal(double x, double y)
         {
-            goal.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
+            //goal.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
     }
 
         /// <summary>

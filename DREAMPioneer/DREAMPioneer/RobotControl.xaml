@@ -10,10 +10,7 @@
         <Binding Source="{StaticResource myDataSource}"/>
     </UserControl.DataContext> -->
     <Canvas Name="RobotCanvas" Width="auto" Height="auto" >
-
             <c:GestureObject x:Name="robot" x:FieldModifier="public" Height= "100" Width = "100" Background="Transparent"/>
-
-            <Rectangle x:Name="goal" x:FieldModifier="public" SnapsToDevicePixels="True" Width="14" Height="14" Fill="Red" />
         </Canvas>
     
 </UserControl>

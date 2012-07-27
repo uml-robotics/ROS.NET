@@ -430,6 +430,7 @@ namespace ROS_ImageWPF
                 img.EndInit();
                 lastgood = new byte[data.Length];
                 data.CopyTo(lastgood, 0);
+              
             }
             catch (Exception e)
             {

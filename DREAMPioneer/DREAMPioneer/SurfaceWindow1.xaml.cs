@@ -194,10 +194,18 @@ namespace DREAMPioneer
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
         //private SortedList<int, Touch> FREE = new SortedList<int, Touch>();
         private JoystickManager joymgr;
-        private NodeHandle node;
+        private NodeHandle node
+        { 
+            get { return ROSStuffs[2].node; }
+            set { ROSStuffs[2].node = value; }
+        }
 
         private Messages.geometry_msgs.Twist t;
-        private cm.ptz pt;
+        private cm.ptz pt
+        { 
+            get { return ROSStuffs[2].pt; }
+            set { ROSStuffs[2].pt = value; }
+        }
 
 #if SURFACEWINDOW
         private Microsoft.Surface.Core.ContactTarget contactTarget;
@@ -217,14 +225,46 @@ namespace DREAMPioneer
 #endif
         private DateTime currtime;
 
-        private Publisher<gm.Twist> joyPub;
-        private Publisher<cm.ptz> servosPub;
-        private Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        private Subscriber<sm.LaserScan> laserSub;
-        private Publisher<gm.PoseStamped> goalPub;
-        private Subscriber<m.String> androidSub;
-        private gm.PoseWithCovarianceStamped pose;
-        private gm.PoseStamped goal;
+        private Publisher<gm.Twist> joyPub
+        { 
+            get { return ROSStuffs[2].joyPub; }
+            set { ROSStuffs[2].joyPub = value; }
+        }
+        private Publisher<cm.ptz> servosPub
+        {
+            get { return ROSStuffs[2].servosPub; }
+            set { ROSStuffs[2].servosPub = value; }
+        }
+        private Publisher<gm.PoseWithCovarianceStamped> initialPub
+    {
+    get { return ROSStuffs[2].initialPub; }
+    set { ROSStuffs[2].initialPub = value; }
+        }
+        private Subscriber<sm.LaserScan> laserSub
+    {
+    get { return ROSStuffs[2].laserSub; }
+    set { ROSStuffs[2].laserSub = value; }
+        }
+        private Publisher<gm.PoseStamped> goalPub
+    {
+    get { return ROSStuffs[2].goalPub; }
+    set { ROSStuffs[2].goalPub = value; }
+        }
+        private Subscriber<m.String> androidSub
+    {
+    get { return ROSStuffs[2].androidSub; }
+    set { ROSStuffs[2].androidSub = value; }
+        }
+        private gm.PoseWithCovarianceStamped pose
+    {
+    get { return ROSStuffs[2].pose; }
+    set { ROSStuffs[2].pose = value; }
+        }
+        private gm.PoseStamped goal
+    {
+    get { return ROSStuffs[2].goal; }
+    set { ROSStuffs[2].goal = value; }
+        }
 
         private ScaleTransform scale;
         private TranslateTransform translate;
@@ -237,7 +277,8 @@ namespace DREAMPioneer
         private Timer YellowTimer;
         private Timer GreenTimer;
 
-        string[] _namespace;
+        SortedDictionary<int, string> _namespace;
+        public SortedDictionary<int, ROSData> ROSStuffs = new SortedDictionary<int, ROSData>();
 
         int numRobots;
         int manualRobot;
@@ -442,7 +483,7 @@ namespace DREAMPioneer
         }
 
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.82";
+        private const string DEFAULT_HOSTNAME = "10.0.2.47";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
@@ -470,29 +511,33 @@ namespace DREAMPioneer
                         break;
                     }
                 }
-            ROS.Init(new string[0], "DREAM");
-            node = new NodeHandle();
+            
+            //**********************//
+                ROS.Init(new string[0], "DREAM");
+                
+                //node = new NodeHandle();
 
-            manualCamera = "/robot_brain_1/camera/rgb/image_color";
-            manualLaser = "fakelaser";
-            manualPTZ = "/robot_brain_1/servos";
-            manualVelocity = "fakevel";
+                //manualCamera = "/robot_brain_1/camera/rgb/image_color";
+                //manualLaser = "fakelaser";
+                //manualPTZ = "/robot_brain_1/servos";
+                //manualVelocity = "fakevel";
 
-            t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
+                //t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
+                //joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
 
-            pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
+                //pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
+                //servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
 
-            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
-            goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
+                //goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
+                //goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
 
-            //Deprecated until I make an abstraction in ros that can publish transforms
-            //pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
-            //initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
+                ////Deprecated until I make an abstraction in ros that can publish transforms
+                ////pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
+                ////initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
-            androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 1, androidCallback);
+                //laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
+                //androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 1, androidCallback);
+            //**********************//
             currtime = DateTime.Now;
             tf_node.init();
             lastt = new Touch();
@@ -528,12 +573,12 @@ namespace DREAMPioneer
             timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
             //timers.MakeTimer(ref touchHold, TouchHold, 0, 200);
 
-            _namespace = new string[16];
-            _namespace[0] = "/robot_brain_1";
-            _namespace[1] = "/robot_brain_2";
-            _namespace[2] = "/robot_brain_3";
-            _namespace[3] = "";
-            _namespace[4] = "";
+            _namespace = new SortedDictionary<int, string>();
+            _namespace.Add(0, "/robot_brain_1");
+            _namespace.Add(1, "/robot_brain_2");
+            _namespace.Add(2, "/robot_brain_3");
+            _namespace.Add(3, "");
+            _namespace.Add(4,"") ;
             ttime = new touchTimer[40];
 
             // for( int i =0; i< ttime.Length; i++)
@@ -577,6 +622,7 @@ namespace DREAMPioneer
 
         private void changeManual(string vel, string ptz, string cam, string urg)
         {
+            int i = 2;
             manualVelocity = vel;
             manualPTZ = ptz;
             manualCamera = cam;
@@ -609,7 +655,7 @@ namespace DREAMPioneer
                 Messages.geometry_msgs.Twist tempTwist = new Messages.geometry_msgs.Twist();
                 tempTwist.linear = new Messages.geometry_msgs.Vector3();
                 tempTwist.angular = new Messages.geometry_msgs.Vector3();
-                tempTwist.linear.x = ry / -200.0;
+                tempTwist.linear.x = 0;// ry / -200.0;
                 tempTwist.angular.z = rx / -200.0;
                 joyPub.publish(tempTwist);
             }
@@ -617,8 +663,8 @@ namespace DREAMPioneer
             {
                 if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
                 {
-                    pt.x = (float)(rx / 10 /* 10.0*/);
-                    pt.y = (float)(ry / 10 * 1 /* -10.0*/);
+                    pt.x = (float)(rx / 10.0);
+                    pt.y = (float)(ry / -10.0);
                     pt.CAM_MODE = ptz.CAM_REL;
                     //servosPub.publish(pt);
                     currtime = DateTime.Now;
@@ -647,7 +693,7 @@ namespace DREAMPioneer
                 Close();
         }
 
-        private void androidCallback(m.String str)
+        public void androidCallback(m.String str)
         {
             //android = str.data.data;
 
@@ -658,23 +704,6 @@ namespace DREAMPioneer
             else if (str.data == "robot_brain_3")
                 android = 2;
             else android = -1;
-        }
-
-        public void videoCallback(sm.Image image)
-        {
-            d.Size size = new d.Size();
-            size.Height = (int)image.height;
-            size.Width = (int)image.width;
-            //            t1 = t2;
-            //            t2 = DateTime.Now;
-            //            double fps = 1000.0 / (t2.Subtract(t1).Milliseconds);
-            //            Console.WriteLine(fps); 
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                RightControlPanel rcp = joymgr.RightPanel as RightControlPanel;
-                if (rcp != null)
-                    rcp.webcam.UpdateImage(image.data, new System.Windows.Size(size.Width, size.Height), false);
-            }));
         }
 
         public void laserCallback(sm.LaserScan laserScan)
@@ -709,7 +738,11 @@ namespace DREAMPioneer
 
         public void AddRobot()
         {
-            robots.Add(0, robot_brain_1);
+            lock (ROSStuffs)
+                if (!ROSStuffs.ContainsKey(2))
+                    ROSStuffs.Add(2, new ROSData(new NodeHandle(), 2));
+
+            robots.Add(0, ROSStuffs[2].myRobot);
             numRobots += 1;
         }
 
@@ -1622,7 +1655,7 @@ namespace DREAMPioneer
                                                         if (selectedList.Contains(index))
                                                             selectedList.RemoveAt(index);
                                                         PulseGreen(manualRobot);
-                                                        changeManual(_namespace[index] + "/virtual_joystick/cmd_vel", _namespace[index] + "/servos", _namespace[index] + "/camera/rgb/image_color", _namespace[index] + "/scan");
+                                                        changeManual(_namespace[1] + "/virtual_joystick/cmd_vel", _namespace[1] + "/servos", _namespace[1] + "/camera/rgb/image_color", _namespace[1] + "/scan");
                                                     }
                                                 }
                                                 else {

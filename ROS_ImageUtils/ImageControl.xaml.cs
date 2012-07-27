@@ -356,8 +356,8 @@ namespace ROS_ImageWPF
             fs.Write(data, 0, data.Length); 
             fs.Flush();
             fs.Close();*/
-            ms.Flush();
-            ms.Seek(0, SeekOrigin.Begin);
+           // ms.Flush();
+           //ms.Seek(0, SeekOrigin.Begin);
 
 
             // makes an image
@@ -368,9 +368,10 @@ namespace ROS_ImageWPF
                 // tries to turn the memory stream into an image
                 img.BeginInit();
                 img.StreamSource = ms;
-              //  img.EndInit();
+                img.EndInit();
                 lastgood = new byte[data.Length];
                 data.CopyTo(lastgood, 0);
+               
             }
             catch (Exception e)
             {
