@@ -54,13 +54,14 @@ namespace DREAMPioneer
         public Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
         public Subscriber<sm.LaserScan> laserSub;
-        public Publisher<gm.PoseStamped> goalPub;
+        public Publisher<Messages.custom_msgs.arrayofdeez> goalPub;
+        public Subscriber<Messages.custom_msgs.arrayofdeez> goalSub;
         public Subscriber<m.String> androidSub;
         public gm.PoseWithCovarianceStamped pose;
-        public gm.PoseStamped goal;
+        public Messages.custom_msgs.arrayofdeez goal;
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
-        public Subscriber<gm.PoseStamped> goalsub;
+        public Subscriber<Messages.custom_msgs.arrayofdeez> goalsub;
         public Subscriber<nm.Odometry> robotposesub;
 
         public RobotControl myRobot;
@@ -92,8 +93,9 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
             servosPub.publish(pt);
 
-            goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String(Name + "/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
-            goalPub = node.advertise<gm.PoseStamped>(Name + "/goal", 10);
+            goal = new Messages.custom_msgs.arrayofdeez { nuts = new gm.Pose[20] };
+            goalPub = node.advertise<Messages.custom_msgs.arrayofdeez>(Name + "/goal_list", 10);
+            
 
             //Deprecated until I make an abstraction in ros that can publish transforms
             pose = new gm.PoseWithCovarianceStamped()
@@ -114,7 +116,8 @@ namespace DREAMPioneer
                 {
                     myRobot = new RobotControl();
                     myRobot.Background = Brushes.Transparent;
-                    myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
+                    //myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
+                    myRobot.TopicName = Name + "/local_costmap/robot_footprint";
                     window.current.SubCanvas.Children.Add(myRobot);
                 }));
 

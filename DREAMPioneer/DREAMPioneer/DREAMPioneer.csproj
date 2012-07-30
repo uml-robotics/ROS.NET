@@ -259,6 +259,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
+      <Project>{5062C99F-6244-4C4E-873F-46F6CCD15EE0}</Project>
+      <Name>EM3MTouchLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\lib_dreamcontroller\DREAMController.csproj">
       <Project>{1E65B163-65FF-4E23-9B31-9C72AD4DAD47}</Project>
       <Name>DREAMController</Name>
@@ -301,6 +305,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>cd $(ProjectDir)..\..\YAMLParser\bin\debug
+
 YAMLParser.exe</PreBuildEvent>
   </PropertyGroup>
 </Project>

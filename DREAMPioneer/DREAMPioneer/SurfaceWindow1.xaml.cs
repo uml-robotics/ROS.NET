@@ -194,19 +194,10 @@ namespace DREAMPioneer
         private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();
         //private SortedList<int, Touch> FREE = new SortedList<int, Touch>();
         private JoystickManager joymgr;
-        private NodeHandle node
-        { 
-            get { return ROSStuffs[2].node; }
-            set { ROSStuffs[2].node = value; }
-        }
-
+        
         private Messages.geometry_msgs.Twist t;
-        private cm.ptz pt
-        { 
-            get { return ROSStuffs[2].pt; }
-            set { ROSStuffs[2].pt = value; }
-        }
-
+        
+        
 #if SURFACEWINDOW
         private Microsoft.Surface.Core.ContactTarget contactTarget;
         private bool applicationLoadCompleteSignalled;
@@ -224,47 +215,6 @@ namespace DREAMPioneer
         private EM3MTouch em3m;
 #endif
         private DateTime currtime;
-
-        private Publisher<gm.Twist> joyPub
-        { 
-            get { return ROSStuffs[2].joyPub; }
-            set { ROSStuffs[2].joyPub = value; }
-        }
-        private Publisher<cm.ptz> servosPub
-        {
-            get { return ROSStuffs[2].servosPub; }
-            set { ROSStuffs[2].servosPub = value; }
-        }
-        private Publisher<gm.PoseWithCovarianceStamped> initialPub
-    {
-    get { return ROSStuffs[2].initialPub; }
-    set { ROSStuffs[2].initialPub = value; }
-        }
-        private Subscriber<sm.LaserScan> laserSub
-    {
-    get { return ROSStuffs[2].laserSub; }
-    set { ROSStuffs[2].laserSub = value; }
-        }
-        private Publisher<gm.PoseStamped> goalPub
-    {
-    get { return ROSStuffs[2].goalPub; }
-    set { ROSStuffs[2].goalPub = value; }
-        }
-        private Subscriber<m.String> androidSub
-    {
-    get { return ROSStuffs[2].androidSub; }
-    set { ROSStuffs[2].androidSub = value; }
-        }
-        private gm.PoseWithCovarianceStamped pose
-    {
-    get { return ROSStuffs[2].pose; }
-    set { ROSStuffs[2].pose = value; }
-        }
-        private gm.PoseStamped goal
-    {
-    get { return ROSStuffs[2].goal; }
-    set { ROSStuffs[2].goal = value; }
-        }
 
         private ScaleTransform scale;
         private TranslateTransform translate;
@@ -486,7 +436,7 @@ namespace DREAMPioneer
         private const string DEFAULT_HOSTNAME = "10.0.2.47";
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.43:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
             System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
@@ -515,7 +465,18 @@ namespace DREAMPioneer
             //**********************//
                 ROS.Init(new string[0], "DREAM");
                 
-                //node = new NodeHandle();
+                NodeHandle node = new NodeHandle();
+                Publisher < Messages.geometry_msgs.Pose> pow = node.advertise<Messages.geometry_msgs.Pose>("/pos", 1);
+                new Thread(() =>
+                {
+                    int i = 0;
+                    while (ROS.ok)
+                    {
+                        pow.publish(new Messages.geometry_msgs.Pose(){ position=new Messages.geometry_msgs.Point{ x=i,y=i+1,z=i+2 }, orientation = new Messages.geometry_msgs.Quaternion{w=69,x=666,y=13,z=696969}});
+                            i++;
+                            Thread.Sleep(100);
+                    }
+                }).Start();
 
                 //manualCamera = "/robot_brain_1/camera/rgb/image_color";
                 //manualLaser = "fakelaser";
@@ -528,15 +489,15 @@ namespace DREAMPioneer
                 //pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
                 //servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
 
-                //goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
-                //goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
+                //ROSStuffs[1].goal = new gm.PoseStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, ROSStuffs[1].pose = new gm.Pose { position = new gm.Point { x = 1, y = 1, z = 0 }, orientation = new gm.Quaternion { w = 0, x = 0, y = 0, z = 0 } } };
+                //ROSStuffs[1].goalPub = node.advertise<gm.PoseStamped>("/robot_brain_1/goal", 10);
 
                 ////Deprecated until I make an abstraction in ros that can publish transforms
-                ////pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, pose = new gm.PoseWithCovariance { pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
-                ////initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
+                ////ROSStuffs[1].pose = new gm.PoseWithCovarianceStamped() { header = new m.Header { frame_id = new String("/robot_brain_1/map") }, ROSStuffs[1].pose = new gm.PoseWithCovariance { ROSStuffs[1].pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } }, covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 } } };
+                ////ROSStuffs[1].initialPub = node.advertise<gm.PoseWithCovarianceStamped>("/robot_brain_1/initialpose",1000);
 
-                //laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
-                //androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 1, androidCallback);
+                //ROSStuffs[1].laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
+                //ROSStuffs[1].androidSub = node.subscribe<m.String>("/robot_brain_1/androidControl", 1, androidCallback);
             //**********************//
             currtime = DateTime.Now;
             tf_node.init();
@@ -628,9 +589,9 @@ namespace DREAMPioneer
             manualCamera = cam;
             manualLaser = urg;
 
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
-            laserSub = node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
+            ROSStuffs[1].joyPub = ROSStuffs[1].node.advertise<gm.Twist>(manualVelocity, 1);
+            ROSStuffs[1].servosPub = ROSStuffs[1].node.advertise<cm.ptz>(manualPTZ, 1);
+            ROSStuffs[1].laserSub = ROSStuffs[1].node.subscribe<sm.LaserScan>(manualLaser, 1, laserCallback);
             ROS_ImageWPF.ImageControl.newTopicName = manualCamera;
             /*
              Dispatcher.BeginInvoke(new Action(() => {
@@ -657,16 +618,16 @@ namespace DREAMPioneer
                 tempTwist.angular = new Messages.geometry_msgs.Vector3();
                 tempTwist.linear.x = 0;// ry / -200.0;
                 tempTwist.angular.z = rx / -200.0;
-                joyPub.publish(tempTwist);
+                ROSStuffs[1].joyPub.publish(tempTwist);
             }
             else
             {
                 if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
                 {
-                    pt.x = (float)(rx / 10.0);
-                    pt.y = (float)(ry / -10.0);
-                    pt.CAM_MODE = ptz.CAM_REL;
-                    //servosPub.publish(pt);
+                    ROSStuffs[1].pt.x = (float)(rx / 10.0);
+                    ROSStuffs[1].pt.y = (float)(ry / -10.0);
+                    ROSStuffs[1].pt.CAM_MODE = ptz.CAM_REL;
+                    //ROSStuffs[1].servosPub.publish(ROSStuffs[1].pt);
                     currtime = DateTime.Now;
                 }
             }

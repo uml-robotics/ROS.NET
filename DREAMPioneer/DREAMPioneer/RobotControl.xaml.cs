@@ -48,7 +48,7 @@ namespace DREAMPioneer
 
         public static List<CommonList> OneInAMillion = new List<CommonList>();
 
-        private Publisher<gm.PoseStamped> goalPub;
+        private Publisher<gm.PoseArray> goalPub;
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
@@ -59,7 +59,7 @@ namespace DREAMPioneer
         private Thread waitforinit;
         private static NodeHandle imagehandle;
         private Subscriber<gm.PolygonStamped> robotsub;
-        private Subscriber<gm.PoseStamped> goalsub;
+        private Subscriber<gm.PoseArray> goalsub;
         private Subscriber<nm.Odometry> robotposesub;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -113,7 +113,7 @@ namespace DREAMPioneer
             updatePOS(0, 0);
 
 
-             myData.goalPub = imagehandle.advertise<gm.PoseStamped>(myData.Name + "/move_base_simple/goal", 1000);
+            myData.goalPub = imagehandle.advertise<Messages.custom_msgs.arrayofdeez>(myData.Name + "/goal_list", 1000);
 
             myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/odom", 1, (k) =>
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -138,12 +138,18 @@ namespace DREAMPioneer
                     }
                 });*/
 
-            myData.goalsub = imagehandle.subscribe<gm.PoseStamped>(myData.Name + "/move_base_simple/goal", 1, (j) =>
+            myData.goalsub = imagehandle.subscribe<Messages.custom_msgs.arrayofdeez>(myData.Name + "/goal_progress", 1, (j) =>
                  Dispatcher.BeginInvoke(new Action(() =>
                  {
-                     double x = (j.pose.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                     double y = (j.pose.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                     updateGoal(x, y);
+                     int i = 0;
+                     List<Point> points = new List<Point>(j.nuts.Length);
+                     foreach (gm.Pose P in j.nuts)
+                     {
+                         double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                         double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                         points.Add(new Point(x,y));
+                     }
+                     updateGoal(points,i);
                  })));
 
 
@@ -155,35 +161,28 @@ namespace DREAMPioneer
                     tf_node.transformFrame(myData.Name + "/odom", myData.Name + "/map", out vec, out quat);
                     float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
                     float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
-                    
-
-                    //SEND POSE ARRAY INSTEAD
-                    
-                    //updatePOS(x, y);
-                    //{
-                    //    Point p = new Point(x, y);
-                    //    if (waypoint.Count > 0 && compare(p, waypoint[0]))
-                    //    {
-                    //        waypoint.RemoveAt(0);
-                    //        sendnext = true;
-                    //    }
-                    //    if (waypoint.Count > 0 && sendnext)
-                    //    {
-                    //        //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
-                    //      goalPub.publish(new gm.PoseStamped
-                    //        {
-                    //            header = new m.Header { frame_id = new m.String { data = "/robot_brain_1/map" } },
-                    //            pose = new gm.Pose
-                    //            {
-                    //                position = new gm.Point { x = (waypoint[0].X - transx) / scalex * PPM, y = (waypoint[0].Y - transy) / scaley * PPM, z = 0 },
-                    //                orientation = new gm.Quaternion { w = 1, x = 0, y = 0, z = 0 }
-                    //            }
-                    //        });
-                    //        sendnext = false;
-                    //    }
-                    //}
-                    //updatePOS(x,y);
-                })), "*");
+                    Point p = new Point(x, y);                                  
+                    foreach(CommonList CL in OneInAMillion)
+                    {
+                        
+                        if (CL.P_List.Count > 0 && compare(p, CL.P_List[0]))
+                        {
+                            CL.P_List.RemoveAt(0);
+                            sendnext = true;
+                        }
+                        if (CL.P_List.Count > 0 && sendnext)
+                        {
+                            //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
+                          goalPub.publish(new gm.PoseArray
+                            {
+                                header = new m.Header { frame_id = new m.String { data = myData.Name + "/map" } },
+                                poses = new gm.PoseArray().poses
+                            });
+                            sendnext = false;
+                        }
+                    }
+                    updatePOS(x,y);
+                    })),"*");
         }
 
        public gm.Vector3 convert(gm.Quaternion q) {
@@ -285,10 +284,13 @@ namespace DREAMPioneer
          
         }
 
-        private void updateGoal(double x, double y)
+        private void updateGoal(List<Point> points, int index)
         {
-            //goal.Margin = new Thickness { Left = x, Bottom = 0, Right = 0, Top = y };
-    }
+            window.current.Dispatcher.Invoke(new Action(() =>
+                {
+                    bool unique = CheckUnique(points, index);
+                }));
+        }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
@@ -316,7 +318,7 @@ namespace DREAMPioneer
 
                 window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
                 if (DisList.Dots.Count >= 2)
-                    DisList.Dots[1].NextOne = true;
+                    DisList.Dots[0].NextOne = true;
                 foreach (Robot_Info RI in DisList.RoboInfo)
                     if (RI.RoboNum == R)
                         window.current.SetGoal(R, P_List, DisList, RI);
