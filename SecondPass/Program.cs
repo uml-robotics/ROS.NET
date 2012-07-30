@@ -13,7 +13,7 @@ namespace SecondPass
         static void Main(string[] args)
         {
             string output = "<MD5>\n";
-
+            string source = args.Length > 0 ? args[0] : "..\\..\\..\\Messages\\";
             foreach (MsgTypes mt in Enum.GetValues(typeof(MsgTypes)))
             {
                 if (mt == MsgTypes.Unknown) continue;
@@ -26,9 +26,9 @@ namespace SecondPass
             string path;
             foreach (KeyValuePair<string, string> kvp in output2)
             {
-                path = "..\\..\\..\\Messages\\" + (kvp.Key.Replace("__", "\\") + ".cs");
+                path = source + (kvp.Key.Replace("__", "\\") + ".cs");
                 File.WriteAllText(path, File.ReadAllText(path).Replace("$MYMD5SUM", kvp.Value));
-            }
+            }   
             Console.WriteLine("Done");
         }
 
@@ -96,10 +96,7 @@ namespace SecondPass
 
                         }
                     }
-
                 }
-
-
                 return MD5Pairs;
             }
         }

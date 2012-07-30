@@ -140,7 +140,6 @@ namespace YAMLParser
             {
                 Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
             }
-            Console.ReadLine();
         }
 
         public static void MakeTempDir()
@@ -305,6 +304,9 @@ namespace YAMLParser
                 proc2.StartInfo.RedirectStandardError = true;
                 proc2.StartInfo.UseShellExecute = false;
                 proc2.StartInfo.CreateNoWindow = true;
+#if !ON_TOP_OF_ITSELF
+                proc2.StartInfo.Arguments = "..\\..\\..\\TempMessages\\";
+#endif
                 proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";
                 proc2.Start();
                 output2 = proc2.StandardOutput.ReadToEnd();

@@ -15,8 +15,7 @@ namespace Ros_CSharp
     {
         public static string Sum(MsgTypes m)
         {
-            if (m == MsgTypes.nav_msgs__Odometry)
-                Console.WriteLine();
+            Console.WriteLine("**********************************" + m);
             string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
@@ -27,9 +26,12 @@ namespace Ros_CSharp
 
             //this shit is bananas.
             Queue<string> haves = new Queue<string>(), havenots = new Queue<string>();
-            foreach (string l in lines) if (l.Contains("=")) haves.Enqueue(l); else havenots.Enqueue(l); hashme = "";            
+            for (int i=0;i<lines.Length;i++)
+            {
+                string l = lines[i];
+                if (l.Contains("=")) haves.Enqueue(l); else havenots.Enqueue(l);
+            } hashme = "";            
             while(haves.Count + havenots.Count > 0) hashme += (haves.Count > 0 ? haves.Dequeue() : havenots.Dequeue()) + (haves.Count + havenots.Count >= 1 ? "\n" : "");
-
             IRosMessage irm = IRosMessage.generate(m);
             if (irm.IsMetaType)
             {
@@ -41,30 +43,21 @@ namespace Ros_CSharp
                     Type FieldType = fields[i].FieldType;
                     if (!FieldType.Namespace.Contains("Messages")) continue;
                     while (FieldType.IsArray) FieldType = FieldType.GetElementType();
-                    /*{
-
-                        object[] o;
-                        if (FieldType.Name.Contains("String"))
-                            FieldType = typeof (String);
-                        else
-                        {
-                            //if (FieldType.Name.Contains("TransformStamped[]"))
-                            //    throw new Exception("HOLY FUCK!");
-                            //Type myfieldType = FieldType;
-                            //else
-                            o = (object[]) Activator.CreateInstance(FieldType);
-                            FieldType = o.GetType();
-                        }*/
-                    //}
                     MsgTypes T =
                         (MsgTypes)
                         Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
-                    //int startoflinewherethisclassisinthemessage = 0, endoflinewherethisclassisinthemessage=0;
-                    //Console.WriteLine(FieldType.Name);
-                    if ( hashme == "geometry_msgs/TransformStamped[] transforms")
-                        hashme = hashme.Replace(FieldType.Name, Sum(T)).Replace("geometry_msgs/", "").Replace("[]",""); //.Replace("geometry_msgs/","")
-                    else
-                        hashme = hashme.Replace(FieldType.Name, Sum(T));
+                    string[] BLADAMN = hashme.Replace(FieldType.Name, Sum(T)).Split('\n');
+                    hashme = "";
+                    for (int x = 0; x < BLADAMN.Length; x++)
+                    {
+                        if (BLADAMN[x].Contains("/"))                        
+                            BLADAMN[x] = BLADAMN[x].Split('/')[1];
+                        BLADAMN[x] = BLADAMN[x].Replace("[]", "");
+                        hashme += BLADAMN[x];
+                        if (x < BLADAMN.Length - 1)
+                            hashme += "\n";
+                    }
+                    Console.WriteLine(hashme);
                 }
                 return Sum(hashme);
             }
