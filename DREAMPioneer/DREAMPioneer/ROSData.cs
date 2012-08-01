@@ -47,24 +47,27 @@ namespace DREAMPioneer
     public class ROSData
     {
         public int RobotNumber;
+        public string Name;
         public NodeHandle node;
-        public string Name, manualCamera, manualLaser, manualPTZ, manualVelocity;
+        public static string manualCamera, manualLaser, manualPTZ, manualVelocity;
+        public static int ManualNumber;
         public Messages.geometry_msgs.Twist t;
         public Publisher<gm.Twist> joyPub;
         public Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
         public Subscriber<sm.LaserScan> laserSub;
-        public Publisher<Messages.custom_msgs.arrayofdeez> goalPub;
-        public Subscriber<Messages.custom_msgs.arrayofdeez> goalSub;
+        public Publisher<gm.PoseArray> goalPub;
         public Subscriber<m.String> androidSub;
         public gm.PoseWithCovarianceStamped pose;
-        public Messages.custom_msgs.arrayofdeez goal;
+        public gm.PoseArray goal;
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
-        public Subscriber<Messages.custom_msgs.arrayofdeez> goalsub;
+        public Subscriber<gm.PoseArray> goalsub;
         public Subscriber<nm.Odometry> robotposesub;
 
         public RobotControl myRobot;
+        public static int numRobots;
+     
 
         public ROSData(NodeHandle n, int i)
             : this(n, i,null)
@@ -80,8 +83,8 @@ namespace DREAMPioneer
                 node = new NodeHandle();
             else
                 node = n;
-            Name = "/robot_brain_" + i;
-            manualCamera = Name + "/camera/rgb/image_color";
+            Name = "/robot_brain_" + (i);
+            manualCamera = Name + Name + "/rgb/image_color";
             manualLaser = "fakelaser";
             manualPTZ = Name + "/servos";
             manualVelocity = "fakevel";
@@ -93,35 +96,37 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
             servosPub.publish(pt);
 
-            goal = new Messages.custom_msgs.arrayofdeez { nuts = new gm.Pose[20] };
-            goalPub = node.advertise<Messages.custom_msgs.arrayofdeez>(Name + "/goal_list", 10);
+            goal = new gm.PoseArray { poses = new gm.Pose[20] };
+            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
             
 
             //Deprecated until I make an abstraction in ros that can publish transforms
-            pose = new gm.PoseWithCovarianceStamped()
-            {
-                header = new m.Header { frame_id = new String(Name + "/map") },
-                pose = new gm.PoseWithCovariance
-                {
-                    pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } },
-                    covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 }
-                }
-            };
+            //pose = new gm.PoseWithCovarianceStamped()
+            //{
+            //    header = new m.Header { frame_id = new String("/robot_brain_2/map") },
+            //    pose = new gm.PoseWithCovariance
+            //    {
+            //        pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } },
+            //        covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 }
+            //    }
+            //};
 
-            initialPub = node.advertise<gm.PoseWithCovarianceStamped>(Name + i + "/initialpose", 1000);
-            androidSub = node.subscribe<m.String>(Name + i + "/androidControl", 1, androidCallback);
+            initialPub = node.advertise<gm.PoseWithCovarianceStamped>(Name + "/initialpose", 1000);
+            androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
 
 
             window.current.Dispatcher.Invoke(new Action(() =>
                 {
-                    myRobot = new RobotControl();
+                    myRobot = new RobotControl(RobotNumber);
                     myRobot.Background = Brushes.Transparent;
                     //myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
                     myRobot.TopicName = Name + "/local_costmap/robot_footprint";
                     window.current.SubCanvas.Children.Add(myRobot);
+                    
+               
                 }));
 
-       
+            numRobots++;
             
         }
 

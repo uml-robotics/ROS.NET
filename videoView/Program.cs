@@ -14,7 +14,6 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Text;
-//using Messages.ServiceTest;
 
 #endregion
 
@@ -35,10 +34,31 @@ namespace videoView
         {
             //tellmehowawesomeiam = thisishowawesomeyouare;
             //WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
-            //ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
-            //ROS.ROS_HOSTNAME = "10.0.2.177";
-            //ROS.Init(args, "add_two_ints_client_csharp");
-            //NodeHandle node = new NodeHandle();
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_HOSTNAME = "10.0.2.47";
+            ROS.Init(args, "add_two_ints_client_csharp");
+            NodeHandle node = new NodeHandle();
+            Publisher<gm.PoseArray> goalPub;
+            Subscriber<gm.PoseArray> goalSub;
+            gm.PoseArray goal;
+            string Name;
+            int i = 2;
+            Name = "/robot_brain_" + (i);
+            goal = new gm.PoseArray() { 
+                poses = new Messages.geometry_msgs.Pose[] { 
+                    new Messages.geometry_msgs.Pose { 
+                        position = new Messages.geometry_msgs.Point { x = 1, y = 2, z = 3 }, orientation = new Messages.geometry_msgs.Quaternion { 
+                             w = 0, x = 1, y = 2, z = 3 } 
+                        }
+                    }
+                };
+            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
+            while (true)
+            {
+                goalPub.publish(goal);
+               Thread.Sleep(5000);
+            }
+                
             //ServiceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>> testclient = node.serviceClient<TypedMessage<AddTwoInts.Request>, TypedMessage<AddTwoInts.Response>>("/add_two_ints");
             //TypedMessage<AddTwoInts.Response> resp = new TypedMessage<AddTwoInts.Response>();
             //if (testclient.call(new TypedMessage<AddTwoInts.Request>(new AddTwoInts.Request { a = 1, b = 2 }), ref resp, ""))

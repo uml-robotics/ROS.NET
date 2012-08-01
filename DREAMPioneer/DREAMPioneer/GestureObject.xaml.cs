@@ -134,9 +134,10 @@ namespace DREAMPioneer
         /// </param>
         public void SetSize(double w, double h)
         {
-            DotHeight = h;
-            DotWidth = w;
             
+                    DotHeight = h;
+                    DotWidth = w;
+                
         }
 
         #endregion

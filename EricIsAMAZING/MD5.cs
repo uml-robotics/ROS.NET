@@ -15,7 +15,6 @@ namespace Ros_CSharp
     {
         public static string Sum(MsgTypes m)
         {
-            Console.WriteLine("**********************************" + m);
             string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
             while (hashme.Contains("  "))
                 hashme = hashme.Replace("  ", " ");
@@ -50,14 +49,16 @@ namespace Ros_CSharp
                     hashme = "";
                     for (int x = 0; x < BLADAMN.Length; x++)
                     {
-                        if (BLADAMN[x].Contains("/"))                        
+                        if (BLADAMN[x].Contains("/"))
+                        {
                             BLADAMN[x] = BLADAMN[x].Split('/')[1];
-                        BLADAMN[x] = BLADAMN[x].Replace("[]", "");
+                            BLADAMN[x] = BLADAMN[x].Replace("[]", "");
+                        }
+                        
                         hashme += BLADAMN[x];
                         if (x < BLADAMN.Length - 1)
                             hashme += "\n";
                     }
-                    Console.WriteLine(hashme);
                 }
                 return Sum(hashme);
             }

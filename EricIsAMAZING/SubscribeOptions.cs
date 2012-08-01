@@ -52,7 +52,7 @@ namespace Ros_CSharp
             Type msgtype = new T().GetType();
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[1] + "/" + chunks[2];
-            md5sum = thisisveryverybad ?? MD5.Sum(new T().msgtype);
+            md5sum = thisisveryverybad ?? new T().MD5Sum;
         }
     }
 

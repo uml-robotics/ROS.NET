@@ -67,7 +67,7 @@ namespace Ros_CSharp
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback,
                                 SubscriberStatusCallback disconnectcallback) :
                                     this(
-                                    t, q_size, MD5.Sum(new T().msgtype),
+                                    t, q_size, new T().MD5Sum,
                                     new T().msgtype.ToString().Replace("__", "/"),
                                     new T().MessageDefinition,
                                     connectcallback, disconnectcallback)
