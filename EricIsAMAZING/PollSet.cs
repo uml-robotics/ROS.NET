@@ -150,17 +150,17 @@ namespace Ros_CSharp
                 {
                     ufds[i].revents |= POLLHUP;
                 }
-                else if (sock.SafePoll(poll_timeout, SelectMode.SelectError))
+                else if (sock == null || sock.SafePoll(poll_timeout, SelectMode.SelectError))
                 {
                     ufds[i].revents |= POLLERR;
                 }
                 else
                 {
-                    if (sock.SafePoll(poll_timeout, SelectMode.SelectWrite))
+                    if (sock != null && sock.SafePoll(poll_timeout, SelectMode.SelectWrite))
                     {
                         ufds[i].revents |= POLLOUT;
                     }
-                    if (sock.SafePoll(poll_timeout, SelectMode.SelectRead))
+                    if (sock != null && sock.SafePoll(poll_timeout, SelectMode.SelectRead))
                     {
                         ufds[i].revents |= POLLIN;
                     }

@@ -344,6 +344,9 @@
     <None Include="ROS_MESSAGES\custom_msgs\ptz.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ROS_MESSAGES\sensor_msgs\CompressedImage.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\sensor_msgs\LaserScan.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

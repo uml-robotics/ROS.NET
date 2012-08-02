@@ -20,17 +20,19 @@ namespace Ros_CSharp
 {
     public static class EDB
     {
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static void WriteLine(object o)
         {
 #if DEBUG
+            if (("" + o) == "0")
+                Console.WriteLine("BINGO!");
             Debug.WriteLine(o);
 #else
             Console.WriteLine(o);
 #endif
         }
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static void WriteLine(string format, params object[] args)
         {
 #if DEBUG

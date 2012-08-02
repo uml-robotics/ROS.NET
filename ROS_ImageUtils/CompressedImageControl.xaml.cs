@@ -32,33 +32,12 @@ namespace ROS_ImageWPF
     /// <summary>
     ///   A general Surface WPF control for the displaying of bitmaps
     /// </summary>
-    public partial class MapControl : UserControl
+    /// 
+    
+    public partial class CompressedImageControl : UserControl
     {
-
-        public System.Windows.Point origin = new System.Windows.Point(0, 0);
-        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
-        private static float _PPM = 0.02868f;
-        private static float _MPP = 1.0f / PPM;
-        public static float MPP
-        {
-            get { return _MPP; }
-            set
-            {
-                _MPP = value;
-                _PPM = 1.0f / value;
-            }
-        }
-        public static float PPM
-        {
-            get { return _PPM; }
-            set
-            {
-                _PPM = value;
-                _MPP = 1.0f / value;
-            }
-
-        }
-
+        public static string newTopicName;
+        DateTime wtf;
         public string TopicName
         {
             get { return GetValue(TopicProperty) as string; }
@@ -66,21 +45,24 @@ namespace ROS_ImageWPF
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<nm.OccupancyGrid> mapsub;
+        private Subscriber<sm.CompressedImage> imgsub;
+
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
-            typeof(MapControl),
+            typeof(CompressedImageControl),
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
                 {
                     try
                     {
-                        if (obj is MapControl)
+                        if (obj is CompressedImageControl)
                         {
-                            MapControl target = obj as MapControl;
+                            CompressedImageControl target = obj as CompressedImageControl;
                             target.TopicName = (string)args.NewValue;
+                            if (newTopicName != null)
+                                target.TopicName = newTopicName;
                             if (!ROS.isStarted())
                             {
                                 if (target.waitforinit == null)
@@ -103,7 +85,6 @@ namespace ROS_ImageWPF
             {
                 Thread.Sleep(100);
             }
-            Thread.Sleep(1000);
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
 
@@ -111,65 +92,12 @@ namespace ROS_ImageWPF
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (mapsub != null)
-                mapsub.shutdown();
-            Console.WriteLine("MAP TOPIC = " + TopicName);            
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
-                {  
-                Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.Height = i.info.height;
-                        this.Width = i.info.width;
-                        MPP = i.info.resolution;
-                        this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
-                        UpdateImage(createRGBA(i.data),
-                        new Size((int)i.info.width,
-                        (int)i.info.height), false);
-                        
-                    }));
-                    
-                },"*");
-                 
-        } 
-        private byte[] createRGBA(sbyte[] map)
-        {
-            byte[] image = new byte[4 * map.Length];/*
-            Func<sbyte, byte[]> triple = (b) => { return new[] { (byte)b, (byte)b, (byte)b, (byte)0xFF }; };
-            Func<sbyte[], byte[]> supertriple = (m) => { List<byte> o = new List<byte>(); for (int i = 0; i < m.Length; i++) o.AddRange(triple(m[i])); return o.ToArray(); };
-            return supertriple(map);*/
-            int count = 0;
-            foreach (sbyte j in map)
-            {
-                switch (j)
-                {
-                    case -1:
-                        image[count] = 211;
-                        image[count + 1] = 211;
-                        image[count + 2] = 211;
-                        image[count + 3] = 0xFF;
-                        break;
-                    case 100:
-                        image[count] = 105;
-                        image[count + 1] = 105;
-                        image[count + 2] = 105;
-                        image[count + 3] = 0xFF;
-                        break;
-                    case 0:
-                        image[count] = 255;
-                        image[count+1] = 255;
-                        image[count+2] = 255;
-                        image[count + 3] = 0xFF;
-                        break;
-                    default:
-                        image[count] = 255;
-                        image[count+1] = 0;
-                        image[count+2] = 0;
-                        image[count + 3] = 0xFF;
-                        break;
-                }
-                count += 4;
-            }
-            return image;
+            if (imgsub != null)
+                imgsub.shutdown();
+            wtf = DateTime.Now;
+
+            imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) =>
+                Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))));
         }
 
         #region variables and such
@@ -277,6 +205,13 @@ namespace ROS_ImageWPF
                 Console.WriteLine("FUCK YOUR BPP!");
         }
 
+
+
+
+        public void UpdateImage(byte[] data, Size size, bool hasHeader)
+        {
+            UpdateImage(data, size, hasHeader, null);
+        }
         /// <summary>
         ///   if hasHeader is true, then UpdateImage(byte[]) is called
         ///   otherwise, the size is compared to lastSize, 
@@ -291,14 +226,12 @@ namespace ROS_ImageWPF
         /// <param name = "hasHeader">
         ///   whether or not a header needs to be concatinated
         /// </param>
-        /// 
-        public void  UpdateImage(byte[] data, Size size, bool hasHeader)
+        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding)
         {
-            UpdateImage(data, size, hasHeader, null);
-        }
-        public void  UpdateImage(byte[] data, Size size, bool hasHeader, string encoding)
-        {
-            if (hasHeader || encoding == "jpeg")
+
+            //Console.WriteLine(1 / DateTime.Now.Subtract(wtf).TotalSeconds);
+            //wtf = DateTime.Now;
+            if (hasHeader)
             {
                 UpdateImage(data);
                 return;
@@ -417,11 +350,19 @@ namespace ROS_ImageWPF
         {
             // makes a memory stream with the data
             MemoryStream ms = new MemoryStream(data);
-            ms.Flush();
-            ms.Seek(0, SeekOrigin.Begin);
-   
+            
+            /*FileStream fs = new FileStream("C:\\notfucked.bmp", FileMode.OpenOrCreate);
+            fs.Seek(0, SeekOrigin.Begin);
+            fs.Write(data, 0, data.Length); 
+            fs.Flush();
+            fs.Close();*/
+           // ms.Flush();
+           //ms.Seek(0, SeekOrigin.Begin);
+
+
             // makes an image
             BitmapImage img = new BitmapImage();
+
             try
             {
                 // tries to turn the memory stream into an image
@@ -430,7 +371,7 @@ namespace ROS_ImageWPF
                 img.EndInit();
                 lastgood = new byte[data.Length];
                 data.CopyTo(lastgood, 0);
-              
+               
             }
             catch (Exception e)
             {
@@ -563,7 +504,7 @@ namespace ROS_ImageWPF
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
         ///   constructor... nothing fancy
         /// </summary>
-        public MapControl()
+        public CompressedImageControl()
         {
             InitializeComponent();
         }

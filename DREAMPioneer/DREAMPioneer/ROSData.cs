@@ -46,16 +46,37 @@ namespace DREAMPioneer
 {
     public class ROSData
     {
+        public Point PositionInWindow
+        {
+            get
+            {                
+                Point ret = myRobot.robot.TranslatePoint(new Point(myRobot.robot.Width / 2, myRobot.robot.Height / 2), SurfaceWindow1.current);
+                return ret;
+            }
+        }
+        public double WidthInWindow
+        {
+            get
+            {
+                Point p = myRobot.robot.TranslatePoint(new Point(myRobot.robot.Width / 2, myRobot.robot.Height / 2), SurfaceWindow1.current);
+                Point q = myRobot.robot.TranslatePoint(new Point(0, myRobot.robot.Height / 2), SurfaceWindow1.current);
+                double dx = p.X - q.X;
+                dx *= dx;
+                double dy = p.Y - q.Y;
+                dy *= dy;
+                return Math.Sqrt(dx + dy);
+            }
+        }
         public int RobotNumber;
         public string Name;
-        public NodeHandle node;
+        public static NodeHandle node;
         public static string manualCamera, manualLaser, manualPTZ, manualVelocity;
-        public static int ManualNumber;
+        public static int ManualNumber = -1;
         public Messages.geometry_msgs.Twist t;
-        public Publisher<gm.Twist> joyPub;
-        public Publisher<cm.ptz> servosPub;
+        public static Publisher<gm.Twist> joyPub;
+        public static Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
-        public Subscriber<sm.LaserScan> laserSub;
+        public static Subscriber<sm.LaserScan> laserSub;
         public Publisher<gm.PoseArray> goalPub;
         public Subscriber<m.String> androidSub;
         public gm.PoseWithCovarianceStamped pose;
@@ -67,24 +88,26 @@ namespace DREAMPioneer
 
         public RobotControl myRobot;
         public static int numRobots;
-     
+
 
         public ROSData(NodeHandle n, int i)
-            : this(n, i,null)
+            : this(n, i, null)
         {
 
         }
-        public ROSData(NodeHandle n, int i,specificAndroidDelegate android)
+        public ROSData(NodeHandle n, int i, specificAndroidDelegate android)
         {
             RobotNumber = i;
             specificAndroidEvent += android;
             ROS.Init(new string[0], "DREAM");
-            if (n == null)
-                node = new NodeHandle();
-            else
-                node = n;
+            if (node == null)
+                if (n == null)
+                    node = new NodeHandle();
+                else
+                    node = n;
             Name = "/robot_brain_" + (i);
-            manualCamera = Name + Name + "/rgb/image_color";
+            /*
+            manualCamera = Name + Name + "/rgb/image_color/compressed";
             manualLaser = "fakelaser";
             manualPTZ = Name + "/servos";
             manualVelocity = "fakevel";
@@ -94,7 +117,7 @@ namespace DREAMPioneer
 
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
-            servosPub.publish(pt);
+            servosPub.publish(pt);*/
 
             goal = new gm.PoseArray { poses = new gm.Pose[20] };
             goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
@@ -111,7 +134,7 @@ namespace DREAMPioneer
             //    }
             //};
 
-            initialPub = node.advertise<gm.PoseWithCovarianceStamped>(Name + "/initialpose", 1000);
+            //initialPub = node.advertise<gm.PoseWithCovarianceStamped>(Name + "/initialpose", 1);
             androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
 
 
@@ -119,18 +142,30 @@ namespace DREAMPioneer
                 {
                     myRobot = new RobotControl(RobotNumber);
                     myRobot.Background = Brushes.Transparent;
-                    //myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
-                    myRobot.TopicName = Name + "/local_costmap/robot_footprint";
+                    myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
+                    //myRobot.TopicName = Name + "/local_costmap/robot_footprint";
                     window.current.SubCanvas.Children.Add(myRobot);
-                    
-               
                 }));
 
             numRobots++;
-            
+
         }
 
-        
+        public static void unSub()
+        {
+            joyPub = null;
+            servosPub = null;
+            laserSub = null;
+            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
+        }
+        public static void reSub()
+        {
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
+            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;             
+        }
+
+
         public event specificAndroidDelegate specificAndroidEvent;
         public void androidCallback(m.String str)
         {

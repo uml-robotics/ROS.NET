@@ -369,7 +369,7 @@ namespace XmlRpc_Wrapper
                 SegFault();
                 if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
                 {
-                    //Clear();
+                    Clear();
                     return 0;
                 }
                 if (Type != TypeEnum.TypeString && Type != TypeEnum.TypeStruct && Type != TypeEnum.TypeArray)

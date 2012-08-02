@@ -92,7 +92,7 @@ namespace Ros_CSharp
                 }
                 if (nothingtolog)
                 {
-                    Thread.Sleep(1);
+                    Thread.Sleep(10);
                     continue;
                 }
                 if (shutting_down) return;
@@ -103,7 +103,7 @@ namespace Ros_CSharp
                     if (shutting_down) return;
                 }
                 localqueue.Clear();
-                Thread.Sleep(0);
+                Thread.Sleep(1);
             }
         }
     }

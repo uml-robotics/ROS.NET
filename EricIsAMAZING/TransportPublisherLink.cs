@@ -44,7 +44,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            EDB.WriteLine(parent.datatype);
+            //EDB.WriteLine(parent.datatype);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())

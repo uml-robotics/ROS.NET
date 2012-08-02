@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using n = System.Net;
@@ -103,35 +104,32 @@ namespace Ros_CSharp.CustomSocket
             Dispose(true);
         }
 
-        public void GTFO()
-        {
-            Dispose(true);
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (!disposed)
             {
-                //EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
+                EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
                 if (Get(FD) != null)
                 {
                     _socklist.Remove(FD);
                 }
-                _freelist.Add(FD);
                 disposed = true;
+                _freelist.Add(FD);                
                 base.Dispose(disposing);
             }
         }
 
         public bool SafePoll(int timeout, SelectMode sm)
         {
-            bool res = false;
+            if (disposed) return false;
+            bool res = false;            
             try
-            {
-                res = Poll(timeout, sm);
+            {                
+                res = base.Poll(timeout, sm);
             }
-            catch 
+            catch(Exception e)
             {
+                Console.WriteLine(e);
                 res = sm == SelectMode.SelectError;
             }
             return res;

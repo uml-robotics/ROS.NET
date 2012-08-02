@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using Socket = Ros_CSharp.CustomSocket.Socket;
+using System.Threading;
 
 #endregion
 
@@ -237,13 +238,11 @@ namespace Ros_CSharp
 
             if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
                 return false;
-
-            while (!sock.Connected)
-            {
-            }
-
+            
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
 
+            
+               while (!sock.Connected) {}                    
             if (!initializeSocket())
                 return false;
             return true;
@@ -571,6 +570,7 @@ namespace Ros_CSharp
                     }
                     catch (Exception e)
                     {
+                        
                     }
                     close();
                 }
@@ -589,10 +589,9 @@ namespace Ros_CSharp
                         closed = true;
                         if (poll_set != null)
                             poll_set.delSocket(sock);
-                        if (sock.Connected)
-                            sock.Shutdown(SocketShutdown.Both);
-                        sock.Close();
-                        sock.GTFO();
+                        //if (sock.Connected)
+                        //    sock.Shutdown(SocketShutdown.Both);
+                        //sock.Close();
                         sock = null;
                         disconnect_cb = this.disconnect_cb;
                         this.disconnect_cb = null;

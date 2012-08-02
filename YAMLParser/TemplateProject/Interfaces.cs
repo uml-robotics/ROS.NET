@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using String = Messages.std_msgs.String;
+using uint8 = System.Byte;
 
 namespace Messages
 {

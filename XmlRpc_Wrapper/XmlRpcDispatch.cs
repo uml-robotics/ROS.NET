@@ -250,7 +250,7 @@ namespace XmlRpc_Wrapper
         {
             try
             {
-                clear(instance);
+                //clear(instance);
             }
             catch (Exception e)
             {

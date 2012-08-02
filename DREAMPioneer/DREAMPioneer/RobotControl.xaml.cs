@@ -37,8 +37,12 @@ namespace DREAMPioneer
 {
     public partial class RobotControl : UserControl
     {
-        public double xPos;
-        public double yPos;
+        //THIS IS TEMPORARY!!!!
+        public const string combinedMapPrefix = "/robot_brain_1";
+
+        private double xPos;
+        private double yPos;
+        public double theta;
         public double transx;
         public double transy;
         public double scalex;
@@ -48,19 +52,30 @@ namespace DREAMPioneer
 
         public static List<CommonList> OneInAMillion = new List<CommonList>();
 
-        private Publisher<gm.PoseArray> goalPub;
+       
         public string TopicName
         {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            get
+            {
+                string ret = "";
+                Dispatcher.Invoke(new Action(() =>
+                {
+                   ret = GetValue(TopicProperty) as string;
+                }));
+                return ret;
+            }
+            set { 
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                SetValue(TopicProperty, value);
+                }));
+            }
         }
 
 
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private Subscriber<gm.PolygonStamped> robotsub;
-        private Subscriber<gm.PoseArray> goalsub;
-        private Subscriber<nm.Odometry> robotposesub;
+      
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -88,131 +103,151 @@ namespace DREAMPioneer
 
         private void waitfunc()
         {
-            while (!ROS.initialized)
+            while (!ROS.initialized || !SurfaceWindow1.current.GOGOGO)
             {
                 Thread.Sleep(100);
             }
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
+            SetupTopic();
         }
+        public int ROBOT_TO_ADD;
         private void SetupTopic()
         {
-            SetupTopic(2);
+             SetupTopic(ROBOT_TO_ADD);       
         }
+        
         private void SetupTopic(int index)
         {
-            lock(window.current.ROSStuffs)
-            if (!window.current.ROSStuffs.ContainsKey(index))
-                window.current.ROSStuffs.Add(index, new ROSData(new NodeHandle(), index));
-
+            robot.ID = index;
             ROSData myData = window.current.ROSStuffs[index];
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (robotsub != null)
-                robotsub.shutdown();
-            robot.SetSize(10, 10);
-            updatePOS(0, 0);
+            if (myData.robotsub != null)
+                myData.robotsub.shutdown();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+              robot.SetSize(10, 10);
+            }));   
 
 
-            myData.goalPub = imagehandle.advertise<Messages.custom_msgs.arrayofdeez>(myData.Name + "/goal_list", 1000);
+            myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
 
             myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/odom", 1, (k) =>
-                Dispatcher.BeginInvoke(new Action(() =>
+            {
+                gm.Vector3 vec;
+                gm.Quaternion quat;                
+                tf_node.transformFrame(myData.Name + "/odom", myData.Name+"/map", out vec, out quat);
+                double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                double t = convert(k.pose.pose.orientation).z * -180 / Math.PI;
+                
+                //IT TOOK ME AN HOUR TO FIND THIS FUCKING WRITELINE YOU BASTARD ZOMG
+                //Console.WriteLine(t);
+
+                //if (x != xPos || y != yPos || t != theta)
+                    Dispatcher.BeginInvoke(new Action(() =>
+                   {
+                       updatePOS(x, y, t);
+                   }));
+                if (x == 0 && y == 0 && t == 0)
+                    Console.WriteLine(myData.Name+" ODOM TO MAP TRANSFORM = BORKED!");
+                  
+            }, "*");
+
+            myData.goalsub = imagehandle.subscribe<gm.PoseArray>(myData.Name + "/goal_progress", 1, (j) =>
                 {
-                    gm.Vector3 vec;
-                    gm.Quaternion quat;
-                    tf_node.transformFrame(myData.Name + "/odom", myData.Name + "/map", out vec, out quat);
-                    double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                    double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                    double t = convert(quat).z;
-                    //Console.WriteLine(t +"\t"+quat.w+"\t"+quat.z);
-                    updatePOS(x, y, t);
-                    
-                })),"*");
-
-            /*new Thread(() =>
-                {
-                    while (true)
-                    {
-
-                        Thread.Sleep(100);
-                    }
-                });*/
-
-            myData.goalsub = imagehandle.subscribe<Messages.custom_msgs.arrayofdeez>(myData.Name + "/goal_progress", 1, (j) =>
-                 Dispatcher.BeginInvoke(new Action(() =>
-                 {
-                     int i = 0;
-                     List<Point> points = new List<Point>(j.nuts.Length);
-                     foreach (gm.Pose P in j.nuts)
+                     List<Point> points = new List<Point>(j.poses.Length);
+                     foreach (gm.Pose P in j.poses)
                      {
-                         double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                         double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                         double x = (P.position.x);//* (double)ROS_ImageWPF.MapControl.PPM;
+                         double y = (P.position.y); //* (double)ROS_ImageWPF.MapControl.PPM;
                          points.Add(new Point(x,y));
                      }
-                     updateGoal(points,i);
-                 })));
+                     updateGoal(points,myData.RobotNumber);
+                 });
 
 
-            myData.robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    gm.Vector3 vec;
-                    gm.Quaternion quat;
-                    tf_node.transformFrame(myData.Name + "/odom", myData.Name + "/map", out vec, out quat);
-                    float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
-                    float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
-                    Point p = new Point(x, y);                                  
-                    foreach(CommonList CL in OneInAMillion)
-                    {
+        //    myData.robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
+        //        Dispatcher.BeginInvoke(new Action(() =>
+        //        {
+        //            gm.Vector3 vec;
+        //            gm.Quaternion quat;
+        //            tf_node.transformFrame(myData.Name + "/odom", "/" + combinedMapPrefix + "/map", out vec, out quat);
+        //            float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
+        //            float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
+        //            Point p = new Point(x, y);                                  
+        //            foreach(CommonList CL in OneInAMillion)
+        //            {
                         
-                        if (CL.P_List.Count > 0 && compare(p, CL.P_List[0]))
-                        {
-                            CL.P_List.RemoveAt(0);
-                            sendnext = true;
-                        }
-                        if (CL.P_List.Count > 0 && sendnext)
-                        {
-                            //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
-                          goalPub.publish(new gm.PoseArray
-                            {
-                                header = new m.Header { frame_id = new m.String { data = myData.Name + "/map" } },
-                                poses = new gm.PoseArray().poses
-                            });
-                            sendnext = false;
-                        }
-                    }
-                    updatePOS(x,y);
-                    })),"*");
+        //                if (CL.P_List.Count > 0 && compare(p, CL.P_List[0]))
+        //                {
+        //                    CL.P_List.RemoveAt(0);
+        //                    sendnext = true;
+        //                }
+        //                if (CL.P_List.Count > 0 && sendnext)
+        //                {
+        //                    //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
+        //                    window.current.ROSStuffs[index].goalPub.publish(new gm.PoseArray()
+        //                    {
+        //                        poses = MakePoseArray(CL.P_List) 
+        //                    });
+        //                    sendnext = false;
+        //                }
+        //            }
+        //            //updatePOS(x,y);
+        //            })),"*");
         }
 
        public gm.Vector3 convert(gm.Quaternion q) {
             gm.Vector3 ret = new gm.Vector3();
-            double sqw = q.w*q.w;
-            double sqx = q.x*q.x;
-            double sqy = q.y*q.y;
-            double sqz = q.z*q.z;
-            double unit = sqx + sqy + sqz + sqw; //normalization coefficient
-            double test = q.x*q.y + q.z*q.w;
-        if (Math.Abs(test) > Math.Abs(0.499*unit)) { // singularity at north pole
-                int sign  = Math.Sign(test);
-                ret.y = 2*sign*Math.Atan2(q.x,q.w);
-                ret.z = sign*Math.PI/2;
-              ret.x = 0;
-         return ret;
- }
-        ret.y = Math.Atan2(2*q.y*q.w-2*q.x*q.z , sqx - sqy - sqz + sqw);
-        ret.z = Math.Asin(2*test/unit);
-        ret.x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw);
-    return ret;
-}
-        public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy)
+            double w2 = q.w*q.w;
+            double x2 = q.x*q.x;
+            double y2 = q.y*q.y;
+            double z2 = q.z*q.z;
+            double unitLength = w2 + x2 + y2 + z2;    // Normalised == 1, otherwise correction divisor.
+            double abcd = q.w*q.x + q.y*q.z;
+             double eps = Math.E;    
+            double pi = Math.PI;   
+     if (abcd > (0.5-eps)*unitLength)
+     {
+         ret.z = 2 * Math.Atan2(q.y, q.w);
+         ret.y = pi;
+         ret.x = 0;
+     }
+     else if (abcd < (-0.5 + eps) * unitLength)
+     {
+         ret.z = -2 * Math.Atan2(q.y, q.w);
+         ret.y = -pi;
+         ret.x = 0;
+     }
+     else
+     {
+         double adbc = q.w * q.z - q.x * q.y;
+         double acbd = q.w * q.y - q.x * q.z;
+         ret.z = Math.Atan2(2 * adbc, 1 - 2 * (z2 + x2));
+         ret.y = Math.Asin(2 * abcd / unitLength);
+         ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
+     }
+     return ret;
+     }
+
+       private gm.Pose[] MakePoseArray(List<Point> PList)
+       {
+           gm.Pose[] ret = new gm.Pose[PList.Count];
+           for (int i = 0; i < PList.Count; i++)
+               ret[i] = new Messages.geometry_msgs.Pose { position = new Messages.geometry_msgs.Point { x = PList[i].X, y = PList[i].Y, z = 0 }, orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 } };
+               
+        return ret;   
+       }
+
+
+       public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy, int ID)
         {
             
-            Dispatcher.Invoke(new Action(() =>
-                {
-                    CheckUnique(wayp, robot.ID);
-                }));
-            
+            window.current.ROSStuffs[ID].goalPub.publish(new gm.PoseArray()
+            {
+                header = new Messages.std_msgs.Header(),           
+                poses = MakePoseArray(wayp)
+            });
             transx = x;
             transy = y;
             scalex = xx;
@@ -228,10 +263,10 @@ namespace DREAMPioneer
         {
             //if (x + y > 0 || x + y < 0) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
-                xPos = x + window.current.map.Width / 2;
-                yPos = y + window.current.map.Height / 2;
-                Canvas.SetLeft(robot, x - robot.Width / 2 + window.current.map.Width/2);
-                Canvas.SetTop(robot, y - robot.Height / 2 + window.current.map.Height/2);
+                xPos = x - robot.Width / 2;
+                yPos = y - robot.Height / 2;
+                Canvas.SetLeft(robot, xPos);
+                Canvas.SetTop(robot, yPos);
                 robot.SetSize(10, 10);
                 robot.Theta = t;
             }
@@ -245,12 +280,13 @@ namespace DREAMPioneer
         {
            //if (x + y > 0 || x + y < 0)  // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
-                xPos = x + window.current.map.Width / 2;
-                yPos = y + window.current.map.Height / 2;
-                Canvas.SetLeft(robot, x - robot.Width / 2 + window.current.map.Width/2);
-                Canvas.SetTop(robot, y - robot.Height / 2 + window.current.map.Height/2);
+                xPos = x ;
+                yPos = y;
+                Canvas.SetLeft(robot, xPos - robot.Width / 2);
+                Canvas.SetTop(robot, yPos - robot.Height / 2);
                 robot.SetSize(10, 10);
                 robot.Theta = t;
+                theta = t;
 
             }
         }
@@ -286,20 +322,17 @@ namespace DREAMPioneer
 
         private void updateGoal(List<Point> points, int index)
         {
-            window.current.Dispatcher.Invoke(new Action(() =>
-                {
-                    bool unique = CheckUnique(points, index);
-                }));
+             bool unique = CheckUnique(points, index);         
         }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
         ///   constructor... nothing fancy
         /// </summary>
-        public RobotControl()
+        public RobotControl(int R)
         {
+            ROBOT_TO_ADD = R;
             InitializeComponent();
-            robot.ID = 0; //TEMP CODE
         }
 
          
@@ -308,21 +341,22 @@ namespace DREAMPioneer
         {
             
             if (P_List.Count == 0) return false;
-            CommonList DisList;
+            CommonList DisList = null;
             if (OneInAMillion.Count == 0)
             {
                 //IT IS UNIQUE
-                
-                DisList = new CommonList(P_List, R,robot.Arrow.Fill, 1);
+
+                Dispatcher.Invoke(new Action(() => { DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1); }));
                 OneInAMillion.Add(DisList);
-
-                window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
-                if (DisList.Dots.Count >= 2)
-                    DisList.Dots[0].NextOne = true;
-                foreach (Robot_Info RI in DisList.RoboInfo)
-                    if (RI.RoboNum == R)
-                        window.current.SetGoal(R, P_List, DisList, RI);
-
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+                    if (DisList.Dots.Count >= 2)
+                        DisList.Dots[0].NextOne = true;
+                    foreach (Robot_Info RI in DisList.RoboInfo)
+                        if (RI.RoboNum == R)
+                            window.current.SetGoal(R, P_List, DisList, RI);
+                }));
                 return true;
             }
 
@@ -334,10 +368,7 @@ namespace DREAMPioneer
                 foreach (Robot_Info RI in CL.RoboInfo)
                     if (RI.RoboNum == R && !RI.done)
                     {
-
-                        window.current.SetGoal(R, P_List, CL, RI);
-
-
+                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
                         return false;
                     }
 
@@ -359,9 +390,10 @@ namespace DREAMPioneer
                                 CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
                                 foreach (Robot_Info RI in CL.RoboInfo)
                                     if (RI.RoboNum == R)
-                                       window.current.SetGoal(R, P_List, CL, RI);
-
-                                return false;
+                                    {
+                                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                                        return false;
+                                    }
                             }
 
                             else if (P_List[i] != CL.P_List[i + j]) break;
@@ -386,8 +418,10 @@ namespace DREAMPioneer
                                // window.current.AddGoalDots(Better_List, CL.Dots, robot.Arrow.Fill);
                                 foreach (Robot_Info RI in CL.RoboInfo)
                                     if (RI.RoboNum == R)
-                                        window.current.SetGoal(R, P_List, CL, RI);
-                                return false;
+                                    {
+                                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                                        return false;
+                                    }
                             }
                             else if (P_List[i + j] != CL.P_List[i]) break;
                     }
@@ -403,8 +437,10 @@ namespace DREAMPioneer
             DisList.Dots[1].NextOne = true;
             foreach (Robot_Info RI in DisList.RoboInfo)
                 if (RI.RoboNum == R)
-                    window.current.SetGoal(R, P_List, DisList, RI);
-
+                {
+                    Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, DisList, RI });
+                    return true;
+                }
             return true;
         }
 

@@ -134,10 +134,11 @@ namespace DREAMPioneer
         /// </param>
         public void SetSize(double w, double h)
         {
-            
-                    DotHeight = h;
-                    DotWidth = w;
-                
+            DotHeight = 40;
+            DotWidth = 40;
+            RenderTransformOrigin = new Point(0.5, 0.5);
+            ((ScaleTransform)RenderTransform).ScaleX = w / 25.0;
+            ((ScaleTransform)RenderTransform).ScaleY = h / 25.0;                
         }
 
         #endregion

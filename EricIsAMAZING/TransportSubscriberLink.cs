@@ -160,6 +160,7 @@ namespace Ros_CSharp
                     writing_message = true;
                     m = outbox.Dequeue();
                 }
+
             }
             if (m != null)
             {
