@@ -2,14 +2,47 @@
 
 using System;
 using System.Runtime.InteropServices;
-
+using System.Diagnostics;
 #endregion
 
 namespace XmlRpc_Wrapper
 {
     public abstract class XmlRpcSource : IDisposable
     {
-        public IntPtr instance;
+        protected IntPtr __instance;
+
+        public IntPtr instance
+        {
+            [DebuggerStepThrough]
+            get { return __instance; }
+            [DebuggerStepThrough]
+            set
+            {
+                if (value != IntPtr.Zero)
+                {
+                    if (__instance != IntPtr.Zero)
+                        RmRef(ref __instance);
+                    AddRef(value);
+                    __instance = value;
+                }
+            }
+        }
+
+        public virtual void RmRef(ref IntPtr i)
+        {
+        }
+
+        public virtual void AddRef(IntPtr i)
+        {
+        }
+
+        public void SegFault()
+        {
+            if (__instance == IntPtr.Zero)
+            {
+                throw new Exception("BOOM");
+            }
+        }
 
         public int FD
         {

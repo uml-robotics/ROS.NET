@@ -41,12 +41,10 @@ namespace XmlRpc_Wrapper
     }
 
 
-    public class XmlRpcClient : /*XmlRpcSource,*/ IDisposable
+    public class XmlRpcClient : XmlRpcSource, IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
-
-        private IntPtr __instance;
-
+                
         public void Dispose()
         {
             Shutdown();
@@ -146,24 +144,7 @@ namespace XmlRpc_Wrapper
                 }
             }
         }
-
-        public IntPtr instance
-        {
-            [DebuggerStepThrough]
-            get { return __instance; }
-            [DebuggerStepThrough]
-            set
-            {
-                if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
-                    AddRef(value);
-                    __instance = value;
-                }
-            }
-        }
-
+        
         public void Shutdown()
         {
             if (Shutdown(__instance)) Dispose();

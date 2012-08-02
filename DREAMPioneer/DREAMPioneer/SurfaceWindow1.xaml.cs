@@ -779,8 +779,8 @@ namespace DREAMPioneer
                 //if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
                 {
                     Messages.custom_msgs.ptz pt = new ptz();
-                    pt.x = (float)(rx / 100.0);
-                    pt.y = (float)(ry / 100.0);
+                    pt.x = (float)(rx / -100.0);
+                    pt.y = (float)(ry / -100.0);
                     pt.CAM_MODE = ptz.CAM_ABS;
                     ROSData.servosPub.publish(pt);
                     currtime = DateTime.Now;

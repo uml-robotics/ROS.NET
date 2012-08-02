@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc_Wrapper
 {
-    public class XmlRpcServer : /*XmlRpcSource,*/ IDisposable
+    public class XmlRpcServer : XmlRpcSource, IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
 

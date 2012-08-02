@@ -2,6 +2,7 @@
 {
     public class AsyncXmlRpcConnection
     {
+
         public virtual void addToDispatch(XmlRpcDispatch disp)
         {
         }

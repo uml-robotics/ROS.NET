@@ -222,6 +222,7 @@ namespace XmlRpc_Wrapper
 
         public void RemoveSource(XmlRpcClient source)
         {
+            source.SegFault();
             removesource(instance, source.instance);
         }
 
