@@ -431,24 +431,16 @@ namespace DREAMPioneer
                     Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
                     Say("STOP! HAMMER TIME!", 1);
                     EndState("DOUBLE FIST");
-                    
-                    Dictionary<int, Brush> TmpColorList = new Dictionary<int, Brush>(GoalDot.ColorInUse);
-                    lock (GoalDot.ColorInUse)
-                    {
-                        GoalDot.ColorInUse.Clear();
-                        foreach (int i in TmpColorList.Keys)
-                        {
-                            GoalDot.ColorInUse.Add((i * -1 - 1), TmpColorList[i]);
-                        }                        
-                        foreach (int x in ROSStuffs.Keys)
-                        {
+
+                   
+                       
+                       
                             Dispatcher.BeginInvoke(
-                                new Action<int>((r) => 
+                                new Action(() => 
                                     {
-                                        int R = ROSStuffs[r].myRobot.robot.circles.IndexOf(ROSStuffs[r].myRobot.robot.Border.Stroke);
-                                        ROSStuffs[r].myRobot.robot.ChangeIconColors(R);
-                        }), x );
-                        }
+                                      RobotColor.freeAll(); 
+                                     }));
+                        
                         foreach (CommonList CL in RobotControl.OneInAMillion)
                         {
                             foreach (GoalDot GD in CL.Dots)
@@ -459,7 +451,7 @@ namespace DREAMPioneer
                         RobotControl.OneInAMillion.Clear();
                     }
                 }
-            }
+            
             else
             {
                 if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
@@ -535,19 +527,7 @@ namespace DREAMPioneer
                         Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
                         EndState("DOUBLE FIST");
                         Say("STOP! HAMMER TIME!", -10);
-                        Brush[] TmpColorList = new Brush[ROSStuffs.Count];
-                        lock (GoalDot.ColorInUse)
-                        {
-                            for (int r = 0; r < GoalDot.ColorInUse.Count; r++)
-                            {
-                                TmpColorList = GoalDot.ColorInUse.Values.ToArray();
-                                GoalDot.ColorInUse.Clear();
-                                for (int i = 0; i < TmpColorList.Length; i++)
-                                {
-                                    GoalDot.ColorInUse.Add((i * -1 - 1), TmpColorList[i]);
-                                    ROSStuffs[i].myRobot.robot.ChangeIconColors(ROSStuffs[i].myRobot.robot.circles.IndexOf(ROSStuffs[i].myRobot.robot.Border.Stroke));
-                                }
-                            }
+                        RobotColor.freeAll();
                             foreach (CommonList CL in RobotControl.OneInAMillion)
                             {
                                 foreach (GoalDot GD in CL.Dots)
@@ -556,7 +536,7 @@ namespace DREAMPioneer
                                 CL.RoboInfo.Clear();
                             }
                             RobotControl.OneInAMillion.Clear();
-                        }
+                        
                         fisting = false;
                     }
                 }                
@@ -1055,22 +1035,7 @@ namespace DREAMPioneer
         /// </param>
         public void AddGreen(int i)
         {
-            Brush Tmp_Brush;
-            lock (GoalDot.ColorInUse)
-            {
-                if (GoalDot.ColorInUse.ContainsKey(i))
-                {
-                    Tmp_Brush = GoalDot.ColorInUse[i];
-                    GoalDot.ColorInUse.Remove(i);
-                    for (int c = 1; c <= GoalDot.ColorInUse.Count + 1; c++)
-                        if (!GoalDot.ColorInUse.ContainsKey(-c))
-                        {
-                            GoalDot.ColorInUse.Add((-c), Tmp_Brush);
-                            break;
-                        }
-                    ROSStuffs[i].myRobot.robot.ChangeIconColors(ROSStuffs[i].myRobot.robot.circles.IndexOf(ROSStuffs[i].myRobot.robot.Border.Stroke));
-                }
-            }
+            RobotColor.freeMe(i);
             bool Done = false;
             foreach (CommonList CL in RobotControl.OneInAMillion)
             {
@@ -1368,7 +1333,7 @@ namespace DREAMPioneer
         /// </param>
         public void SetGoal(int r, List<Point> PList, CommonList CL, Robot_Info RI)
         {
-
+            if (PList.Count == 0) return;
 
             RI.CurrentLength = PList.Count;
             RI.Next = PList.First();
@@ -1529,7 +1494,7 @@ namespace DREAMPioneer
         private void RemoveSelected(int robot, Touch e, string REASON)
         {
             selectedList.Remove(robot);
-            NoPulse(robot);
+            RemoveYellow(robot); 
             pendingIsAdd = false;
             if (selectedList.Count == 0)
                 ChangeState(RMState.Start, "No robots selected");
@@ -1957,7 +1922,7 @@ namespace DREAMPioneer
                         {
                             SteveJobsHasCancer = false;
                             ROSStuffs[touchedRobot].myRobot.robot.SetColor(Brushes.Transparent);
-                            NoPulse(touchedRobot);
+                            RemoveYellow(touchedRobot);
                         }else if (touchedRobotWasYellow && touchedRobot != ROSData.ManualNumber)
                             PulseYellow(touchedRobot);
                     }
@@ -2087,7 +2052,7 @@ namespace DREAMPioneer
 
                     if (touchedRobot != -1)
                     {
-                        NoPulse(touchedRobot);
+                        RemoveYellow(touchedRobot);
                         ROSStuffs[touchedRobot].myRobot.robot.SetOpacity(0.5);
                         ROSStuffs[touchedRobot].myRobot.robot.SetColor(Brushes.Blue);
                         touchedRobotWasYellow = selectedList.Contains(touchedRobot);
@@ -2165,7 +2130,7 @@ namespace DREAMPioneer
                                                     {
                                                         if (index == ROSData.ManualNumber && index != -1)
                                                         {
-                                                            NoPulse(index);
+                                                            RemoveYellow(index);
                                                             ROSData.joyPub.publish(new Messages.geometry_msgs.Twist{linear = new Messages.geometry_msgs.Vector3{ x=0 }, angular=new Messages.geometry_msgs.Vector3{z=0}});
                                                             changeManual(touchedRobot);
                                                             if (selectedList.Contains(touchedRobot))
@@ -2182,7 +2147,7 @@ namespace DREAMPioneer
                                                                         "GIVE HIM THE STICK! (don't give him the stick!)");
                                                                 }
 
-                                                                NoPulse(ROSData.ManualNumber);
+                                                                RemoveGreen(ROSData.ManualNumber);
                                                                 ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
                                                                 changeManual(-1);
                                                             }
@@ -2396,24 +2361,11 @@ namespace DREAMPioneer
                 newy = translate.Y;
                 newwx = scale.ScaleX;
                 newwy = scale.ScaleY;
-            Brush Tmp_Brush;
+           
             foreach (int r in selectedList)
             {
-                lock (GoalDot.ColorInUse)
-                {
-                    if (GoalDot.ColorInUse.ContainsKey(r))
-                    {
-                        Tmp_Brush = GoalDot.ColorInUse[r];
-                        GoalDot.ColorInUse.Remove(r);
-                        for (int i = 1; i <= GoalDot.ColorInUse.Count; i++)
-                            if (!GoalDot.ColorInUse.ContainsKey(-i))
-                            {
-                                GoalDot.ColorInUse.Add((-i), Tmp_Brush);
-                                break;
-                            }
-                       ROSStuffs[r].myRobot.robot.ChangeIconColors(ROSStuffs[r].myRobot.robot.circles.IndexOf(ROSStuffs[r].myRobot.robot.Border.Stroke));
-                    }
-                }
+                RobotColor.freeMe(r);
+                                 
                 bool Done = false;
                 foreach (CommonList CL in RobotControl.OneInAMillion)
                 {
@@ -2443,16 +2395,7 @@ namespace DREAMPioneer
 
             }
 
-            foreach (int r in selectedList)
-                for (int i = 1; i <= GoalDot.ColorInUse.Count; i++)
-                    if (GoalDot.ColorInUse.ElementAt(i).Key < 0)
-                    {
-                        Tmp_Brush = GoalDot.ColorInUse.ElementAt(i).Value;
-                        GoalDot.ColorInUse.Remove(GoalDot.ColorInUse.ElementAt(i).Key);
-                        GoalDot.ColorInUse.Add(r, Tmp_Brush);
-                        ROSStuffs[r].myRobot.robot.setArrowColor(Tmp_Brush);
-                        break;
-                    }
+            
             lock (waypointDots)
             {                
                 asyncWaypointStuff = new Action<int[]>((sel2) =>
@@ -2471,6 +2414,7 @@ namespace DREAMPioneer
                 }
                 waypointDots.Clear();
                 Waypoint.PointLocations.Clear();
+                
             }
             asyncWaypointStuff.BeginInvoke(selectedList.ToArray(), (iar) =>
             {

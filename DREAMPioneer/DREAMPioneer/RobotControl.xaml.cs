@@ -339,7 +339,7 @@ namespace DREAMPioneer
 
         public bool CheckUnique(List<Point> P_List, int R)
         {
-            
+            window.current.ROSStuffs[R].myRobot.robot.setArrowColor(RobotColor.getMyColor(R));
             if (P_List.Count == 0) return false;
             CommonList DisList = null;
             if (OneInAMillion.Count == 0)
@@ -430,17 +430,18 @@ namespace DREAMPioneer
             //IT IS UNIQUE
 
 
-            DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1);
+            Dispatcher.Invoke(new Action(() => { DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1); }));
             OneInAMillion.Add(DisList);
 
-            window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
-            DisList.Dots[1].NextOne = true;
-            foreach (Robot_Info RI in DisList.RoboInfo)
-                if (RI.RoboNum == R)
-                {
-                    Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, DisList, RI });
-                    return true;
-                }
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+                if (DisList.Dots.Count >= 1)
+                    DisList.Dots[0].NextOne = true;
+                foreach (Robot_Info RI in DisList.RoboInfo)
+                    if (RI.RoboNum == R)
+                        window.current.SetGoal(R, P_List, DisList, RI);
+            }));
             return true;
         }
 

@@ -25,6 +25,7 @@
 
 #region USINGZ
 
+using System;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
@@ -103,8 +104,10 @@ namespace DREAMPioneer
             Arrow.Fill = arrows[c];
         }
         public void setArrowColor(Brush b)
-        { 
+        { SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+            {            
             Arrow.Fill = b;
+            }));
         }
         /// <summary>
         ///   The set opacity.
