@@ -98,6 +98,7 @@ namespace DREAMPioneer
         public Timer Dethklok; 
         bool IsItAlive = true;
 
+       
         public void CheckMortality(object state)
         {
             if (DateTime.Now.Subtract(LastBeat).TotalMilliseconds > 2000)

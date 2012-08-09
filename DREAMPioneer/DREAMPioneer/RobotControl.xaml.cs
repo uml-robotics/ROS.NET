@@ -66,7 +66,7 @@ namespace DREAMPioneer
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
-
+                        
                         if (Done)
                         {
                             foreach (GoalDot GD in CL.Dots)
@@ -191,6 +191,21 @@ namespace DREAMPioneer
                          double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
                          points.Add(new Point(x,y));
                      }
+                     if (points.Count == 0)
+                        window.current.Dispatcher.BeginInvoke(new Action(() =>
+                             {
+                                 RobotColor.freeAll();
+                                 foreach (CommonList CL in RobotControl.OneInAMillion)
+                                 {
+                                     foreach (GoalDot GD in CL.Dots)
+                                         window.current.DotCanvas.Children.Remove(GD);
+                                     CL.P_List.Clear();
+                                     CL.RoboInfo.Clear();
+
+                                 }
+                                 RobotControl.OneInAMillion.Clear();
+                             }));
+                     
                      updateGoal(points, myData.RobotNumber);
                  });
 
@@ -271,7 +286,8 @@ namespace DREAMPioneer
 
        public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy, int ID)
         {
-            
+        
+    
             window.current.ROSStuffs[ID].goalPub.publish(new gm.PoseArray()
             {
                 header = new Messages.std_msgs.Header(),           
@@ -283,6 +299,7 @@ namespace DREAMPioneer
             scaley = yy;
             sendnext = true;
         }
+
         public void updatePOS(float x, float y)
         {
             updatePOS(x, y, 0);

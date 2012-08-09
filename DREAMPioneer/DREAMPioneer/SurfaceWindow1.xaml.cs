@@ -455,26 +455,10 @@ namespace DREAMPioneer
                             header = new Messages.std_msgs.Header(),
                             poses = StopPose
                         });
-                    EndState("DOUBLE FIST");                                 
-                       
-                    
-                        
-                            Dispatcher.BeginInvoke(
-                                new Action(() => 
-                                    {
-                                      RobotColor.freeAll();
-                                      foreach (CommonList CL in RobotControl.OneInAMillion)
-                                      {
-                                          foreach (GoalDot GD in CL.Dots)
-                                              DotCanvas.Children.Remove(GD);
-                                          CL.P_List.Clear();
-                                          CL.RoboInfo.Clear();
-                                      }
-                                    }));
-                       RobotControl.OneInAMillion.Clear();
-                    }
+                    EndState("DOUBLE FIST");
+
                 }
-            
+            }
             else
             {
                 if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
@@ -528,7 +512,7 @@ namespace DREAMPioneer
         {
             Touch t = GenericTypes_Surface_Adapter.SurfaceAdapter.Up(e);
             Dispatcher.BeginInvoke(new Action(() =>
-            {
+           {
                 if (fisting)
                 {                    
                     if (Fists.Count == 0 && timers.IsRunning(ref fister))
@@ -566,19 +550,9 @@ namespace DREAMPioneer
 
 
 
-                        Dispatcher.BeginInvoke(
-                            new Action(() =>
-                            {
-                                RobotColor.freeAll();
-                                foreach (CommonList CL in RobotControl.OneInAMillion)
-                                {
-                                    foreach (GoalDot GD in CL.Dots)
-                                        DotCanvas.Children.Remove(GD);
-                                    CL.P_List.Clear();
-                                    CL.RoboInfo.Clear();
-                                }
-                            }));
-                        RobotControl.OneInAMillion.Clear();
+                       
+                           
+                                
                         
                         fisting = false;
                     }
@@ -977,6 +951,7 @@ namespace DREAMPioneer
         private void GreenTimer_Tick(object sender)
         {
             greenCurrent += greenDelta;
+            
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 foreach (DREAMPioneer.RobotControl el in GreenDots)
