@@ -38,7 +38,6 @@ namespace Ros_CSharp
                 return _instance;
             }
         }
-        static Dictionary<string, tf_frame> frames;
 
         private NodeHandle tfhandle;
         private Subscriber<tf.tfMessage> tfsub;
@@ -46,13 +45,11 @@ namespace Ros_CSharp
         public object addlock = new object();
         public object frameslock = new object();
         public Thread updateThread;
-
+        public Transformer transformer = new Transformer();
         public tf_node()
         {
             if (additions == null)
                 additions = new Queue<tf.tfMessage>();
-            if (frames == null)
-                frames = new Dictionary<string, tf_frame>();
             if (tfhandle == null)
             {
                 tfhandle = new NodeHandle();        
@@ -71,29 +68,14 @@ namespace Ros_CSharp
                             }
                             if (local.Count > 0)
                             {
-                                Dictionary<string, tf_frame> localframes;
-                                lock (frameslock)
-                                {
-                                    localframes = new Dictionary<string, tf_frame>(frames);
-                                }
                                 while (local.Count > 0)
                                 {
                                     tf.tfMessage msg = local.Dequeue();
                                     foreach (Messages.geometry_msgs.TransformStamped t in msg.transforms)
                                     {
-                                        //Console.WriteLine("TF UPDATE: " + t.header.frame_id.data + " --> " + t.child_frame_id.data);
-                                        if (!localframes.ContainsKey(t.header.frame_id.data))
-                                        {
-                                            localframes.Add(t.header.frame_id.data, new tf_frame(t));
-                                        }
-                                        else
-                                        {
-                                            localframes[t.header.frame_id.data].transform = t.transform;
-                                        }
+                                        transformer.setTransform(new emTransform(t));
                                     }
                                 }
-                                lock (frameslock)
-                                    frames = localframes;
                             }
                             Thread.Sleep(1);
                         }
@@ -105,123 +87,334 @@ namespace Ros_CSharp
 
         private void tfCallback(tf.tfMessage msg)
         {
-            //if (frames.Count < 16) Console.WriteLine("OH NOZ NOT ENUF TRANZFURMS (("+frames.Count+"))");
             lock(addlock)
                 additions.Enqueue(msg);
         }
 
-        public tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
+        public emTransform transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
-            try
-            {
-                List<tf_frame> currFrames = link(source, target);
-                gm.Transform trans;
-                trans = new gm.Transform();                
-                vec = new gm.Vector3();
-                vec.x = vec.y = vec.z = 0;
-                quat = new gm.Quaternion();
-                quat.w = quat.x = quat.y = quat.z = 0;
-                //Console.WriteLine("Tapdancing through " + currFrames.Count + "FRAMES");
-                foreach (tf_frame k in currFrames)
-                {                    
-                    quat.w += k.transform.rotation.w;
-                    quat.x += k.transform.rotation.x;
-                    quat.y += k.transform.rotation.y;
-                    quat.z += k.transform.rotation.z;
-                    vec.x += k.transform.translation.x;
-                    vec.y += k.transform.translation.y;
-                    vec.z += k.transform.translation.z;
-                }
-            }
-            catch (Exception e) { Console.WriteLine(e); vec = new Messages.geometry_msgs.Vector3(); quat = new Messages.geometry_msgs.Quaternion(); }
-            return new tf_frame();
+            emTransform trans = new emTransform();
+            transformer.lookupTransform(target, source, new Messages.std_msgs.Time(new TimeData()), out trans);
+            vec = trans != null ? trans.translation.ToMsg() : new emVector3().ToMsg();
+            quat = trans != null ? trans.rotation.ToMsg() : new emQuaternion().ToMsg();
+            return trans;
         }
-
-        private Dictionary<string, Dictionary<string, List<tf_frame>>> memo;
-        private Dictionary<string, Dictionary<string, DateTime>> updated; 
-        public List<tf_frame> link(string source, string target)
+        public List<emTransform> link(string source, string target)
         {
             lock (frameslock)
             {                
                 return link_unlocked(source, target);
             }
         }
-        private List<tf_frame> link_unlocked(string source, string target)
+        private List<emTransform> link_unlocked(string source, string target)
         {
-            bool doit = false;
-            if (memo == null)
-                memo = new Dictionary<string, Dictionary<string, List<tf_frame>>>(); 
-            if (updated == null)
-                updated = new Dictionary<string, Dictionary<string, DateTime>>();
-            if (!memo.ContainsKey(source))
-            {
-                doit = true;
-                memo.Add(source, new Dictionary<string, List<tf_frame>>());
-                updated.Add(source, new Dictionary<string, DateTime>());
-            }
-            if (!memo[source].ContainsKey(target))
-            {
-                doit = true;
-                memo[source].Add(target, new List<tf_frame>());
-                updated[source].Add(target, DateTime.Now);
-            }
-            double dift = DateTime.Now.Subtract(updated[source][target]).TotalMilliseconds;
-            //Console.WriteLine(dift);
-            doit |=  dift > 10;
-            if (doit)
-            {
-                if (memo.ContainsKey(source) && memo[source].ContainsKey(target))
-                    memo[source][target].Clear();
-                if (frames.ContainsKey(target))
-                {
-                    if (source != target)
-                    {
-                        List<tf_frame> res = link_unlocked(source, frames[target].child_id.data);
-                        memo[source][target].AddRange(res);                        
-                    }
-                    memo[source][target].Add(frames[target]);
-                }
-                updated[source][target] = DateTime.Now;
-            }
-
-            return memo[source][target];
+            
+            return null;
         }
     }
 
-
-    public class tf_frame
+    public class Transformer
     {
-        gm.TransformStamped msg;
-        static int numberofframes;
-
-        public tf_frame()
+        //autobots, roll out
+        private object framemutex = new object();
+        Dictionary<string, emTransform> frames = new Dictionary<string,emTransform>{{"/", null}};
+        public void lookupTransform(String t, String s, Messages.std_msgs.Time time, out emTransform transform) { lookupTransform(t.data, s.data, time, out transform); }
+        public void lookupTransform(string target_frame, string source_frame, Messages.std_msgs.Time time, out emTransform transform)
         {
+            lock (framemutex)
+            {
+                TransformAccum accum = new TransformAccum();
+                if (!walkToTopParent(accum, time, target_frame, source_frame))
+                {
+                    transform = null;
+                    throw new Exception("UNGH");
+                }
+                transform = new emTransform(accum.result_quat, accum.result_vec, accum.time, source_frame, target_frame);
+            }
+        }
+        public bool walkToTopParent(TransformAccum f, Messages.std_msgs.Time time, string target_frame, string source_frame)
+        {
+            if (target_frame == source_frame)
+            {
+                f.finalize(TransformAccum.WalkEnding.Identity, time);
+                return true;
+            }
+            string frame = source_frame;
+            string top_parent = frame;
+            while (frames[frame] != null)
+            {
+                emTransform cache = frames[frame];
+                if (cache == null)
+                    break;
+                string parent = cache.parent_frame_id;
+                if (parent == null)
+                {
+                    top_parent = frame;
+                    break;
+                }
 
+                if (frame == target_frame)
+                {
+                    f.finalize(TransformAccum.WalkEnding.TargetParentOfSource, time);
+                    return true;
+                }
+                f.accum(true);
+                top_parent = frame;
+                frame = parent;
+            }
+
+            frame = target_frame;
+            while (frame != top_parent)
+            {
+                emTransform cache = frames[frame];
+                if (cache == null)
+                {
+                    break;
+                }
+
+                string parent = cache.parent_frame_id;
+                if (parent == null)
+                {
+                    return false;
+                }
+                if (frame == source_frame)
+                {
+                    f.finalize(TransformAccum.WalkEnding.SourceParentOfTarget, time);
+                    return true;
+                }
+                f.accum(false);
+                frame = parent;
+            }
+
+            if (frame != top_parent) return false;
+
+            f.finalize(TransformAccum.WalkEnding.FullPath, time);
+
+            return true;
         }
 
-        public tf_frame(gm.TransformStamped _msg)
+        public bool setTransform(emTransform transform)
         {
-            numberofframes++;
-            msg = _msg;
+            if (transform.child_frame_id == transform.frame_id)
+                return false;
+            if (transform.child_frame_id == "/")
+                return false;
+            if (transform.frame_id == "/")
+                return false;
+            lock (frames)
+            {
+                if (!frames.ContainsKey(transform.frame_id)) frames.Add(transform.frame_id, transform);
+                else frames[transform.frame_id] = transform;
+                
+            }
+            return true;
+        }
+    }
 
-        }
-        #region Variables and accessors
-        public String frame_id
+    public class TransformAccum
+    {
+        public enum WalkEnding
         {
-            get { return msg.header.frame_id; }
-            set { msg.header.frame_id = value; }
+            Identity, TargetParentOfSource, SourceParentOfTarget, FullPath
+        }
+        public emTransform st;
+        public emQuaternion source_to_top_quat, target_to_top_quat, result_quat;
+        public emVector3 source_to_top_vec, target_to_top_vec, result_vec;
+        public Messages.std_msgs.Time time;
+        public void finalize(WalkEnding end, Messages.std_msgs.Time _time)
+        {
+            switch (end)
+            {
+                case WalkEnding.Identity: break;
+                case WalkEnding.TargetParentOfSource:
+                    result_vec = source_to_top_vec;
+                    result_quat = source_to_top_quat;
+                    break;
+                case WalkEnding.SourceParentOfTarget:
+                    result_quat = target_to_top_quat.inverse();
+                    result_vec = quatRotate(result_quat, new emVector3()-target_to_top_vec);
+                    break;
+                case WalkEnding.FullPath:
+                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3() - target_to_top_vec);
+                    result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
+                    result_quat = inv_target_quat * source_to_top_quat;
+                    break;
+            }
+            time = _time;
+        }
+        public void accum(bool source)
+        {
+            if (source)
+            {
+                source_to_top_vec = quatRotate(st.rotation, source_to_top_vec) + st.translation;
+                source_to_top_quat = st.rotation * source_to_top_quat;
+            }
+            else
+            {
+                target_to_top_vec = quatRotate(st.rotation, target_to_top_vec) + st.translation;
+                target_to_top_quat = st.rotation * target_to_top_quat;
+            }
+        }
+        public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
+        {
+            emQuaternion q = rotation * v;
+            q = q * rotation.inverse();
+            return new emVector3(q.x, q.y, q.z);
+        }
+    }
+
+    public class emTransform
+    {
+        public Messages.std_msgs.Time stamp;
+        public string frame_id, child_frame_id;
+        private static Dictionary<string, string> paternityTest;
+        public string parent_frame_id
+        {
+            get {
+                if (paternityTest == null || !paternityTest.ContainsKey(frame_id))
+                    return null;
+                return paternityTest[frame_id];
+            }
+        }
+        public emQuaternion rotation;
+        public emVector3 translation;
+        public emTransform() : this(new emQuaternion(), new emVector3(), new Messages.std_msgs.Time(new TimeData()), "", "")
+        {
+        }
+        public emTransform(gm.TransformStamped msg) : this(new emQuaternion(msg.transform.rotation), new emVector3(msg.transform.translation), msg.header.stamp, msg.header.frame_id.data, msg.child_frame_id.data)
+        {
+        }
+        public emTransform(emQuaternion q, emVector3 v, Messages.std_msgs.Time t, string fid, string cfi)
+        {
+            if (paternityTest == null) paternityTest = new Dictionary<string,string>();
+            rotation = q;
+            translation = v;
+            stamp = t;
+
+            frame_id = fid;
+            child_frame_id = cfi;
+            if (cfi.Length > 0 && fid.Length > 0)
+            {
+                if (!paternityTest.ContainsKey(cfi))
+                    paternityTest.Add(cfi, fid);
+                else
+                    paternityTest[cfi] = fid;
+            }
+        }
+    }
+
+    public class emQuaternion
+    {
+        public double x, y, z, w;
+        public emQuaternion() : this(0, 0, 0, 0) { }
+        public emQuaternion(double X, double Y, double Z, double W)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
+        }
+        public emQuaternion(emQuaternion shallow) : this(shallow.x, shallow.y, shallow.z, shallow.w) {}
+        public emQuaternion(gm.Quaternion shallow) : this(shallow.x, shallow.y, shallow.z, shallow.w) { }
+        public gm.Quaternion ToMsg()
+        {
+            return new Messages.geometry_msgs.Quaternion { w=w, x = x, y = y, z = z };
+        }
+        public static emQuaternion operator +(emQuaternion v1, emQuaternion v2)
+        {
+            return new emQuaternion(v1.w + v2.w, v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
+        }
+        public static emQuaternion operator *(emQuaternion v1, float d) { return v1 * ((double)d); }
+        public static emQuaternion operator *(emQuaternion v1, int d) { return v1 * ((double)d); }
+        public static emQuaternion operator *(emQuaternion v1, double d)
+        {
+            return new emQuaternion(v1.x * d, v1.y * d, v1.z * d, v1.w * d);
+        }
+        public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
+        {
+            return new emQuaternion(v1.w * v2.x + v1.x * v2.x + v1.y * v2.z - v1.z * v2.y,
+                v1.w * v2.y + v1.y * v2.w + v1.z * v2.x - v1.x * v2.z,
+                v1.w * v2.z + v1.z * v2.w + v1.x * v2.y - v1.y * v2.x,
+                v1.w * v2.w - v1.x * v2.x - v1.y * v2.y - v1.z * v2.z);
+        }
+        public static emQuaternion operator *(emQuaternion q, emVector3 w)
+        {
+            return new emQuaternion(w.x * q.w + w.y * q.z - w.z * q.y,
+                w.y * q.w + w.z * q.x - w.x * q.z,
+                w.z * q.w + w.x * q.y - w.y * q.x,
+                -w.x * q.x - w.y * q.y - w.z * q.z);
+        }
+        public static emQuaternion operator *(emVector3 w, emQuaternion q)
+        {
+            return new emQuaternion(w.x * q.w + w.y * q.z - w.z * q.y,
+                w.y * q.w + w.z * q.x - w.x * q.z,
+                w.z * q.w + w.x * q.y - w.y * q.x,
+                -w.x * q.x - w.y * q.y - w.z * q.z);
+        }
+        public static emQuaternion operator /(emQuaternion v1, float s)
+        {
+            return v1 / ((double)s);
         }
 
-        public String child_id
+        public static emQuaternion operator /(emQuaternion v1, int s)
         {
-            get { return msg.child_frame_id; }
-            set { msg.child_frame_id = value; }
+            return v1 / ((double)s);
         }
-        public gm.Transform transform
+        public static emQuaternion operator /(emQuaternion v1, double s)
         {
-            get { return msg.transform; }
-            set { msg.transform = value; }
+            return v1 * (1.0 / s);
         }
-        #endregion
+        public emQuaternion inverse()
+        {
+            return new emQuaternion(-x, -y, -z, -w);
+        }
+
+        public double dot(emQuaternion q)
+        {
+            return x * q.x + y * q.y + z * q.z + w * q.w;
+        }
+
+        public double length2()
+        {
+            return dot(this);
+        }
+
+        public double length()
+        {
+            return Math.Sqrt(length2());
+        }
+    }
+
+    public class emVector3
+    {
+        public double x, y, z;
+        public emVector3() : this(0, 0, 0) { }
+        public emVector3(double X, double Y, double Z)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+        }
+        public emVector3(emVector3 shallow) : this(shallow.x, shallow.y, shallow.z) {}
+        public emVector3(gm.Vector3 shallow) : this(shallow.x, shallow.y, shallow.z) { }
+        public gm.Vector3 ToMsg()
+        {
+            return new Messages.geometry_msgs.Vector3 { x = x, y = y, z = z };
+        }
+        public static emVector3 operator +(emVector3 v1, emVector3 v2)
+        {
+            return new emVector3(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
+        }
+        public static emVector3 operator -(emVector3 v1, emVector3 v2)
+        {
+            return new emVector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+        }
+        public static emVector3 operator *(emVector3 v1, float d) { return v1 * ((double)d); }
+        public static emVector3 operator *(emVector3 v1, int d) { return v1 * ((double)d); }
+        public static emVector3 operator *(emVector3 v1, double d)
+        {
+            return new emVector3(v1.x * d, v1.y * d, v1.z * d);
+        }
     }
 }
