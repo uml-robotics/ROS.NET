@@ -327,6 +327,9 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Dump", CallingConvention = CallingConvention.Cdecl)]
         private static extern void dump(IntPtr target);
 
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_ToString", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr tostring(IntPtr target);
+
         #endregion
 
         public TypeEnum Type
@@ -511,7 +514,7 @@ namespace XmlRpc_Wrapper
         {
             if (__instance == IntPtr.Zero)
                 return "this XmlRpcValue == (NULL)";
-            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size;
+            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size + "\ndata = " + Marshal.PtrToStringAnsi(tostring(instance))+"\n";
             return s;
         }
 

@@ -8,7 +8,7 @@ using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-
+using System.Diagnostics;
 #endregion
 
 namespace Ros_CSharp
@@ -104,14 +104,17 @@ namespace Ros_CSharp
 
         public void shutdown()
         {
-            foreach (ISubscriber sub in collection.subscribers)
-                sub.unsubscribe();
-            foreach (IPublisher pub in collection.publishers)
-                pub.unadvertise();
-            foreach (IServiceClient client in collection.serviceclients)
-                client.impl.shutdown();
-            foreach (IServiceServer srv in collection.serviceservers)
-                srv.impl.unadvertise();
+            lock (collection.mutex)
+            {
+                foreach (ISubscriber sub in collection.subscribers)
+                    sub.unsubscribe();
+                foreach (IPublisher pub in collection.publishers)
+                    pub.unadvertise();
+                foreach (IServiceClient client in collection.serviceclients)
+                    client.impl.shutdown();
+                foreach (IServiceServer srv in collection.serviceservers)
+                    srv.impl.unadvertise();
+            }
         }
 
          public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
@@ -320,7 +323,7 @@ namespace Ros_CSharp
             if (nh_refcount == 0 && node_started_by_nh)
                 ROS.shutdown();
         }
-
+        [DebuggerStepThrough]
         public void initRemappings(IDictionary rms)
         {
             
@@ -337,7 +340,7 @@ namespace Ros_CSharp
                 }
             }
         }
-
+        [DebuggerStepThrough]
         public string remapName(string name)
         {
             string resolved = resolveName(name, false);
@@ -347,12 +350,13 @@ namespace Ros_CSharp
                 return (string) remappings[resolved];
             return names.remap(resolved);
         }
+        [DebuggerStepThrough]
         public string resolveName(string name)
         {
            return resolveName(name, true);
         }
 
-
+        [DebuggerStepThrough]
         public string resolveName(string name, bool remap )
         {
             string error = "";
@@ -360,7 +364,7 @@ namespace Ros_CSharp
                 names.InvalidName(error);
             return resolveName(name, remap, no_validate);
         }
-
+        [DebuggerStepThrough]
         public string resolveName(string name, bool remap, bool novalidate)
         {
             //EDB.WriteLine("resolveName(" + name + ")");

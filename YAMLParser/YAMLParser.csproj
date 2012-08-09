@@ -212,13 +212,13 @@
     <Content Include="ROS_MESSAGES\nav_msgs\Path.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\roscsharp\GetLoggers.srv">
+    <Content Include="ROS_MESSAGES\rosgraph_msgs\roscsharp\GetLoggers.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\roscsharp\Logger.msg">
+    <Content Include="ROS_MESSAGES\rosgraph_msgs\roscsharp\Logger.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\roscsharp\SetLoggerLevel.srv">
+    <Content Include="ROS_MESSAGES\rosgraph_msgs\roscsharp\SetLoggerLevel.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ROS_MESSAGES\rosgraph_msgs\Log.msg">
@@ -344,6 +344,12 @@
     <None Include="ROS_MESSAGES\custom_msgs\ptz.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="ROS_MESSAGES\custom_msgs\robotMortality.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\servosPos.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\sensor_msgs\CompressedImage.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

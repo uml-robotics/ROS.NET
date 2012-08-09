@@ -164,6 +164,7 @@ namespace Ros_CSharp
         /// </exception>
         public bool IsRunning(ref Timer t)
         {
+            if (t == null) return false;
             if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
             return heardof[t].running;
         }

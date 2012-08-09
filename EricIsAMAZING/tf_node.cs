@@ -26,18 +26,28 @@ namespace Ros_CSharp
     // provide translation from 2 frames, user requests from /map to /base_link for example, must identify route
     // base_link.child = odom, odom.child = map
     // map-> odom + odom->base_link
-    public static class tf_node
+    public class tf_node
     {
+        private static tf_node _instance;
+        public static tf_node instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new tf_node();
+                return _instance;
+            }
+        }
         static Dictionary<string, tf_frame> frames;
 
-        private static NodeHandle tfhandle;
-        private static Subscriber<tf.tfMessage> tfsub;
-        private static Queue<tf.tfMessage> additions;
-        public static object addlock = new object();
-        public static object frameslock = new object();
-        public static Thread updateThread;
+        private NodeHandle tfhandle;
+        private Subscriber<tf.tfMessage> tfsub;
+        private Queue<tf.tfMessage> additions;
+        public object addlock = new object();
+        public object frameslock = new object();
+        public Thread updateThread;
 
-        public static void init()
+        public tf_node()
         {
             if (additions == null)
                 additions = new Queue<tf.tfMessage>();
@@ -93,14 +103,14 @@ namespace Ros_CSharp
             tfsub = tfhandle.subscribe<tf.tfMessage>("/tf", 1, tfCallback);
         }
 
-        private static void tfCallback(tf.tfMessage msg)
+        private void tfCallback(tf.tfMessage msg)
         {
             //if (frames.Count < 16) Console.WriteLine("OH NOZ NOT ENUF TRANZFURMS (("+frames.Count+"))");
             lock(addlock)
                 additions.Enqueue(msg);
         }
 
-        public static tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
+        public tf_frame transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
             try
             {
@@ -127,16 +137,16 @@ namespace Ros_CSharp
             return new tf_frame();
         }
 
-        private static Dictionary<string, Dictionary<string, List<tf_frame>>> memo;
-        private static Dictionary<string, Dictionary<string, DateTime>> updated; 
-        public static List<tf_frame> link(string source, string target)
+        private Dictionary<string, Dictionary<string, List<tf_frame>>> memo;
+        private Dictionary<string, Dictionary<string, DateTime>> updated; 
+        public List<tf_frame> link(string source, string target)
         {
             lock (frameslock)
             {                
                 return link_unlocked(source, target);
             }
         }
-        private static List<tf_frame> link_unlocked(string source, string target)
+        private List<tf_frame> link_unlocked(string source, string target)
         {
             bool doit = false;
             if (memo == null)
@@ -165,7 +175,10 @@ namespace Ros_CSharp
                 if (frames.ContainsKey(target))
                 {
                     if (source != target)
-                        link_unlocked(source, frames[target].child_id.data);
+                    {
+                        List<tf_frame> res = link_unlocked(source, frames[target].child_id.data);
+                        memo[source][target].AddRange(res);                        
+                    }
                     memo[source][target].Add(frames[target]);
                 }
                 updated[source][target] = DateTime.Now;

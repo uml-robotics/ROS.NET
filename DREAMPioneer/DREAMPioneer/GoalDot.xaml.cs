@@ -11,8 +11,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Windows.Presentation;
+//using System.Windows.Presentation;
 using window = DREAMPioneer.SurfaceWindow1;
+
 namespace DREAMPioneer
 {
     /// <summary>

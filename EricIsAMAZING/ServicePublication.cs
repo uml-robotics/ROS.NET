@@ -10,6 +10,8 @@ namespace Ros_CSharp
         internal ServiceCallbackHelper<MReq, MRes> Helper;
         public ServicePublication(string name, string md5Sum, string datatype, string reqDatatype, string resDatatype, ServiceCallbackHelper<MReq, MRes> helper, CallbackQueueInterface callback, object trackedObject)
         {
+            if (name == null)
+                throw new Exception("NULL NAME?!");
             // TODO: Complete member initialization
             this.name = name;
             this.md5sum = md5Sum;

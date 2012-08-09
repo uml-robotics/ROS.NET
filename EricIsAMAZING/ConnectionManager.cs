@@ -38,9 +38,15 @@ namespace Ros_CSharp
         {
             get
             {
+#if TCPSERVER
                 if (tcpserver_transport == null || tcpserver_transport.LocalEndpoint == null)
                     return -1;
-                return ((IPEndPoint) tcpserver_transport.LocalEndpoint).Port;
+                return ((IPEndPoint)tcpserver_transport.LocalEndpoint).Port;
+#else
+                if (tcpserver_transport == null || tcpserver_transport.LocalEndPoint == null)
+                    return -1;
+                return ((IPEndPoint)tcpserver_transport.LocalEndPoint).Port;
+#endif
             }
         }
 
@@ -110,12 +116,21 @@ namespace Ros_CSharp
             }
         }
 
+        private bool _diaf;
+        private object fierydeathmutex = new object();
         public void shutdown()
         {
+            lock (fierydeathmutex)
+                _diaf = true;
             if (tcpserver_transport != null)
             {
+#if TCPSERVER
                 tcpserver_transport.Stop();
                 tcpserver_transport = null;
+#else
+                tcpserver_transport.close();
+                tcpserver_transport = null;
+#endif
             }
 
             poll_manager.removePollThreadListener(poll_conn);
@@ -137,7 +152,7 @@ namespace Ros_CSharp
             string val = "";
             if (header.Values.Contains("topic"))
             {
-                val = (string) header.Values["topic"];
+                val = (string)header.Values["topic"];
                 TransportSubscriberLink sub_link = new TransportSubscriberLink();
                 sub_link.initialize(conn);
                 ret = sub_link.handleHeader(header);
@@ -155,16 +170,24 @@ namespace Ros_CSharp
             return ret;
         }
 
-
+#if TCPSERVER
         public void CheckAndAccept(object nothing)
         {
             while (tcpserver_transport.Pending())
             {
-                tcpRosAcceptConnection(new TcpTransport(tcpserver_transport.AcceptSocket(), poll_manager.poll_set));
+                tcpRosAcceptConnection(new TcpTransport(
+                    tcpserver_transport.
+#if TCPSERVER
+                    AcceptSocket()
+#else
+                    accept()
+#endif
+                    , poll_manager.poll_set));
             }
         }
 
         private Timer acceptor;
+#endif
 
         public void Start()
         {
@@ -177,9 +200,23 @@ namespace Ros_CSharp
             tcpserver_transport.Start(0);
             ROS.timer_manager.StartTimer(ref acceptor, CheckAndAccept, 100, 100);
 #else
-            tcpserver_transport = new TcpTransport(poll_manager.poll_set);
-            if (!tcpserver_transport.listen(network.tcpros_server_port, 100, tcpRosAcceptConnection))
-                throw new Exception("FUCK");
+            tcpserver_transport = new TcpTransport(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), poll_manager.poll_set);
+            new Thread(() =>
+                {
+                    while (true)
+                    {
+                        bool diedinfire;
+                        lock (fierydeathmutex)
+                            diedinfire = _diaf;
+                        if (diedinfire) break;
+                        TcpTransport newguy = tcpserver_transport.accept();
+                        if (newguy != null)
+                            tcpRosAcceptConnection(newguy);
+                        else
+                            Thread.Sleep(90);
+                        Thread.Sleep(10);
+                    }
+                }).Start();
 #endif
         }
     }

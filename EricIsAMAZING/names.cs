@@ -21,11 +21,12 @@ namespace Ros_CSharp
         public static IDictionary resolved_remappings = new Hashtable();
         public static IDictionary unresolved_remappings = new Hashtable();
 
+        [DebuggerStepThrough]
         public static bool isValidCharInName(char c)
         {
             return (Char.IsLetterOrDigit(c) || c == '/' || c == '_');
         }
-
+        [DebuggerStepThrough]
         public static bool validate(string name, ref string error)
         {
             if (name == "" || name.StartsWith("__")) return true;
@@ -47,45 +48,45 @@ namespace Ros_CSharp
             }
             return true;
         }
-
+        [DebuggerStepThrough]
         public static string clean(string name)
         {
             while (name.Contains("//"))
                 name = name.Replace("//", "/");
             return name.TrimEnd('/');
         }
-
+        [DebuggerStepThrough]
         public static string append(string left, string right)
         {
             return clean(left + "/" + right);
         }
-
+        [DebuggerStepThrough]
         public static string remap(string name)
         {
             return resolve(name, false);
         }
 
-
+        [DebuggerStepThrough]
         public static string resolve(string name)
         {
             return resolve(name, true);
         }
-
+        [DebuggerStepThrough]
         public static string resolve(string ns, string name)
         {
             return resolve(ns, name, true);
         }
-        
+        [DebuggerStepThrough]
         public static string resolve(string name, bool doremap)
         {
             return resolve(this_node.Namespace, name, doremap);
         }
-
+        [DebuggerStepThrough]
         internal static Exception InvalidName(string error)
         {
             return new InvalidNameException(error);
         }
-
+        [DebuggerStepThrough]
         public static string resolve(string ns, string name, bool doremap)
         {
             string error = "";
@@ -110,7 +111,7 @@ namespace Ros_CSharp
                 copy = remap(copy);
             return copy;
         }
-
+        [DebuggerStepThrough]
         public static void Init(IDictionary remappings)
         {
             foreach (object k in remappings.Keys)
@@ -126,7 +127,7 @@ namespace Ros_CSharp
                 }
             }
         }
-
+        [DebuggerStepThrough]
         public static string parentNamespace(string name)
         {
             string error = "";

@@ -65,7 +65,8 @@ extern "C" {
 	extern XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance);
 	extern XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance);
 	extern XMLRPC_API double XmlRpcValue_GetDouble0(XmlRpcValue* instance);
-	extern XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance);
+	extern XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance);	
+	extern XMLRPC_API const char* XmlRpcValue_ToString(XmlRpcValue* instance);
 
 	//XmlRpcDispatch
 	extern XMLRPC_API XmlRpcDispatch *XmlRpcDispatch_Create();

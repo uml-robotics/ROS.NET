@@ -57,5 +57,9 @@ namespace Ros_CSharp
                 TopicManager.Instance.unadvertise(topic, callbacks);
             }
         }
+        public void shutdown()
+        {
+            unadvertise();
+        }
     }
 }

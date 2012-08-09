@@ -475,7 +475,7 @@ namespace Ros_CSharp
         }
 
         internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue,
-                                     int queue_size, bool allow_concurrent_callbacks) where M : IRosMessage, new()
+                                     int queue_size, bool allow_concurrent_callbacks, string topiclol) where M : IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -485,11 +485,12 @@ namespace Ros_CSharp
 
             if (md5sum != "*" && md5sum != this.md5sum)
                 return false;
+            
             lock (callbacks_mutex)
             {
                 CallbackInfo<M> info = new CallbackInfo<M>();
                 info.helper = helper;
-                info.callback = queue;
+                info.callback = queue;                
                 //info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
                 //if (!helper.isConst())
                 //{
@@ -515,6 +516,7 @@ namespace Ros_CSharp
                                     ((Callback<M>) info.subscription_queue).push(info.helper, des, true,
                                                                                                ref was_full,
                                                                                                latch_info.receipt_time);
+                                    ((Callback<M>)info.subscription_queue).topic = topiclol;
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }

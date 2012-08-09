@@ -80,7 +80,7 @@ namespace Ros_CSharp
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
-            EDB.WriteLine("TransportPublisherLink: onConnectionDropped");
+            EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- "+reason.ToString());
             if (dropping || conn != connection) return;
             lock (parent)
             {

@@ -578,12 +578,19 @@ extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
 {	
 	try
 	{		
-		XmlRpcUtil::log(0, "C++Dump: ptr=%d\ttype=%d\tsize=%d\n%s", (int)instance, (*instance)._type, (*instance).size(), ((*instance).getType() != XmlRpcValue::TypeInvalid ? (*instance).toXml().c_str() : "INVALID"));
+		XmlRpcUtil::log(0, "XmlRpcValue Dump:\n\tptr=%d\n\ttype=%d\n\tsize=%d\n%s\n", (int)instance, (*instance)._type, (*instance).size(), ((*instance).getType() != XmlRpcValue::TypeInvalid ? (*instance).toXml().c_str() : "INVALID"));
 	}
 	catch (std::exception& ex)
 	{
 		XmlRpcUtil::error(ex.what());
 	}
+}
+
+extern "C" XMLRPC_API const char* XmlRpcValue_ToString(XmlRpcValue* instance)
+{
+	static char buff[512];
+	sprintf(buff,"%s", ((*instance).getType() != XmlRpcValue::TypeInvalid ? (*instance).toXml().c_str() : "INVALID"));
+	return buff;
 }
 
 //dispatch

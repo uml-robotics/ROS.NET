@@ -54,7 +54,7 @@ namespace DREAMPioneer
                 return ret;
             }
         }
-        public double WidthInWindow
+        public double RadiusInWindow
         {
             get
             {
@@ -67,6 +67,10 @@ namespace DREAMPioneer
                 return Math.Sqrt(dx + dy);
             }
         }
+
+        
+    
+
         public int RobotNumber;
         public string Name;
         public static NodeHandle node;
@@ -89,6 +93,52 @@ namespace DREAMPioneer
         public RobotControl myRobot;
         public static int numRobots;
 
+        Subscriber<cm.robotMortality> GhostWhisperer;
+        private DateTime LastBeat;
+        public Timer Dethklok; 
+        bool IsItAlive = true;
+
+        public void CheckMortality(object state)
+        {
+            if (DateTime.Now.Subtract(LastBeat).TotalMilliseconds > 2000)
+            {
+                if (IsItAlive)
+                {
+                    Console.WriteLine("He was an asshole, anyways... ("+Name+")");
+                    IsItAlive = false;
+                    window.current.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            //UNDO WPF STUFF
+                            myRobot.robot.Visibility = Visibility.Hidden;
+                            RobotControl.DoneCheck(RobotNumber);
+                            if (window.current.selectedList.Contains(RobotNumber))
+                                window.current.RemoveSelected(RobotNumber, null, "Robot Died");
+                            if (ManualNumber == RobotNumber)
+                                window.current.changeManual(-1);
+                        }));
+                }
+            }
+            else
+            {
+                if (!IsItAlive)
+                {
+                    Console.WriteLine("Oh hey... we weren't talking about you... I promise. (" + Name + ")");
+                    IsItAlive = true;
+                    window.current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        myRobot.robot.Visibility = Visibility.Visible;
+                    }));
+                }
+            }
+        }
+
+        public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
+        {
+                LastBeat = DateTime.Now;
+                goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
+                androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
+                GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
+        }
 
         public ROSData(NodeHandle n, int i)
             : this(n, i, null)
@@ -99,7 +149,6 @@ namespace DREAMPioneer
         {
             RobotNumber = i;
             specificAndroidEvent += android;
-            ROS.Init(new string[0], "DREAM");
             if (node == null)
                 if (n == null)
                     node = new NodeHandle();
@@ -119,24 +168,7 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
             servosPub.publish(pt);*/
 
-            goal = new gm.PoseArray { poses = new gm.Pose[20] };
-            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
-            
-
-            //Deprecated until I make an abstraction in ros that can publish transforms
-            //pose = new gm.PoseWithCovarianceStamped()
-            //{
-            //    header = new m.Header { frame_id = new String("/robot_brain_2/map") },
-            //    pose = new gm.PoseWithCovariance
-            //    {
-            //        pose = new gm.Pose { orientation = new gm.Quaternion { w = .015, x = 0, y = 0, z = 1 }, position = new gm.Point { x = 29.9, y = 3.5, z = 0 } },
-            //        covariance = new double[] { .25, 0, 0, 0, 0, 0, 0, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .06853891945200942 }
-            //    }
-            //};
-
-            //initialPub = node.advertise<gm.PoseWithCovarianceStamped>(Name + "/initialpose", 1);
-            androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
-
+            goal = new gm.PoseArray { poses = new gm.Pose[20] };            
 
             window.current.Dispatcher.Invoke(new Action(() =>
                 {
@@ -147,21 +179,34 @@ namespace DREAMPioneer
                     window.current.SubCanvas.Children.Add(myRobot);
                 }));
 
+            JagerBombs(true);
+
+            Dethklok = new Timer(CheckMortality,null,500,500);
             numRobots++;
 
         }
 
+        public void Heartbeat(cm.robotMortality Life)
+        {
+            LastBeat = DateTime.Now;
+        }
+
         public static void unSub()
         {
+            joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+            joyPub.shutdown();
             joyPub = null;
+            servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
+            servosPub.shutdown();
             servosPub = null;
+            laserSub.shutdown();
             laserSub = null;
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
         public static void reSub()
         {
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
+            joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 10);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;             
         }
 

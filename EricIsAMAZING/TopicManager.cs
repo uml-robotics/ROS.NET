@@ -198,6 +198,7 @@ namespace Ros_CSharp
                         result = new XmlRpcValue(),
                         payload = new XmlRpcValue();
             master.execute("registerPublisher", args, ref result, ref payload, true);
+            Console.WriteLine(result);
             return true;
         }
 
@@ -217,8 +218,8 @@ namespace Ros_CSharp
                     throw subscribeFail(ops, "without a callback");
                 string md5sum = ops.md5sum;
                 string datatype = ops.datatype;
-                Subscription s = new Subscription(ops.topic, md5sum, datatype);
-                s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks);
+                Subscription s = new Subscription(ops.topic, md5sum, datatype);                
+                s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks, ops.topic);
                 if (!registerSubscriber(s, ops.datatype))
                 {
                     EDB.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
@@ -390,7 +391,7 @@ namespace Ros_CSharp
             else if (found)
                 if (
                     !sub.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size,
-                                     ops.allow_concurrent_callbacks))
+                                     ops.allow_concurrent_callbacks, ops.topic))
                     return false;
             return found;
         }

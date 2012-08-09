@@ -68,8 +68,7 @@ namespace Ros_CSharp
         }
 
 
-        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset)
-            : this(s, pollset, 0)
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(s,pollset,0)
         {
         }
         public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset, int flags) : this(pollset, flags)
@@ -149,6 +148,7 @@ namespace Ros_CSharp
         }
         public void enableRead()
         {
+            if (!sock.Connected) close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -163,6 +163,8 @@ namespace Ros_CSharp
 
         public void disableRead()
         {
+            if (sock == null) return;
+            if (!sock.Connected) close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -177,6 +179,7 @@ namespace Ros_CSharp
 
         public void enableWrite()
         {
+            if (!sock.Connected) close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -191,6 +194,7 @@ namespace Ros_CSharp
 
         public void disableWrite()
         {
+            if (!sock.Connected) close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -203,8 +207,9 @@ namespace Ros_CSharp
             }
         }
 
+        public IPEndPoint LocalEndPoint;
         public bool connect(string host, int port)
-        {
+        {            
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
@@ -235,7 +240,7 @@ namespace Ros_CSharp
                 return false;
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
-
+            LocalEndPoint = ipep;
             if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
                 return false;
             
@@ -260,8 +265,8 @@ namespace Ros_CSharp
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-//            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
-//                enableRead();
+            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+                enableRead();
             return true;
         }
 
@@ -457,6 +462,7 @@ namespace Ros_CSharp
                     return -1;
             }
             SocketError err;
+            //EDB.WriteLine(ByteDumpCondensed(buffer));
             int num_bytes = sock.Send(buffer, (int)pos, (int)size, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
@@ -493,7 +499,11 @@ namespace Ros_CSharp
             {
                 poll_set.addSocket(sock, socketUpdate, this);
             }
-
+            if (!sock.Connected)
+            {
+                close();
+                return false;
+            }
 
             return true;
         }
@@ -507,7 +517,7 @@ namespace Ros_CSharp
         public TcpTransport accept()
         {
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            if (!sock.AcceptAsync(args))
+            if (sock == null || !sock.AcceptAsync(args))
                 return null;
             if (args.AcceptSocket == null)
             {

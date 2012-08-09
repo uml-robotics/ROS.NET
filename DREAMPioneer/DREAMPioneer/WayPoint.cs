@@ -80,8 +80,7 @@ namespace DREAMPioneer
         public Point ToWayPointCanvas(Point p)
         {
 
-            return new Point((p.X - Maincanv.ActualWidth / 2 + (mycanv.Width * Zoom.ScaleX) / 2)  / Zoom.ScaleX - Translation.X - dot.Width / 2,
-                                       (p.Y - Maincanv.ActualHeight / 2 + (mycanv.Height * Zoom.ScaleY) / 2)  / Zoom.ScaleY - Translation.Y - dot.Height / 2);
+            return SurfaceWindow1.current.MainCanvas.TranslatePoint(p, mycanv);
         }
 
 

@@ -99,7 +99,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "\nusing Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -307,7 +307,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.roscsharp;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n";
+                            "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }

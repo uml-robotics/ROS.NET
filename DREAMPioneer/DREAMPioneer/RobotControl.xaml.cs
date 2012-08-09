@@ -51,7 +51,36 @@ namespace DREAMPioneer
 
 
         public static List<CommonList> OneInAMillion = new List<CommonList>();
+        public static void DoneCheck(int index)
+        {
+            bool Done = false;
+            foreach (CommonList CL in OneInAMillion)
+            {
 
+                foreach (Robot_Info RI in CL.RoboInfo)
+                    if (RI.RoboNum == index && !RI.done)
+                    {
+                        Done = true;
+                        RI.done = true;
+                        RI.CurrentLength = CL.P_List.Count;
+                        foreach (Robot_Info DoneCheck in CL.RoboInfo)
+                            if (!DoneCheck.done)
+                                Done = false;
+
+                        if (Done)
+                        {
+                            foreach (GoalDot GD in CL.Dots)
+                                window.current.DotCanvas.Children.Remove(GD);
+                            CL.P_List.Clear();
+                            CL.RoboInfo.Clear();
+                            lock (RobotControl.OneInAMillion)
+                                RobotControl.OneInAMillion.Remove(CL);
+                            break;
+                        }
+                    }
+                if (Done) break;
+            }
+        }
        
         public string TopicName
         {
@@ -132,13 +161,13 @@ namespace DREAMPioneer
             myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
 
             myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/odom", 1, (k) =>
-            {
-                gm.Vector3 vec;
-                gm.Quaternion quat;                
-                tf_node.transformFrame(myData.Name + "/odom", myData.Name+"/map", out vec, out quat);
+             {
+                gm.Vector3 vec,vecfuckyou;
+                gm.Quaternion quat,quatfuckyou;                
+                tf_node.instance.transformFrame(myData.Name + "/odom", myData.Name+"/map", out vec, out quat);                
                 double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
                 double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                double t = convert(k.pose.pose.orientation).z * -180 / Math.PI;
+                double t = convert(quat).z * -180 / Math.PI;
                 
                 //IT TOOK ME AN HOUR TO FIND THIS FUCKING WRITELINE YOU BASTARD ZOMG
                 //Console.WriteLine(t);
@@ -158,11 +187,11 @@ namespace DREAMPioneer
                      List<Point> points = new List<Point>(j.poses.Length);
                      foreach (gm.Pose P in j.poses)
                      {
-                         double x = (P.position.x);//* (double)ROS_ImageWPF.MapControl.PPM;
-                         double y = (P.position.y); //* (double)ROS_ImageWPF.MapControl.PPM;
+                         double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                         double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
                          points.Add(new Point(x,y));
                      }
-                     updateGoal(points,myData.RobotNumber);
+                     updateGoal(points, myData.RobotNumber);
                  });
 
 
@@ -234,7 +263,7 @@ namespace DREAMPioneer
        {
            gm.Pose[] ret = new gm.Pose[PList.Count];
            for (int i = 0; i < PList.Count; i++)
-               ret[i] = new Messages.geometry_msgs.Pose { position = new Messages.geometry_msgs.Point { x = PList[i].X, y = PList[i].Y, z = 0 }, orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 } };
+               ret[i] = new Messages.geometry_msgs.Pose { position = new Messages.geometry_msgs.Point { x = PList[i].X * (double)ROS_ImageWPF.MapControl.MPP , y = PList[i].Y * (double)ROS_ImageWPF.MapControl.MPP, z = 0 }, orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 } };
                
         return ret;   
        }
@@ -351,7 +380,7 @@ namespace DREAMPioneer
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
-                    if (DisList.Dots.Count >= 2)
+                    if (DisList.Dots.Count >= 1)
                         DisList.Dots[0].NextOne = true;
                     foreach (Robot_Info RI in DisList.RoboInfo)
                         if (RI.RoboNum == R)

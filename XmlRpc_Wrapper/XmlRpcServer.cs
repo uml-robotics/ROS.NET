@@ -14,8 +14,6 @@ namespace XmlRpc_Wrapper
     {
         #region Reference Tracking + unmanaged pointer management
 
-        private IntPtr __instance;
-
         public void Dispose()
         {
             Shutdown();
