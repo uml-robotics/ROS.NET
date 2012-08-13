@@ -160,14 +160,24 @@ namespace DREAMPioneer
 
             myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
 
-            myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/odom", 1, (k) =>
+#if !TRANSFORMZ
+            myData.robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>(myData.Name + "/amcl_pose", 1, (p) =>
+                {
+                    double x = p.pose.pose.position.x * (double)ROS_ImageWPF.MapControl.PPM;
+                    double y = p.pose.pose.position.y * (double)ROS_ImageWPF.MapControl.PPM;                        
+                    emQuaternion q = new emQuaternion(p.pose.pose.orientation);
+                    double t = (new emMatrix3x3(q).getEuler().yaw * 180 / Math.PI) + 90.0;
+                    Dispatcher.BeginInvoke(new Action(() => updatePOS(x, y, t)));
+                });
+#else
+            myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/amcl/pose", 1, (k) =>
              {
-                gm.Vector3 vec,vecfuckyou;
-                gm.Quaternion quat,quatfuckyou;                
+                gm.Vector3 vec;
+                gm.Quaternion quat;                
                 tf_node.instance.transformFrame(myData.Name + "/odom", myData.Name+"/map", out vec, out quat);                
                 double x = (vec.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                double y = (vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                double t = convert(quat).z * -180 / Math.PI;
+                double y = (-vec.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                double t = new emMatrix3x3(new emQuaternion(quat)).getEuler(2).yaw / Math.PI;
                 
                 //IT TOOK ME AN HOUR TO FIND THIS FUCKING WRITELINE YOU BASTARD ZOMG
                 //Console.WriteLine(t);
@@ -181,6 +191,7 @@ namespace DREAMPioneer
                     Console.WriteLine(myData.Name+" ODOM TO MAP TRANSFORM = BORKED!");
                   
             }, "*");
+#endif
 
             myData.goalsub = imagehandle.subscribe<gm.PoseArray>(myData.Name + "/goal_progress", 1, (j) =>
                 {
@@ -242,12 +253,13 @@ namespace DREAMPioneer
         }
 
        public gm.Vector3 convert(gm.Quaternion q) {
+           emQuaternion eq = new emQuaternion(q);
             gm.Vector3 ret = new gm.Vector3();
             double w2 = q.w*q.w;
             double x2 = q.x*q.x;
             double y2 = q.y*q.y;
             double z2 = q.z*q.z;
-            double unitLength = w2 + x2 + y2 + z2;    // Normalised == 1, otherwise correction divisor.
+            double unitLength = eq.length();    // Normalised == 1, otherwise correction divisor.
             double abcd = q.w*q.x + q.y*q.z;
              double eps = Math.E;    
             double pi = Math.PI;   
@@ -300,24 +312,6 @@ namespace DREAMPioneer
             sendnext = true;
         }
 
-        public void updatePOS(float x, float y)
-        {
-            updatePOS(x, y, 0);
-        }
-
-        public void updatePOS(float x, float y, float t)
-        {
-            //if (x + y > 0 || x + y < 0) // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
-            {
-                xPos = x - robot.Width / 2;
-                yPos = y - robot.Height / 2;
-                Canvas.SetLeft(robot, xPos);
-                Canvas.SetTop(robot, yPos);
-                robot.SetSize(10, 10);
-                robot.Theta = t;
-            }
-        }
-
         public void updatePOS(double x, double y)
         {
             updatePOS(x, y, 0);
@@ -326,10 +320,12 @@ namespace DREAMPioneer
         {
            //if (x + y > 0 || x + y < 0)  // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
             {
-                xPos = x ;
+                Point p = new Point(x, SurfaceWindow1.current.map.ActualHeight - y);
+                xPos = x;
                 yPos = y;
                 Canvas.SetLeft(robot, xPos - robot.Width / 2);
-                Canvas.SetTop(robot, yPos - robot.Height / 2);
+     
+                Canvas.SetTop(robot, (yPos - robot.Height / 2) );
                 robot.SetSize(10, 10);
                 robot.Theta = t;
                 theta = t;
@@ -455,8 +451,8 @@ namespace DREAMPioneer
                             {
                                 //NOT UNIQUE Longer
 
-
-                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
+                                Dispatcher.BeginInvoke(new Action(()=>
+                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1))));
                                //List<Point> Better_List = new List<Point>(P_List.Except<Point>(CL.P_List));
 
                                 CL.P_List.Clear();

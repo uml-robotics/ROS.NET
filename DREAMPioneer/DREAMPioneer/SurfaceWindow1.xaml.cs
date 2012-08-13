@@ -442,19 +442,10 @@ namespace DREAMPioneer
 
                     Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
                     Say("STOP! HAMMER TIME!", -100);
-                    gm.Pose[] StopPose = new gm.Pose[1];
-                    StopPose[0] = new Messages.geometry_msgs.Pose()
-                    {
-                        position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
-                        orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
-                    };
+
 
                     foreach (ROSData RD in ROSStuffs.Values)
-                        RD.goalPub.publish(new gm.PoseArray()
-                        {
-                            header = new Messages.std_msgs.Header(),
-                            poses = StopPose
-                        });
+                        clearWaypoints(RD);
                     EndState("DOUBLE FIST");
 
                 }
@@ -529,23 +520,16 @@ namespace DREAMPioneer
                         throw new Exception("IMPLEMENT messageHandler.estop(); // tell everyone to stop");
                         foreach (int i in ROSStuffs.Keys)
                         {
+                            
                             //GoalDots[i].Visibility = Visibility.Hidden;
                         }
                         Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
                         Say("STOP! HAMMER TIME!", -100);
-                        gm.Pose[] StopPose = new gm.Pose[1];
-                        StopPose[0] = new Messages.geometry_msgs.Pose()
-                        {
-                            position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
-                            orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
-                        };
+                        
 
                         foreach (ROSData RD in ROSStuffs.Values)
-                            RD.goalPub.publish(new gm.PoseArray()
-                            {
-                                header = new Messages.std_msgs.Header(),
-                                poses = StopPose
-                            });
+                            clearWaypoints(RD);
+                       
                         EndState("DOUBLE FIST");
 
 
@@ -577,6 +561,22 @@ namespace DREAMPioneer
             }));
 
 
+        }
+
+        private void clearWaypoints(ROSData RD)
+        {
+            gm.Pose[] StopPose = new gm.Pose[1];
+            StopPose[0] = new Messages.geometry_msgs.Pose()
+            {
+                            position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
+                            orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
+             }; 
+            RD.goalPub.publish(new gm.PoseArray()
+                {
+                                header = new Messages.std_msgs.Header(),
+                                poses = StopPose
+                                
+                 });
         }
 
 
@@ -759,7 +759,7 @@ namespace DREAMPioneer
         private void joymgr_Joystick(bool RightJoystick, double rx, double ry)
         {
             int index = ROSData.ManualNumber;
-            if (index <= 0) return;
+            if (index < 0) return;
             if (!RightJoystick)
             {
                 Messages.geometry_msgs.Twist tempTwist = new Messages.geometry_msgs.Twist();
@@ -794,7 +794,10 @@ namespace DREAMPioneer
             {
                 joymgr.Close();
                 joymgr = null;
-            }            
+            }
+            changeManual(-1);
+            foreach (ROSData RD in ROSStuffs.Values)  
+                clearWaypoints(RD);
             ROS.shutdown();
             base.OnClosed(e);
         }
@@ -1124,7 +1127,7 @@ namespace DREAMPioneer
         public void AddSelected(int robot, Touch e, string REASON)
         {
             Console.WriteLine("SELECTING " + robot);
-            if (robot != ROSData.ManualNumber && !selectedList.Contains(robot))
+            if (robot != ROSData.ManualNumber && !selectedList.Contains(robot) && ROSStuffs[robot].myRobot.Visibility == Visibility.Visible)
             {
                 
                 selectedList.Add(robot);
@@ -1213,8 +1216,8 @@ namespace DREAMPioneer
                 {
                     translate.X -= drag.X;// / scale.ScaleY;
                     translate.Y -= drag.Y;// / scale.ScaleY;
-                    dottranslate.X -= drag.X;// / dotscale.ScaleY;
-                    dottranslate.Y -= drag.Y;// / dotscale.ScaleY;
+                    //dottranslate.X -= drag.X;// / dotscale.ScaleY;
+                    //dottranslate.Y -= drag.Y;// / dotscale.ScaleY;
                 }                   
          }
 
@@ -1944,7 +1947,6 @@ namespace DREAMPioneer
 
         private void CheckSpecialAbort(Touch t)
         {
-            Console.WriteLine("ARE YOU NOT A UNIQUE AND BEAUTIFUL BUTTERFLY?!");
             if (!fisting && specialArgs != null && t.Id == specialArgs.Id)
             {
                 if (!timers.IsRunning(ref SpecialTimer))
@@ -2056,7 +2058,6 @@ namespace DREAMPioneer
         /// </param>
         private void SpecialTimer_Tick(object sender)
         {
-            Console.WriteLine("SpecialTimer TICK");
             try
             {
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -2314,7 +2315,7 @@ namespace DREAMPioneer
             {
                 if (distance(lassoPoints[0], lassoPoints[lassoPoints.Count - 1]) < 100)
                 {
-                    for (int i = 1; i <= ROSData.numRobots; i++)
+                    for (int i = 0; i <= ROSData.numRobots; i++)
                     {
                         if (!ROSStuffs.ContainsKey(i)) continue;
                         Point p = ROSStuffs[i].PositionInWindow;

@@ -94,7 +94,7 @@ namespace Ros_CSharp
         public emTransform transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
             emTransform trans = new emTransform();
-            transformer.lookupTransform(target, source, new Messages.std_msgs.Time(new TimeData()), out trans);
+            transformer.lookupTransform(source, target, new Messages.std_msgs.Time(new TimeData()), out trans);
             vec = trans != null ? trans.translation.ToMsg() : new emVector3().ToMsg();
             quat = trans != null ? trans.rotation.ToMsg() : new emQuaternion().ToMsg();
             return trans;
@@ -126,8 +126,8 @@ namespace Ros_CSharp
                 TransformAccum accum = new TransformAccum();
                 if (!walkToTopParent(accum, time, target_frame, source_frame))
                 {
-                    transform = null;
-                    throw new Exception("UNGH");
+                    transform = new emTransform();
+                    return;
                 }
                 transform = new emTransform(accum.result_quat, accum.result_vec, accum.time, source_frame, target_frame);
             }
@@ -141,6 +141,7 @@ namespace Ros_CSharp
             }
             string frame = source_frame;
             string top_parent = frame;
+            if (!frames.ContainsKey(frame)) return false;
             while (frames[frame] != null)
             {
                 emTransform cache = frames[frame];
@@ -158,7 +159,7 @@ namespace Ros_CSharp
                     f.finalize(TransformAccum.WalkEnding.TargetParentOfSource, time);
                     return true;
                 }
-                f.accum(true);
+                f.accum(cache, true);
                 top_parent = frame;
                 frame = parent;
             }
@@ -182,7 +183,7 @@ namespace Ros_CSharp
                     f.finalize(TransformAccum.WalkEnding.SourceParentOfTarget, time);
                     return true;
                 }
-                f.accum(false);
+                f.accum(cache, false);
                 frame = parent;
             }
 
@@ -211,15 +212,94 @@ namespace Ros_CSharp
         }
     }
 
+    public class emMatrix3x3
+    {
+        public emVector3[] m_el = new emVector3[3];
+        public emMatrix3x3() : this(0, 0, 0, 0, 0, 0, 0, 0, 0) { }
+        public emMatrix3x3(double xx, double xy, double xz,
+                            double yx, double yy, double yz,
+                            double zx, double zy, double zz)
+        {
+            m_el[0] = new emVector3(xx, xy, xz);
+            m_el[1] = new emVector3(yx, yy, yz);
+            m_el[2] = new emVector3(zx, zy, zz);
+        }
+        public void setValue(double xx, double xy, double xz,
+                            double yx, double yy, double yz,
+                            double zx, double zy, double zz)
+        {
+            m_el[0] = new emVector3(xx, xy, xz);
+            m_el[1] = new emVector3(yx, yy, yz);
+            m_el[2] = new emVector3(zx, zy, zz);
+        }
+        public emMatrix3x3(emQuaternion q)
+        {
+            setRotation(q);
+        }
+        public void setRotation(emQuaternion q)
+        {
+            double d = q.length2();
+            double s = 2.0 / d;
+            double xs = q.x * s, ys = q.y * s, zs = q.z * s;
+            double wx = q.w * xs, wy = q.w * ys, wz = q.w * zs;
+            double xx = q.x * xs, xy = q.x * ys, xz = q.x * zs;
+            double yy = q.y * ys, yz = q.y * zs, zz = q.z * zs;
+            setValue(1.0 - (yy + zz), xy - wz, xz + wy,
+                    xy + wz, 1.0 - (xx + zz), yz - wx,
+                    xz - wy, yz + wx, 1.0 - (xx + yy));
+        }
+        public struct OILER
+        {
+            //suck it, math nerds
+            public double yaw, pitch, roll;
+        }
+
+        public OILER getEuler()
+        {
+            return getEuler(1);
+        }
+        public OILER getEuler(int sol)
+        {
+            OILER out1 = new OILER(), out2=new OILER();
+            if (Math.Abs(m_el[2].x) >= 1)
+            {
+                out1.yaw = out2.yaw = 0;
+                double delta = Math.Atan2(m_el[2].y, m_el[2].z);
+                if (m_el[2].x < 0)
+                {
+                    out1.pitch = out2.pitch = Math.PI / 2.0;
+                    out1.roll = out2.roll = delta;
+                }
+                else
+                {
+                    out1.pitch = out2.pitch = -Math.PI / 2.0;
+                    out1.roll = out2.roll = delta;
+                }
+            }
+            else
+            {
+                out1.pitch = -Math.Asin(m_el[2].x);
+                out2.pitch = Math.PI - out1.pitch;
+
+                out1.roll = Math.Atan2(m_el[2].y / Math.Cos(out1.pitch), m_el[2].z / Math.Cos(out1.pitch));
+                out2.roll = Math.Atan2(m_el[2].y / Math.Cos(out2.pitch), m_el[2].z / Math.Cos(out2.pitch));
+
+                out1.yaw = Math.Atan2(m_el[1].x / Math.Cos(out1.pitch), m_el[0].x / Math.Cos(out1.pitch));
+                out2.yaw = Math.Atan2(m_el[1].x / Math.Cos(out2.pitch), m_el[0].x / Math.Cos(out2.pitch));
+            }
+
+            return sol==1?out1:out2;
+        }
+    }
+
     public class TransformAccum
     {
         public enum WalkEnding
         {
             Identity, TargetParentOfSource, SourceParentOfTarget, FullPath
         }
-        public emTransform st;
-        public emQuaternion source_to_top_quat, target_to_top_quat, result_quat;
-        public emVector3 source_to_top_vec, target_to_top_vec, result_vec;
+        public emQuaternion source_to_top_quat = new emQuaternion(), target_to_top_quat = new emQuaternion(), result_quat;
+        public emVector3 source_to_top_vec = new emVector3(), target_to_top_vec = new emVector3(), result_vec;
         public Messages.std_msgs.Time time;
         public void finalize(WalkEnding end, Messages.std_msgs.Time _time)
         {
@@ -232,18 +312,18 @@ namespace Ros_CSharp
                     break;
                 case WalkEnding.SourceParentOfTarget:
                     result_quat = target_to_top_quat.inverse();
-                    result_vec = quatRotate(result_quat, new emVector3()-target_to_top_vec);
+                    result_vec = quatRotate(result_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
                     break;
                 case WalkEnding.FullPath:
                     emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3() - target_to_top_vec);
+                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
                     result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
                     result_quat = inv_target_quat * source_to_top_quat;
                     break;
             }
             time = _time;
         }
-        public void accum(bool source)
+        public void accum(emTransform st, bool source)
         {
             if (source)
             {
@@ -273,7 +353,7 @@ namespace Ros_CSharp
         {
             get {
                 if (paternityTest == null || !paternityTest.ContainsKey(frame_id))
-                    return null;
+                    return "/";
                 return paternityTest[frame_id];
             }
         }
@@ -307,7 +387,7 @@ namespace Ros_CSharp
     public class emQuaternion
     {
         public double x, y, z, w;
-        public emQuaternion() : this(0, 0, 0, 0) { }
+        public emQuaternion() : this(0, 0, 0, 1) { }
         public emQuaternion(double X, double Y, double Z, double W)
         {
             x = X;
@@ -367,7 +447,7 @@ namespace Ros_CSharp
         }
         public emQuaternion inverse()
         {
-            return new emQuaternion(-x, -y, -z, -w);
+            return new emQuaternion(-x, -y, -z, w);
         }
 
         public double dot(emQuaternion q)
@@ -383,6 +463,11 @@ namespace Ros_CSharp
         public double length()
         {
             return Math.Sqrt(length2());
+        }
+
+        public override string ToString()
+        {
+            return string.Format("({0},{1},{2},{3})", x, y, z, w);
         }
     }
 
@@ -415,6 +500,10 @@ namespace Ros_CSharp
         public static emVector3 operator *(emVector3 v1, double d)
         {
             return new emVector3(v1.x * d, v1.y * d, v1.z * d);
+        }
+        public override string ToString()
+        {
+            return string.Format("({0},{1},{2})", x, y, z);
         }
     }
 }

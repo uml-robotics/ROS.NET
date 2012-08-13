@@ -591,5 +591,10 @@ namespace ROS_ImageWPF
         {
             image.Transform = new ScaleTransform(1, -1, ActualWidth / 2, ActualHeight / 2);
         }
+
+        private void Rectangle_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            //flipper.CenterY = DamnNearKilledHim.ActualHeight / 2;
+        }
     }
 }

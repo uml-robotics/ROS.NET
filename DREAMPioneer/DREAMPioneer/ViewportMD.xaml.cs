@@ -607,7 +607,7 @@ namespace DREAMPioneer
             perspectiveCamera.Position = new Point3D(0, 0, 5);
             perspectiveCamera.UpDirection = new Vector3D(0, 1, 0);
             perspectiveCamera.LookDirection = new Vector3D(0, 0, -10);
-            perspectiveCamera.FieldOfView = 45;
+            perspectiveCamera.FieldOfView = 100;
 
             viewport.Camera = perspectiveCamera;
         }

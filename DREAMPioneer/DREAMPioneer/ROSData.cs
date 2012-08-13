@@ -88,7 +88,11 @@ namespace DREAMPioneer
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
         public Subscriber<gm.PoseArray> goalsub;
+#if !TRANSPORMS
+        public Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
+#else
         public Subscriber<nm.Odometry> robotposesub;
+#endif
 
         public RobotControl myRobot;
         public static int numRobots;
@@ -123,7 +127,7 @@ namespace DREAMPioneer
             {
                 if (!IsItAlive)
                 {
-                    Console.WriteLine("Oh hey... we weren't talking about you... I promise. (" + Name + ")");
+                    Console.WriteLine("Oh hey... we weren'qt talking about you... I promise. (" + Name + ")");
                     IsItAlive = true;
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                     {
@@ -135,7 +139,7 @@ namespace DREAMPioneer
 
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
-                LastBeat = DateTime.Now;
+                LastBeat = DateTime.Now.Subtract(new TimeSpan(0,0,3));
                 goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
                 androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
                 GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
@@ -182,7 +186,7 @@ namespace DREAMPioneer
 
             JagerBombs(true);
 
-            Dethklok = new Timer(CheckMortality,null,500,500);
+            Dethklok = new Timer(CheckMortality,null,0,500);
             numRobots++;
 
         }
