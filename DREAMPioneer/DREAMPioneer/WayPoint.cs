@@ -21,6 +21,7 @@ namespace DREAMPioneer
     {
         
         private Point _Location;
+        public Point unfuckedwithLocation;
         public Ellipse dot;
         public Canvas mycanv;
         public Canvas Maincanv;
@@ -45,19 +46,19 @@ namespace DREAMPioneer
         }
 
 
-        public Waypoint(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, ScaleTransform z, TranslateTransform t, Brush b)
+        public Waypoint(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, Brush b)
         {
             mycanv = WPC;
-            Zoom = z;
-            Translation = t;
+            
             Maincanv = MainCanvas;
             dot = new Ellipse();
             dot.Width = 5 * DPI / 43;
             dot.Height = 5 * DPI / 43;
             dot.Fill = b;
 
+            unfuckedwithLocation = loc;
             Location = loc;
-            PointLocations.Add(Location);
+            PointLocations.Add(loc);
             mycanv.Children.Add(dot);
 
 
@@ -81,6 +82,7 @@ namespace DREAMPioneer
         {
 
             return SurfaceWindow1.current.MainCanvas.TranslatePoint(p, mycanv);
+
         }
 
 

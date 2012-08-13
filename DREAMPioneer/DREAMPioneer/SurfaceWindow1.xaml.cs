@@ -673,10 +673,10 @@ namespace DREAMPioneer
                     dottranslate = new TranslateTransform(0,0);
                     group.Children.Add(scale);
                     group.Children.Add(translate);
-                    dotgroup.Children.Add(dotscale);
-                    dotgroup.Children.Add(dottranslate);                    
+                    //dotgroup.Children.Add(dotscale);
+                    //dotgroup.Children.Add(dottranslate);                    
                     SubCanvas.RenderTransform = group;
-                    DotCanvas.RenderTransform = dotgroup;
+                    //DotCanvas.RenderTransform = dotgroup;
                 }));
 
             n = DateTime.Now;
@@ -1288,7 +1288,7 @@ namespace DREAMPioneer
                         if (p == point) return;
                 lastWaypointDot = p;                
                 lock (waypointDots)
-                    waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas,dotscale,dottranslate,Brushes.Yellow));
+                    waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas, Brushes.Yellow));
             }
             else
             {}
@@ -1609,6 +1609,40 @@ namespace DREAMPioneer
                                                 //captureVis[t.Id].dot.Stroke = Brushes.White;
 
                                                 ZoomDown(e);
+
+                                                //List<Waypoint> Copy;
+                                                //lock (waypointDots)
+                                                //{                                                    
+                                                //    Copy = new List<Waypoint>(waypointDots);                                                    
+                                                //}
+                                                //List<Waypoint> GONNADIE = new List<Waypoint>();
+                                                //foreach (Touch x in FREE.Values)
+                                                //{
+                                                //    foreach (Waypoint wp in Copy)
+                                                //    {
+                                                //        Point p = wp.unfuckedwithLocation;
+                                                //        if (distance(p, x.Position) < 20)
+                                                //        {
+                                                //            GONNADIE.Add(wp);                                                            
+                                                //        }
+                                                //    }
+                                                //}
+                                                //lock(waypointDots)
+                                                //    foreach (Waypoint wp in GONNADIE)
+                                                //    {
+                                                //        if (waypointDots.Contains(wp))
+                                                //        {
+                                                //            DotCanvas.Children.Remove(wp.dot);
+                                                //            waypointDots.Remove(wp);
+                                                //            Waypoint.PointLocations.Remove(wp.unfuckedwithLocation);
+                                                //        }
+                                                //    }
+
+                                                if (FREE.Count > 1)
+                                                {
+                                                    RM5End();
+                                                    return;
+                                                }
                                                 int index = robotsCD(e);
                                                 if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
                                                     ChangeState(RMState.Start);
@@ -1742,7 +1776,7 @@ namespace DREAMPioneer
                                                     int index = robotsCD(e);
                                                     Dictionary<int, Touch> cc = FREE;
 
-                                                    if (FREE.Count == 1 && (state == RMState.State3 || em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
+                                                    if (FREE.Count == 1 && (state == RMState.State3 || FREE.Count == 1 && em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
                                                     {
                                                         {
                                                             WPDrag++;
@@ -1777,20 +1811,7 @@ namespace DREAMPioneer
 
                                                         ZoomChange(cc, SITSTILL);
                                                         if (!cleanedUpDragPoints.Contains(e.Id))
-                                                        {
-                                                            lock (waypointDots)
-                                                                {
-                                                                     List<Waypoint> Copy = new List<Waypoint>(waypointDots);
-                                                                     foreach (Waypoint wp in Copy)
-                                                                     {
-                                                                        if (wp.Location == specialInitPoint)
-                                                                        {
-                                                                            DotCanvas.Children.Remove(wp.dot);
-                                                                            waypointDots.Remove(wp);
-                                                                            Waypoint.PointLocations.Remove(wp.Location);
-                                                                        }
-                                                                    }
-                                                                }
+                                                        {                                                            
                                                              if (lassoPoints.Contains(e.Position))
                                                                 lassoPoints.Remove(e.Position);
                                                             if (lassoLine.Points.Contains(e.Position))
@@ -1859,7 +1880,6 @@ namespace DREAMPioneer
                                                                 }
                                                                 else
                                                                 {
-                                                                    RM5End();
                                                                     ChangeState(RMState.State1);
                                                                 }
                                                             }
@@ -2066,22 +2086,7 @@ namespace DREAMPioneer
                     if (!timers.IsRunning(ref SpecialTimer) || FREE.Count > 1)
                     {
                         return;
-                    }
-                    lock (waypointDots)
-                    {
-                        
-                        List<Waypoint> Copy = new List<Waypoint>(waypointDots);
-                        foreach (Waypoint wp in Copy)
-                        {
-                            if (wp.Location == specialInitPoint)
-                            {
-                                DotCanvas.Children.Remove(wp.dot);
-                                waypointDots.Remove(wp);
-                                Waypoint.PointLocations.Remove(wp.Location);
-                            }
-                        }
-
-                    }
+                    }                    
                     timers.StopTimer(ref SpecialTimer);
 
                     if (touchedRobot != -1)
@@ -2505,36 +2510,12 @@ namespace DREAMPioneer
 
             if (FREE.Count > 1)
             {
-                if (timers.IsRunning(ref RM5Timer))
-                {
-                    if (waypointDots.Count != 0)
-                    {
-                        Waypoint wp = waypointDots.Last();
-                        DotCanvas.Children.Remove(wp.dot);
-                        waypointDots.Remove(wp);
-                        Waypoint.PointLocations.Remove(wp.Location);
-                    }
-                }
-
+                RM5End();
                     foreach (Touch c in FREE.Values)
                     {
                         if (!cleanedUpDragPoints.Contains(c.Id))
                         {
-                            lock (waypointDots)
-                            {
-                                List<Waypoint> Copy = new List<Waypoint>(waypointDots);
-                                foreach (Waypoint wp in Copy)
-                                {
-                                    Point trans_SIP = wp.ToWayPointCanvas(specialInitPoint);
-                                    Point trans_e = wp.ToWayPointCanvas(e.Position);
-                                    if (distance(wp.Location, trans_SIP) < 10 || distance(wp.Location, trans_e) < 10)
-                                    {
-                                        DotCanvas.Children.Remove(wp.dot);
-                                        waypointDots.Remove(wp);
-                                        Waypoint.PointLocations.Remove(wp.Location);
-                                    }
-                                }
-                            }
+                            
                             if (lassoPoints.Contains(c.Position))
                                 lassoPoints.Remove(c.Position);
                             if (lassoLine.Points.Contains(c.Position))
@@ -2552,6 +2533,7 @@ namespace DREAMPioneer
             ZoomChange(FREE, true);
             if (FREE.Count > 1)
             {
+                RM5End();
                 int wl;
                     lock (waypointDots)
                         wl = waypointDots.Count;
@@ -2569,11 +2551,11 @@ namespace DREAMPioneer
                             List<Waypoint> Copy = new List<Waypoint>(waypointDots);
                             foreach (Waypoint wp in Copy)
                             {
-                                if (gtfo.Contains(wp.Location))
+                                if (gtfo.Contains(wp.unfuckedwithLocation))
                                 {
                                     DotCanvas.Children.Remove(wp.dot);
                                     waypointDots.Remove(wp);
-                                    Waypoint.PointLocations.Remove(wp.Location);
+                                    Waypoint.PointLocations.Remove(wp.unfuckedwithLocation);
                                 }
                             }
 
@@ -2581,10 +2563,10 @@ namespace DREAMPioneer
                         }
 
                         lassoPoints = lassoPoints.Intersect(lassoDontThrowAway.AsEnumerable()).ToList();
-                        /*lock (waypointDots)
+                        lock (waypointDots)
                             if ((wl - waypointDots.Count) != 0 && (ll - lassoPoints.Count) != 0)
-                                Console.WriteLine(String.Format("Throwing away {0} waypoints and {1} lasso points",
-                                                                wl - waypointDots.Count, ll - lassoPoints.Count));*/
+                                Console.WriteLine(string.Format("Throwing away {0} waypoints and {1} lasso points",
+                                                                wl - waypointDots.Count, ll - lassoPoints.Count));
                     }
                 }
             }
