@@ -49,7 +49,7 @@ namespace DREAMPioneer
         public Point PositionInWindow
         {
             get
-            {                
+            {
                 Point ret = myRobot.robot.TranslatePoint(new Point(myRobot.robot.Width / 2, myRobot.robot.Height / 2), SurfaceWindow1.current);
                 return ret;
             }
@@ -68,8 +68,8 @@ namespace DREAMPioneer
             }
         }
 
-        
-    
+
+
 
         public int RobotNumber;
         public string Name;
@@ -99,50 +99,45 @@ namespace DREAMPioneer
 
         Subscriber<cm.robotMortality> GhostWhisperer;
         private DateTime LastBeat;
-        public Timer Dethklok; 
-        bool IsItAlive = true;
+        public Timer Dethklok;
+        bool IsItAlive = false;
 
-       
+
         public void CheckMortality(object state)
         {
-            if (DateTime.Now.Subtract(LastBeat).TotalMilliseconds > 5000)
+            if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
             {
-                if (IsItAlive)
-                {
-                    Console.WriteLine("He was an asshole, anyways... ("+Name+")");
-                    IsItAlive = false;
+                    Console.WriteLine("He was an asshole, anyways... (" + Name + ")");
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             //UNDO WPF STUFF
                             myRobot.robot.Visibility = Visibility.Hidden;
+                            myRobot.Visibility = Visibility.Hidden;
                             RobotControl.DoneCheck(RobotNumber);
                             if (window.current.selectedList.Contains(RobotNumber))
                                 window.current.RemoveSelected(RobotNumber, null, "Robot Died");
                             if (ManualNumber == RobotNumber)
                                 window.current.changeManual(-1);
-                        }));
-                }
+                        }));                    
             }
-            else
-            {
-                if (!IsItAlive)
+                else if (!IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds < 5000)
                 {
-                    Console.WriteLine("Oh hey... we weren'qt talking about you... I promise. (" + Name + ")");
                     IsItAlive = true;
+                    Console.WriteLine("Oh hey... we weren'qt talking about you... I promise. (" + Name + ")");                    
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        myRobot.Visibility = Visibility.Visible;
                         myRobot.robot.Visibility = Visibility.Visible;
-                    }));
-                }
+                    }));              
             }
         }
 
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
-                LastBeat = DateTime.Now.Subtract(new TimeSpan(0,0,3));
-                goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
-                androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
-                GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
+            LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));
+            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
+            androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
+            GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
         }
 
         public ROSData(NodeHandle n, int i)
@@ -173,12 +168,12 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
             servosPub.publish(pt);*/
 
-            goal = new gm.PoseArray { poses = new gm.Pose[20] };            
+            goal = new gm.PoseArray { poses = new gm.Pose[20] };
 
             window.current.Dispatcher.Invoke(new Action(() =>
                 {
                     myRobot = new RobotControl(RobotNumber);
-                    myRobot.Background = Brushes.Transparent;
+                    myRobot.SetColor(Brushes.Transparent);
                     myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
                     //myRobot.TopicName = Name + "/local_costmap/robot_footprint";
                     window.current.SubCanvas.Children.Add(myRobot);
@@ -186,13 +181,14 @@ namespace DREAMPioneer
 
             JagerBombs(true);
 
-            Dethklok = new Timer(CheckMortality,null,0,50);
+            Dethklok = new Timer(CheckMortality, null, 0, 50);
             numRobots++;
 
         }
 
         public void Heartbeat(cm.robotMortality Life)
         {
+            IsItAlive = true;
             LastBeat = DateTime.Now;
         }
 
@@ -212,7 +208,7 @@ namespace DREAMPioneer
         {
             joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
             servosPub = node.advertise<cm.ptz>(manualPTZ, 10);
-            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;             
+            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
 
 

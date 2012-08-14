@@ -97,7 +97,7 @@ namespace DREAMPioneer
         /// </summary>
         /// <param name="dDistanceValues">This array must have exactly 181 values. The values must be in cm. 
         /// The values must be distances from the right (0 degrees) to the left (180 degrees).</param>
-        public void SetLaser(double[] dDistanceValues, double res, double start)
+        public void SetLaser(double[] dDistanceValues, double res, double start, double min, double max)
         {
             // Convert from mm to meters.
             /*for (int i = 0; i < dDistanceValues.Length; i++)
@@ -106,7 +106,7 @@ namespace DREAMPioneer
             }*/
             // TODO: Assigning the second last value to the last one is a temp workaround. 
             dDistanceValues[dDistanceValues.Length-1] = dDistanceValues[dDistanceValues.Length-2];
-            drawLaser(dDistanceValues, res, start);
+            drawLaser(dDistanceValues, res, start, min, max);
             //drawSonar();
         }
 
@@ -216,7 +216,7 @@ namespace DREAMPioneer
             }
         }
 
-        void drawLaser(double[] dLaserValues,double res, double start)
+        void drawLaser(double[] dLaserValues,double res, double start, double min, double max)
         {
             //if (MainWindow.sFrontendMode == "SA")
             //   sonarify(dLaserValues, 180 / 30);
@@ -228,7 +228,8 @@ namespace DREAMPioneer
                 //i * res * start
                 // The reason for adding i2m(15.748) to the laser values is to avoid a translate transform later on. 
                 // By avoiding the translate transform, the process of rotating everything becomes easy. 
-                ranges.Add(new Point3D(dLaserValues[i] * Math.Cos((i * res + start)), i2m(15.748) + dLaserValues[i] * Math.Sin(i * res + start), 0));
+                if (dLaserValues[i] < max && dLaserValues[i] > min) 
+                    ranges.Add(new Point3D(dLaserValues[i] * Math.Cos((i * res + start)), i2m(15.748) + dLaserValues[i] * Math.Sin(i * res + start), 0));
                 /*if (i == 0 || i == dLaserValues.Length-1)
                     Console.WriteLine(ranges[ranges.Count - 1]);*/
                
