@@ -57,15 +57,19 @@ namespace DREAMPioneer
             return ColorInUse.Last().Color;
         }
 
-        public static void freeMe(int num)
+        public static void freeMe(int index)
         { 
             foreach(RobotColor RC in ColorInUse)
-                if (RC.RobotNumber == num)
+                if (RC.RobotNumber == index)
                 {
                     RC.RobotNumber = -1;
-                    SurfaceWindow1.current.ROSStuffs[num].myRobot.robot.ChangeIconColors(
-                    SurfaceWindow1.current.ROSStuffs[num].myRobot.robot.circles.IndexOf(
-                    SurfaceWindow1.current.ROSStuffs[num].myRobot.robot.Border.Stroke));
+                    SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.ChangeIconColors(
+                    SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.circles.IndexOf(
+                    SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.Border.Stroke));
+                    if (SurfaceWindow1.current.ROSStuffs.ContainsKey(index))
+                        SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.ChangeIconColors(
+                            SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.circles.IndexOf(
+                            SurfaceWindow1.current.ROSStuffs[index].myRobot.robot.Border.Stroke));
                     return;
                 }
         }

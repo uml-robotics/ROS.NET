@@ -63,18 +63,23 @@ namespace DREAMPioneer
                         Done = true;
                         RI.done = true;
                         RI.CurrentLength = CL.P_List.Count;
+                        // JPWIP
+                        //Free
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
                         
                         if (Done)
                         {
+                            // JPWIP
+                            //  foreach(
                             foreach (GoalDot GD in CL.Dots)
                                 window.current.DotCanvas.Children.Remove(GD);
                             CL.P_List.Clear();
                             CL.RoboInfo.Clear();
                             lock (RobotControl.OneInAMillion)
                                 RobotControl.OneInAMillion.Remove(CL);
+
                             break;
                         }
                     }
@@ -217,7 +222,7 @@ namespace DREAMPioneer
                                  RobotControl.OneInAMillion.Clear();
                              }));
                      
-                     updateGoal(points, myData.RobotNumber);
+                    updateGoal(points, myData.RobotNumber);
                  });
 
 

@@ -58,7 +58,7 @@ namespace DREAMPioneer
 
             unfuckedwithLocation = loc;
             Location = loc;
-            PointLocations.Add(loc);
+            PointLocations.Add(ToWayPointCanvas(loc));
             mycanv.Children.Add(dot);
 
 

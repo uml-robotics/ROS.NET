@@ -73,6 +73,8 @@ namespace DREAMPioneer
     public partial class SurfaceWindow1 : Window//, INotifyPropertyChanged
     {        
         public const int MAX_NUMBER_OF_ROBOTS = 3;
+        
+        
         private IntPtr _winhandle = IntPtr.Zero;
         public IntPtr WindowHandle
         {
@@ -98,13 +100,21 @@ namespace DREAMPioneer
             {
                 if (scale != null)
                 {
-                    dotscale.ScaleX = value;
-                    dotscale.ScaleY = value;
+                    //dotscale.ScaleX = value;
+                    // dotscale.ScaleY = value;
                     scale.ScaleX= value;
                     scale.ScaleY = value;
                 }
             }
         }
+
+
+
+        private const double Margin = 10;
+        private double MaxTranslateX = -9001;
+        private double MaxTranslateY = -9001;
+        private double MinTranslateX = -9001;
+        private double MinTranslateY = -9001;
 
         /// <summary>
         ///   The d max zoom.
@@ -156,7 +166,7 @@ namespace DREAMPioneer
         //private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();        
         private JoystickManager joymgr;
         
-        private Messages.geometry_msgs.Twist t;
+       
         
         
 #if SURFACEWINDOW
@@ -179,8 +189,8 @@ namespace DREAMPioneer
 
         private ScaleTransform scale;
         private TranslateTransform translate;
-        public ScaleTransform dotscale;
-        public TranslateTransform dottranslate;
+        //public ScaleTransform dotscale;
+        //public TranslateTransform dottranslate;
 
         private int android = -1;
 
@@ -518,11 +528,8 @@ namespace DREAMPioneer
                     {
                         timers.StopTimer(ref fister);
                         throw new Exception("IMPLEMENT messageHandler.estop(); // tell everyone to stop");
-                        foreach (int i in ROSStuffs.Keys)
-                        {
-                            
-                            //GoalDots[i].Visibility = Visibility.Hidden;
-                        }
+                    }
+                        
                         Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
                         Say("STOP! HAMMER TIME!", -100);
                         
@@ -540,7 +547,7 @@ namespace DREAMPioneer
                         
                         fisting = false;
                     }
-                }                
+                                
                 // we have a finger
                 Up(t);
                 Fists.RemoveAll((c) => { return c.Id == e.Contact.Id; });
@@ -577,6 +584,9 @@ namespace DREAMPioneer
                                 poses = StopPose
                                 
                  });
+            //Dispatcher.BeginInvoke(new Action(()=>
+            //RobotControl.DoneCheck(RD.RobotNumber);
+            
         }
 
 
@@ -669,8 +679,8 @@ namespace DREAMPioneer
                     TransformGroup dotgroup = new TransformGroup();
                     scale = new ScaleTransform(1,1);
                     translate = new TranslateTransform(0,0);
-                    dotscale = new ScaleTransform(1,1);
-                    dottranslate = new TranslateTransform(0,0);
+                   //dotscale = new ScaleTransform(1,1);
+                    //dottranslate = new TranslateTransform(0,0);
                     group.Children.Add(scale);
                     group.Children.Add(translate);
                     //dotgroup.Children.Add(dotscale);
@@ -1212,12 +1222,29 @@ namespace DREAMPioneer
             p = new Point(XSum / cc.Count, YSum / cc.Count);
             Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
             DRAG_START = p;
+            
             if (!SITSTILL && cc.Count > 1)
                 {
-                    translate.X -= drag.X;// / scale.ScaleY;
-                    translate.Y -= drag.Y;// / scale.ScaleY;
-                    //dottranslate.X -= drag.X;// / dotscale.ScaleY;
-                    //dottranslate.Y -= drag.Y;// / dotscale.ScaleY;
+                    if (MaxTranslateX == -9001)
+                    {
+                        MaxTranslateX = current.Width - Margin;
+                        MaxTranslateY = current.Height - Margin;
+                        MinTranslateX = Margin - current.Width - (current.map.Width -current.Width) ; 
+                        MinTranslateY = Margin - current.map.Height;
+                    }
+                    if (translate.X - drag.X < MinTranslateX)
+                        translate.X = MinTranslateX;
+                    else if (translate.X - drag.X > MaxTranslateX)
+                        translate.X = MaxTranslateX;
+                    else if (translate.Y - drag.Y < MinTranslateY)
+                        translate.Y = MinTranslateY;
+                    else if (translate.Y - drag.Y > MaxTranslateY)
+                        translate.Y = MaxTranslateY;
+                    else
+                    {
+                        translate.X -= drag.X;
+                        translate.Y -= drag.Y;
+                    }
                 }                   
          }
 
@@ -1317,7 +1344,7 @@ namespace DREAMPioneer
             GDL.Clear();
             foreach (Point p in p_list)
             {
-                GDL.Add(new GoalDot(DotCanvas, p, joymgr.DPI, MainCanvas, dotscale, dottranslate, b));
+                GDL.Add(new GoalDot(DotCanvas, p, joymgr.DPI, MainCanvas, b));
             }
             foreach (GoalDot GD in TempList)
             {
@@ -1337,7 +1364,11 @@ namespace DREAMPioneer
         /// </param>
         public void SetGoal(int r, List<Point> PList, CommonList CL, Robot_Info RI)
         {
-            if (PList.Count == 0) return;
+            if (PList.Count == 0)
+            {
+                RobotControl.DoneCheck(r);
+                return;
+            }
 
             RI.CurrentLength = PList.Count;
             RI.Next = PList.First();
@@ -1640,7 +1671,6 @@ namespace DREAMPioneer
 
                                                 if (FREE.Count > 1)
                                                 {
-                                                    RM5End();
                                                     return;
                                                 }
                                                 int index = robotsCD(e);
@@ -1843,9 +1873,9 @@ namespace DREAMPioneer
 
                                                             indexdistfuck idf = DistToNearestGestureObject(e.Position);
                                                             if (selectedList.Count > 0 && selectedList.Contains(idf.index) &&
-                                                                (idf.distance > 2*ROSStuffs[idf.index].RadiusInWindow))
+                                                                (idf.distance < 2*ROSStuffs[idf.index].RadiusInWindow))
                                                             {
-                                                                if (FREE.Count == 1)
+                                                                if (FREE.Count == 1 && idf.distance > ROSStuffs[idf.index].RadiusInWindow)
                                                                     AddWaypointDot(e.Position);
                                                                 if (ROSStuffs[idf.index].myRobot.robot.GetColor() == Brushes.Blue)
                                                                     PulseYellow(idf.index);
@@ -2454,21 +2484,7 @@ namespace DREAMPioneer
             selectedList.Clear();
             Say("ROGER!", -2);
         }
-        public List<Point> Get_Offset(List<Point> PIn)
-        {
-            List<Point> POut = new List<Point>();
-
-            Dispatcher.Invoke(new Action(() =>
-            {
-                foreach (Point p in PIn)
-                {
-                    POut.Add(new Point(((p.X + dottranslate.X) * dotscale.ScaleX) - (DotCanvas.Width * scale.ScaleX / 2) + (SubCanvas.ActualWidth / 2)
-                        , ((p.Y + dottranslate.Y) * scale.ScaleY) - (DotCanvas.Width * scale.ScaleY / 2) + (SubCanvas.ActualHeight / 2)));
-                }
-            }));
-            return POut;
-
-        }
+       
         public void EndState(string s)
         {
             Dispatcher.BeginInvoke(new Action(() =>

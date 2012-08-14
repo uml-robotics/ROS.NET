@@ -25,8 +25,7 @@ namespace DREAMPioneer
         private Point _Location;
         private Canvas mycanv;
         private Canvas Maincanv;
-        private ScaleTransform Zoom;
-        private TranslateTransform Translation;
+        
         private bool _BeenHere = false;
         private bool _NextOne = false;
 
@@ -34,16 +33,15 @@ namespace DREAMPioneer
 
         
 
-        public GoalDot(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, ScaleTransform z, TranslateTransform t, Brush b)
+        public GoalDot(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, Brush b)
         {
             InitializeComponent();
 
             mycanv = WPC;
             mycanv.Children.Add(this);
-            Zoom = z;
-            Translation = t;
+           
             Maincanv = MainCanvas;
-            Zoom = z;
+            
             NextC1.Fill = b;
             BeenThereC2.Fill = b;
             Location = loc;
@@ -119,21 +117,12 @@ namespace DREAMPioneer
             get { return _Location; }
             set
             {
-                _Location = value;
+                _Location = value; //MAY NEED THIS FIX MAYBE NOT SurfaceWindow1.current.MainCanvas.TranslatePoint(value, mycanv);
                 Canvas.SetTop(this, Location.Y - this.Height/2);
                 Canvas.SetLeft(this, Location.X - this.Width/2);
 
             }
         }
-
-
-        public Point ToWayPointCanvas(Point p)
-        {
-            Point ret = new Point((p.X - Maincanv.ActualWidth / 2 + mycanv.Width * Zoom.ScaleX / 2) / Zoom.ScaleX - Translation.X - this.Width / 2,
-                                       (p.Y - Maincanv.ActualHeight / 2 + mycanv.Height * Zoom.ScaleY / 2) / Zoom.ScaleY - Translation.Y - this.Height / 2);
-            return ret;
-        }
-
-
+                
     }
 }

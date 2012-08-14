@@ -105,7 +105,7 @@ namespace DREAMPioneer
        
         public void CheckMortality(object state)
         {
-            if (DateTime.Now.Subtract(LastBeat).TotalMilliseconds > 2000)
+            if (DateTime.Now.Subtract(LastBeat).TotalMilliseconds > 5000)
             {
                 if (IsItAlive)
                 {
@@ -186,7 +186,7 @@ namespace DREAMPioneer
 
             JagerBombs(true);
 
-            Dethklok = new Timer(CheckMortality,null,0,500);
+            Dethklok = new Timer(CheckMortality,null,0,50);
             numRobots++;
 
         }
