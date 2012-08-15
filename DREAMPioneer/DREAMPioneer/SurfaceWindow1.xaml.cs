@@ -691,7 +691,7 @@ namespace DREAMPioneer
 
             timers.MakeTimer(ref YellowTimer, YellowTimer_Tick, 0, 10);
             timers.MakeTimer(ref GreenTimer, GreenTimer_Tick, 0, 5);
-            timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeDT, Timeout.Infinite);
+            timers.MakeTimer(ref RM5Timer, RM5Timer_Tick, TimeRM5, Timeout.Infinite);
             timers.MakeTimer(ref fister, fister_Tick, 1000, Timeout.Infinite);
             timers.MakeTimer(ref SpecialTimer, SpecialTimer_Tick, (int)Math.Floor(TimeSpecial), Timeout.Infinite);
             for (int i = 0; i < turboFingering.Length; i++)
@@ -1311,16 +1311,22 @@ namespace DREAMPioneer
         /// </param>
         private void AddWaypointDot(Point p)
         {
+            
+
             Point test = MainCanvas.TranslatePoint(p, map);
             if (!(test.X > 0 && test.X < map.Width && test.Y > 0 && test.Y < map.Height)) return;
             if (Math.Abs((distance(lastWaypointDot, p))) / scale.ScaleX > (joymgr.DPI / 43) * 10)
             {
+                lastWaypointDot = p;
+                if(waypointDots.Count >0 && !timers.IsRunning(ref RM5Timer))
+                    waypointDontThrowAway.Add(waypointDots[0].ToWayPointCanvas(p));
                 lock (waypointDots)
                     foreach(Point point in Waypoint.PointLocations)
                         if (p == point) return;
-                lastWaypointDot = p;                
+                                
                 lock (waypointDots)
                     waypointDots.Add(new Waypoint(DotCanvas,p,joymgr.DPI,MainCanvas, Brushes.Yellow));
+                
             }
             else
             {}
@@ -1633,38 +1639,7 @@ namespace DREAMPioneer
                                             if (!b)
                                             {
 
-                                                //captureVis.Add(t.Id, new SlipAndSlide(t));
-                                                //captureVis[t.Id].dot.Stroke = Brushes.White;
-
                                                 ZoomDown(e);
-
-                                                //List<Waypoint> Copy;
-                                                //lock (waypointDots)
-                                                //{                                                    
-                                                //    Copy = new List<Waypoint>(waypointDots);                                                    
-                                                //}
-                                                //List<Waypoint> GONNADIE = new List<Waypoint>();
-                                                //foreach (Touch x in FREE.Values)
-                                                //{
-                                                //    foreach (Waypoint wp in Copy)
-                                                //    {
-                                                //        Point p = wp.unfuckedwithLocation;
-                                                //        if (distance(p, x.Position) < 20)
-                                                //        {
-                                                //            GONNADIE.Add(wp);                                                            
-                                                //        }
-                                                //    }
-                                                //}
-                                                //lock(waypointDots)
-                                                //    foreach (Waypoint wp in GONNADIE)
-                                                //    {
-                                                //        if (waypointDots.Contains(wp))
-                                                //        {
-                                                //            DotCanvas.Children.Remove(wp.dot);
-                                                //            waypointDots.Remove(wp);
-                                                //            Waypoint.PointLocations.Remove(wp.unfuckedwithLocation);
-                                                //        }
-                                                //    }
 
                                                 if (FREE.Count > 1)
                                                 {
@@ -1978,6 +1953,8 @@ namespace DREAMPioneer
         /// </summary>
         private const int TimeDT = 900;
 
+
+        private const int TimeRM5 = 300;
         /// <summary>
         ///   Used to control the printing of debugging information.
         /// </summary>
@@ -2501,18 +2478,35 @@ namespace DREAMPioneer
 
 
 
-            if (FREE.Count == 1)
-            {
-                specialInitPoint = e.Position;
-                lock (waypointDots)
-
-
-                waypointDontThrowAway.AddRange(Waypoint.PointLocations.Except(waypointDontThrowAway));
-                lassoDontThrowAway.AddRange(lassoPoints.Except(lassoDontThrowAway));
-            }
-
             if (FREE.Count > 1)
             {
+                if(timers.IsRunning(ref RM5Timer))
+                {
+                    IEnumerable<Point> gtfo;
+                    lock (waypointDots)
+                    {
+                        lock (Waypoint.PointLocations)
+                        {
+
+                            gtfo = new List<Point>(Waypoint.PointLocations.Except(waypointDontThrowAway));
+
+                            List<Waypoint> Copy = new List<Waypoint>(waypointDots);
+                            foreach (Waypoint wp in Copy)
+                            {
+                                
+                                if (gtfo.Contains(wp.Location))
+                                {
+                                    DotCanvas.Children.Remove(wp.dot);
+                                    waypointDots.Remove(wp);
+                                    Waypoint.PointLocations.Remove(wp.Location);
+                                }
+                            }
+
+
+                        }
+                    }
+                }
+                    
                 RM5End();
                     foreach (Touch c in FREE.Values)
                     {
@@ -2671,6 +2665,10 @@ namespace DREAMPioneer
         private void RM5Timer_Tick(object sender)
         {
             RM5End();
+
+            waypointDontThrowAway.AddRange(Waypoint.PointLocations.Except(waypointDontThrowAway));
+            lassoDontThrowAway.AddRange(lassoPoints.Except(lassoDontThrowAway));
+
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (!turnedIntoDrag && FREE.Count <= 1)
@@ -2679,8 +2677,8 @@ namespace DREAMPioneer
                     AddWaypointDot(lastTouch);
                 }
             }));
-        }
 
+        }
         /// <summary>
         ///   The r m 5 end.
         /// </summary>
