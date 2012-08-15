@@ -166,7 +166,7 @@ namespace Ros_CSharp
             {
                 byte[] M = m.Serialize();                
                 stats.messages_sent++;
-                EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
+                //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
                 stats.bytes_sent += M.Length;
                 stats.message_data_sent += M.Length;
                 connection.write(M, (uint)M.Length, onMessageWritten, immediate_write);

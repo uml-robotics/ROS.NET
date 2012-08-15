@@ -160,8 +160,6 @@ namespace DREAMPioneer
 
 
          private Point DRAG_START = new Point(-1, -1);
-
-        private const string ROS_MASTER_URI = "http://10.0.2.42:11311/";
         public static SurfaceWindow1 current;
         //private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();        
         private JoystickManager joymgr;
@@ -574,20 +572,16 @@ namespace DREAMPioneer
             gm.Pose[] StopPose = new gm.Pose[1];
             StopPose[0] = new Messages.geometry_msgs.Pose()
             {
-                            position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
-                            orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
-             }; 
+                position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
+                orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
+            };
             RD.goalPub.publish(new gm.PoseArray()
                 {
-                                header = new Messages.std_msgs.Header(),
-                                poses = StopPose
-                                
-                 });
-            //Dispatcher.BeginInvoke(new Action(()=>
-            //RobotControl.DoneCheck(RD.RobotNumber);
-            
-        }
+                    header = new Messages.std_msgs.Header(),
+                    poses = StopPose
 
+                });
+        }
 
         /// <summary>
         ///   The say.
@@ -783,13 +777,14 @@ namespace DREAMPioneer
             }
             else
             {
-                //if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
+                if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
                 {
                     Messages.custom_msgs.ptz pt = new ptz();
                     pt.x = (float)(rx / -100.0);
                     pt.y = (float)(ry / -100.0);
                     pt.CAM_MODE = ptz.CAM_ABS;
                     ROSData.servosPub.publish(pt);
+                    Console.WriteLine(ROSData.servosPub.topic);
                     currtime = DateTime.Now;
                 }
             }
@@ -2556,8 +2551,7 @@ namespace DREAMPioneer
            
             foreach (int r in selectedList)
             {
-                RobotColor.freeMe(r);
-                RobotControl.DoneCheck(r);
+               RobotControl.DoneCheck(r);
 
             }
 

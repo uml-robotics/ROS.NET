@@ -129,7 +129,7 @@ namespace Ros_CSharp
         /// </exception>
         public void StartTimer(ref Timer t)
         {
-            if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
+            if (t == null || !heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
             if (heardof[t].running) return;
             t.Change(heardof[t].delay, heardof[t].period);
             heardof[t].running = true;
