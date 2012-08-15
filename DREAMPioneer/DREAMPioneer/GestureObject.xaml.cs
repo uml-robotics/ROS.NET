@@ -87,9 +87,14 @@ namespace DREAMPioneer
         /// <param name = "b">
         ///   New background color
         /// </param>
-        public void SetColor(Brush b)
+        public void SetColor(System.Windows.Media.SolidColorBrush color)
         {
-            Dot.Fill = b;
+            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Dot.Fill = color; 
+            }));
+
+
         }
 
         /// <summary>
@@ -121,9 +126,16 @@ namespace DREAMPioneer
             Dot.Opacity = d;
         }
 
-        public Brush GetColor()
+            
+         public Brush GetColor()
         {
-            return Dot.Fill;
+            Brush ret = Brushes.Orange;
+            SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
+            {
+
+                ret = Dot.Fill;
+            }));
+            return ret;
         }
 
         /// <summary>

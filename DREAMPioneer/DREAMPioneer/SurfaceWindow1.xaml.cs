@@ -633,7 +633,7 @@ namespace DREAMPioneer
         private const string DEFAULT_HOSTNAME = "10.0.2.47";
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.178:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
             System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
@@ -729,7 +729,7 @@ namespace DREAMPioneer
         public void changeManual(int manualRobot)
         {
             touchedRobot = -1;
-            SteveJobsHasCancer = false;
+
             if (ROSStuffs.ContainsKey(ROSData.ManualNumber))
             {
                 NoPulse(ROSData.ManualNumber);
@@ -1041,8 +1041,7 @@ namespace DREAMPioneer
                 return;
             _RemoveYellow(i);
             _RemoveGreen(i);
-            if (ROSStuffs[i].myRobot.GetColor() == Brushes.Blue)
-                ROSStuffs[i].myRobot.SetColor(Brushes.Transparent);
+            ROSStuffs[i].myRobot.robot.SetColor(Brushes.Transparent);
         }
 
         /// <summary>
@@ -1062,7 +1061,10 @@ namespace DREAMPioneer
         public void _AddYellow(int i)
         {
             Console.WriteLine("ADD YELLOW: " + i);
-            ROSStuffs[i].myRobot.robot.SetColor(Brushes.Yellow);
+            Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ROSStuffs[i].myRobot.robot.SetColor(Brushes.Yellow);
+                }));
             YellowDots.Add(ROSStuffs[i].myRobot);
             timers.StartTimer(ref YellowTimer);
         }
@@ -1078,7 +1080,7 @@ namespace DREAMPioneer
             RobotColor.freeMe(i);
             RobotControl.DoneCheck(i);
 
-            ROSStuffs[i].myRobot.SetColor(Brushes.Green);
+            ROSStuffs[i].myRobot.robot.SetColor(Brushes.Green);
             GreenDots.Add(ROSStuffs[i].myRobot);
             timers.StartTimer(ref GreenTimer);
         }
@@ -1095,7 +1097,7 @@ namespace DREAMPioneer
             {
                 Console.WriteLine("REMOVE YELLOW: " + i);
                 YellowDots.Remove(ROSStuffs[i].myRobot);
-                ROSStuffs[i].myRobot.SetColor(Brushes.Transparent);
+                ROSStuffs[i].myRobot.robot.SetColor(Brushes.Transparent);
                 if (YellowDots.Count == 0)
                     timers.StopTimer(ref YellowTimer);
             }
@@ -1113,7 +1115,7 @@ namespace DREAMPioneer
             {
                 Console.WriteLine("REMOVE GREEN: " + i);
                 GreenDots.Remove(ROSStuffs[i].myRobot);
-                ROSStuffs[i].myRobot.SetColor(Brushes.Transparent);
+                ROSStuffs[i].myRobot.robot.SetColor(Brushes.Transparent);
                 if (GreenDots.Count == 0)
                     timers.StopTimer(ref GreenTimer);
             }
@@ -1790,6 +1792,7 @@ namespace DREAMPioneer
                                                 bool SITSTILL = false;
                                                 if (!b && !fisting)
                                                 {
+                                                    
                                                     /*if (captureVis.ContainsKey(t.Id))
                                                     {
                                                         captureVis[t.Id].dot.Stroke = Brushes.White;
@@ -1797,6 +1800,7 @@ namespace DREAMPioneer
                                                     }*/
 
                                                     int index = robotsCD(e);
+                                                    if(index == -1)CheckSpecialAbort(e);
                                                     Dictionary<int, Touch> cc = FREE;
 
                                                     if (FREE.Count == 1 && (state == RMState.State3 || FREE.Count == 1 && em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
@@ -1954,7 +1958,10 @@ namespace DREAMPioneer
         /// </summary>
         private bool specialRobotWasYellow;
         private bool touchedRobotWasYellow;
+
+#if SteveJobsIAlive
         private bool SteveJobsHasCancer = false;
+#endif
         /// <summary>
         ///   The time in seconds after which the 'special' gesture can be considered activated.
         /// </summary>
@@ -1994,30 +2001,13 @@ namespace DREAMPioneer
         {
             if (!fisting && specialArgs != null && t.Id == specialArgs.Id)
             {
-                if (!timers.IsRunning(ref SpecialTimer))
-                {
-                    if (touchedRobot != -1)
-                    {
-                        if (ROSStuffs.ContainsKey(touchedRobot) && ROSStuffs[touchedRobot].myRobot.robot.GetColor() == Brushes.Blue)
-                        {
-                            SteveJobsHasCancer = false;
-                            //ROSStuffs[touchedRobot].myRobot.robot.SetColor(Brushes.Transparent);
-                            Console.WriteLine("TOUCHED ROBOT IS BLUE");
-                            NoPulse(touchedRobot);
-                        }
-                        else if (touchedRobotWasYellow && touchedRobot != ROSData.ManualNumber)
-                            Console.WriteLine("ABORT SPECIAL");
-                            PulseYellow(touchedRobot);
-                    }
-                }
-                SteveJobsHasCancer = false;
-                //if (ROSStuffs.ContainsKey(touchedRobot) && ROSStuffs[touchedRobot].myRobot.robot.GetColor() == Brushes.Blue)
-                //    ROSStuffs[touchedRobot].myRobot.robot.SetColor(Brushes.Transparent);
+                Console.WriteLine("End Special");
                 timers.StopTimer(ref SpecialTimer);
                 specialArgs = null;
                 specialInitPoint = new Point();
             }
         }
+        
 
         /// <summary>
         ///   The check special.
@@ -2109,8 +2099,8 @@ namespace DREAMPioneer
             {
                 Console.WriteLine("TICK");
                 Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    CheckSpecial(FREE);
+                { 
+                CheckSpecial(FREE);
                     if (!timers.IsRunning(ref SpecialTimer) || FREE.Count > 1)
                     {
                         return;
@@ -2119,15 +2109,59 @@ namespace DREAMPioneer
 
                     if (touchedRobot != -1)
                     {
-                        NoPulse(touchedRobot);
-                        ROSStuffs[touchedRobot].myRobot.robot.SetOpacity(0.5);
-                        ROSStuffs[touchedRobot].myRobot.robot.SetColor(Brushes.Blue);                        
+                        NoPulse(touchedRobot);                      
                         touchedRobotWasYellow = selectedList.Contains(touchedRobot);
-                        SteveJobsHasCancer = true;
+                    }  
+                    }));
+                        if (touchedRobot == ROSData.ManualNumber && touchedRobot != -1)
+                        {
+                            Console.WriteLine("DE-INTERVENTION WOOOO!");
+                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                            changeManual(-1);
+                            //NoPulse(index);
+                            /*if (selectedList.Contains(touchedRobot))
+                                RemoveSelected(touchedRobot, null, "DE-INTERVENTION!");*/
+                            if (selectedList.Count == 0)
+                                ChangeState(RMState.Start, "DE-INTERVENTION!");
+                            else
+                                ChangeState(RMState.State2, "DE-INTERVENTION!");
+                            return;
+                        }
+                        else
+                        {
+                            if (ROSData.ManualNumber != -1)
+                            {
+                                if (selectedList.Contains(ROSData.ManualNumber))
+                                {
+                                    RemoveSelected(
+                                        ROSData.ManualNumber, null,
+                                        "GIVE HIM THE STICK! (don't give him the stick!)");
+                                }
+
+                                NoPulse(ROSData.ManualNumber);
+                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                                changeManual(-1);
+                            }
+                            if (selectedList.Contains(touchedRobot))
+                            {
+                                RemoveSelected(touchedRobot, null,
+                                               "GIVE HIM THE (ipad) STICK! (don't give him the stick!)");
+                            }
+                            if (ROSData.ManualNumber != -1)
+                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                            changeManual(touchedRobot);
+                            if (ROSData.ManualNumber != -1)
+                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
+
+                            if (selectedList.Count == 0)
+                                ChangeState(RMState.Start, "INTERVENTION!");
+                            else
+                                ChangeState(RMState.State2, "INTERVENTION!");
+                        }
                         return;
-                    }
-                }));
-            }
+             }
+                
+           
             catch (InvalidOperationException IOE)
             {
                 Console.WriteLine(IOE.Message);
@@ -2142,6 +2176,7 @@ namespace DREAMPioneer
                                         //CheckSpecialAbort(e);
                                         if (!b && !fisting)
                                         {
+                                            CheckSpecialAbort(e);
                                             /*if (captureVis.ContainsKey(t.Id))
                                             {
                                                 captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
@@ -2178,57 +2213,7 @@ namespace DREAMPioneer
                                             switch (state)
                                             {
                                                 case RMState.Start:
-                                                    if (SteveJobsHasCancer)
-                                                    {
-                                                        if (index == ROSData.ManualNumber && index != -1)
-                                                        {
-                                                            Console.WriteLine("DE-INTERVENTION WOOOO!");
-                                                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                            changeManual(-1);
-                                                            //NoPulse(index);
-                                                            /*if (selectedList.Contains(touchedRobot))
-                                                                RemoveSelected(touchedRobot, null, "DE-INTERVENTION!");*/
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "DE-INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "DE-INTERVENTION!");
-                                                            return;
-                                                        }
-                                                        else
-                                                        {
-                                                            if (ROSData.ManualNumber != -1)
-                                                            {
-                                                                if (selectedList.Contains(ROSData.ManualNumber))
-                                                                {
-                                                                    RemoveSelected(
-                                                                        ROSData.ManualNumber, null,
-                                                                        "GIVE HIM THE STICK! (don't give him the stick!)");
-                                                                }
-
-                                                                NoPulse(ROSData.ManualNumber);
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                                changeManual(-1);
-                                                            }
-                                                            if (selectedList.Contains(touchedRobot))
-                                                            {
-                                                                RemoveSelected(touchedRobot, null,
-                                                                               "GIVE HIM THE (ipad) STICK! (don't give him the stick!)");
-                                                            }
-                                                            if (ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                            changeManual(touchedRobot);
-                                                            if (ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
-
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "INTERVENTION!");
-                                                        }
-                                                        SteveJobsHasCancer = false;
-                                                        return;
-                                                    }
-                                                    beforeLasso.AddRange(selectedList);
+                                                   beforeLasso.AddRange(selectedList);
                                                     FinishLasso(e);
 
                                                     newSelection = selectedList.Except(beforeLasso).ToList();
@@ -2239,57 +2224,7 @@ namespace DREAMPioneer
 
                                                     break;
                                                 case RMState.State1:
-                                                    if (SteveJobsHasCancer)
-                                                    {
-                                                        if (index == ROSData.ManualNumber && index != -1)
-                                                        {
-                                                            Console.WriteLine("DE-INTERVENTION WOOOO!");
-                                                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist{linear = new Messages.geometry_msgs.Vector3{ x=0 }, angular=new Messages.geometry_msgs.Vector3{z=0}});
-                                                            changeManual(-1);
-                                                            //NoPulse(index);
-                                                            /*if (selectedList.Contains(touchedRobot))
-                                                                RemoveSelected(touchedRobot, null, "DE-INTERVENTION!");*/
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "DE-INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "DE-INTERVENTION!");
-                                                            return;
-                                                        }
-                                                        else
-                                                        {                                                            
-                                                            if (ROSData.ManualNumber != -1)
-                                                            {
-                                                                if (selectedList.Contains(ROSData.ManualNumber))
-                                                                {
-                                                                    RemoveSelected(
-                                                                        ROSData.ManualNumber, null,
-                                                                        "GIVE HIM THE STICK! (don't give him the stick!)");
-                                                                }
-
-                                                                NoPulse(ROSData.ManualNumber);
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                                changeManual(-1);
-                                                            }
-                                                            if (selectedList.Contains(touchedRobot))
-                                                            {
-                                                                RemoveSelected(touchedRobot, null,
-                                                                               "GIVE HIM THE (ipad) STICK! (don't give him the stick!)");
-                                                            }
-                                                            if (ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                            changeManual(touchedRobot);
-                                                            if(ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });                                                            
-                                                            
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "INTERVENTION!");
-                                                        }
-                                                        SteveJobsHasCancer = false;
-                                                        return;
-                                                    }
-
+                                                  
                                                     beforeLasso.AddRange(selectedList);
                                                     FinishLasso(e);
                                                     newSelection = selectedList.Except(beforeLasso).ToList();
@@ -2306,56 +2241,6 @@ namespace DREAMPioneer
                                                     break;
                                                 case RMState.State2:
                                                     Console.WriteLine("UP IN 2");
-                                                    if (SteveJobsHasCancer)
-                                                    {
-                                                        if (index == ROSData.ManualNumber && index != -1)
-                                                        {
-                                                            Console.WriteLine("DE-INTERVENTION WOOOO!");
-                                                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                            changeManual(-1);
-                                                            //NoPulse(index);
-                                                            /*if (selectedList.Contains(touchedRobot))
-                                                                RemoveSelected(touchedRobot, null, "DE-INTERVENTION!");*/
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "DE-INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "DE-INTERVENTION!");
-                                                            return;
-                                                        }
-                                                        else
-                                                        {
-                                                            if (ROSData.ManualNumber != -1)
-                                                            {
-                                                                if (selectedList.Contains(ROSData.ManualNumber))
-                                                                {
-                                                                    RemoveSelected(
-                                                                        ROSData.ManualNumber, null,
-                                                                        "GIVE HIM THE STICK! (don't give him the stick!)");
-                                                                }
-
-                                                                NoPulse(ROSData.ManualNumber);
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                                changeManual(-1);
-                                                            }
-                                                            if (selectedList.Contains(touchedRobot))
-                                                            {
-                                                                RemoveSelected(touchedRobot, null,
-                                                                               "GIVE HIM THE (ipad) STICK! (don't give him the stick!)");
-                                                            }
-                                                            if (ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-                                                            changeManual(touchedRobot);
-                                                            if (ROSData.ManualNumber != -1)
-                                                                ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
-
-                                                            if (selectedList.Count == 0)
-                                                                ChangeState(RMState.Start, "INTERVENTION!");
-                                                            else
-                                                                ChangeState(RMState.State2, "INTERVENTION!");
-                                                        }
-                                                        SteveJobsHasCancer = false;
-                                                        return;
-                                                    }
                                                     break;
                                                 case RMState.State3:
                                                     if (WPDrag > 0)
@@ -2453,7 +2338,7 @@ namespace DREAMPioneer
             {
                 if (distance(lassoPoints[0], lassoPoints[lassoPoints.Count - 1]) < 100)
                 {
-                    for (int i = 0; i <= ROSData.numRobots; i++)
+                    foreach(int i in ROSStuffs.Keys)
                     {
                         if (!ROSStuffs.ContainsKey(i)) continue;
                         Point p = ROSStuffs[i].PositionInWindow;
@@ -2461,8 +2346,7 @@ namespace DREAMPioneer
                         {
                             if (!selectedList.Exists(item => item == i))
                             {
-                                selectedList.Add(i);
-                                PulseYellow(i);
+                                AddSelected(i, e);
                             }
                         }
                     }

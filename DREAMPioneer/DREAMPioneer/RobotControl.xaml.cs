@@ -346,16 +346,7 @@ namespace DREAMPioneer
                 + (y2 - y1) * (y2 - y1));
         }
 
-        public void SetColor(System.Windows.Media.SolidColorBrush color)
-        {
-            robot.SetColor(color);
-            //robot.Dot.Fill = color;
-           
-        }
-        public Brush GetColor()
-        {
-            return robot.GetColor();
-        }
+        
         public void SetOpacity(Double opa)
         {
             robot.Dot.Opacity = opa;

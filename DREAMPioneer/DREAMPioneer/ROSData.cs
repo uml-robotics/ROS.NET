@@ -174,7 +174,7 @@ namespace DREAMPioneer
             window.current.Dispatcher.BeginInvoke(new Action(() =>
             {
                     myRobot = new RobotControl(RobotNumber);
-                    myRobot.SetColor(Brushes.Transparent);
+                    myRobot.robot.SetColor(Brushes.Transparent);
                     myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
                     //myRobot.TopicName = Name + "/local_costmap/robot_footprint";
                     window.current.SubCanvas.Children.Add(myRobot);
