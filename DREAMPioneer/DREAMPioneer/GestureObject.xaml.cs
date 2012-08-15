@@ -100,14 +100,14 @@ namespace DREAMPioneer
         /// </param>
         public void ChangeIconColors(int c)
         {
-            Border.Stroke = circles[c];
-            Arrow.Fill = arrows[c];
-        }
+                Border.Stroke = circles[c];
+                Arrow.Fill = arrows[c];
+            
+            }
         public void setArrowColor(Brush b)
-        { SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
-            {            
+        {            
             Arrow.Fill = b;
-            }));
+            
         }
         /// <summary>
         ///   The set opacity.

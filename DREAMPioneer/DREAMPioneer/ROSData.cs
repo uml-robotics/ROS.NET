@@ -98,15 +98,16 @@ namespace DREAMPioneer
         public static int numRobots;
 
         Subscriber<cm.robotMortality> GhostWhisperer;
-        private DateTime LastBeat;
+        private DateTime LastBeat = DateTime.Now;
         public Timer Dethklok;
-        bool IsItAlive = false;
-
+        bool IsItAlive = true;
+        public bool OnLast = false;
 
         public void CheckMortality(object state)
         {
             if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
             {
+                IsItAlive = false;
                     Console.WriteLine("He was an asshole, anyways... (" + Name + ")");
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                         {
@@ -123,7 +124,7 @@ namespace DREAMPioneer
                 else if (!IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds < 5000)
                 {
                     IsItAlive = true;
-                    Console.WriteLine("Oh hey... we weren'qt talking about you... I promise. (" + Name + ")");                    
+                    Console.WriteLine("Oh hey... we weren't talking about you... I promise. (" + Name + ")");                    
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         myRobot.Visibility = Visibility.Visible;
@@ -170,8 +171,8 @@ namespace DREAMPioneer
 
             goal = new gm.PoseArray { poses = new gm.Pose[20] };
 
-            window.current.Dispatcher.Invoke(new Action(() =>
-                {
+            window.current.Dispatcher.BeginInvoke(new Action(() =>
+            {
                     myRobot = new RobotControl(RobotNumber);
                     myRobot.SetColor(Brushes.Transparent);
                     myRobot.TopicName = Name + "/move_base/local_costmap/robot_footprint";
@@ -188,8 +189,7 @@ namespace DREAMPioneer
 
         public void Heartbeat(cm.robotMortality Life)
         {
-            IsItAlive = true;
-            LastBeat = DateTime.Now;
+          LastBeat = DateTime.Now;
         }
 
         public static void unSub()
@@ -207,7 +207,7 @@ namespace DREAMPioneer
         public static void reSub()
         {
             joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 10);
+            servosPub = node.advertise<cm.ptz>(manualPTZ,10, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
 

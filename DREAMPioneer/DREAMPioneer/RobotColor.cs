@@ -80,11 +80,13 @@ namespace DREAMPioneer
             for (int i = 0; i < ColorInUse.Count; i++)
             {
                 ColorInUse[i].RobotNumber = -1;
-                if (SurfaceWindow1.current.ROSStuffs.ContainsKey(i))
-                    SurfaceWindow1.current.ROSStuffs[i].myRobot.robot.ChangeIconColors(
-                        SurfaceWindow1.current.ROSStuffs[i].myRobot.robot.circles.IndexOf(
-                        SurfaceWindow1.current.ROSStuffs[i].myRobot.robot.Border.Stroke));
             }
+            foreach(ROSData RD in SurfaceWindow1.current.ROSStuffs.Values)
+                if (SurfaceWindow1.current.ROSStuffs.ContainsKey(RD.RobotNumber))
+                    SurfaceWindow1.current.ROSStuffs[RD.RobotNumber].myRobot.robot.ChangeIconColors(
+                    SurfaceWindow1.current.ROSStuffs[RD.RobotNumber].myRobot.robot.circles.IndexOf(
+                    SurfaceWindow1.current.ROSStuffs[RD.RobotNumber].myRobot.robot.Border.Stroke));
+            
         }
         
 

@@ -63,18 +63,20 @@ namespace DREAMPioneer
                         Done = true;
                         RI.done = true;
                         RI.CurrentLength = CL.P_List.Count;
-                        // JPWIP
-                        //Free
+                        RobotColor.freeMe(RI.RoboNum);
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
                         
                         if (Done)
                         {
-                            // JPWIP
-                            //  foreach(
+                            
+                            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action( () => 
+                            {
                             foreach (GoalDot GD in CL.Dots)
                                 window.current.DotCanvas.Children.Remove(GD);
+                            CL.Dots.Clear();
+                            }));
                             CL.P_List.Clear();
                             CL.RoboInfo.Clear();
                             lock (RobotControl.OneInAMillion)
@@ -207,20 +209,8 @@ namespace DREAMPioneer
                          double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
                          points.Add(new Point(x,y));
                      }
-                     if (points.Count == 0)
-                        window.current.Dispatcher.BeginInvoke(new Action(() =>
-                             {
-                                 RobotColor.freeAll();
-                                 foreach (CommonList CL in RobotControl.OneInAMillion)
-                                 {
-                                     foreach (GoalDot GD in CL.Dots)
-                                         window.current.DotCanvas.Children.Remove(GD);
-                                     CL.P_List.Clear();
-                                     CL.RoboInfo.Clear();
-
-                                 }
-                                 RobotControl.OneInAMillion.Clear();
-                             }));
+                     //if (points.Count == 0)
+                         //DoneCheck(myData.RobotNumber);
                      
                     updateGoal(points, myData.RobotNumber);
                  });
@@ -374,7 +364,8 @@ namespace DREAMPioneer
 
         private void updateGoal(List<Point> points, int index)
         {
-             bool unique = CheckUnique(points, index);         
+              
+             CheckUnique(points, index);         
         }
 
         /// <summary>
@@ -389,27 +380,40 @@ namespace DREAMPioneer
 
          
 
-        public bool CheckUnique(List<Point> P_List, int R)
+        public void CheckUnique(List<Point> P_List, int R)
         {
-            window.current.ROSStuffs[R].myRobot.robot.setArrowColor(RobotColor.getMyColor(R));
-            if (P_List.Count == 0) return false;
+            Brush MyColor = RobotColor.getMyColor(R);
+
+            if (P_List.Count == 0)
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    RobotControl.DoneCheck(R);
+                }));
+                return;
+            }
+           SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                 {
+                     window.current.ROSStuffs[R].myRobot.robot.setArrowColor(MyColor);
+                 }));
+            if (P_List.Count == 0) return;
             CommonList DisList = null;
             if (OneInAMillion.Count == 0)
             {
                 //IT IS UNIQUE
 
-                Dispatcher.Invoke(new Action(() => { DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1); }));
+                DisList = new CommonList(P_List, R, MyColor, 1); 
                 OneInAMillion.Add(DisList);
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+                    window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
                     if (DisList.Dots.Count >= 1)
                         DisList.Dots[0].NextOne = true;
                     foreach (Robot_Info RI in DisList.RoboInfo)
                         if (RI.RoboNum == R)
                             window.current.SetGoal(R, P_List, DisList, RI);
                 }));
-                return true;
+                return;
             }
 
             foreach (CommonList CL in OneInAMillion)
@@ -421,7 +425,7 @@ namespace DREAMPioneer
                     if (RI.RoboNum == R && !RI.done)
                     {
                         Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
-                        return false;
+                        return;
                     }
 
                 int j;
@@ -439,12 +443,12 @@ namespace DREAMPioneer
 
 
 
-                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
+                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
                                 foreach (Robot_Info RI in CL.RoboInfo)
                                     if (RI.RoboNum == R)
                                     {
                                         Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
-                                        return false;
+                                        return;
                                     }
                             }
 
@@ -462,17 +466,17 @@ namespace DREAMPioneer
                                 //NOT UNIQUE Longer
 
                                 Dispatcher.BeginInvoke(new Action(()=>
-                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, robot.Arrow.Fill, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1))));
+                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1))));
                                //List<Point> Better_List = new List<Point>(P_List.Except<Point>(CL.P_List));
 
                                 CL.P_List.Clear();
                                 CL.P_List = P_List;
-                               // window.current.AddGoalDots(Better_List, CL.Dots, robot.Arrow.Fill);
+                                // window.current.AddGoalDots(Better_List, CL.Dots, MyColor);
                                 foreach (Robot_Info RI in CL.RoboInfo)
                                     if (RI.RoboNum == R)
                                     {
                                         Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
-                                        return false;
+                                        return;
                                     }
                             }
                             else if (P_List[i + j] != CL.P_List[i]) break;
@@ -482,19 +486,19 @@ namespace DREAMPioneer
             //IT IS UNIQUE
 
 
-            Dispatcher.Invoke(new Action(() => { DisList = new CommonList(P_List, R, robot.Arrow.Fill, 1); }));
+           DisList = new CommonList(P_List, R, MyColor, 1); 
             OneInAMillion.Add(DisList);
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                window.current.AddGoalDots(P_List, DisList.Dots, robot.Arrow.Fill);
+                window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
                 if (DisList.Dots.Count >= 1)
                     DisList.Dots[0].NextOne = true;
                 foreach (Robot_Info RI in DisList.RoboInfo)
                     if (RI.RoboNum == R)
                         window.current.SetGoal(R, P_List, DisList, RI);
             }));
-            return true;
+            return;
         }
 
 
