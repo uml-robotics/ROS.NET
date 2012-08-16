@@ -7,16 +7,17 @@
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
      Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize"
         VerticalAlignment="Center" HorizontalAlignment="Center">
-    
-        <Canvas Name="MainCanvas" Background="Gray" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">
-            
-            <Canvas x:Name="SubCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center" >
-            <c:MapControl x:Name="map" Background ="Black" c:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212" VerticalAlignment="Center" HorizontalAlignment="Center" />  
-            
-        <Canvas Name="DotCanvas" Background="Transparent" Width="1024" Height="768" VerticalAlignment="Center" HorizontalAlignment="Center">
-
+    <Canvas Name="MainCanvas" Background="Gray" Width="1024" Height="768" RenderTransformOrigin=".5,.5"  ClipToBounds="False">
+        <Canvas Name="TopsyTurvey" Background="Transparent" Width="1024" Height="768" RenderTransformOrigin=".5,.5"  ClipToBounds="False">
+            <Canvas.RenderTransform>
+                <ScaleTransform x:Name="Flipper" ScaleX="-1"></ScaleTransform>
+            </Canvas.RenderTransform>
+            <Canvas Name="TranslateCanvas" Background="Transparent" ClipToBounds="False" RenderTransformOrigin=".5,.5">
+                <Canvas Name="SubCanvas" Background="Transparent" ClipToBounds="False" RenderTransformOrigin=".5,.5">             
+                    <c:MapControl Name="map" Background ="Black" c:MapControl.TopicName="/robot_brain_1/map" Width="1078" Height="212"  ClipToBounds="False"/>
+                    <Canvas Name="DotCanvas" Background="Transparent" Width="1024" Height="768"  ClipToBounds="False" />
+                </Canvas>
             </Canvas>
         </Canvas>
-    </Canvas> 
-
+    </Canvas>
 </Window>

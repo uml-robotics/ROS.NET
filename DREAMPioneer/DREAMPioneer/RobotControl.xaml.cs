@@ -211,7 +211,7 @@ namespace DREAMPioneer
                      }
                      //if (points.Count == 0)
                          //DoneCheck(myData.RobotNumber);
-                     
+                     Console.WriteLine("GOAL_PROGRESS: " + myData.Name + ", " + points.Count); 
                     updateGoal(points, myData.RobotNumber);
                  });
 
@@ -421,16 +421,16 @@ namespace DREAMPioneer
 
                 int j;
 
-                if (P_List.Count < CL.P_List.Count)
+                if (P_List.Count <= CL.P_List.Count)
                 {
                     j = CL.P_List.Count - P_List.Count;
-                    for (int i = P_List.Count - 1; i > 0; i--)
+                    for (int i = P_List.Count - 1; i >= 0; i--)
                     {
-                        if (i == 1)
+                        if (i == 0)
                             if (P_List[i] == CL.P_List[i + j])
                             {
 
-                                //NOT UNIQUE Shorter
+                                //NOT UNIQUE Shorter or Equal To
 
 
 
@@ -449,9 +449,9 @@ namespace DREAMPioneer
                 else
                 {
                     j = P_List.Count - CL.P_List.Count;
-                    for (int i = CL.P_List.Count - 1; i > 0; i--)
+                    for (int i = CL.P_List.Count - 1; i >= 0; i--)
                     {
-                        if (i == 1)
+                        if (i == 0)
                             if (P_List[i + j] == CL.P_List[i])
                             {
                                 //NOT UNIQUE Longer
