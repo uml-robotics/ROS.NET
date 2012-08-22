@@ -168,6 +168,9 @@ namespace Ros_CSharp
                 tls.current = tls.head;
             }
             TLS.CallbackInfoNode curr = null;
+            if (tls.current == null)
+                tls.current = tls.head ?? tls.tail;
+            if (tls.current == null) return CallOneResult.Empty;
             lock (tls.current)
             {
                 curr = tls.current;

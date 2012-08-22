@@ -70,19 +70,19 @@ namespace DREAMPioneer
 
 
 
-
+        
         public int RobotNumber;
         public string Name;
         public static NodeHandle node;
         public static string manualCamera, manualLaser, manualPTZ, manualVelocity;
         public static int ManualNumber = -1;
         public Messages.geometry_msgs.Twist t;
-        public static Publisher<gm.Twist> joyPub;
+        public Publisher<gm.Twist> joyPub;
         public static Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
         public static Subscriber<sm.LaserScan> laserSub;
         public Publisher<gm.PoseArray> goalPub;
-        public Subscriber<m.String> androidSub;
+        //public Subscriber<m.String> androidSub;
         public gm.PoseWithCovarianceStamped pose;
         public gm.PoseArray goal;
         public cm.ptz pt;
@@ -121,23 +121,57 @@ namespace DREAMPioneer
                                 window.current.changeManual(-1);
                         }));                    
             }
-                else if (!IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds < 5000)
-                {
+            else if (!IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds < 5000)
+            {
                     IsItAlive = true;
-                    Console.WriteLine("Oh hey... we weren't talking about you... I promise. (" + Name + ")");                    
+                    if (joyPub != null)
+                    {
+                        CheckIn();
+
+                    }
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         myRobot.Visibility = Visibility.Visible;
                         myRobot.robot.Visibility = Visibility.Visible;
-                    }));              
+                    }));
+
+                    Console.WriteLine("Oh hey... we weren't talking about you... I promise. (" + Name + ")");
             }
+            
         }
 
+        private bool CheckingIn;
+        public void CheckIn()
+        { 
+            Messages.geometry_msgs.Twist tempTwist = new Messages.geometry_msgs.Twist();
+            tempTwist.linear = new Messages.geometry_msgs.Vector3();
+            tempTwist.angular = new Messages.geometry_msgs.Vector3();
+            tempTwist.linear.x = 0;
+            tempTwist.angular.z = .5 ;
+            joyPub.publish(tempTwist);
+            CheckingIn = true;
+            Console.WriteLine("***Checking in robot number: " + RobotNumber + "***"); 
+        }
+    
+        public void endCheckIn()
+        {
+            if (CheckingIn)
+            {
+            Messages.geometry_msgs.Twist tempTwistStop = new Messages.geometry_msgs.Twist();
+            tempTwistStop.linear = new Messages.geometry_msgs.Vector3();
+            tempTwistStop.angular = new Messages.geometry_msgs.Vector3();
+            tempTwistStop.linear.x = 0;
+            tempTwistStop.angular.z = 0;
+            joyPub.publish(tempTwistStop);
+            CheckingIn = false;
+            Console.WriteLine("***Ending check in for robot number: " + RobotNumber + "***"); 
+        }
+        }
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
             LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));
             goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
-            androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
+            //androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
             GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
         }
 
@@ -149,13 +183,15 @@ namespace DREAMPioneer
         public ROSData(NodeHandle n, int i, specificAndroidDelegate android)
         {
             RobotNumber = i;
-            specificAndroidEvent += android;
+            //specificAndroidEvent += android;
             if (node == null)
                 if (n == null)
                     node = new NodeHandle();
                 else
                     node = n;
             Name = "/robot_brain_" + (i);
+            joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 10, true);
+
             /*
             manualCamera = Name + Name + "/rgb/image_color/compressed";
             manualLaser = "fakelaser";
@@ -163,7 +199,7 @@ namespace DREAMPioneer
             manualVelocity = "fakevel";
 
             t = new gm.Twist { angular = new gm.Vector3 { x = 0, y = 0, z = 0 }, linear = new gm.Vector3 { x = 0, y = 0, z = 0 } };
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 1);
+            
 
             pt = new cm.ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_REL };
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
@@ -194,9 +230,12 @@ namespace DREAMPioneer
 
         public static void unSub()
         {
-            joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
-            joyPub.shutdown();
-            joyPub = null;
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { 
+                linear = new Messages.geometry_msgs.Vector3 { x = 0 }, 
+                angular = new Messages.geometry_msgs.Vector3 { z = 0 } 
+            });
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.shutdown();
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = null;
             servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
             servosPub.shutdown();
             servosPub = null;
@@ -206,7 +245,7 @@ namespace DREAMPioneer
         }
         public static void reSub()
         {
-            joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
             servosPub = node.advertise<cm.ptz>(manualPTZ,10, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }

@@ -71,12 +71,9 @@ namespace Ros_CSharp
             lock (shutting_down_mutex)
             {
                 if (shutting_down) return;
-                lock (advertised_topics_mutex)
+                lock (subs_mutex)
                 {
-                    lock (subs_mutex)
-                    {
-                        shutting_down = true;
-                    }
+                    shutting_down = false;
                 }
                 xmlrpc_manager.unbind("publisherUpdate");
                 xmlrpc_manager.unbind("requestTopic");

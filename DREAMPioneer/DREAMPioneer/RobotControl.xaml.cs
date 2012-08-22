@@ -49,9 +49,15 @@ namespace DREAMPioneer
         public double scaley;
         public bool sendnext;
 
+        private const int DECAY_TIME = 1000; 
 
         public static List<CommonList> OneInAMillion = new List<CommonList>();
+        
         public static void DoneCheck(int index)
+        {
+            DoneCheck(index, false);
+        }
+        public static void DoneCheck(int index, bool Decay)
         {
             bool Done = false;
             foreach (CommonList CL in OneInAMillion)
@@ -63,7 +69,7 @@ namespace DREAMPioneer
                         Done = true;
                         RI.done = true;
                         RI.CurrentLength = CL.P_List.Count;
-                        RobotColor.freeMe(RI.RoboNum);
+                        SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
@@ -73,9 +79,16 @@ namespace DREAMPioneer
                             
                             SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action( () => 
                             {
-                            foreach (GoalDot GD in CL.Dots)
-                                window.current.DotCanvas.Children.Remove(GD);
-                            CL.Dots.Clear();
+                                if (Decay)
+                                {
+                                    new Thread(Atrophy).Start(CL);
+                                }
+                                else
+                                {
+                                    foreach (GoalDot GD in CL.Dots)
+                                        window.current.DotCanvas.Children.Remove(GD);
+                                    CL.Dots.Clear();
+                                }
                             }));
                             CL.P_List.Clear();
                             CL.RoboInfo.Clear();
@@ -87,6 +100,26 @@ namespace DREAMPioneer
                     }
                 if (Done) break;
             }
+        }
+
+        private static void Atrophy(object list)
+        {
+            CommonList CL = (CommonList)list;   
+            List<GoalDot> Copy = CL.Dots;
+            Thread.Sleep(DECAY_TIME);
+            foreach (GoalDot GD in Copy)
+                if (GD.Visibility == Visibility.Hidden)
+                {
+                    CL.Dots.Remove(GD);
+                    window.current.DotCanvas.Children.Remove(GD);
+                }
+                else
+                {
+                    CL.Dots.Remove(GD);
+                    window.current.DotCanvas.Children.Remove(GD);
+                    Thread.Sleep(DECAY_TIME);
+                }
+            CL.Dots.Clear();
         }
        
         public string TopicName
@@ -175,6 +208,7 @@ namespace DREAMPioneer
                     emQuaternion q = new emQuaternion(p.pose.pose.orientation);
                     double t = (new emMatrix3x3(q).getEuler().yaw * 180 / Math.PI) + 90.0;
                     Dispatcher.BeginInvoke(new Action(() => updatePOS(x, y, t)));
+                    SurfaceWindow1.current.ROSStuffs[robot.ID].endCheckIn();
                 });
 #else
             myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/amcl/pose", 1, (k) =>
