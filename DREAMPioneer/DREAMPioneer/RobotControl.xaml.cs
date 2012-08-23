@@ -77,19 +77,21 @@ namespace DREAMPioneer
                         if (Done)
                         {
                             
-                            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action( () => 
-                            {
+                            
                                 if (Decay)
                                 {
                                     new Thread(Atrophy).Start(CL);
                                 }
                                 else
                                 {
+                                 SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                                    {
                                     foreach (GoalDot GD in CL.Dots)
                                         window.current.DotCanvas.Children.Remove(GD);
+                                    }));
                                     CL.Dots.Clear();
                                 }
-                            }));
+                            
                             CL.P_List.Clear();
                             CL.RoboInfo.Clear();
                             lock (RobotControl.OneInAMillion)
@@ -102,21 +104,28 @@ namespace DREAMPioneer
             }
         }
 
+        private static Action<GoalDot> tasteit = null;
         private static void Atrophy(object list)
         {
-            CommonList CL = (CommonList)list;   
-            List<GoalDot> Copy = CL.Dots;
+            CommonList CL = (CommonList)list;
+            
+            List<GoalDot> Copy = new List<GoalDot>(CL.Dots);
+            
             Thread.Sleep(DECAY_TIME);
+            if (tasteit == null)
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(()=>{tasteit = new Action<GoalDot>(window.current.DotCanvas.Children.Remove);}));
             foreach (GoalDot GD in Copy)
                 if (GD.Visibility == Visibility.Hidden)
                 {
+                    lock (CL.Dots)
                     CL.Dots.Remove(GD);
-                    window.current.DotCanvas.Children.Remove(GD);
+                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
                 }
                 else
                 {
+                    lock (CL.Dots)
                     CL.Dots.Remove(GD);
-                    window.current.DotCanvas.Children.Remove(GD);
+                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
                     Thread.Sleep(DECAY_TIME);
                 }
             CL.Dots.Clear();

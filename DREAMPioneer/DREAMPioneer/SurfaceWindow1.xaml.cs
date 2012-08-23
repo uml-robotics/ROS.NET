@@ -634,7 +634,7 @@ namespace DREAMPioneer
         private const string DEFAULT_HOSTNAME = "10.0.2.47";
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.179:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
             System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
@@ -1395,7 +1395,7 @@ namespace DREAMPioneer
         {
             if (PList.Count == 0)
             {
-                RobotControl.DoneCheck(r);
+                RobotControl.DoneCheck(r, true);
                 return;
             }
 
@@ -2171,6 +2171,8 @@ namespace DREAMPioneer
                                         //CheckSpecialAbort(e);
                                         if (!b && !fisting)
                                         {
+                                            
+
                                             CheckSpecialAbort(e);
                                             /*if (captureVis.ContainsKey(t.Id))
                                             {
