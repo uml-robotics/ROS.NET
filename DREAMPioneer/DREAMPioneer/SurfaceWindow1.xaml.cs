@@ -675,9 +675,6 @@ namespace DREAMPioneer
                     translate = new TranslateTransform(0, 0);
                     TranslateCanvas.RenderTransform = translate;
                     SubCanvas.RenderTransform = scale;
-
-
-
                 }));
 
             n = DateTime.Now;
@@ -694,6 +691,14 @@ namespace DREAMPioneer
             timers.MakeTimer(ref SpecialTimer, SpecialTimer_Tick, (int)Math.Floor(TimeSpecial), Timeout.Infinite);
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
+
+            //ROSStuffs[0].
+
+            while (ROS.ok)
+            {
+                ROS.spinOnce();
+                Thread.Sleep(1);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -721,14 +726,6 @@ namespace DREAMPioneer
                 });
             DONTGCMEPLZZOMG = new Thread(rosStart);
             DONTGCMEPLZZOMG.Start();
-            new Thread(() =>
-                {
-                    while (ROS.ok)
-                    {
-                        ROS.spinOnce();
-                        Thread.Sleep(1);
-                    }
-                }).Start();
         }
         private Thread DONTGCMEPLZZOMG;
 
@@ -780,7 +777,7 @@ namespace DREAMPioneer
                 tempTwist.angular = new Messages.geometry_msgs.Vector3();
                 tempTwist.linear.x = lastT = ry / -200.0;
                 tempTwist.angular.z = lastR = rx / -200.0;
-                ROSData.joyPub.publish(tempTwist);
+                ROSStuffs[ROSData.ManualNumber].joyPub.publish(tempTwist);
             }
             else
             {
@@ -884,6 +881,10 @@ namespace DREAMPioneer
             GOGOGO = false;
             if (!ROSStuffs.ContainsKey(index))
                 ROSStuffs.Add(index, new ROSData(nodeHandle, index));
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                ROSStuffs[index].myRobot.updatePOS(200 * index, 100);
+            }));
             GOGOGO = true;
         }
 
@@ -1085,7 +1086,7 @@ namespace DREAMPioneer
         public void _AddGreen(int i)
         {
             Console.WriteLine("ADD GREEN: " + i);
-            RobotColor.freeMe(i);
+            Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(i)));
             RobotControl.DoneCheck(i);
 
             ROSStuffs[i].myRobot.robot.SetColor(Brushes.Green);
@@ -1397,7 +1398,7 @@ namespace DREAMPioneer
         {
             if (PList.Count == 0)
             {
-                RobotControl.DoneCheck(r);
+                RobotControl.DoneCheck(r, true);
                 return;
             }
 
@@ -1973,7 +1974,7 @@ namespace DREAMPioneer
         private const int TimeDT = 900;
 
 
-        private const int TimeRM5 = 300;
+        private const int TimeRM5 = 700;
         /// <summary>
         ///   Used to control the printing of debugging information.
         /// </summary>
@@ -2124,7 +2125,7 @@ namespace DREAMPioneer
                     {
 
                         Console.WriteLine("DE-INTERVENTION WOOOO!");
-                        ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                        ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
                         changeManual(-1);
                         //NoPulse(index);
                         /*if (selectedList.Contains(touchedRobot))
@@ -2144,10 +2145,10 @@ namespace DREAMPioneer
                                            "GIVE HIM THE STICK! (don't give him the stick!)");
                         }
                         if (ROSData.ManualNumber != -1)
-                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                            ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
                         changeManual(touchedRobot);
                         if (ROSData.ManualNumber != -1)
-                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
+                            ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
 
                         if (selectedList.Count == 0)
                             ChangeState(RMState.Start, "INTERVENTION!");
@@ -2173,6 +2174,8 @@ namespace DREAMPioneer
                                         //CheckSpecialAbort(e);
                                         if (!b && !fisting)
                                         {
+                                            
+
                                             CheckSpecialAbort(e);
                                             /*if (captureVis.ContainsKey(t.Id))
                                             {

@@ -128,7 +128,7 @@ namespace ROS_ImageWPF
                         
                     }));
                     
-                },"*");
+                });
                  
         } 
         private byte[] createRGBA(sbyte[] map)
