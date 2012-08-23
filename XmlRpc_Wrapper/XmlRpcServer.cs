@@ -263,7 +263,7 @@ namespace XmlRpc_Wrapper
             SegFault();
             removemethodbyname(instance, name);
         }
-
+                
         public void Work(double msTime)
         {
             SegFault();

@@ -180,26 +180,17 @@ namespace XmlRpc_Wrapper
                 double dres = 0;
                 bool bres = false;
                 if (initialvalues[i] == null)
-                {
-                    Set(i, "");
-                    continue;
-                }
-                if (int.TryParse(initialvalues[i].ToString(), out ires))
-                {
+                    Set(i, "");                    
+                else if (initialvalues[i] is string)                
+                    Set(i, initialvalues[i].ToString());
+                else if (initialvalues[i] is int && int.TryParse(initialvalues[i].ToString(), out ires))
                     Set(i, ires);
-                    continue;
-                }
-                if (double.TryParse(initialvalues[i].ToString(), out dres))
-                {
+                else if (initialvalues[i] is double && double.TryParse(initialvalues[i].ToString(), out dres))
                     Set(i, dres);
-                    continue;
-                }
-                if (bool.TryParse(initialvalues[i].ToString(), out bres))
-                {
+                else if (initialvalues[i] is bool && bool.TryParse(initialvalues[i].ToString(), out bres))
                     Set(i, bres);
-                    continue;
-                }
-                Set(i, initialvalues[i].ToString());
+                else
+                    Set(i, initialvalues[i].ToString());
             }
         }
 
