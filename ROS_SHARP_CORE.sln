@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62BF0BBD-313B-448C-A434-B1DD5FEFF10C}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlRpc_Wrapper", "XmlRpc_Wrapper\XmlRpc_Wrapper.csproj", "{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8D413666-0CD1-4783-B9B9-0214C14674AC} = {8D413666-0CD1-4783-B9B9-0214C14674AC}
@@ -17,8 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLParser", "YAMLParser\YA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "Messages\Messages.csproj", "{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62BF0BBD-313B-448C-A434-B1DD5FEFF10C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_ImageWPF", "ROS_ImageUtils\ROS_ImageWPF.csproj", "{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}"
 EndProject
 Global
@@ -30,6 +30,10 @@ Global
 		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|Win32 = Debug|Win32
 		Debug|x86 = Debug|x86
+		fuckstick|Any CPU = fuckstick|Any CPU
+		fuckstick|Mixed Platforms = fuckstick|Mixed Platforms
+		fuckstick|Win32 = fuckstick|Win32
+		fuckstick|x86 = fuckstick|x86
 		Release|Any CPU = Release|Any CPU
 		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|Win32 = Release|Win32
@@ -46,6 +50,12 @@ Global
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|Any CPU.Build.0 = Release|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|Mixed Platforms.Build.0 = Release|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|Win32.ActiveCfg = Release|Any CPU
+		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.fuckstick|x86.ActiveCfg = Release|Any CPU
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
@@ -64,6 +74,12 @@ Global
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Debug|Win32.ActiveCfg = Debug|Win32
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Debug|Win32.Build.0 = Debug|Win32
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Debug|x86.ActiveCfg = Debug|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|Any CPU.ActiveCfg = Release|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|Mixed Platforms.ActiveCfg = Debug|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|Mixed Platforms.Build.0 = Debug|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|Win32.ActiveCfg = Release|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|Win32.Build.0 = Release|Win32
+		{8D413666-0CD1-4783-B9B9-0214C14674AC}.fuckstick|x86.ActiveCfg = Release|Win32
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Release|Any CPU.ActiveCfg = Release|Win32
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{8D413666-0CD1-4783-B9B9-0214C14674AC}.Release|Mixed Platforms.Build.0 = Release|Win32
@@ -82,6 +98,11 @@ Global
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{586A3B66-104A-4182-82C2-88DC120F10AC}.fuckstick|Any CPU.ActiveCfg = BALLS|x64
+		{586A3B66-104A-4182-82C2-88DC120F10AC}.fuckstick|Mixed Platforms.ActiveCfg = BALLS|x64
+		{586A3B66-104A-4182-82C2-88DC120F10AC}.fuckstick|Mixed Platforms.Build.0 = BALLS|x64
+		{586A3B66-104A-4182-82C2-88DC120F10AC}.fuckstick|Win32.ActiveCfg = BALLS|x64
+		{586A3B66-104A-4182-82C2-88DC120F10AC}.fuckstick|x86.ActiveCfg = BALLS|x64
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{586A3B66-104A-4182-82C2-88DC120F10AC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
@@ -100,6 +121,12 @@ Global
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Debug|Win32.ActiveCfg = Debug|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Debug|x86.ActiveCfg = Debug|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Debug|x86.Build.0 = Debug|x86
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|Any CPU.ActiveCfg = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|Any CPU.Build.0 = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|Mixed Platforms.ActiveCfg = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|Mixed Platforms.Build.0 = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|Win32.ActiveCfg = GunItAndRunIt|Any CPU
+		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.fuckstick|x86.ActiveCfg = GunItAndRunIt|Any CPU
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Release|Any CPU.ActiveCfg = Release|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Release|Mixed Platforms.Build.0 = Release|x86
@@ -112,30 +139,42 @@ Global
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Template|Win32.ActiveCfg = Release|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Template|x86.ActiveCfg = Release|x86
 		{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}.Template|x86.Build.0 = Release|x86
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Win32.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|x86.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Any CPU.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Any CPU.Build.0 = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Mixed Platforms.Build.0 = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Win32.ActiveCfg = Release|Any CPU
-		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|x86.ActiveCfg = Release|Any CPU
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|Win32.ActiveCfg = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|x86.ActiveCfg = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Debug|x86.Build.0 = Debug|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|Any CPU.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|Mixed Platforms.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|Mixed Platforms.Build.0 = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|Win32.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|x86.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.fuckstick|x86.Build.0 = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Any CPU.ActiveCfg = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Mixed Platforms.Build.0 = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|Win32.ActiveCfg = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|x86.ActiveCfg = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Release|x86.Build.0 = Release|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Any CPU.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Mixed Platforms.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Mixed Platforms.Build.0 = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Win32.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|x86.ActiveCfg = fuckstick|x86
+		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|x86.Build.0 = fuckstick|x86
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|Any CPU.ActiveCfg = Release|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|Any CPU.Build.0 = Release|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|Mixed Platforms.Build.0 = Release|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|Win32.ActiveCfg = Release|Any CPU
+		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.fuckstick|x86.ActiveCfg = Release|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU

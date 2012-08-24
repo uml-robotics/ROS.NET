@@ -25,7 +25,7 @@ namespace Messages
 
 $EXTRACONSTRUCTOR		
 				
-		[System.Diagnostics.DebuggerStepThrough]
+		//[System.Diagnostics.DebuggerStepThrough]
 		public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
 		{		
 			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);

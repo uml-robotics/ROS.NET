@@ -58,7 +58,7 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 100;
+        public static int WallDuration = 10;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
@@ -177,7 +177,8 @@ namespace Ros_CSharp
         public static void Init(IDictionary remapping_args, string name)
         {
              Init(remapping_args, name, 0);
-       }
+        }
+        internal static List<CallbackQueue> callbax = new List<CallbackQueue>();
         public static void Init(IDictionary remapping_args, string name, int options)
         {
             if (!atexit_registered)
@@ -190,6 +191,7 @@ namespace Ros_CSharp
             if (GlobalCallbackQueue == null)
             {
                 GlobalCallbackQueue = new CallbackQueue();
+                callbax.Add(GlobalCallbackQueue);
             }
 
             if (!initialized)
@@ -205,9 +207,19 @@ namespace Ros_CSharp
             }
         }
 
+        private static object callbaxmutex = new object();        
         public static void spinOnce()
         {
-            GlobalCallbackQueue.callAvailable(WallDuration);
+            lock(callbaxmutex)
+            foreach (CallbackQueue cb in callbax)
+            {
+                new Action<CallbackQueue>((c) => c.callAvailable(WallDuration)).BeginInvoke(cb, (o) => { }, null);
+            }
+        }
+        public static void andAnotherOne(CallbackQueue cqb)
+        {
+            lock (callbaxmutex)
+                callbax.Add(cqb);
         }
 
         public static void spin()

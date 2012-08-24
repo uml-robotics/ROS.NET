@@ -25,6 +25,7 @@
 
 #region USINGZ
 
+using GenericTypes_Surface_Adapter;
 using SpeechLib;
 using System.Diagnostics;
 using System;
@@ -34,6 +35,8 @@ using System.Collections.Generic;
 using GenericTypes_Surface_Adapter;
 using Microsoft.Surface;
 using Microsoft.Surface.Core;
+using ContactEventArgs = Microsoft.Surface.Core.ContactEventArgs;
+using Contact = Microsoft.Surface.Core.Contact;
 using Microsoft.Surface.Presentation;
 using Microsoft.Surface.Presentation.Controls;
 #else

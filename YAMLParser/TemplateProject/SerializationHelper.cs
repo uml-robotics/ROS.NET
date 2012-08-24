@@ -51,6 +51,7 @@ namespace Messages
         [DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
+            Console.WriteLine("LOOKING FOR: " + s + "'s type");
             if (GetMessageTypeMemoString.ContainsKey(s))
                 return GetMessageTypeMemoString[s];
             if (s.Contains("TimeData"))
@@ -62,13 +63,7 @@ namespace Messages
                     Array types = Enum.GetValues(typeof(MsgTypes));
                     MsgTypes[] mts = (MsgTypes[])types;
                     string test = s.Split('.')[1];
-                    foreach (MsgTypes mt in mts)
-                    {
-                        if (mt.ToString().ToLower().Contains(test.ToLower()))
-                        {
-                            return mt;
-                        }
-                    }
+                    return mts.FirstOrDefault(mt => mt.ToString().ToLower().Contains(test.ToLower()));
                 }
                 return MsgTypes.Unknown;
             }
@@ -219,6 +214,7 @@ namespace Messages
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
                 Type type = GetType(infos[currinfo].FieldType.FullName);
+                Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
                 MsgTypes msgtype = GetMessageType(type);
 
