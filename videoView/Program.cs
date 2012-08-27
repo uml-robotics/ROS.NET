@@ -34,7 +34,7 @@ namespace videoView
         {
             //tellmehowawesomeiam = thisishowawesomeyouare;
             //WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.179:11311";
             ROS.ROS_HOSTNAME = "10.0.2.47";
             ROS.Init(args, "add_two_ints_client_csharp");
             NodeHandle node = new NodeHandle();
@@ -44,7 +44,7 @@ namespace videoView
             {
                 Messages.std_msgs.String pow = new String("RIGHT IN THE KISSER");
                 fuckYouNoob.publish(pow);
-                ROS.spinOnce();
+                ROS.spinOnce(node);
                 Thread.Sleep(100);
             }
                 

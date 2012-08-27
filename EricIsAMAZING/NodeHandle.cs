@@ -32,7 +32,6 @@ namespace Ros_CSharp
                 ns = names.resolve(ns);
             construct(ns, true);
             initRemappings(remappings);
-            ROS.andAnotherOne(Callback);
         }
 
         public NodeHandle(NodeHandle rhs)

@@ -170,7 +170,7 @@ namespace DREAMPioneer
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
             LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));
-            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 10);
+            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 1);
             //androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
             GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
         }
@@ -190,7 +190,7 @@ namespace DREAMPioneer
                 else
                     node = n;
             Name = "/robot_brain_" + (i);
-            joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 10, true);
+            joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 1, true);
 
             /*
             manualCamera = Name + Name + "/rgb/image_color/compressed";
@@ -245,8 +245,8 @@ namespace DREAMPioneer
         }
         public static void reSub()
         {
-            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 10, true);
-            servosPub = node.advertise<cm.ptz>(manualPTZ,10, true);
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 1, true);
+            servosPub = node.advertise<cm.ptz>(manualPTZ, 1, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
 

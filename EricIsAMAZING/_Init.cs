@@ -19,7 +19,7 @@ using nm = Messages.nav_msgs;
 namespace Ros_CSharp
 {
     public static class EDB
-    {
+    {        
         //[DebuggerStepThrough]
         public static void WriteLine(object o)
         {
@@ -45,6 +45,15 @@ namespace Ros_CSharp
 
     public static class ROS
     {
+        public static System.UInt64 getPID()
+        {
+            //ProcessThreadCollection ptc = Process.GetCurrentProcess().Threads;
+            //if (Thread.CurrentThread.ManagedThreadId >= ptc.Count)
+                return (System.UInt64)Thread.CurrentThread.ManagedThreadId;
+            //return (System.UInt64)ptc[Thread.CurrentThread.ManagedThreadId].Id;
+        }
+
+
         public static TimerManager timer_manager = new TimerManager();
 
         public static CallbackQueue GlobalCallbackQueue;
@@ -207,19 +216,9 @@ namespace Ros_CSharp
             }
         }
 
-        private static object callbaxmutex = new object();        
-        public static void spinOnce()
-        {
-            lock(callbaxmutex)
-            foreach (CallbackQueue cb in callbax)
-            {
-                new Action<CallbackQueue>((c) => c.callAvailable(WallDuration)).BeginInvoke(cb, (o) => { }, null);
-            }
-        }
-        public static void andAnotherOne(CallbackQueue cqb)
-        {
-            lock (callbaxmutex)
-                callbax.Add(cqb);
+        public static void spinOnce(NodeHandle nh)
+        {            
+            nh.Callback.callAvailable(WallDuration);
         }
 
         public static void spin()

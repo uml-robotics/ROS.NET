@@ -216,7 +216,7 @@ namespace Ros_CSharp
                         {
                             CallbackInterface cb = new PeerConnDisconnCallback(callbacks.connect, i);
 
-                            callbacks.Callback.addCallback(cb, callbacks.Get());
+                            callbacks.Callback.addCallback(cb, ROS.getPID());
                         }
                     }
                 }

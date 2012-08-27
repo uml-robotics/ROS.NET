@@ -14,11 +14,15 @@ namespace DREAMPioneer
         
 
         static Random r = new Random();
+
+        //list of starting colors
         static List<Brush> Bright_Colors = new List<Brush>()
              {
              {Brushes.LimeGreen}, {Brushes.Red}, {Brushes.Fuchsia}, {Brushes.Orange},
              {Brushes.White}, {Brushes.DeepPink}, {Brushes.DodgerBlue}, {Brushes.LightSeaGreen}
              };
+
+        //list of colors we're using 
         public static List<RobotColor> ColorInUse = new List<RobotColor>();
 
         static RobotColor()

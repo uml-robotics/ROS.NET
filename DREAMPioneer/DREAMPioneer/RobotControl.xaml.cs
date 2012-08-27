@@ -297,7 +297,7 @@ namespace DREAMPioneer
             double x2 = q.x*q.x;
             double y2 = q.y*q.y;
             double z2 = q.z*q.z;
-            double unitLength = eq.length();    // Normalised == 1, otherwise correction divisor.
+            double unitLength = eq.length();    // Normalized == 1, otherwise correction divisor.
             double abcd = q.w*q.x + q.y*q.z;
              double eps = Math.E;    
             double pi = Math.PI;   
@@ -416,8 +416,6 @@ namespace DREAMPioneer
 
         public void CheckUnique(List<Point> P_List, int R)
         {
-            Brush MyColor = RobotColor.getMyColor(R);
-
             if (P_List.Count == 0)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -426,15 +424,18 @@ namespace DREAMPioneer
                 }));
                 return;
             }
-           SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+
+            Brush MyColor = RobotColor.getMyColor(R);
+            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
                  {
                      window.current.ROSStuffs[R].myRobot.robot.setArrowColor(MyColor);
                  }));
-            if (P_List.Count == 0) return;
+           
             CommonList DisList = null;
+           
             if (OneInAMillion.Count == 0)
             {
-                //IT IS UNIQUE
+                //If there are no saved lists it is unique
 
                 DisList = new CommonList(P_List, R, MyColor, 1); 
                 OneInAMillion.Add(DisList);

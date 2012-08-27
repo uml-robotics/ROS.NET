@@ -57,8 +57,7 @@ namespace Ros_CSharp
             if (tls == null)
                 tls = new TLS
                           {
-                              calling_in_this_thread =
-                                  (UInt64)Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id
+                              calling_in_this_thread = ROS.getPID()
                           };
         }
 

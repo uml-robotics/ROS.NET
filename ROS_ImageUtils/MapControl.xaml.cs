@@ -107,6 +107,7 @@ namespace ROS_ImageWPF
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
 
+        private Thread spinnin;
         private void SetupTopic()
         {
             if (imagehandle == null)
@@ -129,6 +130,11 @@ namespace ROS_ImageWPF
                     }));
                     
                 });
+
+            if (spinnin == null)
+            {
+                spinnin = new Thread(new ThreadStart(() => { ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+            }
                  
         } 
         private byte[] createRGBA(sbyte[] map)
