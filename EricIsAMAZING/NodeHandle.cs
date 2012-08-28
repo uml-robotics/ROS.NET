@@ -70,7 +70,12 @@ namespace Ros_CSharp
         {
             get
             {
-                if (_callback == null) _callback = new CallbackQueue();
+                if (_callback == null)
+                {
+                    _callback = new CallbackQueue();
+                    _callback.Enable();
+                }
+
                 return _callback;
             }
             set { _callback = value; }
