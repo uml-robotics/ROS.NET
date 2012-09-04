@@ -107,7 +107,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Surface4|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Surface4\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;SURFACEWINDOW</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -385,9 +385,6 @@
     <Content Include="Interop.SpeechLib.dll" />
     <Content Include="Petzold.Media3D.dll" />
     <Content Include="PIONEER.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="XmlRpcWin32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -574,6 +574,7 @@ namespace DREAMPioneer
 
         private void clearWaypoints(ROSData RD)
         {
+            Console.WriteLine("CLEAR! ... zap...");
             if (RD == null || RD.goalPub == null) return;
             gm.Pose[] StopPose = new gm.Pose[1];
             StopPose[0] = new Messages.geometry_msgs.Pose()
@@ -677,9 +678,6 @@ namespace DREAMPioneer
                     translate = new TranslateTransform(0, 0);
                     TranslateCanvas.RenderTransform = translate;
                     SubCanvas.RenderTransform = scale;
-
-
-
                 }));
 
             n = DateTime.Now;
@@ -696,6 +694,14 @@ namespace DREAMPioneer
             timers.MakeTimer(ref SpecialTimer, SpecialTimer_Tick, (int)Math.Floor(TimeSpecial), Timeout.Infinite);
             for (int i = 0; i < turboFingering.Length; i++)
                 timers.MakeTimer(ref turboFingering[i], fingerHandler, i, 600, Timeout.Infinite);
+
+            //ROSStuffs[0].
+
+            while (ROS.ok)
+            {
+                ROS.spinOnce(nodeHandle);
+                Thread.Sleep(1);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -705,7 +711,6 @@ namespace DREAMPioneer
             joymgr.Joystick += joymgr_Joystick;
             joymgr.UpEvent += JoymgrFireUpEvent;
             joymgr.SetDesiredControlPanelWidthToHeightRatios(1, 1.333);
-
             //tell the joystick manager HOW TO INITIALIZE YOUR CUSTOM CONTROL PANELS... and register for events, if your control panel fires them
             //EVERY JOYSTICK'S CONTROL PANEL IS (now) A NEW INSTANCE! TO MAKE VALUES PERSIST, USE STATICS OR A STORAGE CLASS!
             joymgr.InitControlPanels(
@@ -723,15 +728,8 @@ namespace DREAMPioneer
                 });
             DONTGCMEPLZZOMG = new Thread(rosStart);
             DONTGCMEPLZZOMG.Start();
-            new Thread(() =>
-                {
-                    while (ROS.ok)
-                    {
-                        ROS.spinOnce();
-                        Thread.Sleep(1);
-                    }
-                }).Start();
         }
+
         private Thread DONTGCMEPLZZOMG;
 
         public void changeManual(int manualRobot)
@@ -771,10 +769,17 @@ namespace DREAMPioneer
 
 
         private double lastT, lastR;
+        private double servopan, servotilt;
+        private Thread SERVOMADNESS;
+        private bool dieservo;
+        bool lastzerozerowasright;
         private void joymgr_Joystick(bool RightJoystick, double rx, double ry)
         {
             int index = ROSData.ManualNumber;
-            if (index < 0) return;
+            if (index < 0)
+            {
+                return;
+            }
             if (!RightJoystick)
             {
                 Messages.geometry_msgs.Twist tempTwist = new Messages.geometry_msgs.Twist();
@@ -782,22 +787,44 @@ namespace DREAMPioneer
                 tempTwist.angular = new Messages.geometry_msgs.Vector3();
                 tempTwist.linear.x = lastT = ry / -200.0;
                 tempTwist.angular.z = lastR = rx / -200.0;
-                ROSData.joyPub.publish(tempTwist);
+                ROSStuffs[ROSData.ManualNumber].joyPub.publish(tempTwist);
             }
             else
             {
-                if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
+                if (SERVOMADNESS == null && !dieservo)
                 {
-                    Messages.custom_msgs.ptz pt = new ptz();
-                    pt.x = (float)(rx / -100.0);
-                    pt.y = (float)(ry / -100.0);
-                    pt.CAM_MODE = ptz.CAM_ABS;
-                    ROSData.servosPub.publish(pt);
-                    Console.WriteLine(ROSData.servosPub.topic);
-                    currtime = DateTime.Now;
+                    SERVOMADNESS = new Thread(servomgr);
+                    SERVOMADNESS.Start();
                 }
+                servopan = (rx / -100.0);
+                servotilt = (ry / -100.0);
+
+                //if (currtime.Ticks + (long)(Math.Pow(10, 6)) <= (DateTime.Now.Ticks))
+                //{
+                //    Messages.custom_msgs.ptz pt = new ptz();
+                //    pt.x = (float)(rx / -100.0);
+                //    pt.y = (float)(ry / -100.0);
+                //    pt.CAM_MODE = ptz.CAM_ABS;
+                //    ROSData.servosPub.publish(pt);
+                //    Console.WriteLine(ROSData.servosPub.topic);
+                //    currtime = DateTime.Now;
+                //}
             }
         }
+        private void servomgr()
+        {
+            while (ROS.ok)
+            {
+                if (ROSData.servosPub == null)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+                ROSData.servosPub.publish(new ptz { x = (float)servopan, y = (float)servotilt, CAM_MODE = ptz.CAM_ABS });
+                Thread.Sleep(100);
+            }
+        }
+
 
         private void joymgr_Button(int action, bool down)
         {
@@ -811,6 +838,7 @@ namespace DREAMPioneer
                 joymgr.Close();
                 joymgr = null;
             }
+            dieservo = true;
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
                 clearWaypoints(RD);
@@ -886,6 +914,10 @@ namespace DREAMPioneer
             GOGOGO = false;
             if (!ROSStuffs.ContainsKey(index))
                 ROSStuffs.Add(index, new ROSData(nodeHandle, index));
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                ROSStuffs[index].myRobot.updatePOS(200 * index, 100);
+            }));
             GOGOGO = true;
         }
 
@@ -1087,7 +1119,7 @@ namespace DREAMPioneer
         public void _AddGreen(int i)
         {
             Console.WriteLine("ADD GREEN: " + i);
-            RobotColor.freeMe(i);
+            Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(i)));
             RobotControl.DoneCheck(i);
 
             ROSStuffs[i].myRobot.robot.SetColor(Brushes.Green);
@@ -1305,14 +1337,14 @@ namespace DREAMPioneer
                 selectedList.Clear();
                 IEnumerable<Waypoint> Copy;
                 lock (waypointDots)
-                        Copy = new List<Waypoint>(waypointDots);
-                    foreach (Waypoint wp in Copy)
-                    {
-                        DotCanvas.Children.Remove(wp.dot);
-                    }
-                    waypointDots.Clear();
-                    Waypoint.PointLocations.Clear();
-                
+                    Copy = new List<Waypoint>(waypointDots);
+                foreach (Waypoint wp in Copy)
+                {
+                    DotCanvas.Children.Remove(wp.dot);
+                }
+                waypointDots.Clear();
+                Waypoint.PointLocations.Clear();
+
 
             }
 
@@ -1342,9 +1374,9 @@ namespace DREAMPioneer
                 lastWaypointDot = p;
                 if (waypointDots.Count > 0 && !timers.IsRunning(ref RM5Timer))
                     waypointDontThrowAway.Add(waypointDots[0].ToWayPointCanvas(p));
-                
+
                 foreach (Point point in Waypoint.PointLocations)
-                        if (p == point) return;
+                    if (p == point) return;
 
                 lock (waypointDots)
                     waypointDots.Add(new Waypoint(DotCanvas, p, joymgr.DPI, MainCanvas, Brushes.Yellow));
@@ -1399,7 +1431,7 @@ namespace DREAMPioneer
         {
             if (PList.Count == 0)
             {
-                RobotControl.DoneCheck(r);
+                RobotControl.DoneCheck(r, true);
                 return;
             }
 
@@ -1975,7 +2007,7 @@ namespace DREAMPioneer
         private const int TimeDT = 900;
 
 
-        private const int TimeRM5 = 300;
+        private const int TimeRM5 = 700;
         /// <summary>
         ///   Used to control the printing of debugging information.
         /// </summary>
@@ -2126,7 +2158,7 @@ namespace DREAMPioneer
                     {
 
                         Console.WriteLine("DE-INTERVENTION WOOOO!");
-                        ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                        ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
                         changeManual(-1);
                         //NoPulse(index);
                         /*if (selectedList.Contains(touchedRobot))
@@ -2146,10 +2178,10 @@ namespace DREAMPioneer
                                            "GIVE HIM THE STICK! (don't give him the stick!)");
                         }
                         if (ROSData.ManualNumber != -1)
-                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
+                            ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = 0 }, angular = new Messages.geometry_msgs.Vector3 { z = 0 } });
                         changeManual(touchedRobot);
                         if (ROSData.ManualNumber != -1)
-                            ROSData.joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
+                            ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { linear = new Messages.geometry_msgs.Vector3 { x = lastT }, angular = new Messages.geometry_msgs.Vector3 { z = lastR } });
 
                         if (selectedList.Count == 0)
                             ChangeState(RMState.Start, "INTERVENTION!");
@@ -2175,6 +2207,8 @@ namespace DREAMPioneer
                                         //CheckSpecialAbort(e);
                                         if (!b && !fisting)
                                         {
+
+
                                             CheckSpecialAbort(e);
                                             /*if (captureVis.ContainsKey(t.Id))
                                             {
@@ -2439,32 +2473,29 @@ namespace DREAMPioneer
             }
 
 
-           asyncWaypointStuff = new Action<int[]>((sel2) =>
-                {
-                    foreach (int k in sel2)
-                    {
-                        ROSStuffs[k].myRobot.updateWaypoints(waypoints, newx, newy, newwx, newwy, k);
-                    }
-                });
 
 
-
-                foreach (Waypoint wp in waypointDots)
-                {
-                    DotCanvas.Children.Remove(wp.dot);
-                }
-                waypointDots.Clear();
-                Waypoint.PointLocations.Clear();
-
-            asyncWaypointStuff.BeginInvoke(selectedList.ToArray(), (iar) =>
+            Dispatcher.Invoke(new Action(() =>
             {
+                foreach (int k in selectedList.ToArray())
+                {
+                    ROSStuffs[k].myRobot.updateWaypoints(waypoints, newx, newy, newwx, newwy, k);
+                }
                 waypoints.Clear();
                 waypoints = null;
-            }, null);
+                NoPulse();
+                selectedList.Clear();
+                Say("ROGER!", -2);
+            }));
 
-            NoPulse();
-            selectedList.Clear();
-            Say("ROGER!", -2);
+            foreach (Waypoint wp in waypointDots)
+            {
+                DotCanvas.Children.Remove(wp.dot);
+            }
+            waypointDots.Clear();
+            Waypoint.PointLocations.Clear();
+
+            Console.WriteLine("" + selectedList.Count + " robots are selected");
         }
 
         public void EndState(string s)
@@ -2475,12 +2506,12 @@ namespace DREAMPioneer
                 ChangeState(RMState.Start, "End state");
                 List<Waypoint> Copy = waypointDots;
                 lock (waypointDots)
-                Copy = waypointDots;
-                    foreach (Waypoint wp in Copy)
-                        DotCanvas.Children.Remove(wp.dot);
-                    waypointDots.Clear();
-                    Waypoint.PointLocations.Clear();
-               
+                    Copy = waypointDots;
+                foreach (Waypoint wp in Copy)
+                    DotCanvas.Children.Remove(wp.dot);
+                waypointDots.Clear();
+                Waypoint.PointLocations.Clear();
+
                 NoPulse();
                 selectedList.Clear();
             }));

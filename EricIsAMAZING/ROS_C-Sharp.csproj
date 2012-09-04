@@ -188,6 +188,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'FUCKSTICK|x64'">
     <OutputPath>bin\x64\FUCKSTICK\</OutputPath>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DefineConstants>DEBUG</DefineConstants>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '3M4|AnyCPU'">
     <OutputPath>bin\3M4\</OutputPath>

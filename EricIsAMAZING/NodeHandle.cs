@@ -27,6 +27,7 @@ namespace Ros_CSharp
 
         public NodeHandle(string ns, IDictionary remappings)
         {
+            Console.WriteLine("NEW NODEHANDLE!");
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
             construct(ns, true);
@@ -44,6 +45,7 @@ namespace Ros_CSharp
 
         public NodeHandle(NodeHandle parent, string ns)
         {
+            Console.WriteLine("NEW NODEHANDLE!");
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             remappings = new Hashtable(parent.remappings);
@@ -53,22 +55,14 @@ namespace Ros_CSharp
 
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
+            Console.WriteLine("NEW NODEHANDLE!");
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             this.remappings = new Hashtable(remappings);
             construct(ns, false);
         }
 
-        private static NodeHandle waitplzkthx()
-        {
-            while (ROS.GlobalNodeHandle == null)
-            {
-                Thread.Sleep(100);
-            }
-            return ROS.GlobalNodeHandle;
-        }
-
-        public NodeHandle() : this(waitplzkthx())
+        public NodeHandle() : this(this_node.Namespace, null)
         {
         }
 
@@ -76,7 +70,7 @@ namespace Ros_CSharp
         {
             get
             {
-                if (_callback == null) return ROS.GlobalCallbackQueue;
+                if (_callback == null) _callback = new CallbackQueue();
                 return _callback;
             }
             set { _callback = value; }
@@ -110,10 +104,12 @@ namespace Ros_CSharp
                     sub.unsubscribe();
                 foreach (IPublisher pub in collection.publishers)
                     pub.unadvertise();
+#if SERVICES
                 foreach (IServiceClient client in collection.serviceclients)
                     client.impl.shutdown();
                 foreach (IServiceServer srv in collection.serviceservers)
                     srv.impl.unadvertise();
+#endif
             }
         }
 
@@ -220,6 +216,8 @@ namespace Ros_CSharp
             return new Subscriber<M>();
         }
 
+
+#if SERVICES
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
@@ -288,6 +286,7 @@ namespace Ros_CSharp
             }
             return client;
         }
+#endif
 
         public void construct(string ns, bool validate_name)
         {
@@ -395,8 +394,10 @@ namespace Ros_CSharp
         {
             public object mutex = new object();
             public List<IPublisher> publishers = new List<IPublisher>();
+#if SERVICES
             public List<IServiceClient> serviceclients = new List<IServiceClient>();
             public List<IServiceServer> serviceservers = new List<IServiceServer>();
+#endif
             public List<ISubscriber> subscribers = new List<ISubscriber>();
 
             #region IDisposable Members
@@ -404,9 +405,11 @@ namespace Ros_CSharp
             public void Dispose()
             {
                 publishers.Clear();
-                serviceservers.Clear();
                 subscribers.Clear();
+#if SERVICES
+                serviceservers.Clear();                
                 serviceclients.Clear();
+#endif
             }
 
             #endregion

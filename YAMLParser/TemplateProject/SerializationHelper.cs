@@ -55,7 +55,10 @@ namespace Messages
             if (GetMessageTypeMemoString.ContainsKey(s))
                 return GetMessageTypeMemoString[s];
             if (s.Contains("TimeData"))
+            {
+                GetMessageTypeMemoString.Add(s, MsgTypes.std_msgs__Time);
                 return MsgTypes.std_msgs__Time;
+            }
             if (!s.Contains("Messages"))
             {
                 if (s.Contains("System."))
@@ -63,7 +66,9 @@ namespace Messages
                     Array types = Enum.GetValues(typeof(MsgTypes));
                     MsgTypes[] mts = (MsgTypes[])types;
                     string test = s.Split('.')[1];
-                    return mts.FirstOrDefault(mt => mt.ToString().ToLower().Contains(test.ToLower()));
+                    MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Contains(test.ToLower()));
+                    GetMessageTypeMemoString.Add(s, m);
+                    return m;
                 }
                 return MsgTypes.Unknown;
             }

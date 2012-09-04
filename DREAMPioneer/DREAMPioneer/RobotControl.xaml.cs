@@ -49,9 +49,15 @@ namespace DREAMPioneer
         public double scaley;
         public bool sendnext;
 
+        private const int DECAY_TIME = 1000; 
 
         public static List<CommonList> OneInAMillion = new List<CommonList>();
+        
         public static void DoneCheck(int index)
+        {
+            DoneCheck(index, false);
+        }
+        public static void DoneCheck(int index, bool Decay)
         {
             bool Done = false;
             foreach (CommonList CL in OneInAMillion)
@@ -63,7 +69,7 @@ namespace DREAMPioneer
                         Done = true;
                         RI.done = true;
                         RI.CurrentLength = CL.P_List.Count;
-                        RobotColor.freeMe(RI.RoboNum);
+                        SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
@@ -71,12 +77,21 @@ namespace DREAMPioneer
                         if (Done)
                         {
                             
-                            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action( () => 
-                            {
-                            foreach (GoalDot GD in CL.Dots)
-                                window.current.DotCanvas.Children.Remove(GD);
-                            CL.Dots.Clear();
-                            }));
+                            
+                                if (Decay)
+                                {
+                                    new Thread(Atrophy).Start(CL);
+                                }
+                                else
+                                {
+                                 SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                                    {
+                                    foreach (GoalDot GD in CL.Dots)
+                                        window.current.DotCanvas.Children.Remove(GD);
+                                    }));
+                                    CL.Dots.Clear();
+                                }
+                            
                             CL.P_List.Clear();
                             CL.RoboInfo.Clear();
                             lock (RobotControl.OneInAMillion)
@@ -87,6 +102,33 @@ namespace DREAMPioneer
                     }
                 if (Done) break;
             }
+        }
+
+        private static Action<GoalDot> tasteit = null;
+        private static void Atrophy(object list)
+        {
+            CommonList CL = (CommonList)list;
+            
+            List<GoalDot> Copy = new List<GoalDot>(CL.Dots);
+            
+            Thread.Sleep(DECAY_TIME);
+            if (tasteit == null)
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(()=>{tasteit = new Action<GoalDot>(window.current.DotCanvas.Children.Remove);}));
+            foreach (GoalDot GD in Copy)
+                if (GD.Visibility == Visibility.Hidden)
+                {
+                    lock (CL.Dots)
+                    CL.Dots.Remove(GD);
+                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
+                }
+                else
+                {
+                    lock (CL.Dots)
+                    CL.Dots.Remove(GD);
+                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
+                    Thread.Sleep(DECAY_TIME);
+                }
+            CL.Dots.Clear();
         }
        
         public string TopicName
@@ -175,6 +217,7 @@ namespace DREAMPioneer
                     emQuaternion q = new emQuaternion(p.pose.pose.orientation);
                     double t = (new emMatrix3x3(q).getEuler().yaw * 180 / Math.PI) + 90.0;
                     Dispatcher.BeginInvoke(new Action(() => updatePOS(x, y, t)));
+                    SurfaceWindow1.current.ROSStuffs[robot.ID].endCheckIn();
                 });
 #else
             myData.robotposesub = imagehandle.subscribe<nm.Odometry>(myData.Name + "/amcl/pose", 1, (k) =>
@@ -254,7 +297,7 @@ namespace DREAMPioneer
             double x2 = q.x*q.x;
             double y2 = q.y*q.y;
             double z2 = q.z*q.z;
-            double unitLength = eq.length();    // Normalised == 1, otherwise correction divisor.
+            double unitLength = eq.length();    // Normalized == 1, otherwise correction divisor.
             double abcd = q.w*q.x + q.y*q.z;
              double eps = Math.E;    
             double pi = Math.PI;   
@@ -373,8 +416,6 @@ namespace DREAMPioneer
 
         public void CheckUnique(List<Point> P_List, int R)
         {
-            Brush MyColor = RobotColor.getMyColor(R);
-
             if (P_List.Count == 0)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -383,15 +424,18 @@ namespace DREAMPioneer
                 }));
                 return;
             }
-           SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+
+            Brush MyColor = RobotColor.getMyColor(R);
+            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
                  {
                      window.current.ROSStuffs[R].myRobot.robot.setArrowColor(MyColor);
                  }));
-            if (P_List.Count == 0) return;
+           
             CommonList DisList = null;
+           
             if (OneInAMillion.Count == 0)
             {
-                //IT IS UNIQUE
+                //If there are no saved lists it is unique
 
                 DisList = new CommonList(P_List, R, MyColor, 1); 
                 OneInAMillion.Add(DisList);

@@ -19,7 +19,7 @@ using nm = Messages.nav_msgs;
 namespace Ros_CSharp
 {
     public static class EDB
-    {
+    {        
         //[DebuggerStepThrough]
         public static void WriteLine(object o)
         {
@@ -45,6 +45,15 @@ namespace Ros_CSharp
 
     public static class ROS
     {
+        public static System.UInt64 getPID()
+        {
+            //ProcessThreadCollection ptc = Process.GetCurrentProcess().Threads;
+            //if (Thread.CurrentThread.ManagedThreadId >= ptc.Count)
+                return (System.UInt64)Thread.CurrentThread.ManagedThreadId;
+            //return (System.UInt64)ptc[Thread.CurrentThread.ManagedThreadId].Id;
+        }
+
+
         public static TimerManager timer_manager = new TimerManager();
 
         public static CallbackQueue GlobalCallbackQueue;
@@ -58,7 +67,7 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 100;
+        public static int WallDuration = 10;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
@@ -177,7 +186,8 @@ namespace Ros_CSharp
         public static void Init(IDictionary remapping_args, string name)
         {
              Init(remapping_args, name, 0);
-       }
+        }
+        internal static List<CallbackQueue> callbax = new List<CallbackQueue>();
         public static void Init(IDictionary remapping_args, string name, int options)
         {
             if (!atexit_registered)
@@ -190,6 +200,7 @@ namespace Ros_CSharp
             if (GlobalCallbackQueue == null)
             {
                 GlobalCallbackQueue = new CallbackQueue();
+                callbax.Add(GlobalCallbackQueue);
             }
 
             if (!initialized)
@@ -205,9 +216,9 @@ namespace Ros_CSharp
             }
         }
 
-        public static void spinOnce()
-        {
-            GlobalCallbackQueue.callAvailable(WallDuration);
+        public static void spinOnce(NodeHandle nh)
+        {            
+            nh.Callback.callAvailable(WallDuration);
         }
 
         public static void spin()

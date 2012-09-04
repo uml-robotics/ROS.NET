@@ -7,6 +7,7 @@ using System.Collections;
 
 namespace Ros_CSharp
 {
+#if SERVICE
     public class ServiceClientOptions
     {
         public IDictionary header_values;
@@ -29,4 +30,5 @@ namespace Ros_CSharp
             this.md5sum = md5sum;
         }
     }
+#endif
 }

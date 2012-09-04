@@ -88,6 +88,7 @@ namespace ROS_ImageWPF
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
 
+        private Thread spinnin;
         private void SetupTopic()
         {
             if (imagehandle == null)
@@ -98,6 +99,10 @@ namespace ROS_ImageWPF
 
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data))));
+            if (spinnin == null)
+            {
+                spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+            }
         }
 
         #region variables and such

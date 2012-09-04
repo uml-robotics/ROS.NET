@@ -44,7 +44,7 @@ namespace ROS_ImageWPF
             set { SetValue(TopicProperty, value); }
         }
         private Thread waitforinit;
-        private static NodeHandle imagehandle;
+        private NodeHandle imagehandle;
         private Subscriber<sm.CompressedImage> imgsub;
 
 
@@ -87,17 +87,24 @@ namespace ROS_ImageWPF
             }
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
-
+        private Thread spinnin;
         private void SetupTopic()
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
             if (imgsub != null)
+            {
                 imgsub.shutdown();
+                imgsub = null;
+            }
             wtf = DateTime.Now;
-
+            Console.WriteLine("IMG TOPIC " + TopicName);
             imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) =>
                 Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))));
+            if (spinnin == null)
+            {
+                spinnin = new Thread(new ThreadStart(() => { ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+            }
         }
 
         #region variables and such

@@ -25,9 +25,9 @@ namespace Ros_CSharp
             this.Callback = Callback;
         }
 
-        public UInt64 Get()
+        internal ulong Get()
         {
-            return (UInt64) Process.GetCurrentProcess().Threads[Thread.CurrentThread.ManagedThreadId].Id;
+            return ROS.getPID();
         }
     }
 }

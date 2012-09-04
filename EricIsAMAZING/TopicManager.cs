@@ -71,12 +71,9 @@ namespace Ros_CSharp
             lock (shutting_down_mutex)
             {
                 if (shutting_down) return;
-                lock (advertised_topics_mutex)
+                lock (subs_mutex)
                 {
-                    lock (subs_mutex)
-                    {
-                        shutting_down = true;
-                    }
+                    shutting_down = false;
                 }
                 xmlrpc_manager.unbind("publisherUpdate");
                 xmlrpc_manager.unbind("requestTopic");
@@ -133,11 +130,11 @@ namespace Ros_CSharp
             }
         }
 
-        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : IRosMessage, new()
+        private bool isValid<T>(AdvertiseOptions<T> ops) where T : IRosMessage, new()
         {
             if (ops.datatype == "*")
                 throw new Exception("Advertising with * as the datatype is not allowed.  Topic [" + ops.topic + "]");
-            if (ops.md5sum == "*")                
+            if (ops.md5sum == "*")
                 throw new Exception("Advertising with * as the md5sum is not allowed.  Topic [" + ops.topic + "]");
             if (ops.md5sum == "")
                 throw new Exception("Advertising on topic [" + ops.topic + "] with an empty md5sum");
@@ -147,6 +144,12 @@ namespace Ros_CSharp
                 EDB.WriteLine
                     ("Danger, Will Robinson... Advertising on topic [" + ops.topic +
                      "] with an empty message definition. Some tools (that don't exist in this implementation) may not work correctly");
+            return true;
+        }
+
+        public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : IRosMessage, new()
+        {
+            if (!isValid(ops)) return false;
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
