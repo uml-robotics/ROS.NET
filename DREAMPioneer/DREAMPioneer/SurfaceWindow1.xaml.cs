@@ -369,6 +369,9 @@ namespace DREAMPioneer
                 }
             }).Start();
 #else
+            MainCanvas.Width = TopsyTurvey.Width = DotCanvas.Width = Width = 1680;
+            MainCanvas.Height = TopsyTurvey.Height = DotCanvas.Height = Height = 1050;
+            
             em3m = new EM3MTouch();
             if (!em3m.Connect())
             {
@@ -379,7 +382,6 @@ namespace DREAMPioneer
                 em3m.DownEvent += Down;
                 em3m.ChangedEvent += Changed;
                 em3m.UpEvent += Up;
-                
             }
 #endif
         }
@@ -634,7 +636,7 @@ namespace DREAMPioneer
         private Timer fister;
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.47";
+        private const string DEFAULT_HOSTNAME = "10.0.2.178";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
