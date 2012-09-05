@@ -277,7 +277,7 @@ namespace Ros_CSharp
                 calling += tls.Count;
             }
 
-            while (tls.Count > 0)
+            while (tls.Count > 0 && ROS.ok)
             {
                 if (callOneCB(tls) != CallOneResult.Empty)
                     ++called;

@@ -55,7 +55,7 @@ namespace DREAMPioneer
         
         public static void DoneCheck(int index)
         {
-            DoneCheck(index, false);
+            DoneCheck(index, true);
         }
         public static void DoneCheck(int index, bool Decay)
         {
@@ -73,32 +73,31 @@ namespace DREAMPioneer
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
                                 Done = false;
-                        
+
                         if (Done)
                         {
-                            
-                            
-                                if (Decay)
-                                {
-                                    new Thread(Atrophy).Start(CL);
-                                }
-                                else
-                                {
-                                 SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
-                                    {
-                                    foreach (GoalDot GD in CL.Dots)
-                                        window.current.DotCanvas.Children.Remove(GD);
-                                    }));
-                                    CL.Dots.Clear();
-                                }
-                            
-                            CL.P_List.Clear();
-                            CL.RoboInfo.Clear();
+                            if (Decay)
+                            {
+                                new Thread(Atrophy).Start(CL);
+                            }
+                            else
+                            {
+                                SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                                   {
+                                       foreach (GoalDot GD in CL.Dots)
+                                           window.current.DotCanvas.Children.Remove(GD);
+                                   }));
+                                CL.Dots.Clear();
+                                CL.P_List.Clear();
+                                CL.RoboInfo.Clear();
+                            }
                             lock (RobotControl.OneInAMillion)
                                 RobotControl.OneInAMillion.Remove(CL);
 
                             break;
                         }
+                        else
+                            Console.WriteLine("NOT DONE YET");
                     }
                 if (Done) break;
             }
@@ -117,18 +116,18 @@ namespace DREAMPioneer
             foreach (GoalDot GD in Copy)
                 if (GD.Visibility == Visibility.Hidden)
                 {
-                    lock (CL.Dots)
                     CL.Dots.Remove(GD);
                     window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
                 }
                 else
                 {
-                    lock (CL.Dots)
                     CL.Dots.Remove(GD);
                     window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
                     Thread.Sleep(DECAY_TIME);
                 }
             CL.Dots.Clear();
+            CL.P_List.Clear();
+            CL.RoboInfo.Clear();
         }
        
         public string TopicName
@@ -206,8 +205,9 @@ namespace DREAMPioneer
               robot.SetSize(10, 10);
             }));   
 
-
-            myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
+            
+            //done in rosdata?
+            //myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
 
 #if !TRANSFORMZ
             myData.robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>(myData.Name + "/amcl_pose", 1, (p) =>
@@ -350,25 +350,16 @@ namespace DREAMPioneer
             sendnext = true;
         }
 
-        public void updatePOS(double x, double y)
-        {
-            updatePOS(x, y, 0);
-        }
         public void updatePOS(double x, double y, double t)
         {
-           //if (x + y > 0 || x + y < 0)  // <- this appears strange, what are you tring to test for here? coule you use (x+y != 0)?
-            {
-                Point p = new Point(x, SurfaceWindow1.current.map.ActualHeight - y);
-                xPos = x;
-                yPos = y;
-                Canvas.SetLeft(robot, xPos - robot.Width / 2);
+            xPos = x;
+            yPos = y;
+            Canvas.SetLeft(robot, xPos - robot.Width / 2);
      
-                Canvas.SetTop(robot, (yPos - robot.Height / 2) );
-                robot.SetSize(10, 10);
-                robot.Theta = t;
-                theta = t;
-
-            }
+            Canvas.SetTop(robot, (yPos - robot.Height / 2) );
+            robot.SetSize(10, 10);
+            robot.Theta = t;
+            theta = t;
         }
 
         private bool compare(Point pos, Point waypoint)
@@ -402,10 +393,6 @@ namespace DREAMPioneer
              CheckUnique(points, index);         
         }
 
-        /// <summary>
-        ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
-        ///   constructor... nothing fancy
-        /// </summary>
         public RobotControl(int R)
         {
             ROBOT_TO_ADD = R;

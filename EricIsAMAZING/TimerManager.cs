@@ -26,6 +26,7 @@
 #region USINGZ
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -36,7 +37,7 @@ namespace Ros_CSharp
     /// <summary>
     ///   The timer manager.
     /// </summary>
-    public class TimerManager
+    public class TimerManager : IDisposable
     {
         /// <summary>
         ///   The heardof.
@@ -66,11 +67,13 @@ namespace Ros_CSharp
         public void RemoveTimer(ref Timer t)
         {
             if (t == null) return;
-            StopTimer(ref t);
+            //StopTimer(ref t);
             if (heardof.ContainsKey(t))
             {
                 heardof.Remove(t);
             }
+            WaitHandle wh = new AutoResetEvent(false);
+            t.Dispose(wh);
             t = null;
         }
 
@@ -147,8 +150,15 @@ namespace Ros_CSharp
         {
             if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
             if (!heardof[t].running) return;
-            t.Change(Timeout.Infinite, Timeout.Infinite);
-            heardof[t].running = false;
+            if (t != null)
+            {
+                try
+                {
+                    t.Change(Timeout.Infinite, Timeout.Infinite);
+                    heardof[t].running = false;
+                }
+                catch { }
+            }
         }
 
         /// <summary>
@@ -167,6 +177,18 @@ namespace Ros_CSharp
             if (t == null) return false;
             if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
             return heardof[t].running;
+        }
+
+        public void Dispose()
+        {
+            IList<Timer> ts = new List<Timer>(heardof.Keys);
+            for (int i=0;i<ts.Count;i++)
+            {
+                Timer x = ts[i];
+                RemoveTimer(ref x);
+            }
+            ts.Clear();
+            heardof.Clear();
         }
     }
 

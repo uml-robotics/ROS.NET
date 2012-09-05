@@ -112,6 +112,16 @@ namespace YAMLParser
                     msgsFiles.Add(new MsgsFile(path));
                 }
             }
+            foreach (MsgsFile m in msgsFiles)
+            {
+                foreach (SingleType s in m.Stuff)
+                {
+                    if (MsgsFile.resolver.ContainsKey(s.Type))
+                    {
+                        s.refinalize(MsgsFile.resolver[s.Type]);
+                    }
+                }
+            }
 #if !NO_SRVS_RIGHT_NOW
             if (pathssrv.Count > 0)
             {

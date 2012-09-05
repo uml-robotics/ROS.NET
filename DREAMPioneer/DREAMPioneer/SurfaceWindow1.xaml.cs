@@ -369,6 +369,9 @@ namespace DREAMPioneer
                 }
             }).Start();
 #else
+            MainCanvas.Width = BackgroundCanvas.Width = TopsyTurvey.Width = DotCanvas.Width = Width = 1680;
+            MainCanvas.Height = BackgroundCanvas.Height = TopsyTurvey.Height = DotCanvas.Height = Height = 1050;
+            
             em3m = new EM3MTouch();
             if (!em3m.Connect())
             {
@@ -379,7 +382,6 @@ namespace DREAMPioneer
                 em3m.DownEvent += Down;
                 em3m.ChangedEvent += Changed;
                 em3m.UpEvent += Up;
-                
             }
 #endif
         }
@@ -465,10 +467,7 @@ namespace DREAMPioneer
             {
                 if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
                     ChangeState(RMState.Start, "NO ROBOTS SELECTED!");
-                specialArgsz = e;
             }
-            Dispatcher.BeginInvoke(new Action(() =>
-            StartSpecial(t)));
             Down(t);
         }
         private Microsoft.Surface.Core.ContactEventArgs specialArgsz;
@@ -584,7 +583,6 @@ namespace DREAMPioneer
                 {
                     header = new Messages.std_msgs.Header(),
                     poses = StopPose
-
                 });
         }
 
@@ -635,7 +633,7 @@ namespace DREAMPioneer
         private Timer fister;
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.47";
+        private const string DEFAULT_HOSTNAME = "10.0.2.178";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
@@ -743,6 +741,7 @@ namespace DREAMPioneer
             }
             if (ROSStuffs.ContainsKey(manualRobot))
             {
+                clearWaypoints(ROSStuffs[manualRobot]);
                 int index = ROSData.ManualNumber = manualRobot;
                 ROSData.manualVelocity = ROSStuffs[index].Name + "/virtual_joystick/cmd_vel";
                 ROSData.manualPTZ = ROSStuffs[index].Name + "/servos";
@@ -840,6 +839,7 @@ namespace DREAMPioneer
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
                 clearWaypoints(RD);
+            Thread.Sleep(3000);
             ROS.shutdown();
             base.OnClosed(e);
         }
@@ -912,10 +912,7 @@ namespace DREAMPioneer
             GOGOGO = false;
             if (!ROSStuffs.ContainsKey(index))
                 ROSStuffs.Add(index, new ROSData(nodeHandle, index));
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                ROSStuffs[index].myRobot.updatePOS(200 * index, 100);
-            }));
+            Dispatcher.BeginInvoke(new Action(() => ROSStuffs[index].myRobot.updatePOS(200.0 * index, 100.0, 0)));
             GOGOGO = true;
         }
 
@@ -1685,6 +1682,7 @@ namespace DREAMPioneer
 
         private void Down(Touch e)
         {
+            Dispatcher.BeginInvoke(new Action(() => StartSpecial(e)));
             joymgr.Down(e, (t, b) =>
                                         {
                                             if (!b)
