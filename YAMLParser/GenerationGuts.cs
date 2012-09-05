@@ -132,13 +132,14 @@ namespace Messages
         private string memoizedcontent;
         private bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
-
+        public static Dictionary<string, string> resolver;
         public MsgsFile(string filename, bool isrequest, List<string> lines)
         :this(filename, isrequest,lines,  "")
         {}
 
         public MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
         {
+            if (resolver == null) resolver = new Dictionary<string, string>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
             filename = filename.Replace(".srv", ".msg");
             if (!filename.Contains(".msg"))
@@ -178,6 +179,7 @@ namespace Messages
         
         public MsgsFile(string filename, string extraindent )
         {
+            if (resolver == null) resolver = new Dictionary<string, string>();
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
             string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
@@ -195,6 +197,8 @@ namespace Messages
             Name = Name.TrimStart('.');
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
+            if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
+                resolver.Add(classname, Namespace+"."+classname);
             List<string> lines = new List<string>(File.ReadAllLines(filename));
             lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
@@ -231,7 +235,7 @@ namespace Messages
             {
                 memoizedcontent = "";
                 for (int i = 0; i < Stuff.Count; i++)
-                {
+                { 
                     SingleType thisthing = Stuff[i];
                     if (thisthing.Type == "Header")
                     {
@@ -307,7 +311,7 @@ namespace Messages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
+                            "using Messages.std_msgs;using String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -367,11 +371,16 @@ namespace Messages
                 {
                     Console.WriteLine(DEF);
                 }
-                
-                   for (int i = 0; i < Stuff.Count; i++)
-                        GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]); 
+
                 for (int i = 0; i < Stuff.Count; i++)
-                    GeneratedDictHelper += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);}
+                    GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
+            }
+                for (int i = 0; i < Stuff.Count; i++)
+                {
+                    if (resolver.ContainsKey(Stuff[i].Type))
+                        Stuff[i].refinalize(resolver[Stuff[i].Type]);
+                    GeneratedDictHelper += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);
+                }
                 GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                        (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
                 if (classname.ToLower() == "string")
@@ -556,6 +565,10 @@ namespace Messages
                 {
                     othershit = othershit.Replace("-1", "255");
                 }
+                if (MsgsFile.resolver.Keys.Contains(type))
+                {
+                    type = MsgsFile.resolver[type];
+                }
                 output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
                 Const = isconst;
                 if (othershit.Contains("="))
@@ -619,6 +632,10 @@ namespace Messages
                 if (othershit.Contains('=') && type == "byte")
                 {
                     othershit = othershit.Replace("-1", "255");
+                }
+                if (MsgsFile.resolver.Keys.Contains(type))
+                {
+                    type = MsgsFile.resolver[type];
                 }
                 output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
                 Const = isconst;
