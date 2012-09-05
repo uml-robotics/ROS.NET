@@ -4,13 +4,13 @@
     xmlns:s="http://schemas.microsoft.com/surface/2008" IsHitTestVisible="False"
     
     
-                     Height="5" Width="5"
+                     Height="10" Width="10"
     >
     <Grid IsHitTestVisible="False">
 
-        <Ellipse Name="NextC1" Visibility="Visible" Fill="Yellow" Height="5" Width="5" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"></Ellipse>
-        <Ellipse Name="NextC2" Visibility="Hidden" Fill="Black" Height="2.5" Width="2.5" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"></Ellipse>
-        <Ellipse Name="BeenThereC1" Visibility="Hidden" Fill="Black" Height="5" Width="5" IsHitTestVisible="False"></Ellipse>
-        <Ellipse Name="BeenThereC2" Visibility="Hidden" Fill="Yellow" Height="2.5" Width="2.5" IsHitTestVisible="False"></Ellipse>
+        <Ellipse Name="NextC1" Visibility="Visible" Fill="Yellow" Height="10" Width="10" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"></Ellipse>
+        <Ellipse Name="NextC2" Visibility="Hidden" Fill="Black" Height="5" Width="5" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"></Ellipse>
+        <Ellipse Name="BeenThereC1" Visibility="Hidden" Fill="Black" Height="10" Width="10" IsHitTestVisible="False"></Ellipse>
+        <Ellipse Name="BeenThereC2" Visibility="Hidden" Fill="Yellow" Height="5" Width="5" IsHitTestVisible="False"></Ellipse>
     </Grid>
 </UserControl>

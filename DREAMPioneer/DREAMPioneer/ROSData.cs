@@ -107,8 +107,11 @@ namespace DREAMPioneer
         {
             if (!ROS.ok)
             {
-                Dethklok.Dispose();
-                Dethklok = null;
+                if (Dethklok != null)
+                {
+                    Dethklok.Dispose();
+                    Dethklok = null;
+                }
                 return;
             }
             if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
