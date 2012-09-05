@@ -105,6 +105,12 @@ namespace DREAMPioneer
 
         public void CheckMortality(object state)
         {
+            if (!ROS.ok)
+            {
+                Dethklok.Dispose();
+                Dethklok = null;
+                return;
+            }
             if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
             {
                 IsItAlive = false;
