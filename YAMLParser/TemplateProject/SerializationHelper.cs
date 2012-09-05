@@ -51,7 +51,7 @@ namespace Messages
         [DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
-            Console.WriteLine("LOOKING FOR: " + s + "'s type");
+            //Console.WriteLine("LOOKING FOR: " + s + "'s type");
             if (GetMessageTypeMemoString.ContainsKey(s))
                 return GetMessageTypeMemoString[s];
             if (s.Contains("TimeData"))
@@ -219,7 +219,7 @@ namespace Messages
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
                 Type type = GetType(infos[currinfo].FieldType.FullName);
-                Console.WriteLine("GetType returned: " + type.FullName);
+                //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
                 MsgTypes msgtype = GetMessageType(type);
 
