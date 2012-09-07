@@ -395,6 +395,13 @@ namespace Messages
                 GUTS = GUTS.Replace("$WHATAMI", classname);
                 GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
                 GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+                for (int i = 0; i < def.Count; i++)
+                {
+                    def[i] = def[i].Replace('\t', ' ');
+                    while (def[i].Contains("  "))
+                        def[i] = def[i].Replace("  ", " ");
+                    def[i] = def[i].Replace(" = ", "=");
+                }
                 GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
                 GUTS = GUTS.Replace("$MYHASHEADER", HasHeader.ToString().ToLower());
                 GUTS = GUTS.Replace("$MYFIELDS", GeneratedDictHelper.Length > 5 ? "{{" + GeneratedDictHelper + "}}" : "()");
