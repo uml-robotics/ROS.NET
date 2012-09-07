@@ -1,5 +1,3 @@
-GoalID goal_id
-uint8 status
 uint8 PENDING         = 0   # The goal has yet to be processed by the action server
 uint8 ACTIVE          = 1   # The goal is currently being processed by the action server
 uint8 PREEMPTED       = 2   # The goal received a cancel request after it started executing
@@ -17,7 +15,8 @@ uint8 RECALLED        = 8   # The goal received a cancel request before it start
                             #    and was successfully cancelled (Terminal State)
 uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
                             #    sent over the wire by an action server
-
+GoalID goal_id
+uint8 status
 #Allow for the user to associate a string with GoalStatus for debugging
 string text
 
