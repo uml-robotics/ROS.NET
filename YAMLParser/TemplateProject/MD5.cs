@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 #endregion
 
-namespace Ros_CSharp
+namespace Messages
 {
     public static class MD5
     {
@@ -60,6 +60,7 @@ namespace Ros_CSharp
                             hashme += "\n";
                     }
                 }
+                Console.WriteLine("\t"+hashme);
                 return Sum(hashme);
             }
             return Sum(hashme);
