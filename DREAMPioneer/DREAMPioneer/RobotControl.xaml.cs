@@ -245,18 +245,15 @@ namespace DREAMPioneer
             }, "*");
 #endif
             
-            myData.goalsub = imagehandle.subscribe<Messages.move_base_msgs.MoveBaseActionFeedback>(myData.Name + "/move_base/result", 1, (j) =>
+            myData.goalsub = imagehandle.subscribe<Messages.actionlib_msgs.GoalStatusArray>(myData.Name + "/move_base/status", 1, (j) =>
                 {
-                    Point RobotPosition = new Point(j.feedback.base_position.pose.position.x * (double)ROS_ImageWPF.MapControl.PPM,
-                                                    j.feedback.base_position.pose.position.y * (double)ROS_ImageWPF.MapControl.PPM);
-                    Messages.std_msgs.String curGoal = j.status.goal_id.id;
-                    if (curGoal.data == "There are no more goals")
-                       DoneCheck(myData.RobotNumber);
-                    
-                    foreach(string ID in GoalDot.GoalID_Refference.Keys)
-                        if(ID == curGoal.data)
-                            if(distance(GoalDot.GoalID_Refference[ID],RobotPosition) < 10)
-                                updateGoal(myData.RobotNumber);
+                    foreach (String ID in GoalDot.GoalID_Refference.Keys)
+                    {
+                        Console.WriteLine("Travel to Point " + ID);
+                        foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
+                            if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
+                                Console.WriteLine("Travel to Point " + ID + " was succesful!");
+                    }  
 
 
                 });

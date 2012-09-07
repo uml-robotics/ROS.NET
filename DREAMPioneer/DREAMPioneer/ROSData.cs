@@ -86,7 +86,7 @@ namespace DREAMPioneer
        
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
-        public Subscriber<Messages.move_base_msgs.MoveBaseActionFeedback> goalsub;
+        public Subscriber<Messages.actionlib_msgs.GoalStatusArray> goalsub;
         public Publisher<Messages.move_base_msgs.MoveBaseActionGoal> goalPub;
 #if !TRANSPORMS
         public Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
