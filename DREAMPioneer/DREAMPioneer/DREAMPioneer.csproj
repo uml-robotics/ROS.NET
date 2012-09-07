@@ -391,9 +391,6 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>cd $(ProjectDir)..\..\YAMLParser\bin\debug
-
-
-
 YAMLParser.exe</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

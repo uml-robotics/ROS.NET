@@ -313,20 +313,8 @@ namespace DREAMPioneer
 
         #endregion
 #endif
-
-        public static WrapperTest.balls BALLS;
-        public static WrapperTest.TellMeHowAwesomeIAm tellmehowawesomeiam;
-
-
-        public static void thisishowawesomeyouare(string s)
-        {
-            Console.WriteLine(s);
-        }
-
         public SurfaceWindow1()
         {
-            tellmehowawesomeiam = thisishowawesomeyouare;
-            WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             current = this;
             InitializeComponent();
 #if SURFACEWINDOW

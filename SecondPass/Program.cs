@@ -27,7 +27,14 @@ namespace SecondPass
             {
                 string md5 = kvp.Value;
                 path = source + (kvp.Key.Replace("__", "\\") + ".cs");
-                File.WriteAllText(path, File.ReadAllText(path).Replace("$MYMD5SUM", md5));
+                try
+                {
+                    File.WriteAllText(path, File.ReadAllText(path).Replace("$MYMD5SUM", md5));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }   
             Console.WriteLine("Done");
         }

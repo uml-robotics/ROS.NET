@@ -13,6 +13,7 @@ namespace Messages
 {
     public static class MD5
     {
+        public static Dictionary<MsgTypes, string> md5memo = new Dictionary<MsgTypes, string>();
         public static string Sum(MsgTypes m)
         {
             string hashme = IRosMessage.generate(m).MessageDefinition.Trim('\n', '\t', '\r', ' ');
@@ -34,34 +35,43 @@ namespace Messages
             IRosMessage irm = IRosMessage.generate(m);
             if (irm.IsMetaType)
             {
-                Type t = irm.GetType();
-                object o = irm;
-                FieldInfo[] fields = SerializationHelper.GetFields(t, ref o, out irm); ;
-                for (int i = 0; i < fields.Length; i++)
+                if (!md5memo.ContainsKey(irm.msgtype))
                 {
-                    Type FieldType = fields[i].FieldType;
-                    if (!FieldType.Namespace.Contains("Messages")) continue;
-                    while (FieldType.IsArray) FieldType = FieldType.GetElementType();
-                    MsgTypes T =
-                        (MsgTypes)
-                        Enum.Parse(typeof (MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
-                    string[] BLADAMN = hashme.Replace(FieldType.Name, Sum(T)).Split('\n');
-                    hashme = "";
-                    for (int x = 0; x < BLADAMN.Length; x++)
+                    Type t = irm.GetType();
+                    object o = irm;
+                    FieldInfo[] fields = SerializationHelper.GetFields(t, ref o, out irm); ;
+                    for (int i = 0; i < fields.Length; i++)
                     {
-                        if (BLADAMN[x].Contains("/"))
+                        Type FieldType = fields[i].FieldType;
+                        if (!FieldType.Namespace.Contains("Messages")) continue;
+                        while (FieldType.IsArray) FieldType = FieldType.GetElementType();
+                        MsgTypes T =
+                            (MsgTypes)
+                            Enum.Parse(typeof(MsgTypes), FieldType.FullName.Replace("Messages.", "").Replace(".", "__"));
+                        string[] BLADAMN = hashme.Replace(FieldType.Name, Sum(T)).Split('\n');
+                        hashme = "";
+                        for (int x = 0; x < BLADAMN.Length; x++)
                         {
-                            BLADAMN[x] = BLADAMN[x].Split('/')[1];
-                            BLADAMN[x] = BLADAMN[x].Replace("[]", "");
+                            if (BLADAMN[x].Contains(fields[i].Name))
+                            {
+                                if (BLADAMN[x].Contains("/"))
+                                {
+                                    BLADAMN[x] = BLADAMN[x].Split('/')[1];
+                                    if (BLADAMN[x].Contains("[]"))
+                                    {
+                                        BLADAMN[x] = BLADAMN[x].Replace("[]", "");
+                                    }
+                                
+                                }
+                            }
+                            hashme += BLADAMN[x];
+                            if (x < BLADAMN.Length - 1)
+                                hashme += "\n";
                         }
-                        
-                        hashme += BLADAMN[x];
-                        if (x < BLADAMN.Length - 1)
-                            hashme += "\n";
                     }
+                    md5memo.Add(irm.msgtype, Sum(hashme));
                 }
-                Console.WriteLine("\t"+hashme);
-                return Sum(hashme);
+                return md5memo[irm.msgtype];
             }
             return Sum(hashme);
         }

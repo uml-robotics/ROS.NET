@@ -21,19 +21,8 @@ namespace videoView
 {
     public class Program
     {
-        public static WrapperTest.balls BALLS;
-        public static WrapperTest.TellMeHowAwesomeIAm tellmehowawesomeiam;
-
-
-        public static void thisishowawesomeyouare(string s)
-        {
-            Console.WriteLine(s);
-        }
-
         private static void Main(string[] args)
         {
-            //tellmehowawesomeiam = thisishowawesomeyouare;
-            //WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             ROS.ROS_MASTER_URI = "http://10.0.2.179:11311";
             ROS.ROS_HOSTNAME = "10.0.2.47";
             ROS.Init(args, "add_two_ints_client_csharp");

@@ -34,9 +34,9 @@ namespace Messages
         public SrvsFile(string filename)
         {
             string[] lines = File.ReadAllLines(filename);
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".srv", "").Split('\\');
+            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "").Split('\\');
             classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".srv", "");
+            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -144,9 +144,9 @@ namespace Messages
             filename = filename.Replace(".srv", ".msg");
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID SRV FILE!");
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
+            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "").Split('\\');
             classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
+            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -182,9 +182,9 @@ namespace Messages
             if (resolver == null) resolver = new Dictionary<string, string>();
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
-            string[] sp = filename.Replace("ROS_MESSAGES", "").Replace(".msg", "").Split('\\');
+            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "").Split('\\');
             classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace("ROS_MESSAGES", "").Replace(".msg", "");
+            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -397,6 +397,10 @@ namespace Messages
                 GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
                 for (int i = 0; i < def.Count; i++)
                 {
+                    while (def[i].Contains("\t"))
+                        def[i] = def[i].Replace("\t", " ");
+                    while (def[i].Contains("\n\n"))
+                        def[i] = def[i].Replace("\n\n", "\n");
                     def[i] = def[i].Replace('\t', ' ');
                     while (def[i].Contains("  "))
                         def[i] = def[i].Replace("  ", " ");
