@@ -148,7 +148,7 @@ namespace YAMLParser
                 GenerateProject(msgsFiles, srvFiles, false);
                 GenerateProject(msgsFiles, srvFiles, true);
                 BuildProject();
-                //Finalize();                
+                Finalize();
             }
             else
             {
