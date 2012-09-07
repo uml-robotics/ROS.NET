@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Messages;
 using System.IO;
-using Ros_CSharp;
 
 namespace SecondPass
 {

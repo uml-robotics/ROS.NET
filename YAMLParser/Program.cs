@@ -216,12 +216,14 @@ namespace YAMLParser
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
                     output += "\t<Compile Include=\"SerializationHelper.cs\" />\n";
+                    output += "\t<Compile Include=\"MD5.cs\" />\n";
                     output += "\t<Compile Include=\"Interfaces.cs\" />\n";
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
             File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
             File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
+            File.Copy("TemplateProject\\MD5.cs", (istemp ? outputdir_firstpass : outputdir) + "\\MD5.cs", true);
             File.WriteAllText((istemp ? (outputdir_firstpass + "\\"+(istemp?name_firstpass:name)+".csproj") : (outputdir+"\\"+(istemp?name_firstpass:name)+".csproj")), output);
         }
 
