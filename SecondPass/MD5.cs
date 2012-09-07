@@ -57,11 +57,11 @@ namespace Messages
                                 if (BLADAMN[x].Contains("/"))
                                 {
                                     BLADAMN[x] = BLADAMN[x].Split('/')[1];
-                                    if (BLADAMN[x].Contains("[]"))
-                                    {
-                                        BLADAMN[x] = BLADAMN[x].Replace("[]", "");
-                                    }
-                                
+                                }
+
+                                if (BLADAMN[x].Contains("[]") && !irm.Fields[fields[i].Name].IsLiteral)
+                                {
+                                    BLADAMN[x] = BLADAMN[x].Replace("[]", "");
                                 }
                             }
                             hashme += BLADAMN[x];
@@ -69,6 +69,8 @@ namespace Messages
                                 hashme += "\n";
                         }
                     }
+                    Console.WriteLine(hashme);
+                    Console.ReadLine();
                     md5memo.Add(irm.msgtype, Sum(hashme));
                 }
                 return md5memo[irm.msgtype];
