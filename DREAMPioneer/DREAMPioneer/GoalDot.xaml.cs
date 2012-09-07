@@ -29,6 +29,8 @@ namespace DREAMPioneer
         private bool _BeenHere = false;
         private bool _NextOne = false;
 
+        static public int GoalCounter = 0;
+        static public Dictionary<string, Point> GoalID_Refference = new Dictionary<string,Point>();
 
 
         
