@@ -162,7 +162,7 @@ namespace Messages
             if (MT != MsgTypes.Unknown)
             {
                 msg = MSG;
-                return msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name))).ToArray();
+                return msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray();
             }
             throw new Exception("GetFields is weaksauce");
         }
