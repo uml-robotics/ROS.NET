@@ -560,15 +560,7 @@ namespace DREAMPioneer
         private void clearWaypoints(ROSData RD)
         {
             Console.WriteLine("CLEAR! ... zap...");
-            if (RD == null || RD.goalPub == null) return;
-            gm.Pose[] StopPose = new gm.Pose[1];
-            StopPose[0] = new Messages.geometry_msgs.Pose()
-            {
-                position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
-                orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
-            };
-            RD.goalPub.publish(new Messages.move_base_msgs.MoveBaseActionGoal());
-                
+            WaypointHelper.CancelAll(RD.RobotNumber);                
         }
 
         /// <summary>
@@ -2456,17 +2448,19 @@ namespace DREAMPioneer
 
 
 
+            WaypointHelper.Publish(waypoints, selectedList.ToArray());
+            waypoints.Clear();
+            waypoints = null;
+            NoPulse();
+            selectedList.Clear();
+            Say("ROGER!", -2);
+
             Dispatcher.Invoke(new Action(() =>
             {
-                foreach (int k in selectedList.ToArray())
+                foreach(int k in selectedList)
                 {
-                    ROSStuffs[k].myRobot.updateWaypoints(waypoints, newx, newy, newwx, newwy, k);
+                    ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
                 }
-                waypoints.Clear();
-                waypoints = null;
-                NoPulse();
-                selectedList.Clear();
-                Say("ROGER!", -2);
             }));
 
             foreach (Waypoint wp in waypointDots)

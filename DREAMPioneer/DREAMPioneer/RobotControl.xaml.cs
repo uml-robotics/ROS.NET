@@ -191,9 +191,9 @@ namespace DREAMPioneer
         {
              SetupTopic(ROBOT_TO_ADD);       
         }
-        
-         
 
+
+        private int MyLastCount = -9001;
         private void SetupTopic(int index)
         {
             robot.ID = index;
@@ -245,29 +245,34 @@ namespace DREAMPioneer
             }, "*");
 #endif
             
-            myData.goalsub = imagehandle.subscribe<Messages.actionlib_msgs.GoalStatusArray>(myData.Name + "/move_base/status", 1, (j) =>
+            WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
-                    foreach (String ID in GoalDot.GoalID_Refference.Keys)
+                    if (MyLastCount != j.status_list.Length)
                     {
-                        Console.WriteLine("Travel to Point " + ID);
-                        foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
-                            if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
-                                Console.WriteLine("Travel to Point " + ID + " was succesful!");
-                    }  
+                        MyLastCount = j.status_list.Length;
+                        Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
+                        List<Point> points = new List<Point>();
+                        foreach(Messages.actionlib_msgs.GoalStatus g in j.status_list)
+                        {
+                            WaypointHelper wh = WaypointHelper.LookUp(g.goal_id.id.data);
+                            if (wh != null)
+                            {
+                                ericisthegreatest.Add(g.goal_id.id.data, wh);
+                                wh.status = g.status;
+                                points.Add(wh.point);
+                            }                            
+                        }                        
+
+                        if (points.Count == 0)
+                            DoneCheck(myData.RobotNumber);
+                        updateGoal(points, myData.RobotNumber);
+                    }
 
 
                 });
         }
 
-        //foreach (String ID in GoalDot.GoalID_Refference.Keys)
-        //{
-        //    Console.WriteLine("Travel to Point " + ID);
-        //    foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
-        //        if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
-        //            Console.WriteLine("Travel to Point " + ID + " was succesful!");
-        //}               
-
-                 //    List<Point> points = new List<Point>(j.poses.Length);
+                  //    List<Point> points = new List<Point>(j.poses.Length);
                  //    foreach (gm.Pose P in j.poses)
                  //    {
                  //        double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
@@ -327,42 +332,9 @@ namespace DREAMPioneer
        }
 
        
-       public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy, int ID)
+       public void updateWaypoints(double x, double y, double xx, double yy)
         {
-
-
-           foreach(Point p in wayp)
-           {
-               
-               window.current.ROSStuffs[ID].goalPub.publish(
-               new Messages.move_base_msgs.MoveBaseActionGoal()
-               {
-                   goal_id = new Messages.actionlib_msgs.GoalID()
-                   {
-                       id = new Messages.std_msgs.String(Convert.ToString(GoalDot.GoalCounter))
-                   },
-                   goal = new Messages.move_base_msgs.MoveBaseGoal()
-                   {
-                       target_pose = new gm.PoseStamped()
-                       {
-                           pose = new gm.Pose()
-                           {
-                               position = new gm.Point()
-                               {
-                                   x = p.X,
-                                   y = p.Y,
-                                   z = 0
-                               },
-                               orientation = new gm.Quaternion() { x = 0, y = 0, z = 0, w = 0 }
-                           }
-                       }
-                   }
-               }
-               );
-               GoalDot.GoalID_Refference.Add(Convert.ToString(GoalDot.GoalCounter),p);
-               GoalDot.GoalCounter++;
-           } 
-           transx = x;
+            transx = x;
             transy = y;
             scalex = xx;
             scaley = yy;
