@@ -205,6 +205,7 @@ namespace DREAMPioneer
             Name = "/robot_brain_" + (i);
             joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 1, true);
 
+            
             /*
             manualCamera = Name + Name + "/rgb/image_color/compressed";
             manualLaser = "fakelaser";

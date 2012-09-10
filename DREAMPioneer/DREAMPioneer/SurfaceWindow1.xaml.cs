@@ -446,7 +446,8 @@ namespace DREAMPioneer
 
 
                     foreach (ROSData RD in ROSStuffs.Values)
-                        clearWaypoints(RD);
+                        WaypointHelper.CancelAll(RD.RobotNumber);
+                        //clearWaypoints(RD);
                     EndState("DOUBLE FIST");
 
                 }
@@ -521,7 +522,8 @@ namespace DREAMPioneer
 
 
                        foreach (ROSData RD in ROSStuffs.Values)
-                           clearWaypoints(RD);
+                           WaypointHelper.CancelAll(RD.RobotNumber);
+                           //clearWaypoints(RD);
 
                        EndState("DOUBLE FIST");
 
@@ -718,7 +720,8 @@ namespace DREAMPioneer
             }
             if (ROSStuffs.ContainsKey(manualRobot))
             {
-                clearWaypoints(ROSStuffs[manualRobot]);
+                //clearWaypoints(ROSStuffs[manualRobot]);
+                WaypointHelper.CancelAll(manualRobot);
                 int index = ROSData.ManualNumber = manualRobot;
                 ROSData.manualVelocity = ROSStuffs[index].Name + "/virtual_joystick/cmd_vel";
                 ROSData.manualPTZ = ROSStuffs[index].Name + "/servos";
@@ -815,7 +818,8 @@ namespace DREAMPioneer
             dieservo = true;
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
-                clearWaypoints(RD);
+                WaypointHelper.CancelAll(RD.RobotNumber);
+                //clearWaypoints(RD);
             Thread.Sleep(3000);
             ROS.shutdown();
             base.OnClosed(e);
@@ -1117,7 +1121,7 @@ namespace DREAMPioneer
                     timers.StopTimer(ref YellowTimer);
             }
         }
-        //change
+        
         /// <summary>
         ///   The remove green.
         /// </summary>

@@ -17,7 +17,8 @@ namespace DREAMPioneer
         public Point point;
         public byte status;
         public List<int> robotswhohavethiswaypoint = new List<int>();
-
+        
+                                    
         public class WaypointPubSubs
         {
             public string Name;
@@ -45,7 +46,7 @@ namespace DREAMPioneer
             }
             public void SubSetup(string name, CallbackDelegate<Messages.actionlib_msgs.GoalStatusArray> handler)
             {
-                goalsub = node.subscribe<Messages.actionlib_msgs.GoalStatusArray>(name + "/move_base/status", 1, handler);
+                goalsub = node.subscribe<Messages.actionlib_msgs.GoalStatusArray>(name, 1, handler);
             }
         }
         public static void Publish(Point p, int r, uint c)
@@ -91,17 +92,22 @@ namespace DREAMPioneer
         }
         public static void Publish(List<Point> wayp, params int[] indeces)
         {
+            CommonList DisList = new CommonList(wayp, indeces[0], System.Windows.Media.Brushes.Yellow, 1);
+            RobotControl.OneInAMillion.Add(DisList);
+            
+            
+
             foreach (Point p in wayp)
             {
                 string id = ""+GoalCounter;
                 WaypointHelper wh = WaypointHelper.LookUp(id) ?? new WaypointHelper(id, p);
-                wh.robotswhohavethiswaypoint.AddRange(indeces);
-                foreach (int ID in indeces)
-                {
-                    Publish(p, ID, GoalCounter);
-                }                
+                wh.robotswhohavethiswaypoint.AddRange(indeces);             
                 GoalCounter++;
             } 
+             foreach (int ID in indeces)
+                {
+                    Publish(wayp[0], ID, GoalCounter);
+                } 
         }
         private static Dictionary<string, WaypointHelper> _waypoints = new Dictionary<string, WaypointHelper>();
         public static WaypointHelper LookUp(string ID)

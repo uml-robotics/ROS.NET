@@ -247,13 +247,43 @@ namespace DREAMPioneer
             
             WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
-                    if (MyLastCount != j.status_list.Length)
-                    {
+
+                    
+ 
                         MyLastCount = j.status_list.Length;
                         Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
                         List<Point> points = new List<Point>();
                         foreach(Messages.actionlib_msgs.GoalStatus g in j.status_list)
                         {
+                            Console.WriteLine(g.text.data);
+                            byte status = (byte)g.status;
+                            switch(status)
+                            {
+                                case 0:// PENDING
+                                    break;
+                                case 1://ACTIVE
+                                    break;
+                                case 2://PREEMPTED (Terminal state)
+                                    break;
+                                case 3://SUCCEEDED (Terminal state)
+                                    break;
+                                case 4://ABORTED (Terminal state)
+                                    break;
+                                case 5://REJECTED(Terminal state)
+                                    break;
+                                case 6://PREEMPTING
+                                    break;
+                                case 7://RECALLING
+                                    break;
+                                case 8://RECALLED (Ternimal state)
+                                    break;
+                                case 9://LOST (Should not be true)
+                                    break;
+                                default:
+                                    Console.WriteLine("ERROR IN SWTICH");
+                                    break;
+
+                            }
                             WaypointHelper wh = WaypointHelper.LookUp(g.goal_id.id.data);
                             if (wh != null)
                             {
@@ -263,10 +293,11 @@ namespace DREAMPioneer
                             }                            
                         }                        
 
+                    
                         if (points.Count == 0)
                             DoneCheck(myData.RobotNumber);
                         updateGoal(points, myData.RobotNumber);
-                    }
+                    
 
 
                 });
@@ -381,7 +412,8 @@ namespace DREAMPioneer
         private void updateGoal(List<Point> points, int index)
         {
               
-             CheckUnique(points, index);         
+            
+            // CheckUnique(points, index);         
         }
 
         public RobotControl(int R)
@@ -391,8 +423,10 @@ namespace DREAMPioneer
         }
 
          
-
-        public void CheckUnique(List<Point> P_List, int R)
+/*******************************************************************************/
+/*  Depricated since we now take not of shared lists when we send lists out
+ 
+    public void CheckUnique(List<Point> P_List, int R)
         {
             if (P_List.Count == 0)
             {
@@ -512,8 +546,8 @@ namespace DREAMPioneer
                         window.current.SetGoal(R, P_List, DisList, RI);
             }));
             return;
-        }
-
+        }*/
+/**************************************************************************/
 
 
         #region Events
