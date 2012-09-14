@@ -69,8 +69,6 @@ namespace Messages
                                 hashme += "\n";
                         }
                     }
-                    Console.WriteLine(hashme);
-                    Console.ReadLine();
                     md5memo.Add(irm.msgtype, Sum(hashme));
                 }
                 return md5memo[irm.msgtype];
