@@ -261,16 +261,25 @@ namespace DREAMPioneer
             
             myData.goalsub = imagehandle.subscribe<Messages.actionlib_msgs.GoalStatusArray>(myData.Name + "/move_base/status", 1, (j) =>
                 {
-
-
                     foreach (String ID in GoalDot.GoalID_Refference.Keys)
+                    {
+                        Console.WriteLine("Travel to Point " + ID);
                         foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
                             if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
                                 Console.WriteLine("Travel to Point " + ID + " was succesful!");
-                                    
+                    }  
+
+
                 });
         }
-                    
+
+        //foreach (String ID in GoalDot.GoalID_Refference.Keys)
+        //{
+        //    Console.WriteLine("Travel to Point " + ID);
+        //    foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
+        //        if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
+        //            Console.WriteLine("Travel to Point " + ID + " was succesful!");
+        //}               
 
                  //    List<Point> points = new List<Point>(j.poses.Length);
                  //    foreach (gm.Pose P in j.poses)
