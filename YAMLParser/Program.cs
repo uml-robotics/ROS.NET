@@ -19,7 +19,7 @@ namespace YAMLParser
         public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
-
+        public static string inputdir = "ROS_MESSAGES";
         public static string outputdir = "..\\..\\..\\Messages";
         public static string name = "Messages";
         public static string outputdir_secondpass = "..\\..\\..\\SecondPass";
@@ -34,9 +34,13 @@ namespace YAMLParser
         private static void Main(string[] args)
         {
             if (args.Length >= 1)
-            {
                 outputdir = args[0];
-            }
+            if (args.Length >= 2)
+                inputdir = args[1];
+#if TRACE
+            if (Directory.Exists("testmsgs"))
+                inputdir = "testmsgs";
+#endif
             List<string> paths = new List<string>();
             List<string> std = new List<string>();
 #if !NO_SRVS_RIGHT_NOW
@@ -46,17 +50,17 @@ namespace YAMLParser
             Console.WriteLine
                 (
                     "Generatinc C# classes for ROS Messages:\n\tstd_msgs\t\t(in namespace \"Messages\")\n\tgeometry_msgs\t\t(in namespace \"Messages.geometry_msgs\")\n\tnav_msgs\t\t(in namespace \"Messages.nav_msgs\")");
-            if (!Directory.Exists("ROS_MESSAGES"))
+            if (!Directory.Exists(inputdir))
             {
-                Console.WriteLine("the ROS_MESSAGES folder must be in the same folder as the executable!");
+                Console.WriteLine("the ROS_MESSAGES (or 2nd argument) folder must be in the same folder as the executable!");
                 Console.WriteLine("Press Enter");
                 Console.ReadLine();
             }
-            std.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.msg"));
+            std.AddRange(Directory.GetFiles(inputdir, "*.msg"));
 #if !NO_SRVS_RIGHT_NOW
-            srv.AddRange(Directory.GetFiles("ROS_MESSAGES", "*.srv"));
+            srv.AddRange(Directory.GetFiles(inputdir, "*.srv"));
 #endif
-            foreach (string dir in Directory.GetDirectories("ROS_MESSAGES"))
+            foreach (string dir in Directory.GetDirectories(inputdir))
             {
                 std.AddRange(Directory.GetFiles(dir, "*.msg"));
 #if !NO_SRVS_RIGHT_NOW
@@ -111,17 +115,7 @@ namespace YAMLParser
                     Console.WriteLine("\t" + path.Replace(".\\", ""));
                     msgsFiles.Add(new MsgsFile(path));
                 }
-            }
-            foreach (MsgsFile m in msgsFiles)
-            {
-                foreach (SingleType s in m.Stuff)
-                {
-                    if (MsgsFile.resolver.ContainsKey(s.Type))
-                    {
-                        s.refinalize(MsgsFile.resolver[s.Type]);
-                    }
-                }
-            }
+            }            
 #if !NO_SRVS_RIGHT_NOW
             if (pathssrv.Count > 0)
             {
@@ -140,6 +134,16 @@ namespace YAMLParser
 #endif
             {
                 MakeTempDir();
+                foreach (MsgsFile m in msgsFiles)
+                {
+                    foreach (SingleType s in m.Stuff)
+                    {
+                        if (MsgsFile.resolver.ContainsKey(s.Type))
+                        {
+                            s.refinalize(MsgsFile.resolver[s.Type]);
+                        }
+                    }
+                }
                 GenerateFiles(msgsFiles, srvFiles);
                 GenerateProject(msgsFiles, srvFiles, false);
                 GenerateProject(msgsFiles, srvFiles, true);
@@ -157,18 +161,23 @@ namespace YAMLParser
             if (!Directory.Exists(outputdir)) Directory.CreateDirectory(outputdir);
             else
             {
-                foreach (string s in Directory.GetFiles(outputdir, "*.cs")) File.Delete(s);
+                foreach (string s in Directory.GetFiles(outputdir, "*.cs"))
+                    try { File.Delete(s); }
+                    catch (Exception e) { Console.WriteLine(e); }
                 foreach (string s in Directory.GetDirectories(outputdir))
                     if (s != "Properties")
-                        Directory.Delete(s, true);
+                        try { Directory.Delete(s, true); }
+                        catch (Exception e) { Console.WriteLine(e); }
             }
             if (!Directory.Exists(outputdir_firstpass)) Directory.CreateDirectory(outputdir_firstpass);
             else
             {
-                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) File.Delete(s);
+                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) try { File.Delete(s); }
+                        catch (Exception e) { Console.WriteLine(e); }
                 foreach (string s in Directory.GetDirectories(outputdir_firstpass))
                     if (s != "Properties")
-                        Directory.Delete(s, true);
+                        try { Directory.Delete(s, true); }
+                        catch (Exception e) { Console.WriteLine(e); }
             }
         }
 
@@ -354,7 +363,7 @@ namespace YAMLParser
             {
                 if (fronthalf == null)
                 {
-                    fronthalf = "using Messages;\nusing Messages.std_msgs;\nusing Messages.rosgraph_msgs;\nusing Messages.custom_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\nnamespace Messages\n{\n"; //\nusing Messages.roscsharp;
+                    fronthalf = "using Messages;\nusing String=Messages.std_msgs.String;\n\nnamespace Messages\n{\n"; //\nusing Messages.roscsharp;
                     backhalf = "\n}";
                 }
 

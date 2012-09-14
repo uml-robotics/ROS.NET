@@ -244,7 +244,6 @@
     <Compile Include="ConnectionManager.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Master.cs" />
-    <Compile Include="MD5.cs" />
     <Compile Include="MessageDeserializer.cs" />
     <Compile Include="MessageEvent.cs" />
     <Compile Include="names.cs" />

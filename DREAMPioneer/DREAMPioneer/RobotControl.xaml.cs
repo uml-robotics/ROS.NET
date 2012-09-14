@@ -206,6 +206,8 @@ namespace DREAMPioneer
              SetupTopic(ROBOT_TO_ADD);       
         }
         
+         
+
         private void SetupTopic(int index)
         {
             robot.ID = index;
@@ -216,10 +218,10 @@ namespace DREAMPioneer
                 myData.robotsub.shutdown();
             Dispatcher.BeginInvoke(new Action(() =>
             {
-              robot.SetSize(10, 10);
-            }));   
+                robot.SetSize(10, 10);
+            }));
 
-            
+
             //done in rosdata?
             //myData.goalPub = imagehandle.advertise<gm.PoseArray>(myData.Name + "/goal_list", 1000);
 
@@ -227,7 +229,7 @@ namespace DREAMPioneer
             myData.robotposesub = imagehandle.subscribe<gm.PoseWithCovarianceStamped>(myData.Name + "/amcl_pose", 1, (p) =>
                 {
                     double x = p.pose.pose.position.x * (double)ROS_ImageWPF.MapControl.PPM;
-                    double y = p.pose.pose.position.y * (double)ROS_ImageWPF.MapControl.PPM;                        
+                    double y = p.pose.pose.position.y * (double)ROS_ImageWPF.MapControl.PPM;
                     emQuaternion q = new emQuaternion(p.pose.pose.orientation);
                     double t = (new emMatrix3x3(q).getEuler().yaw * 180 / Math.PI) + 90.0;
                     Dispatcher.BeginInvoke(new Action(() => updatePOS(x, y, t)));
@@ -256,53 +258,35 @@ namespace DREAMPioneer
                   
             }, "*");
 #endif
-
-            myData.goalsub = imagehandle.subscribe<gm.PoseArray>(myData.Name + "/goal_progress", 1, (j) =>
+            
+            myData.goalsub = imagehandle.subscribe<Messages.actionlib_msgs.GoalStatusArray>(myData.Name + "/move_base/status", 1, (j) =>
                 {
-                     List<Point> points = new List<Point>(j.poses.Length);
-                     foreach (gm.Pose P in j.poses)
-                     {
-                         double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                         double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                         points.Add(new Point(x,y));
-                     }
-                     //if (points.Count == 0)
-                         //DoneCheck(myData.RobotNumber);
-                     Console.WriteLine("GOAL_PROGRESS: " + myData.Name + ", " + points.Count); 
-                    updateGoal(points, myData.RobotNumber);
-                 });
 
 
-        //    myData.robotsub = imagehandle.subscribe<gm.PolygonStamped>(TopicName, 1, (i) =>
-        //        Dispatcher.BeginInvoke(new Action(() =>
-        //        {
-        //            gm.Vector3 vec;
-        //            gm.Quaternion quat;
-        //            tf_node.transformFrame(myData.Name + "/odom", "/" + combinedMapPrefix + "/map", out vec, out quat);
-        //            float x = (i.polygon.points[0].x - 0.19f + (float)vec.x) * ROS_ImageWPF.MapControl.PPM;
-        //            float y = (i.polygon.points[0].y - 0.19f + (float)vec.y) * ROS_ImageWPF.MapControl.PPM;
-        //            Point p = new Point(x, y);                                  
-        //            foreach(CommonList CL in OneInAMillion)
-        //            {
-                        
-        //                if (CL.P_List.Count > 0 && compare(p, CL.P_List[0]))
-        //                {
-        //                    CL.P_List.RemoveAt(0);
-        //                    sendnext = true;
-        //                }
-        //                if (CL.P_List.Count > 0 && sendnext)
-        //                {
-        //                    //Console.WriteLine((waypoint[0].X - transx) / scalex * PPM + " " + (waypoint[0].Y - transy) / scaley * PPM);
-        //                    window.current.ROSStuffs[index].goalPub.publish(new gm.PoseArray()
-        //                    {
-        //                        poses = MakePoseArray(CL.P_List) 
-        //                    });
-        //                    sendnext = false;
-        //                }
-        //            }
-        //            //updatePOS(x,y);
-        //            })),"*");
+                    foreach (String ID in GoalDot.GoalID_Refference.Keys)
+                        foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
+                            if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
+                                Console.WriteLine("Travel to Point " + ID + " was succesful!");
+                                    
+                });
         }
+                    
+
+                 //    List<Point> points = new List<Point>(j.poses.Length);
+                 //    foreach (gm.Pose P in j.poses)
+                 //    {
+                 //        double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
+                 //        double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
+                 //        points.Add(new Point(x,y));
+                 //    }
+                 //    //if (points.Count == 0)
+                 //        //DoneCheck(myData.RobotNumber);
+                 //    Console.WriteLine("GOAL_PROGRESS: " + myData.Name + ", " + points.Count); 
+                 //   updateGoal(points, myData.RobotNumber);
+                 //});
+
+
+        
 
        public gm.Vector3 convert(gm.Quaternion q) {
            emQuaternion eq = new emQuaternion(q);
@@ -347,17 +331,43 @@ namespace DREAMPioneer
         return ret;   
        }
 
-
+       
        public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy, int ID)
         {
-        
-    
-            window.current.ROSStuffs[ID].goalPub.publish(new gm.PoseArray()
-            {
-                header = new Messages.std_msgs.Header(),           
-                poses = MakePoseArray(wayp)
-            });
-            transx = x;
+
+
+           foreach(Point p in wayp)
+           {
+               
+               window.current.ROSStuffs[ID].goalPub.publish(
+               new Messages.move_base_msgs.MoveBaseActionGoal()
+               {
+                   goal_id = new Messages.actionlib_msgs.GoalID()
+                   {
+                       id = new Messages.std_msgs.String(Convert.ToString(GoalDot.GoalCounter))
+                   },
+                   goal = new Messages.move_base_msgs.MoveBaseGoal()
+                   {
+                       target_pose = new gm.PoseStamped()
+                       {
+                           pose = new gm.Pose()
+                           {
+                               position = new gm.Point()
+                               {
+                                   x = p.X,
+                                   y = p.Y,
+                                   z = 0
+                               },
+                               orientation = new gm.Quaternion() { x = 0, y = 0, z = 0, w = 0 }
+                           }
+                       }
+                   }
+               }
+               );
+               GoalDot.GoalID_Refference.Add(Convert.ToString(GoalDot.GoalCounter),p);
+               GoalDot.GoalCounter++;
+           } 
+           transx = x;
             transy = y;
             scalex = xx;
             scaley = yy;

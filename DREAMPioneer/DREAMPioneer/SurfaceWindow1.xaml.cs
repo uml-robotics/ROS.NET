@@ -313,20 +313,8 @@ namespace DREAMPioneer
 
         #endregion
 #endif
-
-        public static WrapperTest.balls BALLS;
-        public static WrapperTest.TellMeHowAwesomeIAm tellmehowawesomeiam;
-
-
-        public static void thisishowawesomeyouare(string s)
-        {
-            Console.WriteLine(s);
-        }
-
         public SurfaceWindow1()
         {
-            tellmehowawesomeiam = thisishowawesomeyouare;
-            WrapperTest.SetAwesomeFunctionPtr(tellmehowawesomeiam);
             current = this;
             InitializeComponent();
 #if SURFACEWINDOW
@@ -476,11 +464,8 @@ namespace DREAMPioneer
                 position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
                 orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
             };
-            RD.goalPub.publish(new gm.PoseArray()
-                {
-                    header = new Messages.std_msgs.Header(),
-                    poses = StopPose
-                });
+            RD.goalPub.publish(new Messages.move_base_msgs.MoveBaseActionGoal());
+                
         }
 
         /// <summary>
@@ -530,7 +515,7 @@ namespace DREAMPioneer
         private Timer fister;
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.178";
+        private const string DEFAULT_HOSTNAME = "10.0.2.47";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";

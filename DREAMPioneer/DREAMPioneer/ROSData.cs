@@ -81,13 +81,13 @@ namespace DREAMPioneer
         public static Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
         public static Subscriber<sm.LaserScan> laserSub;
-        public Publisher<gm.PoseArray> goalPub;
         //public Subscriber<m.String> androidSub;
         public gm.PoseWithCovarianceStamped pose;
-        public gm.PoseArray goal;
+       
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
-        public Subscriber<gm.PoseArray> goalsub;
+        public Subscriber<Messages.actionlib_msgs.GoalStatusArray> goalsub;
+        public Publisher<Messages.move_base_msgs.MoveBaseActionGoal> goalPub;
 #if !TRANSPORMS
         public Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
 #else
@@ -175,11 +175,13 @@ namespace DREAMPioneer
             CheckingIn = false;
             Console.WriteLine("***Ending check in for robot number: " + RobotNumber + "***"); 
         }
+            
         }
+
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
             LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));
-            goalPub = node.advertise<gm.PoseArray>(Name + "/goal_list", 1);
+            goalPub = node.advertise<Messages.move_base_msgs.MoveBaseActionGoal>(Name + "/goal", 1);
             //androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
             GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
         }
@@ -214,7 +216,7 @@ namespace DREAMPioneer
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1);
             servosPub.publish(pt);*/
 
-            goal = new gm.PoseArray { poses = new gm.Pose[20] };
+            
 
             window.current.Dispatcher.BeginInvoke(new Action(() =>
             {
