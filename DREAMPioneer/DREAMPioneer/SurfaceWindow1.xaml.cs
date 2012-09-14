@@ -185,6 +185,7 @@ namespace DREAMPioneer
         private object em3m;
 #else
         private EM3MTouch em3m;
+        private EM3MTouchLib.DisplayFinder finder;
 #endif
         private DateTime currtime;
 
@@ -357,7 +358,10 @@ namespace DREAMPioneer
                 }
             }).Start();
 #else
-            Left = 1920;
+            finder = new DisplayFinder();
+            Point TopLeft = finder.Find3Ms();
+            Left = TopLeft.X;
+            Top = TopLeft.Y;
             MainCanvas.Width = BackgroundCanvas.Width = TopsyTurvey.Width = DotCanvas.Width = Width = 1680;
             MainCanvas.Height = BackgroundCanvas.Height = TopsyTurvey.Height = DotCanvas.Height = Height = 1050;
             
