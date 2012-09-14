@@ -185,7 +185,7 @@ namespace DREAMPioneer
         private object em3m;
 #else
         private EM3MTouch em3m;
-        private EM3MTouchLib.DisplayFinder finder;
+        private DisplayFinder finder;
 #endif
         private DateTime currtime;
 
