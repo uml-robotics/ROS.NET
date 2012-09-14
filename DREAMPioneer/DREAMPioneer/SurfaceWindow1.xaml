@@ -8,7 +8,7 @@
      Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize" Background="Transparent"
         VerticalAlignment="Center" HorizontalAlignment="Center" AllowsTransparency="True">
     <Canvas Name="MainCanvas" Width="1024" Height="768" RenderTransformOrigin=".5,.5"  ClipToBounds="False">
-        <Canvas Name="BackgroundCanvas" Width="1024" Height="768" Background="Gray" Opacity="0.5" IsHitTestVisible="False" />
+        <Canvas Name="BackgroundCanvas" Width="1024" Height="768" Background="Gray" Opacity="0.01" IsHitTestVisible="False" />
         <Canvas Name="TopsyTurvey" Background="Transparent" Width="1024" Height="768" RenderTransformOrigin=".5,.5"  ClipToBounds="False">
             <Canvas.RenderTransform>
                 <ScaleTransform x:Name="Flipper" ScaleX="-1"></ScaleTransform>

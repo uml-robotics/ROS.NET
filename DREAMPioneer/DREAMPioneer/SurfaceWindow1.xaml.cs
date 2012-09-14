@@ -519,36 +519,14 @@ namespace DREAMPioneer
         private Timer fister;
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.47";
+        private const string DEFAULT_HOSTNAME = "10.0.2.178";
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-            System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
-            foreach (System.Net.IPAddress addr in FUCKYOUDEBUGGER)
-            {
-                if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    byte[] myballs = addr.GetAddressBytes();
-                    for (int i = 0; i < CMP.Length; i++)
-                    {
-                        if (myballs[i] != CMP[i])
-                        {
-                            ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-                            break;
-                        }
-                        else
-                            ROS.ROS_HOSTNAME = "";
-                    }
-                    if (ROS.ROS_HOSTNAME == DEFAULT_HOSTNAME)
-                        continue;
-                    ROS.ROS_HOSTNAME = string.Format("{0}.{1}.{2}.{3}", myballs[0], myballs[1], myballs[2], myballs[3]);
-                    break;
-                }
-            }
 
-            ROS.Init(new string[0], "DREAM");
+            ROS.Init(new string[0], "DREAM2");
             nodeHandle = new NodeHandle();
 
             currtime = DateTime.Now;
