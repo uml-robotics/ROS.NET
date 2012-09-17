@@ -327,8 +327,8 @@ namespace Ros_CSharp
             {
                 if (shutting_down)
                     return;
-                else
-                    shutting_down = true;
+                shutting_down = true;
+                ok = false;
 
                 EDB.WriteLine("We're going down down....");
 

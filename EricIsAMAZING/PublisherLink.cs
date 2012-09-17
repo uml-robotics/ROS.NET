@@ -28,6 +28,10 @@ namespace Ros_CSharp
             get { return "TCPROS"; /*lol... pwned*/ }
         }
 
+        public Header getHeader()
+        {
+            return header;
+        }
         public bool setHeader(Header h)
         {
             CallerID = (string) h.Values["callerid"];

@@ -427,9 +427,9 @@ namespace Ros_CSharp
                         }
                         bool was_full = false;
                         bool nonconst_need_copy = callbacks.Count > 1;
-                        info.helper.callback().func(msg);
-                        /* push(info.helper, deserializer, nonconst_need_copy, ref was_full,
-                                                      receipt_time);*/
+                        //info.helper.callback().func(msg);
+                        info.helper.callback().pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+                        //push(info.helper, deserializer, nonconst_need_copy, ref was_full,receipt_time);
                         if (was_full)
                             ++drops;
                         else
@@ -457,6 +457,13 @@ namespace Ros_CSharp
             }
         }
 
+        public MessageDeserializer<T> MakeDeserializer<T>(MsgTypes type, SubscriptionCallbackHelper<T> helper, T m,
+                                                     IDictionary connection_header) where T : IRosMessage, new()
+        {
+            if (type == MsgTypes.Unknown) return null;
+            //return ROS.MakeDeserializer(ROS.MakeMessage(type));
+            return new MessageDeserializer<T>(helper, m, connection_header);
+        }
         public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m,
                                                      IDictionary connection_header)
         {
@@ -513,7 +520,7 @@ namespace Ros_CSharp
                                     IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
                                                                                         latch_info.connection_header);
                                     bool was_full = false;
-                                    ((Callback<M>) info.subscription_queue).push(info.helper, des, true,
+                                    ((Callback<M>) info.subscription_queue).push((SubscriptionCallbackHelper<M>)info.helper, (MessageDeserializer<M>)des, true,
                                                                                                ref was_full,
                                                                                                latch_info.receipt_time);
                                     ((Callback<M>)info.subscription_queue).topic = topiclol;
