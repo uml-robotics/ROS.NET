@@ -1,6 +1,7 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -325,6 +326,12 @@ namespace Ros_CSharp
                 if (shutting_down) return;
 
                 Publication p = lookupPublicationWithoutLock(topic);
+                p.connection_header = new Header { Values = new Hashtable() };
+                p.connection_header.Values["type"] = p.DataType;
+                p.connection_header.Values["md5sum"] = p.Md5sum;
+                p.connection_header.Values["message_definition"] = p.MessageDefinition;
+                p.connection_header.Values["callerid"] = this_node.Name;
+                p.connection_header.Values["latching"] = p.Latch;
 
                 if (p == null) return;
                 if (p.HasSubscribers || p.Latch)
@@ -338,6 +345,7 @@ namespace Ros_CSharp
                     else
                         serialize = true;
                     msg.Serialized = serfunc();
+                    
                     
 
                     p.publish(msg);

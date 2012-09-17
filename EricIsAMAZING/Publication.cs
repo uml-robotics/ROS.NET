@@ -34,6 +34,7 @@ namespace Ros_CSharp
         public object seq_mutex = new object();
         public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
         public object subscriber_links_mutex = new object();
+        public Header connection_header;
 
         public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue,
                            bool latch, bool has_header)
@@ -263,6 +264,7 @@ namespace Ros_CSharp
                 header.frame_id = new String();
                 msg.GetType().GetField("header").SetValue(msg, header);
             }
+            msg.connection_header = connection_header.Values;
 
             foreach (SubscriberLink sub_link in subscriber_links)
             {

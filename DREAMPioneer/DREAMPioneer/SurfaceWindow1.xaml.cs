@@ -1,4 +1,4 @@
-#region License stuff
+﻿#region License stuff
 
 // Eric McCann - 2011
 // University of Massachusetts Lowell
@@ -26,6 +26,7 @@
 #region USINGZ
 
 using GenericTypes_Surface_Adapter;
+using Messages.whosonfirst;
 using SpeechLib;
 using System.Diagnostics;
 using System;
@@ -520,14 +521,63 @@ namespace DREAMPioneer
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
         private const string DEFAULT_HOSTNAME = "10.0.2.178";
+        private string MY_CALLER_ID;
+
+        private Publisher<Dibs> hellopub;
+        private Subscriber<Dibs> hellosub;
+        private Publisher<Dibs> manualpub;
+        private Subscriber<Dibs> manualsub;
+        private Publisher<Dibs> goodbyepub;
+        private Subscriber<Dibs> goodbyesub;
+        private Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[] goalsubs;
+
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-
-            ROS.Init(new string[0], "DREAM2");
+            MY_CALLER_ID="DREAM2";
+            ROS.Init(new string[0], MY_CALLER_ID);
+            MY_CALLER_ID += "/";
             nodeHandle = new NodeHandle();
+            
+            hellopub = nodeHandle.advertise<Dibs>("/hello",1,true);
+            hellosub = nodeHandle.subscribe<Dibs>("/hello",1,(m)=>{
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    othermanuals.Add(boostmobile, m.manualRobot);
+                    //TODO DO SOMETHING WHEN ANOTHER CLIENT CONNECTS
+                }
+            });
+            goodbyepub = nodeHandle.advertise<Dibs>("/goodbye",1,true);
+            goodbyesub = nodeHandle.subscribe<Dibs>("/goodbye", 1, (m) =>
+            {
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
+                    othermanuals.Remove(boostmobile);
+                }
+            });
+            manualpub = nodeHandle.advertise<Dibs>("/manual",1,true);
+            manualsub = nodeHandle.subscribe<Dibs>("/manual", 1, (m) =>
+            {
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    othermanuals[boostmobile] = m.manualRobot;
+                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
+                }
+            });
+            hellopub.publish(new Dibs { manualRobot = -1 });
+            
+            goalsubs = new Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[MAX_NUMBER_OF_ROBOTS];
+            for(int i=0;i<MAX_NUMBER_OF_ROBOTS;i++)
+            {
+                int scoped = i;
+                goalsubs[i] = nodeHandle.subscribe<Messages.move_base_msgs.MoveBaseActionGoal>("/robot_brain_" + (i + 1) + "/move_base/goal", 1, (m) => goalSent(scoped, m));
+            }
 
             currtime = DateTime.Now;
             lastt = new Touch();
@@ -542,6 +592,7 @@ namespace DREAMPioneer
 
             n = DateTime.Now;
             lastupdown = DateTime.Now;
+
             changeManual(-1);
             androidRobot = -1;
 
@@ -561,6 +612,16 @@ namespace DREAMPioneer
             {
                 ROS.spinOnce(nodeHandle);
                 Thread.Sleep(1);
+            }
+        }
+
+        private void goalSent(int robotindex, Messages.move_base_msgs.MoveBaseActionGoal msg)
+        {
+            string boostmobile = (string)(msg.connection_header["caller_id"]);
+            if (boostmobile != MY_CALLER_ID)
+            {
+                Console.WriteLine(robotindex + " is being bossed around by " + boostmobile);
+                //TODO SOMETHING... ITD BE COOL IF ROBOTS FOLLOWING OTHER USER'S DOTS HAD DOTS WITH LOWER OPACITY?
             }
         }
 
@@ -592,10 +653,11 @@ namespace DREAMPioneer
 
         private Thread DONTGCMEPLZZOMG;
 
+        public Dictionary<string, int> othermanuals = new Dictionary<string, int>();
         public void changeManual(int manualRobot)
         {
             touchedRobot = -1;
-
+            manualpub.publish(new Dibs { manualRobot = manualRobot });
             if (ROSStuffs.ContainsKey(ROSData.ManualNumber))
             {
                 NoPulse(ROSData.ManualNumber);
@@ -617,7 +679,6 @@ namespace DREAMPioneer
                 if (selectedList.Contains(manualRobot))
                     selectedList.Remove(manualRobot);
                 PulseGreen(manualRobot);
-
             }
         }
 
@@ -703,6 +764,7 @@ namespace DREAMPioneer
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
                 clearWaypoints(RD);
+            goodbyepub.publish(new Dibs { manualRobot = -1 });
             Thread.Sleep(3000);
             ROS.shutdown();
             base.OnClosed(e);
