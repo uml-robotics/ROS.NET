@@ -26,8 +26,7 @@ namespace Ros_CSharp
         public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
         public NodeHandle(string ns, IDictionary remappings)
-        {
-            Console.WriteLine("NEW NODEHANDLE!");
+        {            
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
             construct(ns, true);
@@ -314,6 +313,7 @@ namespace Ros_CSharp
                 }
                 ++nh_refcount;
             }
+            Console.WriteLine(nh_refcount);
         }
 
         public void destruct()

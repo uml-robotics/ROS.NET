@@ -5,6 +5,8 @@ using System.Text;
 using System.Windows;
 using Ros_CSharp;
 using System.Threading;
+using System.Windows.Media;
+using window = DREAMPioneer.SurfaceWindow1;
 
 namespace DREAMPioneer
 {
@@ -92,10 +94,12 @@ namespace DREAMPioneer
         }
         public static void Publish(List<Point> wayp, params int[] indeces)
         {
-            CommonList DisList = new CommonList(wayp, indeces[0], System.Windows.Media.Brushes.Yellow, 1);
+            CommonList DisList = new CommonList(wayp);
+            
             RobotControl.OneInAMillion.Add(DisList);
+            Brush MyColor;
             
-            
+       
 
             foreach (Point p in wayp)
             {
@@ -103,13 +107,47 @@ namespace DREAMPioneer
                 WaypointHelper wh = WaypointHelper.LookUp(id) ?? new WaypointHelper(id, p);
                 wh.robotswhohavethiswaypoint.AddRange(indeces);             
                 GoalCounter++;
+                wh.goalDot = new GoalDot(window.current.DotCanvas, p, window.current.joymgr.DPI, window.current.MainCanvas, Brushes.Yellow);
+                if (!DisList.Dots.Contains(wh.goalDot))
+                    {
+                        DisList.Dots.Add(wh.goalDot);
+                    }
+                //window.current.Dispatcher.BeginInvoke(new Action(()=>
+                //    {
+                //    window.current.DotCanvas.Children.Remove(wh.goalDot);
+                //    }));
             } 
+            
              foreach (int ID in indeces)
                 {
+                    MyColor = RobotColor.getMyColor(ID);
+                   
+                    SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
+                }));
+                    
+                 DisList.RoboInfo.Add(new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
+                    
                     Publish(wayp[0], ID, GoalCounter);
-                } 
+                }
+                
         }
+
         private static Dictionary<string, WaypointHelper> _waypoints = new Dictionary<string, WaypointHelper>();
+        public static Dictionary<string, WaypointHelper> waypoints 
+        {
+            get
+            {
+                return _waypoints;
+            }
+            set
+            {
+                _waypoints = value;
+            }
+            
+        }
+        
         public static WaypointHelper LookUp(string ID)
         {
             lock (_waypoints)
@@ -136,6 +174,7 @@ namespace DREAMPioneer
             PubSubs[thisrobotnum] = new WaypointPubSubs();
             PubSubs[thisrobotnum].Initialize(name);
         }
+        public WaypointHelper() { }
         public WaypointHelper(string ID, Point reference) : this(ID, reference, null) { }
         public WaypointHelper(string ID, Point reference, GoalDot gd)
         {

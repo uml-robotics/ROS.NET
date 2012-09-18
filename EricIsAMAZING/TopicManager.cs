@@ -200,8 +200,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri),
                         result = new XmlRpcValue(),
                         payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, ref result, ref payload, true);
-            Console.WriteLine(result);
+            master.execute("registerPublisher", args, ref result, ref payload, true);            
             return true;
         }
 
@@ -602,7 +601,6 @@ namespace Ros_CSharp
                     pub.Set(1, t.DataType);
                     pubs.Set(sidx++, pub);
                 }
-                pubs.Dump();
             }
         }
 

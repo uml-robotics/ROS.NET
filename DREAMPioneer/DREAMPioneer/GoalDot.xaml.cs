@@ -100,7 +100,9 @@ namespace DREAMPioneer
             {
                 _NextOne = value;
                 if (_NextOne)
+
                     NextC2.Visibility = Visibility.Visible;
+
                 else
                 {
                     NextC2.Visibility = Visibility.Hidden;

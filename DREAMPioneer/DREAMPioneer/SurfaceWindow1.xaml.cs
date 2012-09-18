@@ -165,7 +165,7 @@ namespace DREAMPioneer
         private Point DRAG_START = new Point(-1, -1);
         public static SurfaceWindow1 current;
         //private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();        
-        private JoystickManager joymgr;
+        public JoystickManager joymgr;
 
 
 
@@ -642,6 +642,7 @@ namespace DREAMPioneer
             }
 
             ROS.Init(new string[0], "DREAM");
+            XmlRpc_Wrapper.XmlRpcUtil.ShowOutputFromXmlRpcPInvoke();
             nodeHandle = new NodeHandle();
 
             currtime = DateTime.Now;
@@ -1403,18 +1404,29 @@ namespace DREAMPioneer
         /// <param name = "sim">
         ///   The sim.
         /// </param>
-        public void SetGoal(int r, List<Point> PList, CommonList CL, Robot_Info RI)
+        public void SetGoal(int r)
         {
-            if (PList.Count == 0)
+            Robot_Info RI = new Robot_Info();
+            CommonList CL = new CommonList();
+             foreach (CommonList cl in RobotControl.OneInAMillion)
+                 foreach (Robot_Info ri in cl.RoboInfo)
+                    if (ri.RoboNum == r && !ri.done)
+                    {
+                        RI = ri;
+                        CL = cl;
+                    }
+                     
+            if (RI.myList == null) return;
+            if (RI.myList.Count == 0)
             {
                 RobotControl.DoneCheck(r, true);
                 return;
             }
 
-            RI.CurrentLength = PList.Count;
-            RI.Next = PList.First();
+            
+            RI.Next = RI.myList.First();
 
-            List<Point> WindowEQ = new List<Point>(PList);
+            List<Point> WindowEQ = new List<Point>(RI.myList);
 
 
 
@@ -1422,13 +1434,16 @@ namespace DREAMPioneer
 
             foreach (Robot_Info LengthCheck in CL.RoboInfo)
             {
-                if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position < RI.Position)
+                if (LengthCheck.Position > CL.RoboInfo.Count)
+                    LengthCheck.Position = CL.RoboInfo.Count;
+
+                if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position < RI.Position)
                 {
                     int temp = RI.Position;
                     RI.Position = LengthCheck.Position;
                     LengthCheck.Position = temp;
                 }
-                else if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position == RI.Position)
+                else if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position == RI.Position)
                 {
                     if (LengthCheck.Position != CL.RoboInfo.Count)
                         LengthCheck.Position++;
@@ -1451,8 +1466,9 @@ namespace DREAMPioneer
             List<GoalDot> Handled = new List<GoalDot>();
             List<GoalDot> UnHandled = new List<GoalDot>(CL.Dots);
 
-            PassBack(CL.RoboInfo, 1, UnHandled, Handled);
-
+            Dispatcher.BeginInvoke(new Action(()=>
+                PassBack(CL.RoboInfo, 1, UnHandled, Handled)
+            ));
 
 
 
@@ -1471,12 +1487,12 @@ namespace DREAMPioneer
                 {
                     if (!PosCheck.done)
                     {
-                        for (int i = 0; i < PosCheck.CurrentLength - already_done - 1; i++)
+                        for (int i = 0; i < PosCheck.myList.Count - already_done - 1; i++)
                         {
                             if (UnHandled.Count == 0)
                                 return;
 
-                            if (i == PosCheck.CurrentLength - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
+                            if (i == PosCheck.myList.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
                             else UnHandled[(UnHandled.Count - 1)].NextOne = false;
                             UnHandled[(UnHandled.Count - 1)].NextC1.Fill = PosCheck.Color;
                             UnHandled[(UnHandled.Count - 1)].BeenThereC2.Fill = PosCheck.Color;

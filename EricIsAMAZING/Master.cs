@@ -85,47 +85,55 @@ namespace Ros_CSharp
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
                                    bool wait_for_master)
         {
-            DateTime startTime = DateTime.Now;
-            string master_host = host;
-            int master_port = port;
-            XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
-            bool printed = false;
-            bool slept = false;
-            bool ok = true;
-            while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
-                   !client.Execute(method, request, response) ||
-                   !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
+            try
             {
-                if (!printed)
+                DateTime startTime = DateTime.Now;
+                string master_host = host;
+                int master_port = port;
+                XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+                bool printed = false;
+                bool slept = false;
+                bool ok = true;
+                while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
+                       !client.Execute(method, request, response) ||
+                       !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
                 {
-                    EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                  master_port, (wait_for_master ? "Retrying..." : ""));
-                    printed = true;
-                }
+                    if (!printed)
+                    {
+                        EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                                      master_port, (wait_for_master ? "Retrying..." : ""));
+                        printed = true;
+                    }
 
-                if (!wait_for_master)
-                {
-                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                    return false;
-                }
+                    if (!wait_for_master)
+                    {
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
 
-                if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
-                {
-                    EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                  retryTimeout.TotalSeconds);
-                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                    return false;
+                    if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
+                    {
+                        EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                                      retryTimeout.TotalSeconds);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
+                    slept = true;
+                    Thread.Sleep(50);
                 }
-                slept = true;
-                Thread.Sleep(50);
+                if (ok && !firstsucces)
+                {
+                    firstsucces = true;
+                    EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+                }
+                XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                return true;
             }
-            if (ok && !firstsucces)
+            catch (Exception e)
             {
-                firstsucces = true;
-                EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+                Console.WriteLine(e);
             }
-            XmlRpcManager.Instance.releaseXMLRPCClient(client);
-            return true;
+            return false;
         }
     }
 }
