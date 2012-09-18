@@ -33,6 +33,7 @@ namespace Ros_CSharp
                         {
                             IRosMessage t = new T();
                             t = t.Deserialize(b.Serialized);
+                            t.connection_header = b.connection_header;
                             f(t as T);
                         }
                         else
@@ -63,14 +64,19 @@ namespace Ros_CSharp
             this.queue_size = 0;
         }
 
-        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,ref bool was_full)
+        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,ref bool was_full)
         {
             push(helper, deserializer, nonconst_need_copy, ref was_full, new TimeData());
         }
 
 
-        public void push(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy,
+        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,
                          ref bool was_full, TimeData receipt_time)
+        {
+            pushitgood(helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+        }
+
+        public override void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
             if (Event != null)
             {
@@ -164,10 +170,7 @@ namespace Ros_CSharp
             }
             if (i == null)
                 return CallResult.Invalid;
-            SubscriptionCallbackHelperCallParams parms = new SubscriptionCallbackHelperCallParams();
-            parms.Event = new IMessageEvent(i.deserializer.deserialize(), i.deserializer.connection_header, i.receipt_time,
-                                            i.nonconst_need_copy, IMessageEvent.DefaultCreator);
-            i.helper.call(parms);
+            i.helper.call(i.deserializer.deserialize());
             callback_mutex = false;
             return CallResult.Success;
         }
@@ -207,6 +210,11 @@ namespace Ros_CSharp
             {
                 Event(msg);
             }
+        }
+
+        public virtual void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
+        {
+            throw new NotImplementedException();
         }
 
         public event ICallbackDelegate Event;

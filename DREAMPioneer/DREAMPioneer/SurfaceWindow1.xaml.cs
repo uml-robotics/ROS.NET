@@ -1,4 +1,4 @@
-#region License stuff
+﻿#region License stuff
 
 // Eric McCann - 2011
 // University of Massachusetts Lowell
@@ -26,6 +26,7 @@
 #region USINGZ
 
 using GenericTypes_Surface_Adapter;
+using Messages.whosonfirst;
 using SpeechLib;
 using System.Diagnostics;
 using System;
@@ -185,6 +186,7 @@ namespace DREAMPioneer
         private object em3m;
 #else
         private EM3MTouch em3m;
+        private DisplayFinder finder;
 #endif
         private DateTime currtime;
 
@@ -357,6 +359,10 @@ namespace DREAMPioneer
                 }
             }).Start();
 #else
+            finder = new DisplayFinder();
+            Point TopLeft = finder.Find3Ms();
+            Left = TopLeft.X;
+            Top = TopLeft.Y;
             MainCanvas.Width = BackgroundCanvas.Width = TopsyTurvey.Width = DotCanvas.Width = Width = 1680;
             MainCanvas.Height = BackgroundCanvas.Height = TopsyTurvey.Height = DotCanvas.Height = Height = 1050;
             
@@ -429,34 +435,7 @@ namespace DREAMPioneer
             }
             Touch t = SurfaceAdapter.Down(e);
             fisting = Fists.Count > 0;
-            if (fisting)
-            {
-                // if it is a Fist
-                if (Fists.Count == 1 && !timers.IsRunning(ref fister))
-                {
-                    timers.StartTimer(ref fister);
-                }
-                else if (timers.IsRunning(ref fister) && Fists.Count >= 2)
-                {
-                    // and there are two blobs 
-                    timers.StopTimer(ref fister);
-
-                    Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
-                    Say("STOP! HAMMER TIME!", -100);
-
-
-                    foreach (ROSData RD in ROSStuffs.Values)
-                        WaypointHelper.CancelAll(RD.RobotNumber);
                         //clearWaypoints(RD);
-                    EndState("DOUBLE FIST");
-
-                }
-            }
-            else
-            {
-                if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
-                    ChangeState(RMState.Start, "NO ROBOTS SELECTED!");
-            }
             Down(t);
         }
         private Microsoft.Surface.Core.ContactEventArgs specialArgsz;
@@ -464,97 +443,20 @@ namespace DREAMPioneer
         {
             if (fisting) return;
             Touch t = SurfaceAdapter.Change(e);
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                /*if (selectedList.Count == 0 && (state == RMState.RM3 || state == RMState.RM7))
-                    ChangeState(RMState.RM1, "NO ROBOTS SELECTED!");*/
-                if (FREE.Count == 1 && FREE.ContainsKey(t.Id) &&
-                    (state == RMState.State3))
-                {
-                    {
-                        WPDrag++;
-
-                        // waypointList.Add(e.Contact.GetCenterPosition(this));
-                        // AddWaypointDot(e.Contact.GetCenterPosition(this));
-                        if (state == RMState.State3)
-                        {
-                            turnedIntoDrag = true;
-                            RM5Drag(t.Position);
-                        }
-
-                        if (state == RMState.State5)
-                        {
-
-                            //waypointList.Add(t.Position);
-                            if (FREE.Count == 1)
-                                AddWaypointDot(t.Position);
-                        }
-
-                        // ChangeState(RMState.RM7, "CC-G");
-                    }
-                }
-                /*else
-                {*/
-                Changed(t);
-            }));
+            //Dispatcher.BeginInvoke(new Action(() => 
+                Changed(t); //));
         }
         void surfaceUp(object sender, Microsoft.Surface.Core.ContactEventArgs e)
         {
             Touch t = GenericTypes_Surface_Adapter.SurfaceAdapter.Up(e);
-            Dispatcher.BeginInvoke(new Action(() =>
-           {
-               if (fisting)
-               {
-                   if (Fists.Count == 0 && timers.IsRunning(ref fister))
-                   {
-                       timers.StopTimer(ref fister);
-                       Log("Fist - n/a - Single Fist (Clear WP + Selected)");
-                       EndState("DUNN");
-                       Say("Disregarding", -1);
-                       fisting = false;
-                   }
-                   else if (timers.IsRunning(ref fister) && Fists.Count >= 2)
-                   {
-                       timers.StopTimer(ref fister);
-
-                       Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
-                       Say("STOP! HAMMER TIME!", -100);
-
-
-                       foreach (ROSData RD in ROSStuffs.Values)
-                           WaypointHelper.CancelAll(RD.RobotNumber);
+            /*Dispatcher.BeginInvoke(new Action(() =>
+           {*/
                            //clearWaypoints(RD);
-
-                       EndState("DOUBLE FIST");
-
-
-
-
-
-
-
-                       fisting = false;
-                   }
-               }
-
                // we have a finger
                Up(t);
                Fists.RemoveAll((c) => { return c.Id == e.Contact.Id; });
                fisting = Fists.Count > 0;
-
-               //joymgr.Up(t);
-               //ReadOnlyContactCollection cc = Contacts.GetContactsOver(this);
-               //List<Touch> alive = new List<Touch>();
-               //foreach (Contact c in cc)
-               //    alive.Add(SurfaceAdapter.Change(c));
-               //IEnumerable<Touch> dead = FREE.Values.Except(alive);
-               //Console.WriteLine("#DEAD=" + dead.Count());
-               //foreach (Touch T in dead)
-               //{
-               //    Up(T);
-               //    joymgr.Up(T);
-               //}
-           }));
+           //}));
 
 
         }
@@ -612,38 +514,64 @@ namespace DREAMPioneer
         private Timer fister;
         private NodeHandle nodeHandle;
         private byte[] CMP = new byte[] { 10, 0, 2 };
-        private const string DEFAULT_HOSTNAME = "10.0.2.47";
+        private const string DEFAULT_HOSTNAME = "10.0.2.178";
+        private string MY_CALLER_ID;
+
+        private Publisher<Dibs> hellopub;
+        private Subscriber<Dibs> hellosub;
+        private Publisher<Dibs> manualpub;
+        private Subscriber<Dibs> manualsub;
+        private Publisher<Dibs> goodbyepub;
+        private Subscriber<Dibs> goodbyesub;
+        private Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[] goalsubs;
+
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-            System.Net.IPAddress[] FUCKYOUDEBUGGER = System.Net.Dns.GetHostAddresses(Environment.MachineName);
-            foreach (System.Net.IPAddress addr in FUCKYOUDEBUGGER)
-            {
-                if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    byte[] myballs = addr.GetAddressBytes();
-                    for (int i = 0; i < CMP.Length; i++)
-                    {
-                        if (myballs[i] != CMP[i])
-                        {
-                            ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-                            break;
-                        }
-                        else
-                            ROS.ROS_HOSTNAME = "";
-                    }
-                    if (ROS.ROS_HOSTNAME == DEFAULT_HOSTNAME)
-                        continue;
-                    ROS.ROS_HOSTNAME = string.Format("{0}.{1}.{2}.{3}", myballs[0], myballs[1], myballs[2], myballs[3]);
-                    break;
-                }
-            }
-
-            ROS.Init(new string[0], "DREAM");
-            XmlRpc_Wrapper.XmlRpcUtil.ShowOutputFromXmlRpcPInvoke();
+            MY_CALLER_ID="DREAM2";
+            ROS.Init(new string[0], MY_CALLER_ID);
+            MY_CALLER_ID += "/";
             nodeHandle = new NodeHandle();
+            
+            hellopub = nodeHandle.advertise<Dibs>("/hello",1,true);
+            hellosub = nodeHandle.subscribe<Dibs>("/hello",1,(m)=>{
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    othermanuals.Add(boostmobile, m.manualRobot);
+                    //TODO DO SOMETHING WHEN ANOTHER CLIENT CONNECTS
+                }
+            });
+            goodbyepub = nodeHandle.advertise<Dibs>("/goodbye",1,true);
+            goodbyesub = nodeHandle.subscribe<Dibs>("/goodbye", 1, (m) =>
+            {
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
+                    othermanuals.Remove(boostmobile);
+                }
+            });
+            manualpub = nodeHandle.advertise<Dibs>("/manual",1,true);
+            manualsub = nodeHandle.subscribe<Dibs>("/manual", 1, (m) =>
+            {
+                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
+                if (boostmobile != MY_CALLER_ID)
+                {
+                    othermanuals[boostmobile] = m.manualRobot;
+                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
+                }
+            });
+            hellopub.publish(new Dibs { manualRobot = -1 });
+            
+            goalsubs = new Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[MAX_NUMBER_OF_ROBOTS];
+            for(int i=0;i<MAX_NUMBER_OF_ROBOTS;i++)
+            {
+                int scoped = i;
+                goalsubs[i] = nodeHandle.subscribe<Messages.move_base_msgs.MoveBaseActionGoal>("/robot_brain_" + (i + 1) + "/move_base/goal", 1, (m) => goalSent(scoped, m));
+            }
 
             currtime = DateTime.Now;
             lastt = new Touch();
@@ -658,6 +586,7 @@ namespace DREAMPioneer
 
             n = DateTime.Now;
             lastupdown = DateTime.Now;
+
             changeManual(-1);
             androidRobot = -1;
 
@@ -677,6 +606,16 @@ namespace DREAMPioneer
             {
                 ROS.spinOnce(nodeHandle);
                 Thread.Sleep(1);
+            }
+        }
+
+        private void goalSent(int robotindex, Messages.move_base_msgs.MoveBaseActionGoal msg)
+        {
+            string boostmobile = (string)(msg.connection_header["caller_id"]);
+            if (boostmobile != MY_CALLER_ID)
+            {
+                Console.WriteLine(robotindex + " is being bossed around by " + boostmobile);
+                //TODO SOMETHING... ITD BE COOL IF ROBOTS FOLLOWING OTHER USER'S DOTS HAD DOTS WITH LOWER OPACITY?
             }
         }
 
@@ -708,10 +647,11 @@ namespace DREAMPioneer
 
         private Thread DONTGCMEPLZZOMG;
 
+        public Dictionary<string, int> othermanuals = new Dictionary<string, int>();
         public void changeManual(int manualRobot)
         {
             touchedRobot = -1;
-
+            manualpub.publish(new Dibs { manualRobot = manualRobot });
             if (ROSStuffs.ContainsKey(ROSData.ManualNumber))
             {
                 NoPulse(ROSData.ManualNumber);
@@ -734,7 +674,6 @@ namespace DREAMPioneer
                 if (selectedList.Contains(manualRobot))
                     selectedList.Remove(manualRobot);
                 PulseGreen(manualRobot);
-
             }
         }
 
@@ -820,7 +759,7 @@ namespace DREAMPioneer
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
                 WaypointHelper.CancelAll(RD.RobotNumber);
-                //clearWaypoints(RD);
+            goodbyepub.publish(new Dibs { manualRobot = -1 });
             Thread.Sleep(3000);
             ROS.shutdown();
             base.OnClosed(e);
@@ -1298,7 +1237,7 @@ namespace DREAMPioneer
         /// </summary>
         public Dictionary<int, Touch> FREE
         {
-            get { return joymgr.FreeTouches; }
+            get { return joymgr != null ? joymgr.FreeTouches : new Dictionary<int, Touch>(); }
         }
 
         [DebuggerStepThrough]
@@ -1679,115 +1618,146 @@ namespace DREAMPioneer
 
         private void Down(Touch e)
         {
-            Dispatcher.BeginInvoke(new Action(() => StartSpecial(e)));
-            joymgr.Down(e, (t, b) =>
-                                        {
-                                            if (!b)
-                                            {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (fisting)
+                {
+                    // if it is a Fist
+                    if (Fists.Count == 1 && !timers.IsRunning(ref fister))
+                    {
+                        timers.StartTimer(ref fister);
+                    }
+                    else if (timers.IsRunning(ref fister) && Fists.Count >= 2)
+                    {
+                        // and there are two blobs 
+                        timers.StopTimer(ref fister);
 
-                                                ZoomDown(e);
+                        Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
+                        Say("STOP! HAMMER TIME!", -100);
 
-                                                if (FREE.Count > 1)
+
+                        foreach (ROSData RD in ROSStuffs.Values)
+                            clearWaypoints(RD);
+                        EndState("DOUBLE FIST");
+
+                    }
+                }
+                else
+                {
+                    if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
+                        ChangeState(RMState.Start, "NO ROBOTS SELECTED!");
+                }
+                StartSpecial(e);
+                if (joymgr != null)
+                    joymgr.Down(e, (t, b) =>
                                                 {
-                                                    return;
-                                                }
-                                                int index = robotsCD(e);
-                                                if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
-                                                    ChangeState(RMState.Start, "Eroneously out of start with 0 selected");
+                                                    if (!b)
+                                                    {
 
-                                                switch (state)
-                                                {
-                                                    case RMState.Start:
+                                                        ZoomDown(e);
 
-                                                        // If the CD was on a robot then ...
-                                                        if (index != -1)
+                                                        if (FREE.Count > 1)
                                                         {
-                                                            if (ToggleSelected(index, e))
-                                                                ChangeState(RMState.State1, "CD-R");
-                                                            else
-                                                                ChangeState(RMState.State1, "DESELECTED LAST ROBOT");
+                                                            return;
                                                         }
+                                                        int index = robotsCD(e);
+                                                        if (selectedList.Count == 0 && (state == RMState.State2 || state == RMState.State4))
+                                                            ChangeState(RMState.Start, "Eroneously out of start with 0 selected");
 
-                                    // If the CD was on gound then...
-                                                        else if ((index = CloseToRobot(e.Position)) != -1)
+                                                        switch (state)
                                                         {
-                                                            AddSelected(index, e);
-                                                            ChangeState(RMState.State1, "CD-NR");
-                                                        }
-                                                        break;
-                                                    case RMState.State1:
-                                                        break;
-                                                    case RMState.State2:
-                                                        if (index != -1) // If the CD was on a robot then ...
-                                                        {
-                                                            if (ToggleSelected(index, e))
-                                                                ChangeState(RMState.State1, "CD-R");
-                                                            else
-                                                                ChangeState(RMState.State1, "DESELECTED LAST ROBOT");
-                                                        }
-                                                        else // If the CD was on gound then...
-                                                        {
-                                                            //index = CloseToRobot(e.Position); // Was the contact close enough to a robot?
-                                                            if ((index = CloseToRobot(e.Position)) != -1)
-                                                            {
-                                                                AddSelected(index, e);
-                                                                ChangeState(RMState.State3, "CD-NR");
-                                                            }
-                                                            else // CD was far from any robot.
-                                                            {
-                                                                RM5Start(e.Position);
-                                                                ChangeState(RMState.State3, "CD-G");
-                                                            }
-                                                        }
-                                                        break;
-                                                    case RMState.State3:
+                                                            case RMState.Start:
 
-                                                        break;
-                                                    case RMState.State4:
-                                                        if (index != -1) // If the CD was on a robot then, start movement and reset to 1 robot selected.
-                                                        {
-                                                            // Reset to state RM1. Select the current robot.
-                                                            if (!selectedList.Contains(index))
-                                                            {
-                                                                NoPulse();
-                                                                HandOutWaypoints(); //"selected an unselected robot"
-                                                                selectedList.Clear();
-                                                                AddSelected(index, e);//"Tap"
-                                                                ChangeState(RMState.State1, "Selected an unselected robot");
-                                                            }
-                                                            else
-                                                                RemoveSelected(index, e);
+                                                                // If the CD was on a robot then ...
+                                                                if (index != -1)
+                                                                {
+                                                                    if (ToggleSelected(index, e))
+                                                                        ChangeState(RMState.State1, "CD-R");
+                                                                    else
+                                                                        ChangeState(RMState.State1, "DESELECTED LAST ROBOT");
+                                                                }
 
+                                            // If the CD was on gound then...
+                                                                else if ((index = CloseToRobot(e.Position)) != -1)
+                                                                {
+                                                                    AddSelected(index, e);
+                                                                    ChangeState(RMState.State1, "CD-NR");
+                                                                }
+                                                                break;
+                                                            case RMState.State1:
+                                                                break;
+                                                            case RMState.State2:
+                                                                if (index != -1) // If the CD was on a robot then ...
+                                                                {
+                                                                    if (ToggleSelected(index, e))
+                                                                        ChangeState(RMState.State1, "CD-R");
+                                                                    else
+                                                                        ChangeState(RMState.State1, "DESELECTED LAST ROBOT");
+                                                                }
+                                                                else // If the CD was on gound then...
+                                                                {
+                                                                    //index = CloseToRobot(e.Position); // Was the contact close enough to a robot?
+                                                                    if ((index = CloseToRobot(e.Position)) != -1)
+                                                                    {
+                                                                        AddSelected(index, e);
+                                                                        ChangeState(RMState.State3, "CD-NR");
+                                                                    }
+                                                                    else // CD was far from any robot.
+                                                                    {
+                                                                        RM5Start(e.Position);
+                                                                        ChangeState(RMState.State3, "CD-G");
+                                                                    }
+                                                                }
+                                                                break;
+                                                            case RMState.State3:
+
+                                                                break;
+                                                            case RMState.State4:
+                                                                if (index != -1) // If the CD was on a robot then, start movement and reset to 1 robot selected.
+                                                                {
+                                                                    // Reset to state RM1. Select the current robot.
+                                                                    if (!selectedList.Contains(index))
+                                                                    {
+                                                                        NoPulse();
+                                                                        HandOutWaypoints(); //"selected an unselected robot"
+                                                                        selectedList.Clear();
+                                                                        AddSelected(index, e);//"Tap"
+                                                                        ChangeState(RMState.State1, "Selected an unselected robot");
+                                                                    }
+                                                                    else
+                                                                        RemoveSelected(index, e);
+
+                                                                }
+                                                                else if ((index = CloseToRobot(e.Position)) != -1)
+                                                                {
+                                                                    if (!selectedList.Contains(index))
+                                                                    {
+                                                                        NoPulse();
+                                                                        HandOutWaypoints(); //"selected an unselected robot"
+                                                                        selectedList.Clear();
+                                                                        AddSelected(index, e);
+                                                                        ChangeState(RMState.State1, "CD-NR selected an unselected robot");
+                                                                    }
+                                                                    else
+                                                                        RemoveSelected(index, e);
+
+                                                                }
+                                                                else // If the CD was on gound then...
+                                                                {
+
+                                                                    RM5Start(e.Position);
+                                                                    ChangeState(RMState.State3, "CD-G - Testing for doubletap");
+                                                                }
+
+                                                                break;
+                                                            case RMState.State5:
+                                                                break;
+                                                            default:
+                                                                break;
                                                         }
-                                                        else if ((index = CloseToRobot(e.Position)) != -1)
-                                                        {
-                                                            if (!selectedList.Contains(index))
-                                                            {
-                                                                NoPulse();
-                                                                HandOutWaypoints(); //"selected an unselected robot"
-                                                                selectedList.Clear();
-                                                                AddSelected(index, e);
-                                                                ChangeState(RMState.State1, "CD-NR selected an unselected robot");
-                                                            }
-                                                            else
-                                                                RemoveSelected(index, e);
-
-                                                        }
-                                                        else // If the CD was on gound then...
-                                                        {
-
-                                                            RM5Start(e.Position);
-                                                            ChangeState(RMState.State3, "CD-G - Testing for doubletap");
-                                                        }
-
-                                                        break;
-                                                    case RMState.State5:
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
-                                        });
+                                                    }
+                                                });
+            }));
         }
 
         private indexdistfuck DistToNearestGestureObject(Point p)
@@ -1814,155 +1784,184 @@ namespace DREAMPioneer
 
         private void Changed(Touch e)
         {
-            joymgr.Change(e, (t, b) =>
-                                            {
-                                                bool SITSTILL = false;
-                                                if (!b && !fisting)
-                                                {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (FREE.Count == 1 && FREE.ContainsKey(e.Id) &&
+                        (state == RMState.State3))
+                {
+                    {
+                        WPDrag++;
 
-                                                    /*if (captureVis.ContainsKey(t.Id))
+                        // waypointList.Add(e.Contact.GetCenterPosition(this));
+                        // AddWaypointDot(e.Contact.GetCenterPosition(this));
+                        if (state == RMState.State3)
+                        {
+                            turnedIntoDrag = true;
+                            RM5Drag(e.Position);
+                        }
+
+                        if (state == RMState.State5)
+                        {
+
+                            //waypointList.Add(t.Position);
+                            if (FREE.Count == 1)
+                                AddWaypointDot(e.Position);
+                        }
+
+                        // ChangeState(RMState.RM7, "CC-G");
+                    }
+                }
+                if (joymgr != null)
+                    joymgr.Change(e, (t, b) =>
                                                     {
-                                                        captureVis[t.Id].dot.Stroke = Brushes.White;
-                                                        captureVis[t.Id].Update(t.Position);
-                                                    }*/
-
-                                                    int index = robotsCD(e);
-                                                    if (index != touchedRobot) CheckSpecialAbort(e);
-                                                    Dictionary<int, Touch> cc = FREE;
-
-                                                    if (FREE.Count == 1 && (state == RMState.State3 || FREE.Count == 1 && em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
-                                                    {
+                                                        bool SITSTILL = false;
+                                                        if (!b && !fisting)
                                                         {
-                                                            WPDrag++;
 
-                                                            if (state == RMState.State3)
+                                                            /*if (captureVis.ContainsKey(t.Id))
                                                             {
-                                                                turnedIntoDrag = true;
-                                                                RM5Drag(t.Position);
-                                                            }
+                                                                captureVis[t.Id].dot.Stroke = Brushes.White;
+                                                                captureVis[t.Id].Update(t.Position);
+                                                            }*/
 
-                                                            if (state == RMState.State5)
-                                                            {
-                                                                if (FREE.Count == 1)
-                                                                    AddWaypointDot(t.Position);
-                                                            }
-                                                        }
-                                                    }
+                                                            int index = robotsCD(e);
+                                                            if (index != touchedRobot) CheckSpecialAbort(e);
+                                                            Dictionary<int, Touch> cc = FREE;
 
-                                                    if (cc.Count > 1)
-                                                    {
-                                                        foreach (Touch T in joymgr.JoystickFuneral)
-                                                            if (e.Id == T.Id)
+                                                            if (FREE.Count == 1 && (state == RMState.State3 || FREE.Count == 1 && em3m == null && state == RMState.State5 && (robotsCD(t) == -1 /* && menu != null && !Contacts.GetContactsOver(menu).Contains(args.Contact) */)))
                                                             {
-                                                                SITSTILL = true;
-                                                                joymgr.JoystickFuneral.Remove(T);
-                                                                break;
-                                                            }
-                                                            else
-                                                            {
-                                                                SITSTILL = false;
-                                                            }
-
-                                                        ZoomChange(SITSTILL ? null : e, cc);
-                                                        if (!cleanedUpDragPoints.Contains(e.Id))
-                                                        {
-                                                            if (lassoPoints.Contains(e.Position))
-                                                                lassoPoints.Remove(e.Position);
-                                                            if (lassoLine.Points.Contains(e.Position))
-                                                                lassoPoints.Remove(e.Position);
-                                                            cleanedUpDragPoints.Add(e.Id);
-                                                        }
-                                                        return;
-                                                    }
-
-                                                    switch (state)
-                                                    {
-                                                        case RMState.Start:
-                                                            if (cc.Count == 1 && (lassoId == -1 || lassoId == e.Id) && index == -1 &&
-                                                                selectedList.Count == 0)
-                                                            {
-                                                                lassoPoints.Add(e.Position);
-                                                                if (lassoId == -1)
-                                                                {
-                                                                    startLasso(e);
-                                                                }
-                                                                else
-                                                                {
-                                                                    addToLasso(e.Position);
-                                                                }
-                                                            }
-                                                            break;
-                                                        case RMState.State1:
-                                                            if (cc.Count > 1) break;
-
-                                                            indexdistfuck idf = DistToNearestGestureObject(e.Position);
-                                                            if (selectedList.Count > 0 && selectedList.Contains(idf.index) && (idf.distance > 3 * ROSStuffs[idf.index].RadiusInWindow))
-                                                            {
-                                                                if (ROSStuffs[idf.index].myRobot.robot.GetColor() != Brushes.Blue)
-                                                                {
-                                                                    if (FREE.Count == 1)
-                                                                    {
-                                                                        AddWaypointDot(e.Position);
-                                                                        ChangeState(RMState.State5, "CC-NR, Starting Path");
-                                                                    }
-                                                                }
-                                                                break;
-                                                            }
-                                                            else if ((lassoId == -1 || lassoId == e.Id) && index == -1 &&
-                                                                          selectedList.Count == 0)
-                                                            {
-                                                                lassoPoints.Add(e.Position);
-                                                                if (lassoId == -1)
-                                                                {
-                                                                    startLasso(e);
-                                                                }
-                                                                else
-                                                                {
-                                                                    addToLasso(e.Position);
-                                                                }
-                                                            }
-
-                                                            break;
-                                                        case RMState.State2:
-                                                            break;
-                                                        case RMState.State3:
-                                                            if (cc.Count == 1 && index == -1)
-                                                            {
-                                                                if (selectedList.Count > 0)
                                                                 {
                                                                     WPDrag++;
-                                                                    turnedIntoDrag = true;
-                                                                    RM5Drag(e.Position);
-                                                                }
-                                                                else
-                                                                {
-                                                                    ChangeState(RMState.State1, "Lasso?");
+
+                                                                    if (state == RMState.State3)
+                                                                    {
+                                                                        turnedIntoDrag = true;
+                                                                        RM5Drag(t.Position);
+                                                                    }
+
+                                                                    if (state == RMState.State5)
+                                                                    {
+                                                                        if (FREE.Count == 1)
+                                                                            AddWaypointDot(t.Position);
+                                                                    }
                                                                 }
                                                             }
 
-                                                            break;
-                                                        case RMState.State4:
-                                                            break;
-                                                        case RMState.State5:
-                                                            if (cc.Count == 1 && index == -1)
+                                                            if (cc.Count > 1)
                                                             {
-                                                                WPDrag++;
-                                                                AddWaypointDot(e.Position);
-                                                            }
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    /*if (captureVis.ContainsKey(t.Id))
-                                                    {
-                                                        captureVis[t.Id].dot.Stroke = Brushes.Red;
-                                                    }*/
-                                                }
+                                                                foreach (Touch T in joymgr.JoystickFuneral)
+                                                                    if (e.Id == T.Id)
+                                                                    {
+                                                                        SITSTILL = true;
+                                                                        joymgr.JoystickFuneral.Remove(T);
+                                                                        break;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        SITSTILL = false;
+                                                                    }
 
-                                            });
+                                                                ZoomChange(SITSTILL ? null : e, cc);
+                                                                if (!cleanedUpDragPoints.Contains(e.Id))
+                                                                {
+                                                                    if (lassoPoints.Contains(e.Position))
+                                                                        lassoPoints.Remove(e.Position);
+                                                                    if (lassoLine.Points.Contains(e.Position))
+                                                                        lassoPoints.Remove(e.Position);
+                                                                    cleanedUpDragPoints.Add(e.Id);
+                                                                }
+                                                                return;
+                                                            }
+
+                                                            switch (state)
+                                                            {
+                                                                case RMState.Start:
+                                                                    if (cc.Count == 1 && (lassoId == -1 || lassoId == e.Id) && index == -1 &&
+                                                                        selectedList.Count == 0)
+                                                                    {
+                                                                        lassoPoints.Add(e.Position);
+                                                                        if (lassoId == -1)
+                                                                        {
+                                                                            startLasso(e);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            addToLasso(e.Position);
+                                                                        }
+                                                                    }
+                                                                    break;
+                                                                case RMState.State1:
+                                                                    if (cc.Count > 1) break;
+
+                                                                    indexdistfuck idf = DistToNearestGestureObject(e.Position);
+                                                                    if (selectedList.Count > 0 && selectedList.Contains(idf.index) && (idf.distance > 3 * ROSStuffs[idf.index].RadiusInWindow))
+                                                                    {
+                                                                        if (ROSStuffs[idf.index].myRobot.robot.GetColor() != Brushes.Blue)
+                                                                        {
+                                                                            if (FREE.Count == 1)
+                                                                            {
+                                                                                AddWaypointDot(e.Position);
+                                                                                ChangeState(RMState.State5, "CC-NR, Starting Path");
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                    }
+                                                                    else if ((lassoId == -1 || lassoId == e.Id) && index == -1 &&
+                                                                                  selectedList.Count == 0)
+                                                                    {
+                                                                        lassoPoints.Add(e.Position);
+                                                                        if (lassoId == -1)
+                                                                        {
+                                                                            startLasso(e);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            addToLasso(e.Position);
+                                                                        }
+                                                                    }
+
+                                                                    break;
+                                                                case RMState.State2:
+                                                                    break;
+                                                                case RMState.State3:
+                                                                    if (cc.Count == 1 && index == -1)
+                                                                    {
+                                                                        if (selectedList.Count > 0)
+                                                                        {
+                                                                            WPDrag++;
+                                                                            turnedIntoDrag = true;
+                                                                            RM5Drag(e.Position);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            ChangeState(RMState.State1, "Lasso?");
+                                                                        }
+                                                                    }
+
+                                                                    break;
+                                                                case RMState.State4:
+                                                                    break;
+                                                                case RMState.State5:
+                                                                    if (cc.Count == 1 && index == -1)
+                                                                    {
+                                                                        WPDrag++;
+                                                                        AddWaypointDot(e.Position);
+                                                                    }
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            /*if (captureVis.ContainsKey(t.Id))
+                                                            {
+                                                                captureVis[t.Id].dot.Stroke = Brushes.Red;
+                                                            }*/
+                                                        }
+
+                                                    });
+            }));
         }
 
 
@@ -2195,116 +2194,146 @@ namespace DREAMPioneer
 
         private void Up(Touch e)
         {
-            joymgr.Up(e, (t, b) =>
-                                    {
-                                        //CheckSpecialAbort(e);
-                                        if (!b && !fisting)
-                                        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (fisting)
+                {
+                    if (Fists.Count == 0 && timers.IsRunning(ref fister))
+                    {
+                        timers.StopTimer(ref fister);
+                        Log("Fist - n/a - Single Fist (Clear WP + Selected)");
+                        EndState("DUNN");
+                        Say("Disregarding", -1);
+                        fisting = false;
+                    }
+                    else if (timers.IsRunning(ref fister) && Fists.Count >= 2)
+                    {
+                        timers.StopTimer(ref fister);
+
+                        Log("Fist - n/a - Double Fist (EStop + Clear WP + Selected)");
+                        Say("STOP! HAMMER TIME!", -100);
 
 
-                                            CheckSpecialAbort(e);
-                                            /*if (captureVis.ContainsKey(t.Id))
+                        foreach (ROSData RD in ROSStuffs.Values)
+                            clearWaypoints(RD);
+
+                        EndState("DOUBLE FIST");
+
+                        fisting = false;
+                    }
+                }
+                if (joymgr != null)
+                    joymgr.Up(e, (t, b) =>
                                             {
-                                                captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                            }*/
-                                            if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
-                                            zoomUp();
-                                            List<int> beforeLasso = new List<int>();
-                                            List<int> newSelection = new List<int>();
-                                            int index = robotsCD(e);
+                                                //CheckSpecialAbort(e);
+                                                if (!b && !fisting)
+                                                {
 
-                                            // if(index != -1)
-                                            // {
-                                            //     if (ROSData.ManualNumber == index)
-                                            //    {
-                                            //        if 
-                                            //        {
-                                            //            ROSData.ManualNumber = -1;
-                                            //            NoPulse(index);
-                                            //        }
-                                            //    }
 
-                                            //    else {                                                    
-                                            //        if (!timers.IsRunning(ref turboFingering[index]))
-                                            /*{
-                                                changeManual(index);
-                                                if (selectedList.Contains(index))
-                                                    selectedList.Remove(index);
-                                                PulseGreen(ROSData.ManualNumber);*/
-                                            //            changeManual(ROSData.ManualNumber);
-                                            //    }
-                                            //    }
-
-                                            //    }
-                                            switch (state)
-                                            {
-                                                case RMState.Start:
-                                                    beforeLasso.AddRange(selectedList);
-                                                    FinishLasso(e);
-
-                                                    newSelection = selectedList.Except(beforeLasso).ToList();
-                                                    if (newSelection.Count > 0)
+                                                    CheckSpecialAbort(e);
+                                                    /*if (captureVis.ContainsKey(t.Id))
                                                     {
-                                                        ChangeState(RMState.State2, "CU (lasso done)");
-                                                    }
+                                                        captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
+                                                    }*/
+                                                    if (cleanedUpDragPoints.Contains(e.Id)) cleanedUpDragPoints.Remove(e.Id);
+                                                    zoomUp();
+                                                    List<int> beforeLasso = new List<int>();
+                                                    List<int> newSelection = new List<int>();
+                                                    int index = robotsCD(e);
 
-                                                    break;
-                                                case RMState.State1:
+                                                    // if(index != -1)
+                                                    // {
+                                                    //     if (ROSData.ManualNumber == index)
+                                                    //    {
+                                                    //        if 
+                                                    //        {
+                                                    //            ROSData.ManualNumber = -1;
+                                                    //            NoPulse(index);
+                                                    //        }
+                                                    //    }
 
-                                                    beforeLasso.AddRange(selectedList);
-                                                    FinishLasso(e);
-                                                    newSelection = selectedList.Except(beforeLasso).ToList();
-                                                    if (newSelection.Count > 0)
+                                                    //    else {                                                    
+                                                    //        if (!timers.IsRunning(ref turboFingering[index]))
+                                                    /*{
+                                                        changeManual(index);
+                                                        if (selectedList.Contains(index))
+                                                            selectedList.Remove(index);
+                                                        PulseGreen(ROSData.ManualNumber);*/
+                                                    //            changeManual(ROSData.ManualNumber);
+                                                    //    }
+                                                    //    }
+
+                                                    //    }
+                                                    switch (state)
                                                     {
-                                                        ChangeState(RMState.State2, "CU (lasso done)");
+                                                        case RMState.Start:
+                                                            beforeLasso.AddRange(selectedList);
+                                                            FinishLasso(e);
+
+                                                            newSelection = selectedList.Except(beforeLasso).ToList();
+                                                            if (newSelection.Count > 0)
+                                                            {
+                                                                ChangeState(RMState.State2, "CU (lasso done)");
+                                                            }
+
+                                                            break;
+                                                        case RMState.State1:
+
+                                                            beforeLasso.AddRange(selectedList);
+                                                            FinishLasso(e);
+                                                            newSelection = selectedList.Except(beforeLasso).ToList();
+                                                            if (newSelection.Count > 0)
+                                                            {
+                                                                ChangeState(RMState.State2, "CU (lasso done)");
+                                                            }
+                                                            else
+                                                            {
+                                                                ChangeState(RMState.State2, "CU");
+
+                                                            }
+
+                                                            break;
+                                                        case RMState.State2:
+                                                            Console.WriteLine("UP IN 2");
+                                                            break;
+                                                        case RMState.State3:
+                                                            if (WPDrag > 0)
+                                                            {
+                                                                WPDrag = 0;
+                                                            }
+
+                                                            ChangeState(RMState.State4, "CU");
+                                                            break;
+                                                        case RMState.State4:
+                                                            Console.WriteLine("UP IN 4");
+                                                            break;
+                                                        case RMState.State5:
+                                                            if (WPDrag > 0)
+                                                            {
+                                                                turnedIntoDrag = false;
+                                                                WPDrag = 0;
+                                                            }
+
+                                                            if (robotsCD(e) == -1)
+                                                            {
+                                                                ChangeState(RMState.State4, "CU-G");
+                                                            }
+
+                                                            break;
+                                                        default:
+                                                            Console.WriteLine("UP IN WTFBBQ?!");
+                                                            break;
                                                     }
-                                                    else
+                                                }
+                                                /*else
+                                                {
+                                                    if (captureVis.ContainsKey(t.Id))
                                                     {
-                                                        ChangeState(RMState.State2, "CU");
-
+                                                        captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
                                                     }
-
-                                                    break;
-                                                case RMState.State2:
-                                                    Console.WriteLine("UP IN 2");
-                                                    break;
-                                                case RMState.State3:
-                                                    if (WPDrag > 0)
-                                                    {
-                                                        WPDrag = 0;
-                                                    }
-
-                                                    ChangeState(RMState.State4, "CU");
-                                                    break;
-                                                case RMState.State4:
-                                                    Console.WriteLine("UP IN 4");
-                                                    break;
-                                                case RMState.State5:
-                                                    if (WPDrag > 0)
-                                                    {
-                                                        turnedIntoDrag = false;
-                                                        WPDrag = 0;
-                                                    }
-
-                                                    if (robotsCD(e) == -1)
-                                                    {
-                                                        ChangeState(RMState.State4, "CU-G");
-                                                    }
-
-                                                    break;
-                                                default:
-                                                    Console.WriteLine("UP IN WTFBBQ?!");
-                                                    break;
-                                            }
-                                        }
-                                        /*else
-                                        {
-                                            if (captureVis.ContainsKey(t.Id))
-                                            {
-                                                captureVis.Remove(captureVis[t.Id].DIEDIEDIE());
-                                            }
-                                        }*/
-                                    });
+                                                }*/
+                                            });
+            }));
         }
 
         #region LassoUtility

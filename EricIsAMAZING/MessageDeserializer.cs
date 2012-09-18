@@ -17,9 +17,9 @@ namespace Ros_CSharp
         {
         }
 
-        public IRosMessage message
+        public M message
         {
-            get { return base.message; }
+            get { return (M)base.message; }
         }
 
         public new SubscriptionCallbackHelper<M> helper
@@ -29,16 +29,9 @@ namespace Ros_CSharp
 
         public override IRosMessage deserialize()
         {
-            if (message.Serialized != null)
-            {
-                message.Deserialize(message.Serialized);
-                message.Serialized = null;
-            }
             if (message != null)
             {
-                SubscriptionCallbackHelperCallParams cpms = new SubscriptionCallbackHelperCallParams();
-                cpms.Event = new IMessageEvent(new MessageEvent<M>((M) message));
-                helper.call(cpms);
+                helper.call(message);
             }
             return message;
         }

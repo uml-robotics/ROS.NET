@@ -15,11 +15,11 @@ namespace Ros_CSharp
     {
         #region Delegates
 
-        public delegate M SpecCreateFunction();
+        public delegate T SpecCreateFunction<T>();
 
         #endregion
 
-        public SpecCreateFunction speccreate;
+        public SpecCreateFunction<M> speccreate;
 
         public MessageEvent()
         {
@@ -34,8 +34,8 @@ namespace Ros_CSharp
         {
         }
 
-        public MessageEvent(MessageEvent<M> rhs, SpecCreateFunction c)
-            : base(rhs, convert(c))
+        public MessageEvent(MessageEvent<M> rhs, SpecCreateFunction<M> c)
+            : base(rhs, ()=>c())
         {
             speccreate = c;
         }
@@ -43,7 +43,7 @@ namespace Ros_CSharp
         public MessageEvent(MessageEvent<M> rhs, CreateFunction c)
             : base(rhs, c)
         {
-            speccreate = convert(c);
+            speccreate = ()=>(M)c();
         }
 
         public MessageEvent(M msg) : base(msg)
@@ -60,35 +60,23 @@ namespace Ros_CSharp
         {
         }
 
-        public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, SpecCreateFunction c)
-            : base(msg, head, rec, needcopy, convert(c))
+        public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, SpecCreateFunction<M> c)
+            : base(msg, head, rec, needcopy, ()=>(IRosMessage)c())
         {
             speccreate = c;
         }
 
-        public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, CreateFunction c)
-            : base(msg, head, rec, needcopy, c)
+        public MessageEvent(IRosMessage iRosMessage, IDictionary iDictionary, TimeData timeData, bool p, SpecCreateFunction<M> s) : this((M)iRosMessage, iDictionary, timeData, p, s)
         {
-            speccreate = convert(c);
         }
 
-        public static CreateFunction convert(SpecCreateFunction spec)
+        public void init(M msg, IDictionary connhead, TimeData rec, bool needcopy, SpecCreateFunction<M> c)
         {
-            return () => (IRosMessage) spec.Invoke();
+            speccreate = c;
+            _init(msg, connhead, rec, needcopy, () => (IRosMessage)c());
         }
 
-        public static SpecCreateFunction convert(CreateFunction spec)
-        {
-            return () => (M) spec.Invoke();
-        }
-
-        public override void init(IRosMessage msg, IDictionary connhead, TimeData rec, bool needcopy, CreateFunction c)
-        {
-            base.init(msg, connhead, rec, needcopy, c);
-            speccreate = convert(c);
-        }
-
-        public new M getMessage()
+        public override IRosMessage getMessage()
         {
             return (M) base.getMessage();
         }
@@ -145,17 +133,17 @@ namespace Ros_CSharp
 
         public IMessageEvent(IRosMessage msg, IDictionary conhead, TimeData rectime, bool needcopy, CreateFunction c)
         {
-            init(msg, conhead, rectime, needcopy, c);
+            _init(msg, conhead, rectime, needcopy, c);
         }
 
-        public IRosMessage getMessage()
+        public virtual IRosMessage getMessage()
         {
             if (nonconst_need_copy)
                 return new IRosMessage(message.Serialize());
             return message;
         }
 
-        public virtual void init(IRosMessage msg, IDictionary connhead, TimeData rec, bool needcopy, CreateFunction c)
+        public virtual void _init(IRosMessage msg, IDictionary connhead, TimeData rec, bool needcopy, CreateFunction c)
         {
             message = msg;
             connection_header = connhead;

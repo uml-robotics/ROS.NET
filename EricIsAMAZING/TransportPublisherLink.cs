@@ -121,10 +121,11 @@ namespace Ros_CSharp
             return true;
         }
 
-        public void handleMessage(IRosMessage m, bool ser, bool nocopy)
+        public void handleMessage<T>(T m, bool ser, bool nocopy) where T : IRosMessage, new()
         {
             stats.bytes_received += (ulong) m.Serialized.Length;
             stats.messages_received++;
+            m.connection_header = getHeader().Values;
             if (parent != null)
                 lock (parent)
                     stats.drops += parent.handleMessage(m, ser, nocopy, connection.header.Values, this);
@@ -164,6 +165,7 @@ namespace Ros_CSharp
                 string ty = parent.datatype.Replace("/", "__");
                 IRosMessage msg = IRosMessage.generate((MsgTypes)(Enum.Parse(typeof(MsgTypes), ty)));
                 msg.Serialized = new byte[buffer.Length];
+                msg.connection_header = getHeader().Values;
                 Array.Copy(buffer, msg.Serialized, buffer.Length);
                 handleMessage(msg, true, false);
             }

@@ -49,8 +49,6 @@ namespace DREAMPioneer
         public double scaley;
         public bool sendnext;
 
-        private const int DECAY_TIME = 1000; 
-
         public static List<CommonList> OneInAMillion = new List<CommonList>();
         
         public static void DoneCheck(int index)
@@ -108,6 +106,10 @@ namespace DREAMPioneer
             }
         }
 
+
+        private const int DECAY_TIME = 10;
+        private const double delta = 0.01;
+        private const double interdotdistance = 0.1;
         private static Action<GoalDot> tasteit = null;
         private static void Atrophy(object list)
         {
@@ -115,24 +117,36 @@ namespace DREAMPioneer
             
             List<GoalDot> Copy = new List<GoalDot>(CL.Dots);
             
-            Thread.Sleep(DECAY_TIME);
             if (tasteit == null)
-                SurfaceWindow1.current.Dispatcher.Invoke(new Action(()=>{tasteit = new Action<GoalDot>(window.current.DotCanvas.Children.Remove);}));
-            foreach (GoalDot GD in Copy)
-                if (GD.Visibility == Visibility.Hidden)
-                {
-                    CL.Dots.Remove(GD);
-                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
-                }
-                else
-                {
-                    CL.Dots.Remove(GD);
-                    window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
-                    Thread.Sleep(DECAY_TIME);
-                }
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(() => { tasteit = new Action<GoalDot>((g) => { g.Opacity -= delta; if (g.Opacity == 0) window.current.DotCanvas.Children.Remove(g); }); }));
+
+
             CL.Dots.Clear();
             CL.P_List.Clear();
             CL.RoboInfo.Clear();
+            while (Copy.Count > 0)
+            {
+                double lasto = 1;
+                double o = 0;
+                for (int i = 0; i < Copy.Count; i++)
+                {
+                    if (i == 0 || lasto <= (1 - interdotdistance))
+                    {
+                        GoalDot GD = Copy[i];
+                        lasto = o;
+                        SurfaceWindow1.current.Dispatcher.Invoke(new Action(()=>o = GD.Opacity));
+                        if (o == 0)
+                        {
+                            window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
+                        }
+                        else
+                        {
+                            window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
+                        }
+                    }
+                }
+                Thread.Sleep(DECAY_TIME);
+            }
         }
        
         public string TopicName

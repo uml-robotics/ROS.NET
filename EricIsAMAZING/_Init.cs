@@ -233,14 +233,13 @@ namespace Ros_CSharp
 
         public static void checkForShutdown()
         {
-            if (shutdown_requested && !shutting_down)
+            lock (shutting_down_mutex)
             {
-                lock (shutting_down_mutex)
-                {
-                    shutdown();
-                }
-                shutdown_requested = false;
+                if (!shutdown_requested || shutting_down)
+                    return;
             }
+            shutdown();
+            shutdown_requested = false;
         }
 
         public static void shutdownCallback(IntPtr p, IntPtr r)
@@ -328,8 +327,8 @@ namespace Ros_CSharp
             {
                 if (shutting_down)
                     return;
-                else
-                    shutting_down = true;
+                shutting_down = true;
+                ok = false;
 
                 EDB.WriteLine("We're going down down....");
 

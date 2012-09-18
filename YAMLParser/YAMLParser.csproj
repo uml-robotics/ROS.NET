@@ -405,6 +405,9 @@
     <None Include="ROS_MESSAGES\tf\tfMessage.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ROS_MESSAGES\whosonfirst\Dibs.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="testmsgs\actionlib_msgs\GoalID.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
