@@ -118,7 +118,7 @@ namespace DREAMPioneer
             List<GoalDot> Copy = new List<GoalDot>(CL.Dots);
             
             if (tasteit == null)
-                SurfaceWindow1.current.Dispatcher.Invoke(new Action(() => { tasteit = new Action<GoalDot>((g) => { g.Opacity -= delta; if (g.Opacity == 0) window.current.DotCanvas.Children.Remove(g); }); }));
+                SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => { tasteit = new Action<GoalDot>((g) => { g.Opacity -= delta; if (g.Opacity == 0) window.current.DotCanvas.Children.Remove(g); }); }));
 
 
             CL.Dots.Clear();
@@ -161,10 +161,7 @@ namespace DREAMPioneer
                 return ret;
             }
             set { 
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                SetValue(TopicProperty, value);
-                }));
+                Dispatcher.Invoke(new Action(() => SetValue(TopicProperty, value)));
             }
         }
 

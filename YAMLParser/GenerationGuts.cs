@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using String = Messages.std_msgs.String;
+using System.Threading;
 
 #endregion
 
@@ -79,6 +80,7 @@ namespace Messages
             string localcn = classname;
             localcn = classname.Replace("Request", "").Replace("Response", "");
             File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
+            Thread.Sleep(10);
         }
 
         public override string ToString()
@@ -438,6 +440,7 @@ namespace Messages
                 File.AppendAllText(outdir + "\\" + localcn + ".cs", ToString());
             else
                 File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
+            Thread.Sleep(10);
         }
     }
 

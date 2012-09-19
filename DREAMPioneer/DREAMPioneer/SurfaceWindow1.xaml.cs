@@ -513,70 +513,27 @@ namespace DREAMPioneer
         }
         private Timer fister;
         private NodeHandle nodeHandle;
-        private byte[] CMP = new byte[] { 10, 0, 2 };
         private const string DEFAULT_HOSTNAME = "10.0.2.178";
-        private string MY_CALLER_ID;
 
-        private Publisher<Dibs> hellopub;
-        private Subscriber<Dibs> hellosub;
-        private Publisher<Dibs> manualpub;
-        private Subscriber<Dibs> manualsub;
-        private Publisher<Dibs> goodbyepub;
-        private Subscriber<Dibs> goodbyesub;
-        private Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[] goalsubs;
+        private string NODE_NAME = "DREAM";
+
+        public WindowSync SYNC;
 
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
             ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
-            MY_CALLER_ID="DREAM2";
-            ROS.Init(new string[0], MY_CALLER_ID);
-            MY_CALLER_ID += "/";
+            ROS.Init(new string[0], NODE_NAME);
+            
             nodeHandle = new NodeHandle();
-            
-            hellopub = nodeHandle.advertise<Dibs>("/hello",1,true);
-            hellosub = nodeHandle.subscribe<Dibs>("/hello",1,(m)=>{
-                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
-                if (boostmobile != MY_CALLER_ID)
-                {
-                    othermanuals.Add(boostmobile, m.manualRobot);
-                    //TODO DO SOMETHING WHEN ANOTHER CLIENT CONNECTS
-                }
-            });
-            goodbyepub = nodeHandle.advertise<Dibs>("/goodbye",1,true);
-            goodbyesub = nodeHandle.subscribe<Dibs>("/goodbye", 1, (m) =>
-            {
-                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
-                if (boostmobile != MY_CALLER_ID)
-                {
-                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
-                    othermanuals.Remove(boostmobile);
-                }
-            });
-            manualpub = nodeHandle.advertise<Dibs>("/manual",1,true);
-            manualsub = nodeHandle.subscribe<Dibs>("/manual", 1, (m) =>
-            {
-                string boostmobile /* WHERE YOU AT?! */ = (string)m.connection_header["caller_id"];
-                if (boostmobile != MY_CALLER_ID)
-                {
-                    othermanuals[boostmobile] = m.manualRobot;
-                    //TODO INDICATE THE OTHER CLIENT IS CONTROLLING THIS ROBOT
-                }
-            });
-            hellopub.publish(new Dibs { manualRobot = -1 });
-            
-            goalsubs = new Subscriber<Messages.move_base_msgs.MoveBaseActionGoal>[MAX_NUMBER_OF_ROBOTS];
-            for(int i=0;i<MAX_NUMBER_OF_ROBOTS;i++)
-            {
-                int scoped = i;
-                goalsubs[i] = nodeHandle.subscribe<Messages.move_base_msgs.MoveBaseActionGoal>("/robot_brain_" + (i + 1) + "/move_base/goal", 1, (m) => goalSent(scoped, m));
-            }
+
+            SYNC = new WindowSync("/" + NODE_NAME);
 
             currtime = DateTime.Now;
             lastt = new Touch();
 
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
                 {
                     scale = new ScaleTransform(1, 1);
                     translate = new TranslateTransform(0, 0);
@@ -608,17 +565,7 @@ namespace DREAMPioneer
                 Thread.Sleep(1);
             }
         }
-
-        private void goalSent(int robotindex, Messages.move_base_msgs.MoveBaseActionGoal msg)
-        {
-            string boostmobile = (string)(msg.connection_header["caller_id"]);
-            if (boostmobile != MY_CALLER_ID)
-            {
-                Console.WriteLine(robotindex + " is being bossed around by " + boostmobile);
-                //TODO SOMETHING... ITD BE COOL IF ROBOTS FOLLOWING OTHER USER'S DOTS HAD DOTS WITH LOWER OPACITY?
-            }
-        }
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             joymgr = new JoystickManager(this, MainCanvas);
@@ -647,11 +594,10 @@ namespace DREAMPioneer
 
         private Thread DONTGCMEPLZZOMG;
 
-        public Dictionary<string, int> othermanuals = new Dictionary<string, int>();
         public void changeManual(int manualRobot)
         {
             touchedRobot = -1;
-            manualpub.publish(new Dibs { manualRobot = manualRobot });
+            SYNC.PublishManual(manualRobot);
             if (ROSStuffs.ContainsKey(ROSData.ManualNumber))
             {
                 NoPulse(ROSData.ManualNumber);
@@ -759,7 +705,7 @@ namespace DREAMPioneer
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
                 WaypointHelper.CancelAll(RD.RobotNumber);
-            goodbyepub.publish(new Dibs { manualRobot = -1 });
+            SYNC.Goodbye();
             Thread.Sleep(3000);
             ROS.shutdown();
             base.OnClosed(e);
@@ -2494,23 +2440,18 @@ namespace DREAMPioneer
 
             }
 
-
-
-
-            WaypointHelper.Publish(waypoints, selectedList.ToArray());
+            int[] sel = selectedList.ToArray();
+            foreach (int k in selectedList)
+            {
+                ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
+            }
+            WaypointHelper.Publish(waypoints, sel);
+            SYNC.PublishWaypoints(waypoints, sel);
             waypoints.Clear();
             waypoints = null;
             NoPulse();
             selectedList.Clear();
             Say("ROGER!", -2);
-
-            Dispatcher.Invoke(new Action(() =>
-            {
-                foreach(int k in selectedList)
-                {
-                    ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
-                }
-            }));
 
             foreach (Waypoint wp in waypointDots)
             {

@@ -8,8 +8,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Messages;
+using System.Threading;
 
-#endregion
+#endregion 
 
 namespace YAMLParser
 {
@@ -162,7 +163,11 @@ namespace YAMLParser
             else
             {
                 foreach (string s in Directory.GetFiles(outputdir, "*.cs"))
-                    try { File.Delete(s); }
+                    try
+                    {
+                        File.Delete(s);
+                        Thread.Sleep(100);
+                    }
                     catch (Exception e) { Console.WriteLine(e); }
                 foreach (string s in Directory.GetDirectories(outputdir))
                     if (s != "Properties")
@@ -172,7 +177,11 @@ namespace YAMLParser
             if (!Directory.Exists(outputdir_firstpass)) Directory.CreateDirectory(outputdir_firstpass);
             else
             {
-                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) try { File.Delete(s); }
+                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) try
+                    {
+                        File.Delete(s);
+                        Thread.Sleep(100);
+                    }
                         catch (Exception e) { Console.WriteLine(e); }
                 foreach (string s in Directory.GetDirectories(outputdir_firstpass))
                     if (s != "Properties")
@@ -188,27 +197,33 @@ namespace YAMLParser
                 file.Write(outputdir);
                 #if !ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
-                #endif
+#endif
+                Thread.Sleep(10);
             }
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
                 #if !ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
-                #endif
+#endif
+                Thread.Sleep(10);
             }
             #if !ON_TOP_OF_ITSELF
             File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString());
             #endif
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
+            Thread.Sleep(100);
         }
 
         public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
         {
             if (!Directory.Exists((istemp?outputdir_firstpass:outputdir) + "\\Properties"))
                 Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
-            File.WriteAllLines((istemp?outputdir_firstpass:outputdir) + "\\Properties\\AssemblyInfo.cs",
-                 File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs"));
+                Thread.Sleep(10);
+            string[] l = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs");
+            Thread.Sleep(10);
+            File.WriteAllLines((istemp?outputdir_firstpass:outputdir) + "\\Properties\\AssemblyInfo.cs",l);
+            Thread.Sleep(100);
             string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\" +(istemp ? name_firstpass : name) + "._csproj");
             string output = "";
             for (int i = 0; i < lines.Length; i++)
@@ -232,6 +247,7 @@ namespace YAMLParser
             File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
             File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
             File.WriteAllText((istemp ? (outputdir_firstpass + "\\"+(istemp?name_firstpass:name)+".csproj") : (outputdir+"\\"+(istemp?name_firstpass:name)+".csproj")), output);
+            Thread.Sleep(100);
         }
 
         private static string __where_be_at_my_vc____is;
@@ -289,6 +305,7 @@ namespace YAMLParser
             {
                 Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
                 File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
+                Thread.Sleep(100);
             }
             else
             {

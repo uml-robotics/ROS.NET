@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Messages;
 using System.IO;
+using System.Threading;
 
 namespace SecondPass
 {
@@ -23,13 +24,17 @@ namespace SecondPass
             Console.WriteLine(output);
             Dictionary<string, string> output2 = SecondPassHelper.ParseDisString(output);
             string path;
+            string lines = null;
             foreach (KeyValuePair<string, string> kvp in output2)
             {
                 string md5 = kvp.Value;
                 path = source + (kvp.Key.Replace("__", "\\") + ".cs");
                 try
                 {
-                    File.WriteAllText(path, File.ReadAllText(path).Replace("$MYMD5SUM", md5));
+                    lines = File.ReadAllText(path);
+                    lines = lines.Replace("$MYMD5SUM", md5);
+                    File.WriteAllText(path, lines);
+                    Thread.Sleep(10);
                 }
                 catch (Exception e)
                 {
