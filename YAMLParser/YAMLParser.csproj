@@ -360,6 +360,15 @@
     <None Include="ROS_MESSAGES\actionlib_msgs\GoalStatusArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ROS_MESSAGES\wpf_msgs\Waypoints.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\wpf_msgs\Point2.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\wpf_msgs\WindowState.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\custom_msgs\ptz.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
