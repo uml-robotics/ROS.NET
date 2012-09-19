@@ -29,13 +29,10 @@ namespace Ros_CSharp
         private object advertised_topics_mutex = new object();
         private List<string> advertised_topics_names = new List<string>();
         private object advertised_topics_names_mutex = new object();
-        private ConnectionManager connection_manager = ConnectionManager.Instance;
-        private PollManager poll_manager = PollManager.Instance;
         private bool shutting_down;
         private object shutting_down_mutex = new object();
         private object subs_mutex = new object();
         private List<Subscription> subscriptions = new List<Subscription>();
-        private XmlRpcManager xmlrpc_manager = XmlRpcManager.Instance;
 
         public static TopicManager Instance
         {
@@ -52,18 +49,14 @@ namespace Ros_CSharp
             {
                 shutting_down = false;
 
-                poll_manager = PollManager.Instance;
-                connection_manager = ConnectionManager.Instance;
-                xmlrpc_manager = XmlRpcManager.Instance;
+                XmlRpcManager.Instance.bind("publisherUpdate", pubUpdateCallback);
+                XmlRpcManager.Instance.bind("requestTopic", requestTopicCallback);
+                XmlRpcManager.Instance.bind("getBusStats", getBusStatusCallback);
+                XmlRpcManager.Instance.bind("getBusInfo", getBusInfoCallback);
+                XmlRpcManager.Instance.bind("getSubscriptions", getSubscriptionsCallback);
+                XmlRpcManager.Instance.bind("getPublications", getPublicationsCallback);
 
-                xmlrpc_manager.bind("publisherUpdate", pubUpdateCallback);
-                xmlrpc_manager.bind("requestTopic", requestTopicCallback);
-                xmlrpc_manager.bind("getBusStats", getBusStatusCallback);
-                xmlrpc_manager.bind("getBusInfo", getBusInfoCallback);
-                xmlrpc_manager.bind("getSubscriptions", getSubscriptionsCallback);
-                xmlrpc_manager.bind("getPublications", getPublicationsCallback);
-
-                poll_manager.addPollThreadListener(processPublishQueues);
+                PollManager.Instance.addPollThreadListener(processPublishQueues);
             }
         }
 
@@ -76,12 +69,12 @@ namespace Ros_CSharp
                 {
                     shutting_down = false;
                 }
-                xmlrpc_manager.unbind("publisherUpdate");
-                xmlrpc_manager.unbind("requestTopic");
-                xmlrpc_manager.unbind("getBusStats");
-                xmlrpc_manager.unbind("getBusInfo");
-                xmlrpc_manager.unbind("getSubscriptions");
-                xmlrpc_manager.unbind("getPublications");
+                XmlRpcManager.Instance.unbind("publisherUpdate");
+                XmlRpcManager.Instance.unbind("requestTopic");
+                XmlRpcManager.Instance.unbind("getBusStats");
+                XmlRpcManager.Instance.unbind("getBusInfo");
+                XmlRpcManager.Instance.unbind("getSubscriptions");
+                XmlRpcManager.Instance.unbind("getPublications");
 
                 lock (advertised_topics_mutex)
                 {
@@ -198,7 +191,7 @@ namespace Ros_CSharp
             if (found)
                 sub.addLocalConnection(pub);
 
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, xmlrpc_manager.uri),
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, XmlRpcManager.Instance.uri),
                         result = new XmlRpcValue(),
                         payload = new XmlRpcValue();
             master.execute("registerPublisher", args, ref result, ref payload, true);            
@@ -350,7 +343,7 @@ namespace Ros_CSharp
                     p.publish(msg);
 
                     if (serialize)
-                        poll_manager.poll_set.signal();
+                        PollManager.Instance.poll_set.signal();
                 }
                 else
                     p.incrementSequence();
@@ -427,7 +420,7 @@ namespace Ros_CSharp
 
                 if (proto_name == "TCPROS")
                 {
-                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, connection_manager.TCPPort);
+                    XmlRpcValue tcp_ros_params = new XmlRpcValue("TCPROS", network.host, ConnectionManager.Instance.TCPPort);
                     ret.Set(0, 1);
                     ret.Set(1, "");
                     ret.Set(2, tcp_ros_params);
@@ -451,7 +444,7 @@ namespace Ros_CSharp
 
         public bool registerSubscriber(Subscription s, string datatype)
         {
-            string fuckinguriyo = xmlrpc_manager.uri;
+            string fuckinguriyo = XmlRpcManager.Instance.uri;
 
             XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
             XmlRpcValue result = new XmlRpcValue();
@@ -493,7 +486,7 @@ namespace Ros_CSharp
 
         public bool unregisterSubscriber(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri),
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                         result = new XmlRpcValue(),
                         payload = new XmlRpcValue();
             master.execute("unregisterSubscriber", args, ref result, ref payload, false);
@@ -502,7 +495,7 @@ namespace Ros_CSharp
 
         public bool unregisterPublisher(string topic)
         {
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, xmlrpc_manager.uri),
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                         result = new XmlRpcValue(),
                         payload = new XmlRpcValue();
             master.execute("unregisterPublisher", args, ref result, ref payload, false);

@@ -4,6 +4,7 @@ using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+using System;
 
 #endregion
 
@@ -45,6 +46,7 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
+                Console.WriteLine("Adding pollthreadlistener " + poll.Method.ToString());
                 poll_signal += poll;
                 if (poll_signal != null)
                     poll_signal();
@@ -64,6 +66,7 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
+                Console.WriteLine("Removing pollthreadlistener " + poll.Method.ToString());
                 poll_signal -= poll;
                 if (poll_signal != null)
                     poll_signal();
@@ -78,7 +81,7 @@ namespace Ros_CSharp
 
                 if (shutting_down) return;
 
-                poll_set.update(100);
+                poll_set.update(10);
             }
         }
 
