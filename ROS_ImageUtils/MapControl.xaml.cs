@@ -34,7 +34,13 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class MapControl : UserControl
     {
-
+        public WindowPositionStuff WhereYouAt(UIElement uie)
+        {
+            System.Windows.Point tl = new System.Windows.Point(), br = new System.Windows.Point();
+            tl = TranslatePoint(new System.Windows.Point(), uie);
+            br = TranslatePoint(new System.Windows.Point(Width, Height), uie);
+            return new WindowPositionStuff(tl, br, new Size(br.X - tl.X, br.Y - tl.Y));
+        }
         public System.Windows.Point origin = new System.Windows.Point(0, 0);
         //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
         private static float _PPM = 0.02868f;
@@ -115,21 +121,17 @@ namespace ROS_ImageWPF
             if (mapsub != null)
                 mapsub.shutdown();
             Console.WriteLine("MAP TOPIC = " + TopicName);            
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) =>
-                {  
-                Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.Height = i.info.height;
-                        this.Width = i.info.width;
-                        MPP = i.info.resolution;
-                        this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
-                        UpdateImage(createRGBA(i.data),
-                        new Size((int)i.info.width,
-                        (int)i.info.height), false);
+            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+                                                                                                                        {
+                                                                                                                            this.Height = i.info.height;
+                                                                                                                            this.Width = i.info.width;
+                                                                                                                            MPP = i.info.resolution;
+                                                                                                                            this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
+                                                                                                                            UpdateImage(createRGBA(i.data),
+                                                                                                                                        new Size((int)i.info.width,
+                                                                                                                                                 (int)i.info.height), false);
                         
-                    }));
-                    
-                });
+                                                                                                                        })));
 
             if (spinnin == null)
             {
@@ -601,6 +603,20 @@ namespace ROS_ImageWPF
         private void Rectangle_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             //flipper.CenterY = DamnNearKilledHim.ActualHeight / 2;
+        }
+    }
+
+    public class WindowPositionStuff
+    {
+        public System.Windows.Point TL, BR;
+        public System.Windows.Size size;
+
+        public WindowPositionStuff(System.Windows.Point tl, System.Windows.Point br, Size s)
+        {
+            // TODO: Complete member initialization
+            this.TL = tl;
+            this.BR = br;
+            this.size = s;
         }
     }
 }
