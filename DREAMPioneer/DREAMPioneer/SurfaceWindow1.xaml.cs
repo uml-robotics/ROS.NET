@@ -512,8 +512,7 @@ namespace DREAMPioneer
             }
         }
         private Timer fister;
-        private NodeHandle nodeHandle;
-        private const string DEFAULT_HOSTNAME = "10.0.2.178";
+        private NodeHandle nodeHandle;        
 
         private string NODE_NAME = "DREAM";
 
@@ -522,8 +521,18 @@ namespace DREAMPioneer
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
-            Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-            ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
+            Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);            
+            switch (Environment.MachineName.ToLower())
+            {
+                case "surface_i7_lol":
+                    ROS.ROS_HOSTNAME = "10.0.2.47";
+                    break;
+                default:
+                    Console.WriteLine(Environment.MachineName + " is not a special case... setting ROS_HOSTNAME to 10.0.2.178");
+                    ROS.ROS_HOSTNAME = "10.0.2.178";
+                    break;
+            }
+            NODE_NAME = Environment.MachineName;
             ROS.Init(new string[0], NODE_NAME);
             
             nodeHandle = new NodeHandle();
@@ -766,7 +775,7 @@ namespace DREAMPioneer
         public void AddRobots(int max)
         {
             for (int i = 0; i < max; i++)
-            {
+            {                
                 AddRobot(i + 1);
             }
         }
@@ -779,6 +788,7 @@ namespace DREAMPioneer
             GOGOGO = false;
             if (!ROSStuffs.ContainsKey(index))
                 ROSStuffs.Add(index, new ROSData(nodeHandle, index));
+            RobotState.Init(index, ROSStuffs[index]);
             Dispatcher.BeginInvoke(new Action(() => ROSStuffs[index].myRobot.updatePOS(200.0 * index, 100.0, 0)));
             GOGOGO = true;
         }
