@@ -206,6 +206,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="WaypointHelper.cs" />
     <Compile Include="DisplayEnumerator.cs" />
     <Compile Include="EButton.xaml.cs">
       <DependentUpon>EButton.xaml</DependentUpon>

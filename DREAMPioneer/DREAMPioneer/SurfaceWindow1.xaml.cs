@@ -166,7 +166,7 @@ namespace DREAMPioneer
         private Point DRAG_START = new Point(-1, -1);
         public static SurfaceWindow1 current;
         //private SortedList<int, SlipAndSlide> captureVis = new SortedList<int, SlipAndSlide>();        
-        private JoystickManager joymgr;
+        public JoystickManager joymgr;
 
 
 
@@ -435,6 +435,7 @@ namespace DREAMPioneer
             }
             Touch t = SurfaceAdapter.Down(e);
             fisting = Fists.Count > 0;
+                        //clearWaypoints(RD);
             Down(t);
         }
         private Microsoft.Surface.Core.ContactEventArgs specialArgsz;
@@ -450,6 +451,7 @@ namespace DREAMPioneer
             Touch t = GenericTypes_Surface_Adapter.SurfaceAdapter.Up(e);
             /*Dispatcher.BeginInvoke(new Action(() =>
            {*/
+                           //clearWaypoints(RD);
                // we have a finger
                Up(t);
                Fists.RemoveAll((c) => { return c.Id == e.Contact.Id; });
@@ -462,15 +464,7 @@ namespace DREAMPioneer
         private void clearWaypoints(ROSData RD)
         {
             Console.WriteLine("CLEAR! ... zap...");
-            if (RD == null || RD.goalPub == null) return;
-            gm.Pose[] StopPose = new gm.Pose[1];
-            StopPose[0] = new Messages.geometry_msgs.Pose()
-            {
-                position = new Messages.geometry_msgs.Point() { x = -1, y = -1, z = -1 },
-                orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 }
-            };
-            RD.goalPub.publish(new Messages.move_base_msgs.MoveBaseActionGoal());
-                
+            WaypointHelper.CancelAll(RD.RobotNumber);                
         }
 
         /// <summary>
@@ -613,7 +607,8 @@ namespace DREAMPioneer
             }
             if (ROSStuffs.ContainsKey(manualRobot))
             {
-                clearWaypoints(ROSStuffs[manualRobot]);
+                //clearWaypoints(ROSStuffs[manualRobot]);
+                WaypointHelper.CancelAll(manualRobot);
                 int index = ROSData.ManualNumber = manualRobot;
                 ROSData.manualVelocity = ROSStuffs[index].Name + "/virtual_joystick/cmd_vel";
                 ROSData.manualPTZ = ROSStuffs[index].Name + "/servos";
@@ -709,7 +704,7 @@ namespace DREAMPioneer
             dieservo = true;
             changeManual(-1);
             foreach (ROSData RD in ROSStuffs.Values)
-                clearWaypoints(RD);
+                WaypointHelper.CancelAll(RD.RobotNumber);
             SYNC.Goodbye();
             Thread.Sleep(3000);
             ROS.shutdown();
@@ -1012,7 +1007,7 @@ namespace DREAMPioneer
                     timers.StopTimer(ref YellowTimer);
             }
         }
-
+        
         /// <summary>
         ///   The remove green.
         /// </summary>
@@ -1294,18 +1289,29 @@ namespace DREAMPioneer
         /// <param name = "sim">
         ///   The sim.
         /// </param>
-        public void SetGoal(int r, List<Point> PList, CommonList CL, Robot_Info RI)
+        public void SetGoal(int r)
         {
-            if (PList.Count == 0)
+            Robot_Info RI = new Robot_Info();
+            CommonList CL = new CommonList();
+             foreach (CommonList cl in RobotControl.OneInAMillion)
+                 foreach (Robot_Info ri in cl.RoboInfo)
+                    if (ri.RoboNum == r && !ri.done)
+                    {
+                        RI = ri;
+                        CL = cl;
+                    }
+                     
+            if (RI.myList == null) return;
+            if (RI.myList.Count == 0)
             {
                 RobotControl.DoneCheck(r, true);
                 return;
             }
 
-            RI.CurrentLength = PList.Count;
-            RI.Next = PList.First();
+            
+            RI.Next = RI.myList.First();
 
-            List<Point> WindowEQ = new List<Point>(PList);
+            List<Point> WindowEQ = new List<Point>(RI.myList);
 
 
 
@@ -1313,13 +1319,16 @@ namespace DREAMPioneer
 
             foreach (Robot_Info LengthCheck in CL.RoboInfo)
             {
-                if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position < RI.Position)
+                if (LengthCheck.Position > CL.RoboInfo.Count)
+                    LengthCheck.Position = CL.RoboInfo.Count;
+
+                if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position < RI.Position)
                 {
                     int temp = RI.Position;
                     RI.Position = LengthCheck.Position;
                     LengthCheck.Position = temp;
                 }
-                else if (LengthCheck.CurrentLength > RI.CurrentLength && LengthCheck.Position == RI.Position)
+                else if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position == RI.Position)
                 {
                     if (LengthCheck.Position != CL.RoboInfo.Count)
                         LengthCheck.Position++;
@@ -1342,8 +1351,9 @@ namespace DREAMPioneer
             List<GoalDot> Handled = new List<GoalDot>();
             List<GoalDot> UnHandled = new List<GoalDot>(CL.Dots);
 
-            PassBack(CL.RoboInfo, 1, UnHandled, Handled);
-
+            Dispatcher.BeginInvoke(new Action(()=>
+                PassBack(CL.RoboInfo, 1, UnHandled, Handled)
+            ));
 
 
 
@@ -1362,12 +1372,12 @@ namespace DREAMPioneer
                 {
                     if (!PosCheck.done)
                     {
-                        for (int i = 0; i < PosCheck.CurrentLength - already_done - 1; i++)
+                        for (int i = 0; i < PosCheck.myList.Count - already_done - 1; i++)
                         {
                             if (UnHandled.Count == 0)
                                 return;
 
-                            if (i == PosCheck.CurrentLength - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
+                            if (i == PosCheck.myList.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
                             else UnHandled[(UnHandled.Count - 1)].NextOne = false;
                             UnHandled[(UnHandled.Count - 1)].NextC1.Fill = PosCheck.Color;
                             UnHandled[(UnHandled.Count - 1)].BeenThereC2.Fill = PosCheck.Color;
@@ -2444,6 +2454,13 @@ namespace DREAMPioneer
             NoPulse();
             selectedList.Clear();
             Say("ROGER!", -2);
+
+            Dispatcher.Invoke(new Action(() =>
+            {
+                foreach(int k in selectedList)
+                {
+                    ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
+                }
 
             foreach (Waypoint wp in waypointDots)
             {

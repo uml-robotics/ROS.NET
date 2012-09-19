@@ -86,8 +86,9 @@ namespace DREAMPioneer
        
         public cm.ptz pt;
         public Subscriber<gm.PolygonStamped> robotsub;
-        public Subscriber<Messages.actionlib_msgs.GoalStatusArray> goalsub;
-        public Publisher<Messages.move_base_msgs.MoveBaseActionGoal> goalPub;
+        /*public Subscriber<Messages.actionlib_msgs.GoalStatusArray> goalsub { get {return WaypointHelper.PubSubs[RobotNumber].goalsub; }}
+        public Publisher<Messages.move_base_msgs.MoveBaseActionGoal> goalPub { get { return WaypointHelper.PubSubs[RobotNumber].goalPub; } }
+        public Publisher<Messages.actionlib_msgs.GoalID> goalCanceler { get { return WaypointHelper.PubSubs[RobotNumber].goalCanceler; } }*/
 #if !TRANSPORMS
         public Subscriber<gm.PoseWithCovarianceStamped> robotposesub;
 #else
@@ -180,8 +181,9 @@ namespace DREAMPioneer
 
         public void JagerBombs(bool FUCKINGSHOWERINTHATSHIT)
         {
-            LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));
-            goalPub = node.advertise<Messages.move_base_msgs.MoveBaseActionGoal>(Name + "/goal", 1);
+            WaypointHelper.Init(SurfaceWindow1.MAX_NUMBER_OF_ROBOTS, RobotNumber, Name);
+
+            LastBeat = DateTime.Now.Subtract(new TimeSpan(0, 0, 6));            
             //androidSub = node.subscribe<m.String>(Name + "/androidControl", 1, androidCallback);
             GhostWhisperer = node.subscribe<cm.robotMortality>(Name + "/status", 1, Heartbeat);
         }
@@ -203,6 +205,7 @@ namespace DREAMPioneer
             Name = "/robot_brain_" + (i);
             joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 1, true);
 
+            
             /*
             manualCamera = Name + Name + "/rgb/image_color/compressed";
             manualLaser = "fakelaser";

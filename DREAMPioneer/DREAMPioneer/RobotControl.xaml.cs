@@ -53,11 +53,16 @@ namespace DREAMPioneer
         
         public static void DoneCheck(int index)
         {
-            DoneCheck(index, true);
+            DoneCheck(index, false);
         }
         public static void DoneCheck(int index, bool Decay)
         {
+            //for debug only
+            Decay = false;
+            //for debug only
+
             bool Done = false;
+            
             foreach (CommonList CL in OneInAMillion)
             {
 
@@ -66,7 +71,7 @@ namespace DREAMPioneer
                     {
                         Done = true;
                         RI.done = true;
-                        RI.CurrentLength = CL.P_List.Count;
+                        RI.myList = new List<Point>(CL.P_List);
                         SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
@@ -202,9 +207,9 @@ namespace DREAMPioneer
         {
              SetupTopic(ROBOT_TO_ADD);       
         }
-        
-         
 
+
+        private int MyLastCount = -9001;
         private void SetupTopic(int index)
         {
             robot.ID = index;
@@ -256,45 +261,85 @@ namespace DREAMPioneer
             }, "*");
 #endif
             
-            myData.goalsub = imagehandle.subscribe<Messages.actionlib_msgs.GoalStatusArray>(myData.Name + "/move_base/status", 1, (j) =>
+            WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
-                    foreach (String ID in GoalDot.GoalID_Refference.Keys)
-                    {
-                        Console.WriteLine("Travel to Point " + ID);
-                        foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
-                            if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
-                                Console.WriteLine("Travel to Point " + ID + " was succesful!");
-                    }  
+                        MyLastCount = j.status_list.Length;
+                        if (!(OneInAMillion == null || OneInAMillion.Count == 0))
+                        {
+                            Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
 
+                            WaypointHelper wh = new WaypointHelper();
+
+
+                            foreach (Messages.actionlib_msgs.GoalStatus g in j.status_list)
+                            {
+                                Console.WriteLine(g.text.data);
+                                byte status = (byte)g.status;
+                                switch (status)
+                                {
+                                    case 0:// PENDING
+                                        break;
+                                    case 1://ACTIVE
+                                        break;
+                                    case 2://PREEMPTED (Terminal state)
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        break;
+                                    case 3://SUCCEEDED (Terminal state)
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        break;
+                                    case 4://ABORTED (Terminal state)
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        break;
+                                    case 5://REJECTED(Terminal state)
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        break;
+                                    case 6://PREEMPTING
+                                        break;
+                                    case 7://RECALLING
+                                        break;
+                                    case 8://RECALLED (Ternimal state)
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        break;
+                                    case 9://LOST (Should not be true)
+                                        break;
+                                    default:
+                                        Console.WriteLine("ERROR IN SWTICH");
+                                        break;
+
+                                }
+
+                                if (wh != null)
+                                {
+                                    ericisthegreatest.Add(g.goal_id.id.data, wh);
+                                    wh.status = g.status;
+                                    //points.Add(wh.point);
+                                }
+                            }
+
+
+                            updateGoal(myData.RobotNumber);
+
+                        }
 
                 });
         }
-
-        //foreach (String ID in GoalDot.GoalID_Refference.Keys)
-        //{
-        //    Console.WriteLine("Travel to Point " + ID);
-        //    foreach (Messages.actionlib_msgs.GoalStatus StatusIn in j.status_list)
-        //        if (StatusIn.goal_id.id == new Messages.std_msgs.String(ID) && (StatusIn.status == 3))
-        //            Console.WriteLine("Travel to Point " + ID + " was succesful!");
-        //}               
-
-                 //    List<Point> points = new List<Point>(j.poses.Length);
-                 //    foreach (gm.Pose P in j.poses)
-                 //    {
-                 //        double x = (P.position.x) * (double)ROS_ImageWPF.MapControl.PPM;
-                 //        double y = (P.position.y) * (double)ROS_ImageWPF.MapControl.PPM;
-                 //        points.Add(new Point(x,y));
-                 //    }
-                 //    //if (points.Count == 0)
-                 //        //DoneCheck(myData.RobotNumber);
-                 //    Console.WriteLine("GOAL_PROGRESS: " + myData.Name + ", " + points.Count); 
-                 //   updateGoal(points, myData.RobotNumber);
-                 //});
+        public void MoveOn(int index, string ID, ref WaypointHelper wh)
+        {
+            
+                wh = WaypointHelper.LookUp(ID);
+                foreach (CommonList CL in OneInAMillion)
+                    foreach (Robot_Info RI in CL.RoboInfo)
+                        if (wh != null && index == RI.RoboNum)
+                            RI.myList.Remove(wh.point);
+            
+        }
+                  
 
 
         
 
-       public gm.Vector3 convert(gm.Quaternion q) {
+       public gm.Vector3 convert(gm.Quaternion q) 
+       {
            emQuaternion eq = new emQuaternion(q);
             gm.Vector3 ret = new gm.Vector3();
             double w2 = q.w*q.w;
@@ -325,7 +370,9 @@ namespace DREAMPioneer
          ret.y = Math.Asin(2 * abcd / unitLength);
          ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
      }
+
      return ret;
+
      }
 
        private gm.Pose[] MakePoseArray(List<Point> PList)
@@ -338,42 +385,9 @@ namespace DREAMPioneer
        }
 
        
-       public void updateWaypoints(List<Point> wayp, double x, double y, double xx, double yy, int ID)
+       public void updateWaypoints(double x, double y, double xx, double yy)
         {
-
-
-           foreach(Point p in wayp)
-           {
-               
-               window.current.ROSStuffs[ID].goalPub.publish(
-               new Messages.move_base_msgs.MoveBaseActionGoal()
-               {
-                   goal_id = new Messages.actionlib_msgs.GoalID()
-                   {
-                       id = new Messages.std_msgs.String(Convert.ToString(GoalDot.GoalCounter))
-                   },
-                   goal = new Messages.move_base_msgs.MoveBaseGoal()
-                   {
-                       target_pose = new gm.PoseStamped()
-                       {
-                           pose = new gm.Pose()
-                           {
-                               position = new gm.Point()
-                               {
-                                   x = p.X,
-                                   y = p.Y,
-                                   z = 0
-                               },
-                               orientation = new gm.Quaternion() { x = 0, y = 0, z = 0, w = 0 }
-                           }
-                       }
-                   }
-               }
-               );
-               GoalDot.GoalID_Refference.Add(Convert.ToString(GoalDot.GoalCounter),p);
-               GoalDot.GoalCounter++;
-           } 
-           transx = x;
+            transx = x;
             transy = y;
             scalex = xx;
             scaley = yy;
@@ -417,10 +431,12 @@ namespace DREAMPioneer
          
         }
 
-        private void updateGoal(List<Point> points, int index)
+        private void updateGoal(int index)
         {
-              
-             CheckUnique(points, index);         
+            //now calls SetGoal, jumping over CheckUnique
+            window.current.SetGoal(index);
+            
+            // CheckUnique(points, index);         
         }
 
         public RobotControl(int R)
@@ -430,8 +446,10 @@ namespace DREAMPioneer
         }
 
          
-
-        public void CheckUnique(List<Point> P_List, int R)
+/*******************************************************************************/
+/*  Depricated since we now take not of shared lists when we send lists out
+ 
+    public void CheckUnique(List<Point> P_List, int R)
         {
             if (P_List.Count == 0)
             {
@@ -551,8 +569,8 @@ namespace DREAMPioneer
                         window.current.SetGoal(R, P_List, DisList, RI);
             }));
             return;
-        }
-
+        }*/
+/**************************************************************************/
 
 
         #region Events

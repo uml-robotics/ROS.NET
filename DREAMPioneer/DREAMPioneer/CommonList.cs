@@ -31,12 +31,19 @@ namespace DREAMPioneer
         public List<Point> P_List = new List<Point>();
         public List<Robot_Info> RoboInfo = new List<Robot_Info>();
         public List<GoalDot> Dots = new List<GoalDot>();
-        
 
+        public CommonList()
+        { Dots = new List<GoalDot>(); }
+
+        public CommonList(List<Point> Point_List)
+        {
+            P_List = Point_List;
+            Dots = new List<GoalDot>();
+        }
         public CommonList(List<Point> Point_List, int robo_num, Brush b, int pos)
         {
            P_List = Point_List;
-           RoboInfo.Add(new Robot_Info( robo_num, P_List.Count, b, pos));
+           RoboInfo.Add(new Robot_Info( robo_num, P_List, b, pos));
         }
     }
 }

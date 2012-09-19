@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Media;
+using System.Collections.Generic;
+using System.Windows;
+
 
 namespace DREAMPioneer
 {
     public class Robot_Info
     {
         public int RoboNum;
-        public int CurrentLength;
+        public List<Point> myList;
         public Brush Color;
         private bool _done;
         private int _Position;
@@ -19,11 +22,13 @@ namespace DREAMPioneer
             get { return _Position; }
             set { _Position = value; }
         }
+        public Robot_Info()
+        {}
 
-        public Robot_Info(int robo_num, int cur_length, Brush robo_color, int pos)
+        public Robot_Info(int robo_num, List<Point>p_list, Brush robo_color, int pos)
         {
             RoboNum = robo_num;
-            CurrentLength = cur_length;
+            myList = new List<Point>(p_list);
             Color = robo_color;
             Position = pos;
         }
