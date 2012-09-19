@@ -265,7 +265,7 @@ namespace DREAMPioneer
             WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
                         MyLastCount = j.status_list.Length;
-                        if (!(OneInAMillion == null || OneInAMillion.Count == 0))
+                        if (TwoInAMillion.ContainsKey(index))
                         {
                             Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
 
@@ -334,8 +334,8 @@ namespace DREAMPioneer
         public void MoveOn(int index, string ID, ref WaypointHelper wh)
         {
             
-                wh = WaypointHelper.LookUp(ID);
-            if (!TwoInAMillion[index].RobotInfowned[index].done)                
+            wh = WaypointHelper.LookUp(ID);
+            if (wh != null && !TwoInAMillion[index].RobotInfowned[index].done)                
             {
                 TwoInAMillion[index].RobotInfowned[index].myList.Dequeue();
                             WaypointHelper.Publish(index, TwoInAMillion[index].RobotInfowned[index].myList.Peek());

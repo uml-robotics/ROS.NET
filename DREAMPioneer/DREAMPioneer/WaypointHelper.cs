@@ -111,8 +111,21 @@ namespace DREAMPioneer
                     RobotControl.TwoInAMillion[i] = DisList;
             }
             Brush MyColor;
-            
-       
+
+
+            foreach (int ID in indeces)
+            {
+                MyColor = RobotColor.getMyColor(ID);
+
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
+                {
+                    window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
+                }));
+
+                DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
+
+                
+            } 
 
             foreach (Point p in wayp)
             {
@@ -132,21 +145,11 @@ namespace DREAMPioneer
                 //    {
                 //    window.current.DotCanvas.Children.Remove(wh.goalDot);
                 //    }));
-            } 
-            
-             foreach (int ID in indeces)
-                {
-                    MyColor = RobotColor.getMyColor(ID);
-                   
-                    SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
-                }));
-                    
-                 DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
-
-                 Publish(ID, DisList.RobotInfowned[ID].myList.Peek());      
-             }                
+            }
+            foreach (int ID in indeces)
+            {
+                Publish(ID, DisList.RobotInfowned[ID].myList.Peek());
+            }     
         }
 
         private static Dictionary<string, WaypointHelper> _waypoints = new Dictionary<string, WaypointHelper>();
