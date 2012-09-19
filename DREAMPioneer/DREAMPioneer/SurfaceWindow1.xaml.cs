@@ -1311,17 +1311,17 @@ namespace DREAMPioneer
                         CL = cl;
                     }
                      
-            if (RI.myList == null) return;
-            if (RI.myList.Count == 0)
+            if (RI.myPoints == null) return;
+            if (RI.myPoints.Count == 0)
             {
                 RobotControl.DoneCheck(r, true);
                 return;
             }
 
             
-            RI.Next = RI.myList.First();
+            RI.Next = RI.myPoints.First();
 
-            List<Point> WindowEQ = new List<Point>(RI.myList);
+            List<Point> WindowEQ = new List<Point>(RI.myPoints);
 
 
 
@@ -1329,18 +1329,18 @@ namespace DREAMPioneer
 
             foreach (Robot_Info LengthCheck in CL.RoboInfo)
             {
-                if (LengthCheck.Position > CL.RoboInfo.Count)
-                    LengthCheck.Position = CL.RoboInfo.Count;
+                if (LengthCheck.Position > CL.RoboInfo.Count())
+                    LengthCheck.Position = CL.RoboInfo.Count();
 
-                if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position < RI.Position)
+                if (LengthCheck.myPoints.Count > RI.myPoints.Count && LengthCheck.Position < RI.Position)
                 {
                     int temp = RI.Position;
                     RI.Position = LengthCheck.Position;
                     LengthCheck.Position = temp;
                 }
-                else if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position == RI.Position)
+                else if (LengthCheck.myPoints.Count > RI.myPoints.Count && LengthCheck.Position == RI.Position)
                 {
-                    if (LengthCheck.Position != CL.RoboInfo.Count)
+                    if (LengthCheck.Position != CL.RoboInfo.Count())
                         LengthCheck.Position++;
                     else
                         RI.Position--;
@@ -1362,7 +1362,7 @@ namespace DREAMPioneer
             List<GoalDot> UnHandled = new List<GoalDot>(CL.Dots);
 
             Dispatcher.BeginInvoke(new Action(()=>
-                PassBack(CL.RoboInfo, 1, UnHandled, Handled)
+                PassBack(CL.RoboInfo.ToList(), 1, UnHandled, Handled)
             ));
 
 
@@ -1382,12 +1382,12 @@ namespace DREAMPioneer
                 {
                     if (!PosCheck.done)
                     {
-                        for (int i = 0; i < PosCheck.myList.Count - already_done - 1; i++)
+                        for (int i = 0; i < PosCheck.myPoints.Count - already_done - 1; i++)
                         {
                             if (UnHandled.Count == 0)
                                 return;
 
-                            if (i == PosCheck.myList.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
+                            if (i == PosCheck.myPoints.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
                             else UnHandled[(UnHandled.Count - 1)].NextOne = false;
                             UnHandled[(UnHandled.Count - 1)].NextC1.Fill = PosCheck.Color;
                             UnHandled[(UnHandled.Count - 1)].BeenThereC2.Fill = PosCheck.Color;

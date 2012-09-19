@@ -12,7 +12,8 @@ namespace DREAMPioneer
     public class Robot_Info
     {
         public int RoboNum;
-        public List<Point> myList;
+        public Queue<Messages.move_base_msgs.MoveBaseActionGoal> myList;
+        public List<Point> myPoints;
         public Brush Color;
         private bool _done;
         private int _Position;
@@ -28,7 +29,7 @@ namespace DREAMPioneer
         public Robot_Info(int robo_num, List<Point>p_list, Brush robo_color, int pos)
         {
             RoboNum = robo_num;
-            myList = new List<Point>(p_list);
+            myList = new Queue<Messages.move_base_msgs.MoveBaseActionGoal>();
             Color = robo_color;
             Position = pos;
         }
