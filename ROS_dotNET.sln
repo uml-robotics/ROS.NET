@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericTypes-Surface_Adapte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMLConfigurator", "..\lib_dreamcontroller\lib_xmlconfigurator\XMLConfigurator.csproj", "{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EM3MTouchLib", "..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj", "{5062C99F-6244-4C4E-873F-46F6CCD15EE0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EM3MTouchLib", "..\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj", "{5062C99F-6244-4C4E-873F-46F6CCD15EE0}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -428,13 +428,12 @@ Global
 		{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}.Template|Win32.ActiveCfg = Release|x86
 		{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}.Template|x86.ActiveCfg = Release|x86
 		{803F28A3-6B9D-40C3-B480-16E2B9F4C4C4}.Template|x86.Build.0 = Release|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Any CPU.ActiveCfg = 3M4|Any CPU
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Any CPU.Build.0 = 3M4|Any CPU
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Mixed Platforms.ActiveCfg = Debug|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Mixed Platforms.Build.0 = Debug|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Win32.ActiveCfg = 3M4|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|x86.ActiveCfg = 3M4|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|x86.Build.0 = 3M4|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Any CPU.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Mixed Platforms.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Mixed Platforms.Build.0 = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|Win32.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|x86.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.3M4|x86.Build.0 = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
@@ -444,8 +443,10 @@ Global
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Debug|x86.Build.0 = Debug|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|Any CPU.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|Mixed Platforms.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|Mixed Platforms.Build.0 = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|Win32.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|x86.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.GunItAndRunIt|x86.Build.0 = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Release|Mixed Platforms.ActiveCfg = Release|x86
@@ -454,8 +455,8 @@ Global
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Release|x86.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Release|x86.Build.0 = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Any CPU.ActiveCfg = Release|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Mixed Platforms.ActiveCfg = Debug|x86
-		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Mixed Platforms.Build.0 = Debug|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Mixed Platforms.ActiveCfg = Release|x86
+		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Mixed Platforms.Build.0 = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|Win32.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|x86.ActiveCfg = Release|x86
 		{5062C99F-6244-4C4E-873F-46F6CCD15EE0}.Surface4|x86.Build.0 = Release|x86

@@ -512,8 +512,7 @@ namespace DREAMPioneer
             }
         }
         private Timer fister;
-        private NodeHandle nodeHandle;
-        private const string DEFAULT_HOSTNAME = "10.0.2.178";
+        private NodeHandle nodeHandle;        
 
         private string NODE_NAME = "DREAM";
 
@@ -522,8 +521,18 @@ namespace DREAMPioneer
         private void rosStart()
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
-            Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);
-            ROS.ROS_HOSTNAME = DEFAULT_HOSTNAME;
+            Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);            
+            switch (Environment.MachineName.ToLower())
+            {
+                case "surface_i7_lol":
+                    ROS.ROS_HOSTNAME = "10.0.2.47";
+                    break;
+                default:
+                    Console.WriteLine(Environment.MachineName + " is not a special case... setting ROS_HOSTNAME to 10.0.2.178");
+                    ROS.ROS_HOSTNAME = "10.0.2.178";
+                    break;
+            }
+            NODE_NAME = Environment.MachineName;
             ROS.Init(new string[0], NODE_NAME);
             
             nodeHandle = new NodeHandle();
@@ -766,7 +775,7 @@ namespace DREAMPioneer
         public void AddRobots(int max)
         {
             for (int i = 0; i < max; i++)
-            {
+            {                
                 AddRobot(i + 1);
             }
         }
@@ -779,6 +788,7 @@ namespace DREAMPioneer
             GOGOGO = false;
             if (!ROSStuffs.ContainsKey(index))
                 ROSStuffs.Add(index, new ROSData(nodeHandle, index));
+            RobotState.Init(index, ROSStuffs[index]);
             Dispatcher.BeginInvoke(new Action(() => ROSStuffs[index].myRobot.updatePOS(200.0 * index, 100.0, 0)));
             GOGOGO = true;
         }
@@ -1301,17 +1311,17 @@ namespace DREAMPioneer
                         CL = cl;
                     }
                      
-            if (RI.myList == null) return;
-            if (RI.myList.Count == 0)
+            if (RI.myPoints == null) return;
+            if (RI.myPoints.Count == 0)
             {
                 RobotControl.DoneCheck(r, true);
                 return;
             }
 
             
-            RI.Next = RI.myList.First();
+            RI.Next = RI.myPoints.First();
 
-            List<Point> WindowEQ = new List<Point>(RI.myList);
+            List<Point> WindowEQ = new List<Point>(RI.myPoints);
 
 
 
@@ -1319,18 +1329,18 @@ namespace DREAMPioneer
 
             foreach (Robot_Info LengthCheck in CL.RoboInfo)
             {
-                if (LengthCheck.Position > CL.RoboInfo.Count)
-                    LengthCheck.Position = CL.RoboInfo.Count;
+                if (LengthCheck.Position > CL.RoboInfo.Count())
+                    LengthCheck.Position = CL.RoboInfo.Count();
 
-                if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position < RI.Position)
+                if (LengthCheck.myPoints.Count > RI.myPoints.Count && LengthCheck.Position < RI.Position)
                 {
                     int temp = RI.Position;
                     RI.Position = LengthCheck.Position;
                     LengthCheck.Position = temp;
                 }
-                else if (LengthCheck.myList.Count > RI.myList.Count && LengthCheck.Position == RI.Position)
+                else if (LengthCheck.myPoints.Count > RI.myPoints.Count && LengthCheck.Position == RI.Position)
                 {
-                    if (LengthCheck.Position != CL.RoboInfo.Count)
+                    if (LengthCheck.Position != CL.RoboInfo.Count())
                         LengthCheck.Position++;
                     else
                         RI.Position--;
@@ -1352,7 +1362,7 @@ namespace DREAMPioneer
             List<GoalDot> UnHandled = new List<GoalDot>(CL.Dots);
 
             Dispatcher.BeginInvoke(new Action(()=>
-                PassBack(CL.RoboInfo, 1, UnHandled, Handled)
+                PassBack(CL.RoboInfo.ToList(), 1, UnHandled, Handled)
             ));
 
 
@@ -1372,12 +1382,12 @@ namespace DREAMPioneer
                 {
                     if (!PosCheck.done)
                     {
-                        for (int i = 0; i < PosCheck.myList.Count - already_done - 1; i++)
+                        for (int i = 0; i < PosCheck.myPoints.Count - already_done - 1; i++)
                         {
                             if (UnHandled.Count == 0)
                                 return;
 
-                            if (i == PosCheck.myList.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
+                            if (i == PosCheck.myPoints.Count - already_done - 2) UnHandled[(UnHandled.Count - 1)].NextOne = true;
                             else UnHandled[(UnHandled.Count - 1)].NextOne = false;
                             UnHandled[(UnHandled.Count - 1)].NextC1.Fill = PosCheck.Color;
                             UnHandled[(UnHandled.Count - 1)].BeenThereC2.Fill = PosCheck.Color;

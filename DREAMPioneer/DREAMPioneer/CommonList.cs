@@ -29,7 +29,14 @@ namespace DREAMPioneer
     public class CommonList
     {
         public List<Point> P_List = new List<Point>();
-        public List<Robot_Info> RoboInfo = new List<Robot_Info>();
+        public IEnumerable<Robot_Info> RoboInfo
+        {
+            get
+            {
+                return RobotInfowned.Values;
+            }
+        }
+        public Dictionary<int,Robot_Info> RobotInfowned = new Dictionary<int, Robot_Info>();
         public List<GoalDot> Dots = new List<GoalDot>();
 
         public CommonList()
@@ -39,11 +46,6 @@ namespace DREAMPioneer
         {
             P_List = Point_List;
             Dots = new List<GoalDot>();
-        }
-        public CommonList(List<Point> Point_List, int robo_num, Brush b, int pos)
-        {
-           P_List = Point_List;
-           RoboInfo.Add(new Robot_Info( robo_num, P_List, b, pos));
         }
     }
 }

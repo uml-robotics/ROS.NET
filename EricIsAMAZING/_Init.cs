@@ -334,7 +334,11 @@ namespace Ros_CSharp
 
                 GlobalCallbackQueue.Disable();
                 GlobalCallbackQueue.Clear();
-                internal_queue_thread.Dispose();
+                if (internal_queue_thread != null)
+                {
+                    internal_queue_thread.Dispose();
+                    internal_queue_thread = null;
+                }
 
                 if (started)
                 {

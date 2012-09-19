@@ -49,6 +49,7 @@ namespace DREAMPioneer
         public double scaley;
         public bool sendnext;
 
+        public static Dictionary<int, CommonList> TwoInAMillion = new Dictionary<int, CommonList>();
         public static List<CommonList> OneInAMillion = new List<CommonList>();
         
         public static void DoneCheck(int index)
@@ -71,7 +72,7 @@ namespace DREAMPioneer
                     {
                         Done = true;
                         RI.done = true;
-                        RI.myList = new List<Point>(CL.P_List);
+                        RI.myPoints = new List<Point>(CL.P_List);
                         SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
                         foreach (Robot_Info DoneCheck in CL.RoboInfo)
                             if (!DoneCheck.done)
@@ -92,7 +93,7 @@ namespace DREAMPioneer
                                    }));
                                 CL.Dots.Clear();
                                 CL.P_List.Clear();
-                                CL.RoboInfo.Clear();
+                                CL.RobotInfowned.Clear();
                             }
                             lock (RobotControl.OneInAMillion)
                                 RobotControl.OneInAMillion.Remove(CL);
@@ -123,7 +124,7 @@ namespace DREAMPioneer
 
             CL.Dots.Clear();
             CL.P_List.Clear();
-            CL.RoboInfo.Clear();
+            CL.RobotInfowned.Clear();
             while (Copy.Count > 0)
             {
                 double lasto = 1;
@@ -264,7 +265,7 @@ namespace DREAMPioneer
             WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
                         MyLastCount = j.status_list.Length;
-                        if (!(OneInAMillion == null || OneInAMillion.Count == 0))
+                        if (TwoInAMillion.ContainsKey(index))
                         {
                             Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
 
@@ -273,24 +274,29 @@ namespace DREAMPioneer
 
                             foreach (Messages.actionlib_msgs.GoalStatus g in j.status_list)
                             {
-                                Console.WriteLine(g.text.data);
                                 byte status = (byte)g.status;
                                 switch (status)
                                 {
                                     case 0:// PENDING
+                                        Console.WriteLine("" + myData.RobotNumber + " - NOT NOW CHIEF!");
                                         break;
                                     case 1://ACTIVE
+                                        Console.WriteLine("" + myData.RobotNumber + " - YES MASSUH!");
                                         break;
                                     case 2://PREEMPTED (Terminal state)
+                                        Console.WriteLine("" + myData.RobotNumber + " - FUCK IT. I DIDNT EVEN WANT TO GO THERE.");
                                         MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
                                         break;
                                     case 3://SUCCEEDED (Terminal state)
+                                        Console.WriteLine("" + myData.RobotNumber + " - YAI");
                                         MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
                                         break;
                                     case 4://ABORTED (Terminal state)
+                                        Console.WriteLine("" + myData.RobotNumber + " - FUCK THAT SHIT.");
                                         MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
                                         break;
                                     case 5://REJECTED(Terminal state)
+                                        Console.WriteLine("" + myData.RobotNumber + " - REJECTED");
                                         MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
                                         break;
                                     case 6://PREEMPTING
@@ -298,12 +304,14 @@ namespace DREAMPioneer
                                     case 7://RECALLING
                                         break;
                                     case 8://RECALLED (Ternimal state)
+                                        Console.WriteLine("" + myData.RobotNumber + " - They call that a: \"reach around\"");                                          
                                         MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
                                         break;
                                     case 9://LOST (Should not be true)
+                                        Console.WriteLine("" + myData.RobotNumber + " - LAHOOOOOZER");
                                         break;
                                     default:
-                                        Console.WriteLine("ERROR IN SWTICH");
+                                        Console.WriteLine("" + myData.RobotNumber + " - ERROR IN SWTICH");
                                         break;
 
                                 }
@@ -326,12 +334,12 @@ namespace DREAMPioneer
         public void MoveOn(int index, string ID, ref WaypointHelper wh)
         {
             
-                wh = WaypointHelper.LookUp(ID);
-                foreach (CommonList CL in OneInAMillion)
-                    foreach (Robot_Info RI in CL.RoboInfo)
-                        if (wh != null && index == RI.RoboNum)
-                            RI.myList.Remove(wh.point);
-            
+            wh = WaypointHelper.LookUp(ID);
+            if (wh != null && !TwoInAMillion[index].RobotInfowned[index].done)                
+            {
+                TwoInAMillion[index].RobotInfowned[index].myList.Dequeue();
+                            WaypointHelper.Publish(index, TwoInAMillion[index].RobotInfowned[index].myList.Peek());
+                        }
         }
                   
 

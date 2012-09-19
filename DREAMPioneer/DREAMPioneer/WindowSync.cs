@@ -315,6 +315,7 @@ namespace DREAMPioneer
         private Waypoints Convert(List<Point> points, params int[] indexes)
         {
             Waypoints wp = new Waypoints { path = Convert(points) };
+            wp.robots = new int[indexes.Length];
             indexes.CopyTo(wp.robots, 0);
             return wp;
         }

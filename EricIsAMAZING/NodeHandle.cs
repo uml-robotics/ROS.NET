@@ -313,7 +313,6 @@ namespace Ros_CSharp
                 }
                 ++nh_refcount;
             }
-            Console.WriteLine(nh_refcount);
         }
 
         public void destruct()

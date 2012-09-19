@@ -53,8 +53,8 @@ namespace DREAMPioneer
         }
         public static void Publish(Point p, int r, uint c)
         {
-            PubSubs[r].goalPub.publish(
-                new Messages.move_base_msgs.MoveBaseActionGoal()
+            //PubSubs[r].goalPub.publish(
+                RobotControl.TwoInAMillion[r].RobotInfowned[r].myList.Enqueue(new Messages.move_base_msgs.MoveBaseActionGoal()
                 {
                     header = new Messages.std_msgs.Header()
                     {
@@ -92,46 +92,64 @@ namespace DREAMPioneer
                 }
                 );            
         }
+        public static void Publish(int r, Messages.move_base_msgs.MoveBaseActionGoal m)
+        {
+            m.header.stamp = ROS.GetTime();
+            m.goal.target_pose.header.stamp = ROS.GetTime();
+            PubSubs[r].goalPub.publish(m);
+        }
         public static void Publish(List<Point> wayp, params int[] indeces)
         {
             CommonList DisList = new CommonList(wayp);
             
             RobotControl.OneInAMillion.Add(DisList);
+            foreach (int i in indeces)
+            {
+                if (!RobotControl.TwoInAMillion.ContainsKey(i))
+                    RobotControl.TwoInAMillion.Add(i, DisList);
+                else
+                    RobotControl.TwoInAMillion[i] = DisList;
+            }
             Brush MyColor;
-            
-       
+
+
+            foreach (int ID in indeces)
+            {
+                MyColor = RobotColor.getMyColor(ID);
+
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
+                {
+                    window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
+                }));
+
+                DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
+
+                
+            } 
 
             foreach (Point p in wayp)
             {
                 string id = ""+GoalCounter;
                 WaypointHelper wh = WaypointHelper.LookUp(id) ?? new WaypointHelper(id, p);
-                wh.robotswhohavethiswaypoint.AddRange(indeces);             
+                wh.robotswhohavethiswaypoint.AddRange(indeces);
+                foreach (int i in indeces)
+                    Publish(p, i, GoalCounter);
                 GoalCounter++;
                 wh.goalDot = new GoalDot(window.current.DotCanvas, p, window.current.joymgr.DPI, window.current.MainCanvas, Brushes.Yellow);
                 if (!DisList.Dots.Contains(wh.goalDot))
                     {
                         DisList.Dots.Add(wh.goalDot);
                     }
+                
                 //window.current.Dispatcher.BeginInvoke(new Action(()=>
                 //    {
                 //    window.current.DotCanvas.Children.Remove(wh.goalDot);
                 //    }));
-            } 
-            
-             foreach (int ID in indeces)
-                {
-                    MyColor = RobotColor.getMyColor(ID);
-                   
-                    SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
-                }));
-                    
-                 DisList.RoboInfo.Add(new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
-                    
-                    Publish(wayp[0], ID, GoalCounter);
-                }
-                
+            }
+            foreach (int ID in indeces)
+            {
+                Publish(ID, DisList.RobotInfowned[ID].myList.Peek());
+            }     
         }
 
         private static Dictionary<string, WaypointHelper> _waypoints = new Dictionary<string, WaypointHelper>();

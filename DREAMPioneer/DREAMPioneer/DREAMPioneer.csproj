@@ -347,7 +347,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
+    <ProjectReference Include="..\..\..\lib_3mtouchdrivers\EM3MTouchLib\EM3MTouchLib.csproj">
       <Project>{5062C99F-6244-4C4E-873F-46F6CCD15EE0}</Project>
       <Name>EM3MTouchLib</Name>
     </ProjectReference>

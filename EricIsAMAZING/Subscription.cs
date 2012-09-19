@@ -261,7 +261,7 @@ namespace Ros_CSharp
                     if (XmlRpcManager.Instance.uri != i)
                     {
                         retval &= NegotiateConnection(i);
-                        EDB.WriteLine("NEGOTIATINGING");
+                        //EDB.WriteLine("NEGOTIATINGING");
                     }
                     else
                         EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
