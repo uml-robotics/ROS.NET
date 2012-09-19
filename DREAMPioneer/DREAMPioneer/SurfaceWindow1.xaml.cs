@@ -2440,27 +2440,18 @@ namespace DREAMPioneer
 
             }
 
-
-
             int[] sel = selectedList.ToArray();
-
-            foreach (int k in sel)
+            foreach (int k in selectedList)
             {
-                ROSStuffs[k].myRobot.updateWaypoints(waypoints, newx, newy, newwx, newwy, k);
-                SYNC.PublishWaypoints(k, waypoints);
+                ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
             }
+            WaypointHelper.Publish(waypoints, sel);
+            SYNC.PublishWaypoints(waypoints, sel);
             waypoints.Clear();
             waypoints = null;
             NoPulse();
             selectedList.Clear();
             Say("ROGER!", -2);
-
-            Dispatcher.Invoke(new Action(() =>
-            {
-                foreach(int k in selectedList)
-                {
-                    ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
-                }
 
             foreach (Waypoint wp in waypointDots)
             {

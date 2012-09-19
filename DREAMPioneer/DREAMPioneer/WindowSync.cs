@@ -223,7 +223,12 @@ namespace DREAMPioneer
         {
             if (boostmobile != MY_CALLER_ID)
             {
-                Console.WriteLine("OTHER CLIENT " + boostmobile + " SENT " + m.path.Length + " WAYPOINTS TO " + m.robot);
+                StringBuilder sb = new StringBuilder("OTHER CLIENT " + boostmobile + " SENT " + m.path.Length + " WAYPOINTS TO ");
+                foreach (int i in m.robots)
+                {
+                    sb.AppendLine("\t" + i);
+                }
+                Console.WriteLine(sb);
             }
         }
 
@@ -298,18 +303,19 @@ namespace DREAMPioneer
             }
         }
 
-        internal void PublishWaypoints(int robot, List<Point> points)
+        internal void PublishWaypoints(List<Point> points, params int[] indexes)
         {
-            wppub.publish(Convert(robot, points));
+            wppub.publish(Convert(points, indexes));
         }
 
         internal void PublishManual(int manualRobot)
         {
             manualpub.publish(new Dibs { manualRobot = manualRobot });
         }
-        private Waypoints Convert(int r, List<Point> points)
+        private Waypoints Convert(List<Point> points, params int[] indexes)
         {
-            Waypoints wp = new Waypoints { path = Convert(points), robot = r };
+            Waypoints wp = new Waypoints { path = Convert(points) };
+            indexes.CopyTo(wp.robots, 0);
             return wp;
         }
         private Point2[] Convert(List<Point> points)
