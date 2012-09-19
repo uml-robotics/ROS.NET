@@ -39,7 +39,7 @@ namespace ROS_ImageWPF
             System.Windows.Point tl = new System.Windows.Point(), br = new System.Windows.Point();
             tl = TranslatePoint(new System.Windows.Point(), uie);
             br = TranslatePoint(new System.Windows.Point(Width, Height), uie);
-            return new WindowPositionStuff(tl, br, new Size(br.X - tl.X, br.Y - tl.Y));
+            return new WindowPositionStuff(tl, br, new Size(Math.Abs(br.X - tl.X), Math.Abs(br.Y - tl.Y)));
         }
         public System.Windows.Point origin = new System.Windows.Point(0, 0);
         //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
