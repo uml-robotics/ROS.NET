@@ -219,6 +219,7 @@
     <Compile Include="ViewportMD.xaml.cs">
       <DependentUpon>ViewportMD.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WindowSync.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonList.cs" />
