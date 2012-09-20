@@ -90,7 +90,7 @@ namespace DREAMPioneer
                         }
                     }
                 }
-                );            
+                );
         }
         public static void Publish(int r, Messages.move_base_msgs.MoveBaseActionGoal m)
         {
@@ -108,23 +108,18 @@ namespace DREAMPioneer
                 if (!RobotControl.TwoInAMillion.ContainsKey(i))
                     RobotControl.TwoInAMillion.Add(i, DisList);
                 else
+                {
                     RobotControl.TwoInAMillion[i] = DisList;
+                }
             }
-            Brush MyColor;
-
 
             foreach (int ID in indeces)
             {
-                MyColor = RobotColor.getMyColor(ID);
-
                 SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
                 {
-                    window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(MyColor);
-                }));
-
-                DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, MyColor, ID + 1));
-
-                
+                    window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(RobotColor.getMyColor(ID));
+                    DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, RobotColor.getMyColor(ID), ID + 1));
+                }));                
             } 
 
             foreach (Point p in wayp)
@@ -136,20 +131,21 @@ namespace DREAMPioneer
                     Publish(p, i, GoalCounter);
                 GoalCounter++;
                 wh.goalDot = new GoalDot(window.current.DotCanvas, p, window.current.joymgr.DPI, window.current.MainCanvas, Brushes.Yellow);
+
                 if (!DisList.Dots.Contains(wh.goalDot))
                     {
                         DisList.Dots.Add(wh.goalDot);
                     }
-                
-                //window.current.Dispatcher.BeginInvoke(new Action(()=>
-                //    {
-                //    window.current.DotCanvas.Children.Remove(wh.goalDot);
-                //    }));
+                else                
+                    window.current.Dispatcher.BeginInvoke(new Action(()=>
+                    {
+                        window.current.DotCanvas.Children.Remove(wh.goalDot);
+                    }));
             }
             foreach (int ID in indeces)
             {
                 Publish(ID, DisList.RobotInfowned[ID].myList.Peek());
-            }     
+            }
         }
 
         private static Dictionary<string, WaypointHelper> _waypoints = new Dictionary<string, WaypointHelper>();

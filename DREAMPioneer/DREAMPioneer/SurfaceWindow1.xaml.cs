@@ -2447,7 +2447,6 @@ namespace DREAMPioneer
             foreach (int r in selectedList)
             {
                 RobotControl.DoneCheck(r);
-
             }
 
             int[] sel = selectedList.ToArray();
@@ -2469,8 +2468,6 @@ namespace DREAMPioneer
             }
             waypointDots.Clear();
             Waypoint.PointLocations.Clear();
-
-            Console.WriteLine("" + selectedList.Count + " robots are selected");
         }
 
         public void EndState(string s)

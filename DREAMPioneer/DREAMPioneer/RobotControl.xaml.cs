@@ -51,59 +51,63 @@ namespace DREAMPioneer
 
         public static Dictionary<int, CommonList> TwoInAMillion = new Dictionary<int, CommonList>();
         public static List<CommonList> OneInAMillion = new List<CommonList>();
-        
+
         public static void DoneCheck(int index)
         {
-            DoneCheck(index, false);
+            DoneCheck(index, true);
         }
         public static void DoneCheck(int index, bool Decay)
-        {
-            //for debug only
-            Decay = false;
-            //for debug only
-
-            bool Done = false;
-            
-            foreach (CommonList CL in OneInAMillion)
+        {            
+            if (TwoInAMillion.ContainsKey(index) && TwoInAMillion[index].RobotInfowned.ContainsKey(index))
             {
+                bool Done = true;
+                Robot_Info RI = TwoInAMillion[index].RobotInfowned[index];
+                RI.done = true;
+                RI.myPoints = new List<Point>(TwoInAMillion[index].P_List);
+                SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
+                foreach (Robot_Info DoneCheck in TwoInAMillion[index].RoboInfo)
+                    if (!DoneCheck.done)
+                        Done = false;
 
-                foreach (Robot_Info RI in CL.RoboInfo)
-                    if (RI.RoboNum == index && !RI.done)
+                if (Done)
+                {
+                    if (Decay)
                     {
-                        Done = true;
-                        RI.done = true;
-                        RI.myPoints = new List<Point>(CL.P_List);
-                        SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => RobotColor.freeMe(RI.RoboNum)));
-                        foreach (Robot_Info DoneCheck in CL.RoboInfo)
-                            if (!DoneCheck.done)
-                                Done = false;
-
-                        if (Done)
-                        {
-                            if (Decay)
-                            {
-                                new Thread(Atrophy).Start(CL);
-                            }
-                            else
-                            {
-                                SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
-                                   {
-                                       foreach (GoalDot GD in CL.Dots)
-                                           window.current.DotCanvas.Children.Remove(GD);
-                                   }));
-                                CL.Dots.Clear();
-                                CL.P_List.Clear();
-                                CL.RobotInfowned.Clear();
-                            }
-                            lock (RobotControl.OneInAMillion)
-                                RobotControl.OneInAMillion.Remove(CL);
-
-                            break;
-                        }
-                        else
-                            Console.WriteLine("NOT DONE YET");
+                        new Thread(Atrophy).Start(TwoInAMillion[index]);
                     }
-                if (Done) break;
+                    else
+                    {
+                        SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            if (TwoInAMillion.ContainsKey(index))
+                               {
+                                   foreach (GoalDot GD in TwoInAMillion[index].Dots)
+                                       window.current.DotCanvas.Children.Remove(GD);
+                                   TwoInAMillion[index].Dots.Clear();
+                                   TwoInAMillion[index].P_List.Clear();
+                                   TwoInAMillion[index].RobotInfowned.Clear();
+                               }
+                           }));
+                    }
+                    lock (RobotControl.OneInAMillion)
+                    {
+                        List<int> refs = new List<int>();
+                        if (RobotControl.TwoInAMillion.ContainsKey(index))
+                        {
+                            foreach (KeyValuePair<int, CommonList> kvp in TwoInAMillion)
+                            {
+                                if (kvp.Value == RobotControl.TwoInAMillion[index])
+                                    refs.Add(kvp.Key);
+                            }
+                            foreach (int i in refs)
+                            {
+                                RobotControl.TwoInAMillion.Remove(i);
+                            }
+                        }
+                    }
+                }
+                else
+                    Console.WriteLine("NOT DONE YET");
             }
         }
 
@@ -115,9 +119,9 @@ namespace DREAMPioneer
         private static void Atrophy(object list)
         {
             CommonList CL = (CommonList)list;
-            
+
             List<GoalDot> Copy = new List<GoalDot>(CL.Dots);
-            
+
             if (tasteit == null)
                 SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() => { tasteit = new Action<GoalDot>((g) => { g.Opacity -= delta; if (g.Opacity == 0) window.current.DotCanvas.Children.Remove(g); }); }));
 
@@ -135,7 +139,7 @@ namespace DREAMPioneer
                     {
                         GoalDot GD = Copy[i];
                         lasto = o;
-                        SurfaceWindow1.current.Dispatcher.Invoke(new Action(()=>o = GD.Opacity));
+                        SurfaceWindow1.current.Dispatcher.Invoke(new Action(() => o = GD.Opacity));
                         if (o == 0)
                         {
                             window.current.Dispatcher.BeginInvoke(tasteit, new object[] { GD });
@@ -149,7 +153,7 @@ namespace DREAMPioneer
                 Thread.Sleep(DECAY_TIME);
             }
         }
-       
+
         public string TopicName
         {
             get
@@ -157,11 +161,12 @@ namespace DREAMPioneer
                 string ret = "";
                 Dispatcher.Invoke(new Action(() =>
                 {
-                   ret = GetValue(TopicProperty) as string;
+                    ret = GetValue(TopicProperty) as string;
                 }));
                 return ret;
             }
-            set { 
+            set
+            {
                 Dispatcher.Invoke(new Action(() => SetValue(TopicProperty, value)));
             }
         }
@@ -169,7 +174,7 @@ namespace DREAMPioneer
 
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-      
+
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof(string),
@@ -206,7 +211,7 @@ namespace DREAMPioneer
         public int ROBOT_TO_ADD;
         private void SetupTopic()
         {
-             SetupTopic(ROBOT_TO_ADD);       
+            SetupTopic(ROBOT_TO_ADD);
         }
 
 
@@ -261,139 +266,153 @@ namespace DREAMPioneer
                   
             }, "*");
 #endif
-            
+
             WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
-                        MyLastCount = j.status_list.Length;
-                        if (TwoInAMillion.ContainsKey(index))
+                    MyLastCount = j.status_list.Length;
+                    if (TwoInAMillion.ContainsKey(index))
+                    {
+                        Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
+
+                        WaypointHelper wh = new WaypointHelper();
+
+
+                        foreach (Messages.actionlib_msgs.GoalStatus g in j.status_list)
                         {
-                            Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();
-
-                            WaypointHelper wh = new WaypointHelper();
-
-
-                            foreach (Messages.actionlib_msgs.GoalStatus g in j.status_list)
+                            if (g.goal_id.id.data != TwoInAMillion[index].RobotInfowned[index].NextID)
+                                continue;
+                            byte status = (byte)g.status;
+                            switch (status)
                             {
-                                byte status = (byte)g.status;
-                                switch (status)
-                                {
-                                    case 0:// PENDING
-                                        Console.WriteLine("" + myData.RobotNumber + " - NOT NOW CHIEF!");
-                                        break;
-                                    case 1://ACTIVE
-                                        Console.WriteLine("" + myData.RobotNumber + " - YES MASSUH!");
-                                        break;
-                                    case 2://PREEMPTED (Terminal state)
-                                        Console.WriteLine("" + myData.RobotNumber + " - FUCK IT. I DIDNT EVEN WANT TO GO THERE.");
-                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
-                                        break;
-                                    case 3://SUCCEEDED (Terminal state)
-                                        Console.WriteLine("" + myData.RobotNumber + " - YAI");
-                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
-                                        break;
-                                    case 4://ABORTED (Terminal state)
-                                        Console.WriteLine("" + myData.RobotNumber + " - FUCK THAT SHIT.");
-                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
-                                        break;
-                                    case 5://REJECTED(Terminal state)
-                                        Console.WriteLine("" + myData.RobotNumber + " - REJECTED");
-                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
-                                        break;
-                                    case 6://PREEMPTING
-                                        break;
-                                    case 7://RECALLING
-                                        break;
-                                    case 8://RECALLED (Ternimal state)
-                                        Console.WriteLine("" + myData.RobotNumber + " - They call that a: \"reach around\"");                                          
-                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
-                                        break;
-                                    case 9://LOST (Should not be true)
-                                        Console.WriteLine("" + myData.RobotNumber + " - LAHOOOOOZER");
-                                        break;
-                                    default:
-                                        Console.WriteLine("" + myData.RobotNumber + " - ERROR IN SWTICH");
-                                        break;
+                                case 0:// PENDING
+                                    break;
+                                case 1://ACTIVE
+                                    break;
+                                case 2://PREEMPTED (Terminal state)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp"+g.goal_id.id.data+" - PREEMPTED (terminal)");
+                                    MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    break;
+                                case 3://SUCCEEDED (Terminal state)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - SUCCESS (terminal)");
+                                    MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    break;
+                                case 4://ABORTED (Terminal state)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - ABORTED (terminal)");                                    
+                                    MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    break;
+                                case 5://REJECTED(Terminal state)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - REJECTED (terminal)");
+                                    MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    break;
+                                case 6://PREEMPTING
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - Preempting");
+                                    break;
+                                case 7://RECALLING
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - Recalling");
+                                    break;
+                                case 8://RECALLED (Ternimal state)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - Recalled (terminal)");
+                                    MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    break;
+                                case 9://LOST (Should not be true)
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - LAHOOOOOZER");
+                                    break;
+                                default:
+                                    Console.WriteLine("" + myData.RobotNumber + " - wp" + g.goal_id.id.data + " - ERROR IN SWTICH");
+                                    break;
 
-                                }
-
-                                if (wh != null)
-                                {
-                                    ericisthegreatest.Add(g.goal_id.id.data, wh);
-                                    wh.status = g.status;
-                                    //points.Add(wh.point);
-                                }
                             }
 
-
-                            updateGoal(myData.RobotNumber);
-
+                            if (wh != null)
+                            {
+                                ericisthegreatest.Add(g.goal_id.id.data, wh);
+                                wh.status = g.status;
+                            }
                         }
+
+
+                        updateGoal(myData.RobotNumber);
+
+                    }
 
                 });
         }
         public void MoveOn(int index, string ID, ref WaypointHelper wh)
         {
-            
             wh = WaypointHelper.LookUp(ID);
-            if (wh != null && !TwoInAMillion[index].RobotInfowned[index].done)                
+            //WaypointHelper.Cancel(index, ID);
+            if (wh != null && !TwoInAMillion[index].RobotInfowned[index].done)
             {
                 TwoInAMillion[index].RobotInfowned[index].myList.Dequeue();
-                            WaypointHelper.Publish(index, TwoInAMillion[index].RobotInfowned[index].myList.Peek());
-                        }
+                TwoInAMillion[index].RobotInfowned[index].myPoints.RemoveAt(0);
+                if (TwoInAMillion[index].RobotInfowned[index].myList.Count > 0)
+                {
+                    WaypointHelper.Publish(index, TwoInAMillion[index].RobotInfowned[index].myList.Peek());
+                    return;
+                }
+            }
+            if (RobotControl.TwoInAMillion.ContainsKey(index) && RobotControl.TwoInAMillion[index].P_List.Count == 0)
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    RobotControl.DoneCheck(index);
+                }));
+                return;
+            }
         }
-                  
 
 
-        
 
-       public gm.Vector3 convert(gm.Quaternion q) 
-       {
-           emQuaternion eq = new emQuaternion(q);
+
+
+        public gm.Vector3 convert(gm.Quaternion q)
+        {
+            emQuaternion eq = new emQuaternion(q);
             gm.Vector3 ret = new gm.Vector3();
-            double w2 = q.w*q.w;
-            double x2 = q.x*q.x;
-            double y2 = q.y*q.y;
-            double z2 = q.z*q.z;
+            double w2 = q.w * q.w;
+            double x2 = q.x * q.x;
+            double y2 = q.y * q.y;
+            double z2 = q.z * q.z;
             double unitLength = eq.length();    // Normalized == 1, otherwise correction divisor.
-            double abcd = q.w*q.x + q.y*q.z;
-             double eps = Math.E;    
-            double pi = Math.PI;   
-     if (abcd > (0.5-eps)*unitLength)
-     {
-         ret.z = 2 * Math.Atan2(q.y, q.w);
-         ret.y = pi;
-         ret.x = 0;
-     }
-     else if (abcd < (-0.5 + eps) * unitLength)
-     {
-         ret.z = -2 * Math.Atan2(q.y, q.w);
-         ret.y = -pi;
-         ret.x = 0;
-     }
-     else
-     {
-         double adbc = q.w * q.z - q.x * q.y;
-         double acbd = q.w * q.y - q.x * q.z;
-         ret.z = Math.Atan2(2 * adbc, 1 - 2 * (z2 + x2));
-         ret.y = Math.Asin(2 * abcd / unitLength);
-         ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
-     }
+            double abcd = q.w * q.x + q.y * q.z;
+            double eps = Math.E;
+            double pi = Math.PI;
+            if (abcd > (0.5 - eps) * unitLength)
+            {
+                ret.z = 2 * Math.Atan2(q.y, q.w);
+                ret.y = pi;
+                ret.x = 0;
+            }
+            else if (abcd < (-0.5 + eps) * unitLength)
+            {
+                ret.z = -2 * Math.Atan2(q.y, q.w);
+                ret.y = -pi;
+                ret.x = 0;
+            }
+            else
+            {
+                double adbc = q.w * q.z - q.x * q.y;
+                double acbd = q.w * q.y - q.x * q.z;
+                ret.z = Math.Atan2(2 * adbc, 1 - 2 * (z2 + x2));
+                ret.y = Math.Asin(2 * abcd / unitLength);
+                ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
+            }
 
-     return ret;
+            return ret;
 
-     }
+        }
 
-       private gm.Pose[] MakePoseArray(List<Point> PList)
-       {
-           gm.Pose[] ret = new gm.Pose[PList.Count];
-           for (int i = 0; i < PList.Count; i++)
-               ret[i] = new Messages.geometry_msgs.Pose { position = new Messages.geometry_msgs.Point { x = PList[i].X * (double)ROS_ImageWPF.MapControl.MPP , y = PList[i].Y * (double)ROS_ImageWPF.MapControl.MPP, z = 0 }, orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 } };
-               
-        return ret;   
-       }
+        private gm.Pose[] MakePoseArray(List<Point> PList)
+        {
+            gm.Pose[] ret = new gm.Pose[PList.Count];
+            for (int i = 0; i < PList.Count; i++)
+                ret[i] = new Messages.geometry_msgs.Pose { position = new Messages.geometry_msgs.Point { x = PList[i].X * (double)ROS_ImageWPF.MapControl.MPP, y = PList[i].Y * (double)ROS_ImageWPF.MapControl.MPP, z = 0 }, orientation = new Messages.geometry_msgs.Quaternion { w = 0, x = 0, y = 0, z = 0 } };
 
-       
-       public void updateWaypoints(double x, double y, double xx, double yy)
+            return ret;
+        }
+
+
+        public void updateWaypoints(double x, double y, double xx, double yy)
         {
             transx = x;
             transy = y;
@@ -407,8 +426,8 @@ namespace DREAMPioneer
             xPos = x;
             yPos = y;
             Canvas.SetLeft(robot, xPos - robot.Width / 2);
-     
-            Canvas.SetTop(robot, (yPos - robot.Height / 2) );
+
+            Canvas.SetTop(robot, (yPos - robot.Height / 2));
             robot.SetSize(10, 10);
             robot.Theta = t;
             theta = t;
@@ -432,20 +451,22 @@ namespace DREAMPioneer
                 + (y2 - y1) * (y2 - y1));
         }
 
-        
+
         public void SetOpacity(Double opa)
         {
             robot.Dot.Opacity = opa;
-         
+
         }
 
         private void updateGoal(int index)
         {
             //now calls SetGoal, jumping over CheckUnique
             window.current.SetGoal(index);
-            
-            // CheckUnique(points, index);         
+
+            //CheckUnique(index);
         }
+
+
 
         public RobotControl(int R)
         {
@@ -453,132 +474,132 @@ namespace DREAMPioneer
             InitializeComponent();
         }
 
-         
-/*******************************************************************************/
-/*  Depricated since we now take not of shared lists when we send lists out
+
+        /*******************************************************************************/
+        /*  Depricated since we now take not of shared lists when we send lists out
  
-    public void CheckUnique(List<Point> P_List, int R)
-        {
-            if (P_List.Count == 0)
-            {
-                Dispatcher.BeginInvoke(new Action(() =>
+            public void CheckUnique(List<Point> P_List, int R)
                 {
-                    RobotControl.DoneCheck(R);
-                }));
-                return;
-            }
-
-            Brush MyColor = RobotColor.getMyColor(R);
-            SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
-                 {
-                     window.current.ROSStuffs[R].myRobot.robot.setArrowColor(MyColor);
-                 }));
-           
-            CommonList DisList = null;
-           
-            if (OneInAMillion.Count == 0)
-            {
-                //If there are no saved lists it is unique
-
-                DisList = new CommonList(P_List, R, MyColor, 1); 
-                OneInAMillion.Add(DisList);
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
-                    if (DisList.Dots.Count >= 1)
-                        DisList.Dots[0].NextOne = true;
-                    foreach (Robot_Info RI in DisList.RoboInfo)
-                        if (RI.RoboNum == R)
-                            window.current.SetGoal(R, P_List, DisList, RI);
-                }));
-                return;
-            }
-
-            foreach (CommonList CL in OneInAMillion)
-            {
-
-                //It's not unique beacause a path already exists for this robot.
-
-                foreach (Robot_Info RI in CL.RoboInfo)
-                    if (RI.RoboNum == R && !RI.done)
+                    if (P_List.Count == 0)
                     {
-                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            RobotControl.DoneCheck(R);
+                        }));
                         return;
                     }
 
-                int j;
-
-                if (P_List.Count <= CL.P_List.Count)
-                {
-                    j = CL.P_List.Count - P_List.Count;
-                    for (int i = P_List.Count - 1; i >= 0; i--)
+                    Brush MyColor = RobotColor.getMyColor(R);
+                    SurfaceWindow1.current.Dispatcher.BeginInvoke(new Action(() =>
+                         {
+                             window.current.ROSStuffs[R].myRobot.robot.setArrowColor(MyColor);
+                         }));
+           
+                    CommonList DisList = null;
+           
+                    if (OneInAMillion.Count == 0)
                     {
-                        if (i == 0)
-                            if (P_List[i] == CL.P_List[i + j])
+                        //If there are no saved lists it is unique
+
+                        DisList = new CommonList(P_List, R, MyColor, 1); 
+                        OneInAMillion.Add(DisList);
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
+                            if (DisList.Dots.Count >= 1)
+                                DisList.Dots[0].NextOne = true;
+                            foreach (Robot_Info RI in DisList.RoboInfo)
+                                if (RI.RoboNum == R)
+                                    window.current.SetGoal(R, P_List, DisList, RI);
+                        }));
+                        return;
+                    }
+
+                    foreach (CommonList CL in OneInAMillion)
+                    {
+
+                        //It's not unique beacause a path already exists for this robot.
+
+                        foreach (Robot_Info RI in CL.RoboInfo)
+                            if (RI.RoboNum == R && !RI.done)
                             {
-
-                                //NOT UNIQUE Shorter or Equal To
-
-
-
-                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
-                                foreach (Robot_Info RI in CL.RoboInfo)
-                                    if (RI.RoboNum == R)
-                                    {
-                                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
-                                        return;
-                                    }
+                                Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                                return;
                             }
 
-                            else if (P_List[i] != CL.P_List[i + j]) break;
-                    }
-                }
-                else
-                {
-                    j = P_List.Count - CL.P_List.Count;
-                    for (int i = CL.P_List.Count - 1; i >= 0; i--)
-                    {
-                        if (i == 0)
-                            if (P_List[i + j] == CL.P_List[i])
+                        int j;
+
+                        if (P_List.Count <= CL.P_List.Count)
+                        {
+                            j = CL.P_List.Count - P_List.Count;
+                            for (int i = P_List.Count - 1; i >= 0; i--)
                             {
-                                //NOT UNIQUE Longer
-
-                                Dispatcher.BeginInvoke(new Action(()=>
-                                CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1))));
-                               //List<Point> Better_List = new List<Point>(P_List.Except<Point>(CL.P_List));
-
-                                CL.P_List.Clear();
-                                CL.P_List = P_List;
-                                // window.current.AddGoalDots(Better_List, CL.Dots, MyColor);
-                                foreach (Robot_Info RI in CL.RoboInfo)
-                                    if (RI.RoboNum == R)
+                                if (i == 0)
+                                    if (P_List[i] == CL.P_List[i + j])
                                     {
-                                        Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
-                                        return;
+
+                                        //NOT UNIQUE Shorter or Equal To
+
+
+
+                                        CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1));
+                                        foreach (Robot_Info RI in CL.RoboInfo)
+                                            if (RI.RoboNum == R)
+                                            {
+                                                Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                                                return;
+                                            }
                                     }
+
+                                    else if (P_List[i] != CL.P_List[i + j]) break;
                             }
-                            else if (P_List[i + j] != CL.P_List[i]) break;
+                        }
+                        else
+                        {
+                            j = P_List.Count - CL.P_List.Count;
+                            for (int i = CL.P_List.Count - 1; i >= 0; i--)
+                            {
+                                if (i == 0)
+                                    if (P_List[i + j] == CL.P_List[i])
+                                    {
+                                        //NOT UNIQUE Longer
+
+                                        Dispatcher.BeginInvoke(new Action(()=>
+                                        CL.RoboInfo.Add(new Robot_Info(R, P_List.Count, MyColor, CL.RoboInfo[CL.RoboInfo.Count - 1].Position + 1))));
+                                       //List<Point> Better_List = new List<Point>(P_List.Except<Point>(CL.P_List));
+
+                                        CL.P_List.Clear();
+                                        CL.P_List = P_List;
+                                        // window.current.AddGoalDots(Better_List, CL.Dots, MyColor);
+                                        foreach (Robot_Info RI in CL.RoboInfo)
+                                            if (RI.RoboNum == R)
+                                            {
+                                                Dispatcher.BeginInvoke(new Action<int, List<Point>, CommonList, Robot_Info>(window.current.SetGoal), new object[] { R, P_List, CL, RI });
+                                                return;
+                                            }
+                                    }
+                                    else if (P_List[i + j] != CL.P_List[i]) break;
+                            }
+                        }
                     }
-                }
-            }
-            //IT IS UNIQUE
+                    //IT IS UNIQUE
 
 
-           DisList = new CommonList(P_List, R, MyColor, 1); 
-            OneInAMillion.Add(DisList);
+                   DisList = new CommonList(P_List, R, MyColor, 1); 
+                    OneInAMillion.Add(DisList);
 
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
-                if (DisList.Dots.Count >= 1)
-                    DisList.Dots[0].NextOne = true;
-                foreach (Robot_Info RI in DisList.RoboInfo)
-                    if (RI.RoboNum == R)
-                        window.current.SetGoal(R, P_List, DisList, RI);
-            }));
-            return;
-        }*/
-/**************************************************************************/
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        window.current.AddGoalDots(P_List, DisList.Dots, MyColor);
+                        if (DisList.Dots.Count >= 1)
+                            DisList.Dots[0].NextOne = true;
+                        foreach (Robot_Info RI in DisList.RoboInfo)
+                            if (RI.RoboNum == R)
+                                window.current.SetGoal(R, P_List, DisList, RI);
+                    }));
+                    return;
+                }*/
+        /**************************************************************************/
 
 
         #region Events
@@ -600,6 +621,6 @@ namespace DREAMPioneer
             //image.Transform = new ScaleTransform(1, -1, ActualWidth / 2, ActualHeight / 2);
         }
         #endregion
-    
+
     }
 }
