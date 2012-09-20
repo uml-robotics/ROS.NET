@@ -118,7 +118,7 @@ namespace DREAMPioneer
             if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
             {
                 IsItAlive = false;
-                    Console.WriteLine("He was an asshole, anyways... (" + Name + ")");
+                    Console.WriteLine("BWUHBYE... (" + Name + ")");
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             //UNDO WPF STUFF

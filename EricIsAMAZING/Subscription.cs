@@ -258,13 +258,13 @@ namespace Ros_CSharp
 
                 foreach (string i in additions)
                 {
-                    //if (XmlRpcManager.Instance.uri != i)
+                    if (XmlRpcManager.Instance.uri != i)
                     {
                         retval &= NegotiateConnection(i);
                         //EDB.WriteLine("NEGOTIATINGING");
                     }
-                    //else
-                    //    EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
+                    else
+                        EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
                 }
             }
             return retval;
