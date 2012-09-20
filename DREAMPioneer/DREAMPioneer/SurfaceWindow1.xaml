@@ -5,7 +5,7 @@
     xmlns:c="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
     xmlns:d="clr-namespace:DREAMPioneer"
     Title="DREAMPioneer" WindowStyle="None" WindowState="Normal" Left="0" Top="0"
-     Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize" Background="Transparent"
+     Loaded="Window_Loaded" KeyDown="Window_KeyDown" ResizeMode="NoResize" Background="Gray"
         VerticalAlignment="Center" HorizontalAlignment="Center" AllowsTransparency="True">
     <Canvas Name="MainCanvas" Width="1024" Height="768" RenderTransformOrigin=".5,.5"  ClipToBounds="False">
         <Canvas Name="BackgroundCanvas" Width="1024" Height="768" Background="Gray" Opacity="0.01" IsHitTestVisible="False" />

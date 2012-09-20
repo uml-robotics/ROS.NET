@@ -99,17 +99,6 @@ namespace DREAMPioneer
                 if (scale == null) return 0;
                 return scale.ScaleX;
             }
-
-            set
-            {
-                if (scale != null)
-                {
-                    //dotscale.ScaleX = value;
-                    // dotscale.ScaleY = value;
-                    scale.ScaleX = value;
-                    scale.ScaleY = value;
-                }
-            }
         }
 
 
@@ -1114,6 +1103,19 @@ namespace DREAMPioneer
                         p = nextp;
                 }
 
+
+                if (cc.Count == 0) return;
+                p = new Point(XSum / ((double)cc.Count), YSum / ((double)cc.Count));
+                Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
+                DRAG_START = p;
+
+                //Console.WriteLine(drag);            
+                if (!SITSTILL)
+                {
+                    translate.X += drag.X;
+                    translate.Y -= drag.Y;
+                }
+                Point origin = TranslatePoint(p, TranslateCanvas);
                 if (Math.Abs(previousZoomDistance - dTmp) > zoomDistanceThreshold)
                 {
                     if ((dTmp - previousZoomDistance) > zoomDistanceThreshold)
@@ -1122,11 +1124,11 @@ namespace DREAMPioneer
                         {
                             if (dZoom + dZoomIncrements > dMaxZoom)
                             {
-                                dZoom = dMaxZoom;
+                                SetZoom(dMaxZoom, origin); ;
                             }
                             else
                             {
-                                dZoom = dZoom + dZoomIncrements;
+                                SetZoom(dZoom + dZoomIncrements, origin);
                             }
                         }
                         previousZoomDistance = dTmp;
@@ -1138,54 +1140,33 @@ namespace DREAMPioneer
                         {
                             if (dZoom - dZoomIncrements < dMinZoom)
                             {
-                                dZoom = dMinZoom;
+                                SetZoom(dMinZoom, origin);
                             }
                             else
                             {
-                                dZoom = dZoom - dZoomIncrements;
+                                SetZoom(dZoom - dZoomIncrements, origin);
                             }
 
                         }
                         previousZoomDistance = dTmp;
                     }
                 }
-
-                if (cc.Count == 0) return;
-                p = new Point(XSum / ((double)cc.Count), YSum / ((double)cc.Count));
-                Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
-                DRAG_START = p;
-                //Console.WriteLine(drag);            
-                if (!SITSTILL)
-                {
-                    if (false) //MaxTranslateX == -9001)
-                    {
-                        MaxTranslateX = Margin - current.Width - (current.map.Width - current.Width);
-                        MaxTranslateY = current.Height - Margin;
-                        MinTranslateX = current.Width - Margin;
-                        MinTranslateY = Margin - current.map.Height;
-                    }
-                    /*if (translate.X + drag.X > MinTranslateX)
-                        translate.X = MinTranslateX;
-                    else if (translate.X + drag.X < MaxTranslateX)
-                        translate.X = MaxTranslateX;
-                    else if (translate.Y - drag.Y < MinTranslateY)
-                        translate.Y = MinTranslateY;
-                    else if (translate.Y - drag.Y > MaxTranslateY)
-                        translate.Y = MaxTranslateY;*/
-                    else
-                    {
-                        translate.X += drag.X;
-                        translate.Y -= drag.Y;
-                    }
-                    Point origin = TranslatePoint(p, SubCanvas);
-                    scale.CenterX = origin.X;
-                    scale.CenterY = origin.Y;
-                }
             }
         }
 
 
-
+        private static Point _oldzoomcent = new Point();
+        public void SetZoom(double zoom, Point centerinwindow)
+        {
+            _oldzoomcent.X = scale.CenterX;
+            _oldzoomcent.Y = scale.CenterY;
+            scale.CenterX = centerinwindow.X;
+            scale.CenterY = centerinwindow.Y;
+            scale.ScaleX = zoom;
+            scale.ScaleY = zoom;
+            scale.CenterX = _oldzoomcent.X;
+            scale.CenterY = _oldzoomcent.Y;
+        }
 
 
         /// <summary>

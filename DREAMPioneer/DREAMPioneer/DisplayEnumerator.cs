@@ -98,7 +98,6 @@ namespace DREAMPioneer
                         highests.Add(dms[d]);
                     }
                 }
-            if (highests.Count != 1) throw new Exception("this function is brittle. woops.");
             return new System.Windows.Point((double)highests[0].dmPosition.x, (double)highests[0].dmPosition.y);
         }
 
