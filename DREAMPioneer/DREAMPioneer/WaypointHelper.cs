@@ -17,6 +17,7 @@ namespace DREAMPioneer
         public string ID;
         public GoalDot goalDot;
         public Point point;
+        public Point realpoint;
         public byte status;
         public List<int> robotswhohavethiswaypoint = new List<int>();
         
@@ -194,6 +195,7 @@ namespace DREAMPioneer
         {
             this.ID = ID;
             point = reference;
+            realpoint = new Point(point.X * (double)ROS_ImageWPF.MapControl.MPP, point.Y * (double)ROS_ImageWPF.MapControl.MPP);
             goalDot = gd;
             lock (_waypoints)
             {

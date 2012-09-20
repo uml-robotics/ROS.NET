@@ -39,6 +39,7 @@ namespace DREAMPioneer
     {
         //THIS IS TEMPORARY!!!!
         public const string combinedMapPrefix = "/robot_brain_1";
+        
 
         private double xPos;
         private double yPos;
@@ -48,6 +49,8 @@ namespace DREAMPioneer
         public double scalex;
         public double scaley;
         public bool sendnext;
+        private Point RobotPosition;
+
 
         public static Dictionary<int, CommonList> TwoInAMillion = new Dictionary<int, CommonList>();
         public static List<CommonList> OneInAMillion = new List<CommonList>();
@@ -241,6 +244,7 @@ namespace DREAMPioneer
                     emQuaternion q = new emQuaternion(p.pose.pose.orientation);
                     double t = (new emMatrix3x3(q).getEuler().yaw * 180 / Math.PI) + 90.0;
                     Dispatcher.BeginInvoke(new Action(() => updatePOS(x, y, t)));
+                    RobotPosition = new Point(p.pose.pose.position.x, p.pose.pose.position.y);
                     SurfaceWindow1.current.ROSStuffs[robot.ID].endCheckIn();
                 });
 #else
@@ -285,8 +289,18 @@ namespace DREAMPioneer
                             switch (status)
                             {
                                 case 0:// PENDING
+                                    if (AmIClose(g.goal_id.id.data) && TwoInAMillion[index].RobotInfowned[index].myList.Count > 1)
+                                    {
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                        Console.WriteLine("Meh, " + myData.RobotNumber + " is close enough to " + g.goal_id.id.data);
+                                    }
                                     break;
                                 case 1://ACTIVE
+                                    if (AmIClose(g.goal_id.id.data) && TwoInAMillion[index].RobotInfowned[index].myList.Count > 1)
+                                    {   
+                                        Console.WriteLine("Meh, " + myData.RobotNumber + " is close enough to " + g.goal_id.id.data);
+                                        MoveOn(myData.RobotNumber, g.goal_id.id.data, ref wh);
+                                    }
                                     break;
                                 case 2://PREEMPTED (Terminal state)
                                     Console.WriteLine("" + myData.RobotNumber + " - wp"+g.goal_id.id.data+" - PREEMPTED (terminal)");
@@ -337,7 +351,7 @@ namespace DREAMPioneer
 
                 });
         }
-        public void MoveOn(int index, string ID, ref WaypointHelper wh)
+        private void MoveOn(int index, string ID, ref WaypointHelper wh)
         {
             wh = WaypointHelper.LookUp(ID);
             //WaypointHelper.Cancel(index, ID);
@@ -360,7 +374,12 @@ namespace DREAMPioneer
                 return;
             }
         }
-
+        private bool AmIClose(string id)
+        {
+            if (distance(WaypointHelper.LookUp(id).realpoint, RobotPosition) < 100)
+                return true;
+            return false;            
+        }
 
 
 

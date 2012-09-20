@@ -315,9 +315,8 @@ namespace Ros_CSharp
             if (msg == null) return;
             lock (advertised_topics_mutex)
             {
-                if (shutting_down) return;
-
-                Publication p = lookupPublicationWithoutLock(topic);
+                Publication p;
+                if ((p = lookupPublicationWithoutLock(topic)) == null || shutting_down) return;
                 p.connection_header = new Header { Values = new Hashtable() };
                 p.connection_header.Values["type"] = p.DataType;
                 p.connection_header.Values["md5sum"] = p.Md5sum;
