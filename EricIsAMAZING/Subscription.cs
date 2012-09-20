@@ -175,7 +175,7 @@ namespace Ros_CSharp
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)
-                    return false;
+                     return false;
             }
             bool retval = true;
 #if DEBUG
@@ -258,13 +258,13 @@ namespace Ros_CSharp
 
                 foreach (string i in additions)
                 {
-                    if (XmlRpcManager.Instance.uri != i)
+                    //if (XmlRpcManager.Instance.uri != i)
                     {
                         retval &= NegotiateConnection(i);
                         //EDB.WriteLine("NEGOTIATINGING");
                     }
-                    else
-                        EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
+                    //else
+                    //    EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
                 }
             }
             return retval;
@@ -556,7 +556,6 @@ namespace Ros_CSharp
 
         public void addLocalConnection(Publication pub)
         {
-            
         }
 
         public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)
