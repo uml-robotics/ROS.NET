@@ -2425,13 +2425,12 @@ namespace DREAMPioneer
             newwx = scale.ScaleX;
             newwy = scale.ScaleY;
 
-            foreach (int r in selectedList)
+            int[] sel = selectedList.ToArray();
+            foreach (int r in sel)
             {
                 RobotControl.DoneCheck(r);
             }
-
-            int[] sel = selectedList.ToArray();
-            foreach (int k in selectedList)
+            foreach (int k in sel)
             {
                 ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
             }

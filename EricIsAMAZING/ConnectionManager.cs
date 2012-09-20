@@ -199,7 +199,7 @@ namespace Ros_CSharp
 #if TCPSERVER
             tcpserver_transport = new TcpListener(IPAddress.Any, network.tcpros_server_port);
             tcpserver_transport.Start(0);
-            ROS.timer_manager.StartTimer(ref acceptor, CheckAndAccept, 100, 100);
+            ROS.timer_manager.StartTimer(ref acceptor, CheckAndAccept, 10, 10);
 #else
             tcpserver_transport = new TcpTransport(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), poll_manager.poll_set);
             new Thread(() =>

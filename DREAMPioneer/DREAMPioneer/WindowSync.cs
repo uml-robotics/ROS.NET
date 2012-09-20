@@ -81,8 +81,8 @@ namespace DREAMPioneer
             BeginInvoke(() =>
                 {
                     WindowPositionStuff pos = window.map.WhereYouAt(window);
-                    double w = bottomright.x - topleft.x;
-                    double h = bottomright.y - topleft.y;
+                    double w = Math.Abs(bottomright.x - topleft.x);
+                    double h = Math.Abs(bottomright.y - topleft.y);
                     double scaleXY = (w / pos.size.Width) * window.Width;
                     if (POVbox == null)
                     {
@@ -236,7 +236,7 @@ namespace DREAMPioneer
         {
             if (boostmobile != MY_CALLER_ID)
             {
-                Console.WriteLine("OTHER CLIENT " + boostmobile + " SENT IITS WINDOW STATE!");
+                //Console.WriteLine("OTHER CLIENT " + boostmobile + " SENT IITS WINDOW STATE!");
                 otherwindows[boostmobile].UpdateBox(m);
             }
         }
@@ -254,6 +254,7 @@ namespace DREAMPioneer
                         Thread.Sleep(1);
                     }
                 });
+            spinThread.IsBackground = true;
             spinThread.Start();
             #region pubsubsubsubsubsubs
             hellopub = nodeHandle.advertise<Dibs>("/hello", 1, true);

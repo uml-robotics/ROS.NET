@@ -315,7 +315,7 @@ namespace Ros_CSharp
             if (msg == null) return;
             lock (advertised_topics_mutex)
             {
-                if (shutting_down) return;
+                if (!ROS.ok || shutting_down) return;
 
                 Publication p = lookupPublicationWithoutLock(topic);
                 p.connection_header = new Header { Values = new Hashtable() };
