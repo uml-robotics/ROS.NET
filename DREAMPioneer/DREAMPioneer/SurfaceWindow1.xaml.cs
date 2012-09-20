@@ -515,13 +515,14 @@ namespace DREAMPioneer
             {
                 case "surface_i7_lol":
                     ROS.ROS_HOSTNAME = "10.0.2.47";
+                    NODE_NAME = "SURFACE";
                     break;
                 default:
                     Console.WriteLine(Environment.MachineName + " is not a special case... setting ROS_HOSTNAME to 10.0.2.178");
                     ROS.ROS_HOSTNAME = "10.0.2.178";
+                    NODE_NAME = Environment.MachineName;
                     break;
-            }
-            NODE_NAME = Environment.MachineName;
+            }            
             ROS.Init(new string[0], NODE_NAME);
             
             nodeHandle = new NodeHandle();
