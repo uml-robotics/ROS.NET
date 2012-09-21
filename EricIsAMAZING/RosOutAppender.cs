@@ -103,7 +103,7 @@ namespace Ros_CSharp
                     if (shutting_down) return;
                 }
                 localqueue.Clear();
-                Thread.Sleep(1);
+                Thread.Sleep(100);
             }
         }
     }

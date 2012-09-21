@@ -40,7 +40,7 @@ namespace DREAMPioneer
                         while (ROS.ok)
                         {
                             ROS.spinOnce(node);
-                            Thread.Sleep(1);
+                            Thread.Sleep(100);
                         }
                     }).Start();
                 }

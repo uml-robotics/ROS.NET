@@ -561,7 +561,7 @@ namespace DREAMPioneer
             while (ROS.ok)
             {
                 ROS.spinOnce(nodeHandle);
-                Thread.Sleep(1);
+                Thread.Sleep(100);
             }
         }
         
@@ -846,6 +846,7 @@ namespace DREAMPioneer
             yellowCurrent += yellowDelta;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                lock (YellowDots)
                 foreach (DREAMPioneer.RobotControl el in YellowDots)
                     el.SetOpacity(yellowCurrent);
             }));
@@ -969,6 +970,7 @@ namespace DREAMPioneer
                 {
                     ROSStuffs[i].myRobot.robot.SetColor(Brushes.Yellow);
                 }));
+            lock (YellowDots)
             YellowDots.Add(ROSStuffs[i].myRobot);
             timers.StartTimer(ref YellowTimer);
         }
@@ -998,6 +1000,7 @@ namespace DREAMPioneer
         /// </param>
         public void RemoveYellow(int i)
         {
+            lock (YellowDots)
             if (YellowDots.Contains(ROSStuffs[i].myRobot))
             {
                 Console.WriteLine("REMOVE YELLOW: " + i);
@@ -1787,7 +1790,7 @@ namespace DREAMPioneer
 
                                                             if (cc.Count > 1)
                                                             {
-                                                                foreach (Touch T in joymgr.JoystickFuneral)
+                                                                /*foreach (Touch T in joymgr.JoystickFuneral)
                                                                     if (e.Id == T.Id)
                                                                     {
                                                                         SITSTILL = true;
@@ -1797,7 +1800,7 @@ namespace DREAMPioneer
                                                                     else
                                                                     {
                                                                         SITSTILL = false;
-                                                                    }
+                                                                    }*/
 
                                                                 ZoomChange(SITSTILL ? null : e, cc);
                                                                 if (!cleanedUpDragPoints.Contains(e.Id))

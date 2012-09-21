@@ -135,7 +135,7 @@ namespace ROS_ImageWPF
 
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => { ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+                spinnin = new Thread(new ThreadStart(() => { while (ROS.ok && mapsub != null) { ROS.spinOnce(imagehandle); Thread.Sleep(100); } })); spinnin.Start();
             }
                  
         } 

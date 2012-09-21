@@ -101,7 +101,7 @@ namespace ROS_ImageWPF
                 Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data))));
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+                spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(100); })); spinnin.Start();
             }
         }
 
