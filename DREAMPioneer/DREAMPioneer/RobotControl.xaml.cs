@@ -283,7 +283,7 @@ namespace DREAMPioneer
 
                         foreach (Messages.actionlib_msgs.GoalStatus g in j.status_list)
                         {
-                            if (g.goal_id.id.data != TwoInAMillion[index].RobotInfowned[index].NextID)
+                            if (TwoInAMillion.ContainsKey(index) && TwoInAMillion[index].RobotInfowned.ContainsKey(index) && g.goal_id.id.data != TwoInAMillion[index].RobotInfowned[index].NextID)
                                 continue;
                             byte status = (byte)g.status;
                             switch (status)
@@ -376,7 +376,9 @@ namespace DREAMPioneer
         }
         private bool AmIClose(string id)
         {
-            if (distance(WaypointHelper.LookUp(id).realpoint, RobotPosition) < 100)
+            double d = distanceTHATISNTWRONG(WaypointHelper.LookUp(id).realpoint, RobotPosition);
+            //Console.WriteLine(d);
+            if (d < 2)
                 return true;
             return false;            
         }
@@ -457,6 +459,10 @@ namespace DREAMPioneer
             if (distance(pos, waypoint) < 40)
                 return true;
             else return false;
+        }
+        public double distanceTHATISNTWRONG(Point q, Point p)
+        {
+            return distance(q.X, q.Y, p.X, p.Y);
         }
         public double distance(Point q, Point p)
         {

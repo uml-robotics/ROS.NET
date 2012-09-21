@@ -101,7 +101,7 @@ namespace DREAMPioneer
         Subscriber<cm.robotMortality> GhostWhisperer;
         private DateTime LastBeat = DateTime.Now;
         public Timer Dethklok;
-        bool IsItAlive = true;
+        bool IsItAlive = false;
         public bool OnLast = false;
 
         public void CheckMortality(object state)
@@ -232,14 +232,39 @@ namespace DREAMPioneer
 
             JagerBombs(true);
 
-            Dethklok = new Timer(CheckMortality, null, 0, 50);
+            //Dethklok = new Timer(CheckMortality, null, 0, 50);
             numRobots++;
+            window.current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                //UNDO WPF STUFF
+                myRobot.robot.Visibility = Visibility.Hidden;
+                myRobot.Visibility = Visibility.Hidden;
+                RobotControl.DoneCheck(RobotNumber);
+                if (window.current.selectedList.Contains(RobotNumber))
+                    window.current.RemoveSelected(RobotNumber, null, "Robot Died");
+                if (ManualNumber == RobotNumber)
+                    window.current.changeManual(-1);
+            }));                 
 
         }
 
         public void Heartbeat(cm.robotMortality Life)
         {
           LastBeat = DateTime.Now;
+          if (!IsItAlive)
+          {
+              IsItAlive = true;
+              if (joyPub != null)
+              {
+                  CheckIn();
+
+              }
+              window.current.Dispatcher.BeginInvoke(new Action(() =>
+              {
+                  myRobot.Visibility = Visibility.Visible;
+                  myRobot.robot.Visibility = Visibility.Visible;
+              }));
+          }
         }
 
         public static void unSub()
