@@ -96,21 +96,32 @@ namespace ROS_ImageWPF
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
+            if (imgsub != null)
+            {
+                imgsub.shutdown();
+                imgsub = null;
+            }
             if (imgsub == null || imgsub.topic != TopicName)
             {
-                if (imgsub != null)
-                {
-                    imgsub.shutdown();
-                    imgsub = null;
-                }
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => { if (!STOPIT) Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))); });
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => { Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))); });
             }
             wtf = DateTime.Now;
             Console.WriteLine("IMG TOPIC " + TopicName);
             STOPIT = false;
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => { while (ROS.ok && imgsub != null) { if (!STOPIT) ROS.spinOnce(imagehandle); Thread.Sleep(10); } })); spinnin.Start();
+                Console.WriteLine(imgsub.topic);
+                spinnin = new Thread(new ThreadStart(() => {                      
+                    while (ROS.ok && !STOPIT)
+                    {
+                        if (STOPIT)
+                            break;
+                        ROS.spinOnce(imagehandle); 
+                        Thread.Sleep(100);
+                    }
+                    spinnin = null;
+                })); 
+                spinnin.Start();
             }
         }
 

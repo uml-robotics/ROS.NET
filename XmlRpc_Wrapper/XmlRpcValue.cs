@@ -117,6 +117,8 @@ namespace XmlRpc_Wrapper
             {
                 if (_refs.ContainsKey(ptr))
                 {
+                    if (ptr == IntPtr.Zero)
+                        throw new Exception("OHHH NOOOO!!!");
 #if REFDEBUG
                     Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
 #endif
@@ -127,7 +129,14 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
 #endif
                         _refs.Remove(ptr);
-                        clear(ptr);
+                        try
+                        {
+                            clear(ptr);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                         ptr = IntPtr.Zero;
                     }
                     return;

@@ -160,7 +160,7 @@ namespace DREAMPioneer
             tempTwist.angular.z = .5 ;
             joyPub.publish(tempTwist);
             CheckingIn = true;
-            Console.WriteLine("***Checking in robot number: " + RobotNumber + "***"); 
+            Console.WriteLine("Checking in robot number: " + RobotNumber); 
         }
     
         public void endCheckIn()
@@ -174,7 +174,7 @@ namespace DREAMPioneer
             tempTwistStop.angular.z = 0;
             joyPub.publish(tempTwistStop);
             CheckingIn = false;
-            Console.WriteLine("***Ending check in for robot number: " + RobotNumber + "***"); 
+            Console.WriteLine("Ending check in for robot number: " + RobotNumber); 
         }
             
         }
@@ -269,6 +269,7 @@ namespace DREAMPioneer
 
         public static void unSub()
         {
+            Console.WriteLine("UNSUB "+ROSData.ManualNumber);
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { 
                 linear = new Messages.geometry_msgs.Vector3 { x = 0 }, 
                 angular = new Messages.geometry_msgs.Vector3 { z = 0 } 
@@ -276,14 +277,16 @@ namespace DREAMPioneer
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.shutdown();
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = null;
             servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
+            
             servosPub.shutdown();
             servosPub = null;
             laserSub.shutdown();
             laserSub = null;
-            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
+            //ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
         public static void reSub()
         {
+            Console.WriteLine("RESUB "+ROSData.ManualNumber);
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 1, true);
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;

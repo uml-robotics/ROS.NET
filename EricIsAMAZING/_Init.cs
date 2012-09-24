@@ -73,7 +73,7 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 10;
+        public static int WallDuration = 100;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;

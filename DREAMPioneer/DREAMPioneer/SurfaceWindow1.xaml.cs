@@ -509,7 +509,7 @@ namespace DREAMPioneer
 
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);            
             switch (Environment.MachineName.ToLower())
             {

@@ -376,7 +376,13 @@ namespace DREAMPioneer
         }
         private bool AmIClose(string id)
         {
+<<<<<<< Updated upstream
+            double d = distanceTHATISNTWRONG(WaypointHelper.LookUp(id).realpoint, RobotPosition);
+            //Console.WriteLine(d);
+            if (d < 2)
+=======
             if (distance(WaypointHelper.LookUp(id).realpoint, RobotPosition) < 5)
+>>>>>>> Stashed changes
                 return true;
             return false;            
         }

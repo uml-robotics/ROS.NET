@@ -697,6 +697,7 @@ namespace Ros_CSharp
 
         public bool unadvertise(string topic, SubscriberCallbacks callbacks)
         {
+            Console.WriteLine("STABBING THE PUBLISHER FOR " + topic + "... WITH A KNIFE");
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
