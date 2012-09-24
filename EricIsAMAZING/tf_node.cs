@@ -77,10 +77,10 @@ namespace Ros_CSharp
                                     }
                                 }
                             }
-                            Thread.Sleep(1);
+                            Thread.Sleep(100);
                         }
                     });
-                new Thread(() => { while (ROS.ok) { ROS.spinOnce(tfhandle); Thread.Sleep(1); } }).Start();
+                new Thread(() => { while (ROS.ok) { ROS.spinOnce(tfhandle); Thread.Sleep(100); } }).Start();
                 updateThread.Start();
             }
             tfsub = tfhandle.subscribe<tf.tfMessage>("/tf", 1, tfCallback);

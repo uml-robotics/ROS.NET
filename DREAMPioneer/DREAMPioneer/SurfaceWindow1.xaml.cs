@@ -99,17 +99,6 @@ namespace DREAMPioneer
                 if (scale == null) return 0;
                 return scale.ScaleX;
             }
-
-            set
-            {
-                if (scale != null)
-                {
-                    //dotscale.ScaleX = value;
-                    // dotscale.ScaleY = value;
-                    scale.ScaleX = value;
-                    scale.ScaleY = value;
-                }
-            }
         }
 
 
@@ -520,19 +509,20 @@ namespace DREAMPioneer
 
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);            
             switch (Environment.MachineName.ToLower())
             {
                 case "surface_i7_lol":
                     ROS.ROS_HOSTNAME = "10.0.2.47";
+                    NODE_NAME = "SURFACE";
                     break;
                 default:
                     Console.WriteLine(Environment.MachineName + " is not a special case... setting ROS_HOSTNAME to 10.0.2.178");
                     ROS.ROS_HOSTNAME = "10.0.2.178";
+                    NODE_NAME = Environment.MachineName;
                     break;
-            }
-            NODE_NAME = Environment.MachineName;
+            }            
             ROS.Init(new string[0], NODE_NAME);
             
             nodeHandle = new NodeHandle();
@@ -571,7 +561,7 @@ namespace DREAMPioneer
             while (ROS.ok)
             {
                 ROS.spinOnce(nodeHandle);
-                Thread.Sleep(1);
+                Thread.Sleep(100);
             }
         }
         
@@ -856,6 +846,7 @@ namespace DREAMPioneer
             yellowCurrent += yellowDelta;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                lock (YellowDots)
                 foreach (DREAMPioneer.RobotControl el in YellowDots)
                     el.SetOpacity(yellowCurrent);
             }));
@@ -979,6 +970,7 @@ namespace DREAMPioneer
                 {
                     ROSStuffs[i].myRobot.robot.SetColor(Brushes.Yellow);
                 }));
+            lock (YellowDots)
             YellowDots.Add(ROSStuffs[i].myRobot);
             timers.StartTimer(ref YellowTimer);
         }
@@ -1008,6 +1000,7 @@ namespace DREAMPioneer
         /// </param>
         public void RemoveYellow(int i)
         {
+            lock (YellowDots)
             if (YellowDots.Contains(ROSStuffs[i].myRobot))
             {
                 Console.WriteLine("REMOVE YELLOW: " + i);
@@ -1114,6 +1107,19 @@ namespace DREAMPioneer
                         p = nextp;
                 }
 
+
+                if (cc.Count == 0) return;
+                p = new Point(XSum / ((double)cc.Count), YSum / ((double)cc.Count));
+                Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
+                DRAG_START = p;
+
+                //Console.WriteLine(drag);            
+                if (!SITSTILL)
+                {
+                    translate.X += drag.X;
+                    translate.Y -= drag.Y;
+                }
+                Point origin = TranslatePoint(p, TranslateCanvas);
                 if (Math.Abs(previousZoomDistance - dTmp) > zoomDistanceThreshold)
                 {
                     if ((dTmp - previousZoomDistance) > zoomDistanceThreshold)
@@ -1122,11 +1128,11 @@ namespace DREAMPioneer
                         {
                             if (dZoom + dZoomIncrements > dMaxZoom)
                             {
-                                dZoom = dMaxZoom;
+                                SetZoom(dMaxZoom, origin); ;
                             }
                             else
                             {
-                                dZoom = dZoom + dZoomIncrements;
+                                SetZoom(dZoom + dZoomIncrements, origin);
                             }
                         }
                         previousZoomDistance = dTmp;
@@ -1138,54 +1144,33 @@ namespace DREAMPioneer
                         {
                             if (dZoom - dZoomIncrements < dMinZoom)
                             {
-                                dZoom = dMinZoom;
+                                SetZoom(dMinZoom, origin);
                             }
                             else
                             {
-                                dZoom = dZoom - dZoomIncrements;
+                                SetZoom(dZoom - dZoomIncrements, origin);
                             }
 
                         }
                         previousZoomDistance = dTmp;
                     }
                 }
-
-                if (cc.Count == 0) return;
-                p = new Point(XSum / ((double)cc.Count), YSum / ((double)cc.Count));
-                Point drag = new Point(DRAG_START.X - p.X, DRAG_START.Y - p.Y);
-                DRAG_START = p;
-                //Console.WriteLine(drag);            
-                if (!SITSTILL)
-                {
-                    if (false) //MaxTranslateX == -9001)
-                    {
-                        MaxTranslateX = Margin - current.Width - (current.map.Width - current.Width);
-                        MaxTranslateY = current.Height - Margin;
-                        MinTranslateX = current.Width - Margin;
-                        MinTranslateY = Margin - current.map.Height;
-                    }
-                    /*if (translate.X + drag.X > MinTranslateX)
-                        translate.X = MinTranslateX;
-                    else if (translate.X + drag.X < MaxTranslateX)
-                        translate.X = MaxTranslateX;
-                    else if (translate.Y - drag.Y < MinTranslateY)
-                        translate.Y = MinTranslateY;
-                    else if (translate.Y - drag.Y > MaxTranslateY)
-                        translate.Y = MaxTranslateY;*/
-                    else
-                    {
-                        translate.X += drag.X;
-                        translate.Y -= drag.Y;
-                    }
-                    Point origin = TranslatePoint(p, SubCanvas);
-                    scale.CenterX = origin.X;
-                    scale.CenterY = origin.Y;
-                }
             }
         }
 
 
-
+        private static Point _oldzoomcent = new Point();
+        public void SetZoom(double zoom, Point centerinwindow)
+        {
+            _oldzoomcent.X = scale.CenterX;
+            _oldzoomcent.Y = scale.CenterY;
+            scale.CenterX = centerinwindow.X;
+            scale.CenterY = centerinwindow.Y;
+            scale.ScaleX = zoom;
+            scale.ScaleY = zoom;
+            scale.CenterX = _oldzoomcent.X;
+            scale.CenterY = _oldzoomcent.Y;
+        }
 
 
         /// <summary>
@@ -1805,7 +1790,7 @@ namespace DREAMPioneer
 
                                                             if (cc.Count > 1)
                                                             {
-                                                                foreach (Touch T in joymgr.JoystickFuneral)
+                                                                /*foreach (Touch T in joymgr.JoystickFuneral)
                                                                     if (e.Id == T.Id)
                                                                     {
                                                                         SITSTILL = true;
@@ -1815,7 +1800,7 @@ namespace DREAMPioneer
                                                                     else
                                                                     {
                                                                         SITSTILL = false;
-                                                                    }
+                                                                    }*/
 
                                                                 ZoomChange(SITSTILL ? null : e, cc);
                                                                 if (!cleanedUpDragPoints.Contains(e.Id))
@@ -2444,14 +2429,12 @@ namespace DREAMPioneer
             newwx = scale.ScaleX;
             newwy = scale.ScaleY;
 
-            foreach (int r in selectedList)
+            int[] sel = selectedList.ToArray();
+            foreach (int r in sel)
             {
                 RobotControl.DoneCheck(r);
-
             }
-
-            int[] sel = selectedList.ToArray();
-            foreach (int k in selectedList)
+            foreach (int k in sel)
             {
                 ROSStuffs[k].myRobot.updateWaypoints(newx, newy, newwx, newwy);
             }
@@ -2469,8 +2452,6 @@ namespace DREAMPioneer
             }
             waypointDots.Clear();
             Waypoint.PointLocations.Clear();
-
-            Console.WriteLine("" + selectedList.Count + " robots are selected");
         }
 
         public void EndState(string s)

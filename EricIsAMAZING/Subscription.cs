@@ -175,7 +175,7 @@ namespace Ros_CSharp
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)
-                    return false;
+                     return false;
             }
             bool retval = true;
 #if DEBUG
@@ -189,10 +189,10 @@ namespace Ros_CSharp
                 ss += spc.XmlRpc_Uri;
             EDB.WriteLine("Publisher update for [" + name + "]: " + ss);
 #endif
-            string tt = "Publisher URIS passed to publisher update = ";
+            /*string tt = "Publisher URIS passed to publisher update = ";
             foreach (string s in pubs)
                 tt += "\n\t" + s;
-            EDB.WriteLine(tt);
+            EDB.WriteLine(tt);*/
             List<string> additions = new List<string>();
             List<PublisherLink> subtractions = new List<PublisherLink>(), to_add = new List<PublisherLink>();
             lock (publisher_links_mutex)
@@ -295,7 +295,7 @@ namespace Ros_CSharp
                 return false;
             }
 #if DEBUG
-            EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+            //EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
@@ -556,7 +556,6 @@ namespace Ros_CSharp
 
         public void addLocalConnection(Publication pub)
         {
-            
         }
 
         public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)

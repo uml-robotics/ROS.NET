@@ -382,8 +382,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DREAMControllerConfig.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Interop.SpeechLib.dll" />
     <Content Include="Petzold.Media3D.dll" />

@@ -44,9 +44,13 @@ namespace ROS_ImageWPF
             set { SetValue(TopicProperty, value); }
         }
         private Thread waitforinit;
-        private NodeHandle imagehandle;
-        private Subscriber<sm.CompressedImage> imgsub;
-
+        private static NodeHandle imagehandle;
+        private static Subscriber<sm.CompressedImage> imgsub;
+        private bool STOPIT;
+        public void shutdown()
+        {
+            STOPIT = true;
+        }
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -87,7 +91,7 @@ namespace ROS_ImageWPF
             }
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
-        private Thread spinnin;
+        private static Thread spinnin;
         private void SetupTopic()
         {
             if (imagehandle == null)
@@ -97,13 +101,27 @@ namespace ROS_ImageWPF
                 imgsub.shutdown();
                 imgsub = null;
             }
+            if (imgsub == null || imgsub.topic != TopicName)
+            {
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => { Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))); });
+            }
             wtf = DateTime.Now;
             Console.WriteLine("IMG TOPIC " + TopicName);
-            imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))));
+            STOPIT = false;
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => { ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+                Console.WriteLine(imgsub.topic);
+                spinnin = new Thread(new ThreadStart(() => {                      
+                    while (ROS.ok && !STOPIT)
+                    {
+                        if (STOPIT)
+                            break;
+                        ROS.spinOnce(imagehandle); 
+                        Thread.Sleep(100);
+                    }
+                    spinnin = null;
+                })); 
+                spinnin.Start();
             }
         }
 

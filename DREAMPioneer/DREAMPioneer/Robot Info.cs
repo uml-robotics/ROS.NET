@@ -18,6 +18,15 @@ namespace DREAMPioneer
         private bool _done;
         private int _Position;
         public System.Windows.Point Next = new System.Windows.Point();
+        public string NextID
+        {
+            get
+            {
+                if (myList != null && myList.Count > 0)
+                    return myList.Peek().goal_id.id.data;
+                return null;
+            }
+        }
         public int Position
         {
             get { return _Position; }
@@ -30,6 +39,7 @@ namespace DREAMPioneer
         {
             RoboNum = robo_num;
             myList = new Queue<Messages.move_base_msgs.MoveBaseActionGoal>();
+            myPoints = new List<Point>(p_list);
             Color = robo_color;
             Position = pos;
         }

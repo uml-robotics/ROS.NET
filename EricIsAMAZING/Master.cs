@@ -119,7 +119,7 @@ namespace Ros_CSharp
                         return false;
                     }
                     slept = true;
-                    Thread.Sleep(50);
+                    Thread.Sleep(10);
                 }
                 if (ok && !firstsucces)
                 {

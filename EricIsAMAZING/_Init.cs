@@ -36,9 +36,15 @@ namespace Ros_CSharp
         public static void WriteLine(string format, params object[] args)
         {
 #if DEBUG
-            Debug.WriteLine(string.Format(format, args));
+            if (args != null && args.Length > 0)
+                Debug.WriteLine(string.Format(format, args));
+            else
+                Debug.WriteLine(format);
 #else
-            Console.WriteLine(string.Format(format, args));
+            if (args != null && args.Length > 0)
+                Console.WriteLine(string.Format(format, args));
+            else
+                Console.WriteLine(format);
 #endif
         }
     }
@@ -67,7 +73,7 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 10;
+        public static int WallDuration = 100;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;

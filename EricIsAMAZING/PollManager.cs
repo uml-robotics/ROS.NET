@@ -1,5 +1,6 @@
 ﻿#region USINGZ
 
+using System.Collections.Generic;
 using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -40,16 +41,15 @@ namespace Ros_CSharp
             }
         }
 
-        public event Poll_Signal poll_signal;
+        public List<Poll_Signal> poll_signal = new List<Poll_Signal>();
 
         public void addPollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
                 Console.WriteLine("Adding pollthreadlistener " + poll.Method.ToString());
-                poll_signal += poll;
-                if (poll_signal != null)
-                    poll_signal();
+                if (!poll_signal.Contains(poll)) poll_signal.Add(poll);
+                signal();
             }
         }
 
@@ -57,8 +57,10 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
-                if (poll_signal != null)
-                    poll_signal();
+                foreach (Poll_Signal s in poll_signal)
+                {
+                    s.BeginInvoke((iar) => ((Poll_Signal)iar.AsyncState).EndInvoke(iar), s);
+                }
             }
         }
 
@@ -67,9 +69,8 @@ namespace Ros_CSharp
             lock (signal_mutex)
             {
                 Console.WriteLine("Removing pollthreadlistener " + poll.Method.ToString());
-                poll_signal -= poll;
-                if (poll_signal != null)
-                    poll_signal();
+                if (poll_signal.Contains(poll)) poll_signal.Remove(poll);
+                signal();
             }
         }
 

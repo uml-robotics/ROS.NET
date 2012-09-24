@@ -81,8 +81,8 @@ namespace DREAMPioneer
             BeginInvoke(() =>
                 {
                     WindowPositionStuff pos = window.map.WhereYouAt(window);
-                    double w = bottomright.x - topleft.x;
-                    double h = bottomright.y - topleft.y;
+                    double w = Math.Abs(bottomright.x - topleft.x);
+                    double h = Math.Abs(bottomright.y - topleft.y);
                     double scaleXY = (w / pos.size.Width) * window.Width;
                     if (POVbox == null)
                     {
@@ -211,7 +211,7 @@ namespace DREAMPioneer
 
         private void goalSent(int robotindex, Messages.move_base_msgs.MoveBaseActionGoal msg)
         {
-            string boostmobile = (string)(msg.connection_header["caller_id"]);
+            string boostmobile = (string)(msg.connection_header["callerid"]);
             if (boostmobile != MY_CALLER_ID)
             {
                 Console.WriteLine(robotindex + " received a new individual destination from " + boostmobile);
@@ -236,7 +236,7 @@ namespace DREAMPioneer
         {
             if (boostmobile != MY_CALLER_ID)
             {
-                Console.WriteLine("OTHER CLIENT " + boostmobile + " SENT IITS WINDOW STATE!");
+                //Console.WriteLine("OTHER CLIENT " + boostmobile + " SENT IITS WINDOW STATE!");
                 otherwindows[boostmobile].UpdateBox(m);
             }
         }
@@ -251,20 +251,21 @@ namespace DREAMPioneer
                     while (ROS.ok)
                     {
                         ROS.spinOnce(nodeHandle);
-                        Thread.Sleep(1);
+                        Thread.Sleep(100);
                     }
                 });
+            spinThread.IsBackground = true;
             spinThread.Start();
             #region pubsubsubsubsubsubs
             hellopub = nodeHandle.advertise<Dibs>("/hello", 1, true);
-            hellosub = nodeHandle.subscribe<Dibs>("/hello", 1, (m) => receivedHello((string)m.connection_header["caller_id"], m));
+            hellosub = nodeHandle.subscribe<Dibs>("/hello", 1, (m) => receivedHello((string)m.connection_header["callerid"], m));
             goodbyepub = nodeHandle.advertise<Dibs>("/goodbye", 1, true);
-            goodbyesub = nodeHandle.subscribe<Dibs>("/goodbye", 1, (m) => receivedGoodbye((string)m.connection_header["caller_id"], m));
+            goodbyesub = nodeHandle.subscribe<Dibs>("/goodbye", 1, (m) => receivedGoodbye((string)m.connection_header["callerid"], m));
             manualpub = nodeHandle.advertise<Dibs>("/manual", 1, true);
-            manualsub = nodeHandle.subscribe<Dibs>("/manual", 1, (m) => receivedManualChange((string)m.connection_header["caller_id"], m));
+            manualsub = nodeHandle.subscribe<Dibs>("/manual", 1, (m) => receivedManualChange((string)m.connection_header["callerid"], m));
             wppub = nodeHandle.advertise<Waypoints>("/waypoints", 10, true);
-            wpsub = nodeHandle.subscribe<Waypoints>("/waypoints", 10, (m) => receivedWaypoints((string)m.connection_header["caller_id"], m));
-            winsub = nodeHandle.subscribe<WindowState>("/windowstate", 10, (m) => receivedWindowState((string)m.connection_header["caller_id"], m));
+            wpsub = nodeHandle.subscribe<Waypoints>("/waypoints", 10, (m) => receivedWaypoints((string)m.connection_header["callerid"], m));
+            winsub = nodeHandle.subscribe<WindowState>("/windowstate", 10, (m) => receivedWindowState((string)m.connection_header["callerid"], m));
             winpub = nodeHandle.advertise<WindowState>("/windowstate", 10, true);
             #endregion
             stateThread = new Thread(() =>

@@ -315,8 +315,14 @@ namespace Ros_CSharp
             if (msg == null) return;
             lock (advertised_topics_mutex)
             {
+<<<<<<< HEAD
+                if (!ROS.ok || shutting_down) return;
+
+                Publication p = lookupPublicationWithoutLock(topic);
+=======
                 Publication p;
-                if ((p = lookupPublicationWithoutLock(topic)) == null || !ROS.ok || shutting_down) return;
+                if ((p = lookupPublicationWithoutLock(topic)) == null || shutting_down) return;
+>>>>>>> 12ac9afd1514c13e11fa15bd51a5a32f440f6da1
                 p.connection_header = new Header { Values = new Hashtable() };
                 p.connection_header.Values["type"] = p.DataType;
                 p.connection_header.Values["md5sum"] = p.Md5sum;
@@ -697,7 +703,6 @@ namespace Ros_CSharp
 
         public bool unadvertise(string topic, SubscriberCallbacks callbacks)
         {
-            Console.WriteLine("STABBING THE PUBLISHER FOR " + topic + "... WITH A KNIFE");
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
