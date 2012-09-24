@@ -30,7 +30,7 @@ namespace DREAMPioneer
         private bool _NextOne = false;
                
 
-        public GoalDot(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, Brush b)
+        public GoalDot(Canvas WPC, Point loc, double DPI, Canvas MainCanvas, Brush b,bool IsThisMine = true)
         {
             InitializeComponent();
 
@@ -41,7 +41,11 @@ namespace DREAMPioneer
             
             NextC1.Fill = b;
             BeenThereC2.Fill = b;
+            if (!IsThisMine)
+                me.Opacity = .5;
             Location = loc;
+
+
 
 
 

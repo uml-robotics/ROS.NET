@@ -47,6 +47,7 @@ using tf = Messages.tf;
 using System.Text;
 using System.ComponentModel;
 using otherTimer = System.Timers;
+using window = DREAMPioneer.SurfaceWindow1;
 
 #endregion
 namespace DREAMPioneer
@@ -230,6 +231,59 @@ namespace DREAMPioneer
                 }
                 Console.WriteLine(sb);
             }
+
+
+            List<Point> path = new List<Point>();
+            List<int> brobots = new List<int>();
+
+            foreach (Messages.wpf_msgs.Point2 ROSPoint in m.path)
+                path.Add(new Point(ROSPoint.x, ROSPoint.y));
+            brobots.AddRange(m.robots);
+
+           /*
+            *This is a transcribed version of the WPF code from WayPointHelper.cs
+            */
+            CommonList DisList = new CommonList(path);
+            RobotControl.OneInAMillion.Add(DisList);
+
+            foreach (int i in brobots)
+            {
+                if (!RobotControl.TwoInAMillion.ContainsKey(i))
+                    RobotControl.TwoInAMillion.Add(i, DisList);
+                else
+                {
+                    RobotControl.TwoInAMillion[i] = DisList;
+                }
+            }
+            foreach (int ID in brobots)
+            {
+                SurfaceWindow1.current.Dispatcher.Invoke(new Action(() =>
+                {
+                    window.current.ROSStuffs[ID].myRobot.robot.setArrowColor(RobotColor.getMyColor(ID));
+                    DisList.RobotInfowned.Add(ID, new Robot_Info(ID, DisList.P_List, RobotColor.getMyColor(ID), ID + 1));
+                }));
+            }
+
+            foreach (Point p in path)
+            {
+                string id = "" + WaypointHelper.GoalCounter;
+                WaypointHelper wh = WaypointHelper.LookUp(id) ?? new WaypointHelper(id, p);
+                wh.robotswhohavethiswaypoint.AddRange(brobots);
+                WaypointHelper.GoalCounter++;
+                
+                wh.goalDot = new GoalDot(window.current.DotCanvas, p, window.current.joymgr.DPI, window.current.MainCanvas, Brushes.Yellow,false);
+
+                if (!DisList.Dots.Contains(wh.goalDot))
+                {
+                    DisList.Dots.Add(wh.goalDot);
+                }
+                else
+                    window.current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        window.current.DotCanvas.Children.Remove(wh.goalDot);
+                    }));
+            }
+        
         }
 
         private void receivedWindowState(string boostmobile, WindowState m)
