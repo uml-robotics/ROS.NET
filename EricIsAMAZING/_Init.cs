@@ -109,9 +109,9 @@ namespace Ros_CSharp
             return (G) Activator.CreateInstance(typeof (T));
         }
 
-        public static void FREAKTHEFUCKOUT()
+        public static void FREAKOUT()
         {
-            throw new Exception("ROS IS FREAKING THE FUCK OUT!");
+            throw new Exception("ROS IS FREAKING OUT!");
         }
 
         [DebuggerStepThrough]

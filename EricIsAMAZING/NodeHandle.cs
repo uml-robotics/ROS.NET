@@ -295,7 +295,7 @@ namespace Ros_CSharp
         public void construct(string ns, bool validate_name)
         {
             if (!ROS.initialized)
-                ROS.FREAKTHEFUCKOUT();
+                ROS.FREAKOUT();
             collection = new NodeHandleBackingCollection();
             UnresolvedNamespace = ns;
             if (validate_name)

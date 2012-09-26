@@ -7,7 +7,7 @@ using namespace XmlRpc;
 #ifdef __cplusplus
 extern "C" {
 #endif
-	//bullshit sanity check
+	//superficial sanity check
 	typedef void (*FuncPtr)(int i);	
 	extern XMLRPC_API int IntegerEcho(int val);
 	extern XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr fptr);	

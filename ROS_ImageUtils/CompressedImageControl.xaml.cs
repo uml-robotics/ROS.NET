@@ -174,10 +174,10 @@ namespace ROS_ImageWPF
                 Marshal.Copy(bData.Scan0, rgbData, 0, byteCount);
                 bmp.UnlockBits(bData);
 
-                // starts the overload cluster-fuck to show the image
+                // starts the overload cluster-mess to show the image
                 UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
-                // get that shit out of memory so it doesn't fuck our day up.
+                // get that stuff out of memory so it doesn't mess our day up.
                 bmp.Dispose();
             }
             catch (Exception e)
@@ -215,10 +215,10 @@ namespace ROS_ImageWPF
                     Marshal.Copy(bData.Scan0, rgbData, 0, byteCount);
                     bmp.UnlockBits(bData);
 
-                    // starts the overload cluster-fuck to show the image
+                    // starts the overload cluster-mess to show the image
                     UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
-                    // get that shit out of memory so it doesn't fuck our day up.
+                    // get that stuff out of memory so it doesn't mess our day up.
                     bmp.Dispose();
                 }
                 catch (Exception e)
@@ -227,7 +227,7 @@ namespace ROS_ImageWPF
                 }
             }
             else
-                Console.WriteLine("FUCK YOUR BPP!");
+                Console.WriteLine("non-fatal BPP mismatch. If you see images, then you should go to vegas and bet your life savings on black.");
         }
 
 
@@ -375,15 +375,6 @@ namespace ROS_ImageWPF
         {
             // makes a memory stream with the data
             MemoryStream ms = new MemoryStream(data);
-            
-            /*FileStream fs = new FileStream("C:\\notfucked.bmp", FileMode.OpenOrCreate);
-            fs.Seek(0, SeekOrigin.Begin);
-            fs.Write(data, 0, data.Length); 
-            fs.Flush();
-            fs.Close();*/
-           // ms.Flush();
-           //ms.Seek(0, SeekOrigin.Begin);
-
 
             // makes an image
             BitmapImage img = new BitmapImage();

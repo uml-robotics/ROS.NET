@@ -443,9 +443,9 @@ namespace Ros_CSharp
 
         public bool registerSubscriber(Subscription s, string datatype)
         {
-            string fuckinguriyo = XmlRpcManager.Instance.uri;
+            string uri = XmlRpcManager.Instance.uri;
 
-            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, fuckinguriyo);
+            XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
             XmlRpcValue result = new XmlRpcValue();
             XmlRpcValue payload = new XmlRpcValue();
             if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
@@ -455,7 +455,7 @@ namespace Ros_CSharp
             {
                 XmlRpcValue asshole = payload[i];
                 string pubed = asshole.Get<string>();
-                if (pubed != fuckinguriyo && !pub_uris.Contains(pubed))
+                if (pubed != uri && !pub_uris.Contains(pubed))
                 {
                     pub_uris.Add(pubed);
                 }
@@ -638,7 +638,7 @@ namespace Ros_CSharp
             else
             {
                 EDB.WriteLine("Unknown Error");
-                XmlRpcManager.Instance.responseInt(0, "Unknown Error or some shit", 0)(result);
+                XmlRpcManager.Instance.responseInt(0, "Unknown Error or something", 0)(result);
             }
         }
 

@@ -551,43 +551,43 @@ namespace Messages
             IsLiteral = isliteral;
             string type = s[0];
             string name = s[1];
-            string othershit = "";
+            string otherstuff = "";
             if (name.Contains('='))
             {
                 string[] parts = name.Split('=');
                 isconst = true;
                 name = parts[0];
-                othershit = " = " + parts[1];
+                otherstuff = " = " + parts[1];
             }
             for (int i = 2; i < s.Length; i++)
-                othershit += " " + s[i];
-            if (othershit.Contains('=')) isconst = true;
+                otherstuff += " " + s[i];
+            if (otherstuff.Contains('=')) isconst = true;
             if (!IsArray)
             {
-                if (othershit.Contains('=') && type == "string")
+                if (otherstuff.Contains('=') && type == "string")
                 {
-                    othershit = othershit.Replace("\\", "\\\\");
-                    othershit = othershit.Replace("\"", "\\\"");
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = \"" + split[1] + "\"";
+                    otherstuff = otherstuff.Replace("\\", "\\\\");
+                    otherstuff = otherstuff.Replace("\"", "\\\"");
+                    string[] split = otherstuff.Split('=');
+                    otherstuff = split[0] + " = \"" + split[1] + "\"";
                 }
-                if (othershit.Contains('=') && type == "bool")
+                if (otherstuff.Contains('=') && type == "bool")
                 {
-                    othershit = othershit.Replace("0", "false").Replace("1", "true");
+                    otherstuff = otherstuff.Replace("0", "false").Replace("1", "true");
                 }
-                if (othershit.Contains('=') && type == "byte")
+                if (otherstuff.Contains('=') && type == "byte")
                 {
-                    othershit = othershit.Replace("-1", "255");
+                    otherstuff = otherstuff.Replace("-1", "255");
                 }
                 if (MsgsFile.resolver.Keys.Contains(type))
                 {
                     type = MsgsFile.resolver[type];
                 }
-                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
+                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + otherstuff + ";";
                 Const = isconst;
-                if (othershit.Contains("="))
+                if (otherstuff.Contains("="))
                 {
-                    string[] chunks = othershit.Split('=');
+                    string[] chunks = otherstuff.Split('=');
                     ConstValue = chunks[chunks.Length - 1].Trim();
                     ;
                 }
@@ -600,17 +600,17 @@ namespace Messages
                     output = lowestindent + "public " + type + "[] " + name + " = new " + type + "[" + length + "];";
                 }
                 else
-                    output = lowestindent + "public " + "" + type + "[] " + name + othershit + ";";
-                if (othershit.Contains('='))
+                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
+                if (otherstuff.Contains('='))
                 {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
+                    string[] split = otherstuff.Split('=');
+                    otherstuff = split[0] + " = (" + type + ")" + split[1];
                 }
             }
             Type = type;
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
-            Name = name.Length == 0 ? othershit.Trim() : name;
+            Name = name.Length == 0 ? otherstuff.Trim() : name;
             return this;
         }
 
@@ -619,43 +619,43 @@ namespace Messages
             bool isconst = false;
             string type = REALTYPE;
             string name = backup[1];
-            string othershit = "";
+            string otherstuff = "";
             if (name.Contains('='))
             {
                 string[] parts = name.Split('=');
                 isconst = true;
                 name = parts[0];
-                othershit = " = " + parts[1];
+                otherstuff = " = " + parts[1];
             }
             for (int i = 2; i < backup.Length; i++)
-                othershit += " " + backup[i];
-            if (othershit.Contains('=')) isconst = true;
+                otherstuff += " " + backup[i];
+            if (otherstuff.Contains('=')) isconst = true;
             if (!IsArray)
             {
-                if (othershit.Contains('=') && type == "string")
+                if (otherstuff.Contains('=') && type == "string")
                 {
-                    othershit = othershit.Replace("\\", "\\\\");
-                    othershit = othershit.Replace("\"", "\\\"");
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = \"" + split[1] + "\"";
+                    otherstuff = otherstuff.Replace("\\", "\\\\");
+                    otherstuff = otherstuff.Replace("\"", "\\\"");
+                    string[] split = otherstuff.Split('=');
+                    otherstuff = split[0] + " = \"" + split[1] + "\"";
                 }
-                if (othershit.Contains('=') && type == "bool")
+                if (otherstuff.Contains('=') && type == "bool")
                 {
-                    othershit = othershit.Replace("0", "false").Replace("1", "true");
+                    otherstuff = otherstuff.Replace("0", "false").Replace("1", "true");
                 }
-                if (othershit.Contains('=') && type == "byte")
+                if (otherstuff.Contains('=') && type == "byte")
                 {
-                    othershit = othershit.Replace("-1", "255");
+                    otherstuff = otherstuff.Replace("-1", "255");
                 }
                 if (MsgsFile.resolver.Keys.Contains(type))
                 {
                     type = MsgsFile.resolver[type];
                 }
-                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + othershit + ";";
+                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + otherstuff + ";";
                 Const = isconst;
-                if (othershit.Contains("="))
+                if (otherstuff.Contains("="))
                 {
-                    string[] chunks = othershit.Split('=');
+                    string[] chunks = otherstuff.Split('=');
                     ConstValue = chunks[chunks.Length - 1].Trim();
                 }
             }
@@ -667,17 +667,17 @@ namespace Messages
                     output = lowestindent + "public " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
                 }
                 else
-                    output = lowestindent + "public " + "" + type + "[] " + name + othershit + ";";
-                if (othershit.Contains('='))
+                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
+                if (otherstuff.Contains('='))
                 {
-                    string[] split = othershit.Split('=');
-                    othershit = split[0] + " = (" + type + ")" + split[1];
+                    string[] split = otherstuff.Split('=');
+                    otherstuff = split[0] + " = (" + type + ")" + split[1];
                 }
             }
             Type = type;
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
-            Name = name.Length == 0 ? othershit.Trim() : name;
+            Name = name.Length == 0 ? otherstuff.Trim() : name;
         }
     }
 
