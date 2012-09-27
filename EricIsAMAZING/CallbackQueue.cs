@@ -276,7 +276,7 @@ namespace Ros_CSharp
             {
                 if (callOneCB(tls) != CallOneResult.Empty)
                     ++called;
-                Console.WriteLine(tls.calling_in_this_thread + " = " + tls.Count+" -- "+called);
+                //Console.WriteLine(tls.calling_in_this_thread + " = " + tls.Count+" -- "+called);
             }
 
             lock (mutex)

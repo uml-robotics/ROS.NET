@@ -50,7 +50,7 @@ namespace Ros_CSharp
 
         public override void call(IRosMessage msg)
         {
-            EDB.WriteLine("SubscriptionCallbackHelper: call");
+            //EDB.WriteLine("SubscriptionCallbackHelper: call");
             (callback()).func(msg);
         }
     }
