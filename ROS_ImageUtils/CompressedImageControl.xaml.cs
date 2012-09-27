@@ -36,6 +36,9 @@ namespace ROS_ImageWPF
     
     public partial class CompressedImageControl : UserControl
     {
+        public delegate void ImageReceivedHandler(CompressedImageControl sender);
+        public event ImageReceivedHandler ImageReceivedEvent;
+
         public static string newTopicName;
         DateTime wtf;
         public string TopicName
@@ -103,7 +106,12 @@ namespace ROS_ImageWPF
             }
             if (imgsub == null || imgsub.topic != TopicName)
             {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => { Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data))); });
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+                                                                                                                              {
+                                                                                                                                  UpdateImage(i.data);
+                                                                                                                                  if (ImageReceivedEvent != null)
+                                                                                                                                      ImageReceivedEvent(this);
+                                                                                                                              })));
             }
             wtf = DateTime.Now;
             Console.WriteLine("IMG TOPIC " + TopicName);

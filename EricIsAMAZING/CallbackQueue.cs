@@ -264,7 +264,8 @@ namespace Ros_CSharp
                 {
                     sem.WaitOne(timeout);
                 }
-                if (callbacks.Count == 0 || !enabled) return;
+                if (callbacks.Count == 0 || !enabled)
+                    return;
                 bool wasempty = tls.Count == 0;
                 callbacks.ForEach((cbi) => tls.enqueue(cbi));
                 callbacks.Clear();

@@ -297,7 +297,9 @@ namespace XmlRpc_Wrapper
 
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            return execute(instance, method, parameters.instance, result.instance);
+            bool r = execute(instance, method, parameters.instance, result.instance);
+            Console.WriteLine("" + method + "(" + parameters + ") = " + result);
+            return r;
         }
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)

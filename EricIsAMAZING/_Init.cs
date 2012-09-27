@@ -305,7 +305,7 @@ namespace Ros_CSharp
                 rosoutappender = new RosOutAppender();
 
                 //Time.Init();
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 1,
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
                                          Timeout.Infinite);
                 GlobalCallbackQueue.Enable();
             }
@@ -313,11 +313,11 @@ namespace Ros_CSharp
 
         public static void internalCallbackQueueThreadFunc(object nothing)
         {
-            GlobalCallbackQueue.callAvailable(1);
+            GlobalCallbackQueue.callAvailable(100);
             if (!ok)
                 timer_manager.RemoveTimer(ref internal_queue_thread);
             else
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 1,
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
                                          Timeout.Infinite);
         }
 

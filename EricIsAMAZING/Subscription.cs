@@ -428,7 +428,8 @@ namespace Ros_CSharp
                         bool was_full = false;
                         bool nonconst_need_copy = callbacks.Count > 1;
                         //info.helper.callback().func(msg);
-                        info.helper.callback().pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+                        //info.helper.callback().pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
+                        info.subscription_queue.pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
                         //push(info.helper, deserializer, nonconst_need_copy, ref was_full,receipt_time);
                         if (was_full)
                             ++drops;
@@ -498,7 +499,7 @@ namespace Ros_CSharp
                 CallbackInfo<M> info = new CallbackInfo<M>();
                 info.helper = helper;
                 info.callback = queue;                
-                //info.subscription_queue = new SubscriptionQueue(name, queue_size, allow_concurrent_callbacks);
+                info.subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks);
                 //if (!helper.isConst())
                 //{
                 ++nonconst_callbacks;
@@ -543,7 +544,7 @@ namespace Ros_CSharp
                 {
                     if (info.helper == helper)
                     {
-                        // ((Callback<M>)info.subscription_queue).clear();
+                        //info.subscription_queue.clear();
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
                         //if (!helper.isConst())

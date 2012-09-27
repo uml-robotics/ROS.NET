@@ -36,6 +36,9 @@ namespace ROS_ImageWPF
     
     public partial class ImageControl : UserControl
     {
+        public delegate void ImageReceivedHandler(ImageControl sender);
+        public event ImageReceivedHandler ImageReceivedEvent;
+
         public static string newTopicName;
         DateTime wtf;
         public string TopicName
@@ -98,7 +101,11 @@ namespace ROS_ImageWPF
             wtf = DateTime.Now;
 
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() => UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data))));
+                Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data);
+                        if (ImageReceivedEvent != null) ImageReceivedEvent(this);
+                    })));
             if (spinnin == null)
             {
                 spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(100); })); spinnin.Start();

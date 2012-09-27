@@ -13,7 +13,15 @@ namespace Ros_CSharp
 {
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
-        public Callback(CallbackDelegate<T> f)
+        public Callback(CallbackDelegate<T> f, string topic, int queue_size, bool allow_concurrent_callbacks) : this(f)
+        {
+            this.topic = topic;
+            this.allow_concurrent_callbacks = allow_concurrent_callbacks;
+            _full = false;
+            size = queue_size;
+            this.queue_size = 0;
+        }
+        public Callback(CallbackDelegate<T> f) 
         {
             Event += func;
             /*{
@@ -55,15 +63,6 @@ namespace Ros_CSharp
         public int size;
         public string topic;
 
-        public Callback(string topic, int queue_size, bool allow_concurrent_callbacks)
-        {
-            this.topic = topic;
-            this.allow_concurrent_callbacks = allow_concurrent_callbacks;
-            _full = false;
-            size = queue_size;
-            this.queue_size = 0;
-        }
-
         public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,ref bool was_full)
         {
             push(helper, deserializer, nonconst_need_copy, ref was_full, new TimeData());
@@ -78,12 +77,6 @@ namespace Ros_CSharp
 
         public override void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
-            if (Event != null)
-            {
-                T t = (T) deserializer.deserialize();
-                t.connection_header = deserializer.connection_header;
-                Event(t);
-            }
             lock (queue_mutex)
             {
                 if (was_full)
@@ -112,7 +105,7 @@ namespace Ros_CSharp
             ++queue_size;
         }
 
-        public void clear()
+        public override void clear()
         {
             while (callback_mutex)
             {
@@ -169,8 +162,11 @@ namespace Ros_CSharp
                 --queue_size;
             }
             if (i == null)
+            {
+                callback_mutex = false;
                 return CallResult.Invalid;
-            i.helper.call(i.deserializer.deserialize());
+            }
+            i.deserializer.deserialize();
             callback_mutex = false;
             return CallResult.Success;
         }
@@ -213,6 +209,12 @@ namespace Ros_CSharp
         }
 
         public virtual void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public virtual void clear()
         {
             throw new NotImplementedException();
         }
