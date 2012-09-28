@@ -514,7 +514,7 @@ namespace XmlRpc_Wrapper
         {
             if (__instance == IntPtr.Zero)
                 return "this XmlRpcValue == (NULL)";
-            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size + " -- data = " + Marshal.PtrToStringAnsi(tostring(instance))+"\n";
+            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size + " -- data = " + Marshal.PtrToStringAnsi(tostring(instance));
             return s;
         }
 

@@ -298,7 +298,6 @@ namespace XmlRpc_Wrapper
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
             bool r = execute(instance, method, parameters.instance, result.instance);
-            Console.WriteLine("" + method + "(" + parameters + ") = " + result);
             return r;
         }
 
