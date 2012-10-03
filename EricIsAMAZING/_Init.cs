@@ -80,14 +80,25 @@ namespace Ros_CSharp
         public static Timer internal_queue_thread;
         public static object shutting_down_mutex = new object();
         private static bool dictinit;
+
+        private static long frequency = Stopwatch.Frequency;
+        private static long nanosecPerTick = (1000L * 1000L * 1000L) / frequency;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
+        public static Time GetTime(DateTime time)
+        {
+            return GetTime(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
+        }
+        public static Time GetTime(TimeSpan timestamp)
+        {
+            uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
+            uint nanoseconds = ((uint)Math.Floor(((double)(timestamp.TotalSeconds - seconds) * 1000000000)));
+            Time stamp = new Time(new TimeData(seconds, nanoseconds));
+            return stamp;
+        }
         public static Time GetTime()
         {
-            TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
-            uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            Time stamp = new Time(new TimeData(seconds, (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF)));
-            return stamp;
+            return GetTime(DateTime.Now);
         }
 
         public static IRosMessage MakeMessage(MsgTypes type)
