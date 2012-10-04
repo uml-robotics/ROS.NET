@@ -128,7 +128,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Info(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.INFO);
         }
 
@@ -141,7 +141,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Debug(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
 
@@ -154,7 +154,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Error(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
