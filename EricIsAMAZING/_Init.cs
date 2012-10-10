@@ -19,13 +19,15 @@ using nm = Messages.nav_msgs;
 namespace Ros_CSharp
 {
     public static class EDB
-    {        
-        //[DebuggerStepThrough]
-        public static void WriteLine(object o)
+    {
+        public delegate void otheroutput(object o);
+        public static event otheroutput OtherOutput;
+
+        private static void _writeline(object o)
         {
 #if DEBUG
-            if (("" + o) == "0")
-                Console.WriteLine("BINGO!");
+            if (OtherOutput != null)
+                OtherOutput(o);
             Debug.WriteLine(o);
 #else
             Console.WriteLine(o);
@@ -33,13 +35,19 @@ namespace Ros_CSharp
         }
 
         //[DebuggerStepThrough]
+        public static void WriteLine(object o)
+        {
+            _writeline(o);
+        }
+
+        //[DebuggerStepThrough]
         public static void WriteLine(string format, params object[] args)
         {
 #if DEBUG
             if (args != null && args.Length > 0)
-                Debug.WriteLine(string.Format(format, args));
+                _writeline(string.Format(format, args));
             else
-                Debug.WriteLine(format);
+                _writeline(format);
 #else
             if (args != null && args.Length > 0)
                 Console.WriteLine(string.Format(format, args));

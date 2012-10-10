@@ -44,7 +44,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            //EDB.WriteLine(parent.datatype);
+            EDB.WriteLine("Init transport publisher link: "+parent.name);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -81,7 +81,7 @@ namespace Ros_CSharp
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
             EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- "+reason.ToString());
-            if (conn != connection)
+            if (dropping || conn != connection)
                 return;
             lock (parent)
             {
@@ -159,7 +159,7 @@ namespace Ros_CSharp
 
         private void onMessage(Connection conn, byte[] buffer, uint size, bool success)
         {
-            if (!success && conn == null || conn != connection) return;
+            if (!success || conn == null || conn != connection) return;
             if (success)
             {
                 string ty = parent.datatype.Replace("/", "__");
