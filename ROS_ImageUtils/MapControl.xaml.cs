@@ -135,7 +135,7 @@ namespace ROS_ImageWPF
 
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => { ROS.spinOnce(imagehandle); Thread.Sleep(1); })); spinnin.Start();
+                spinnin = new Thread(new ThreadStart(() => { while (ROS.ok && mapsub != null) { ROS.spinOnce(imagehandle); Thread.Sleep(100); } })); spinnin.Start();
             }
                  
         } 
@@ -229,10 +229,10 @@ namespace ROS_ImageWPF
                 Marshal.Copy(bData.Scan0, rgbData, 0, byteCount);
                 bmp.UnlockBits(bData);
 
-                // starts the overload cluster-fuck to show the image
+                // starts the overload cluster-mess to show the image
                 UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
-                // get that shit out of memory so it doesn't fuck our day up.
+                // get that stuff out of memory so it doesn't mess our day up.
                 bmp.Dispose();
             }
             catch (Exception e)
@@ -270,10 +270,10 @@ namespace ROS_ImageWPF
                     Marshal.Copy(bData.Scan0, rgbData, 0, byteCount);
                     bmp.UnlockBits(bData);
 
-                    // starts the overload cluster-fuck to show the image
+                    // starts the overload cluster-mess to show the image
                     UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
-                    // get that shit out of memory so it doesn't fuck our day up.
+                    // get that stuff out of memory so it doesn't mess our day up.
                     bmp.Dispose();
                 }
                 catch (Exception e)
@@ -282,7 +282,7 @@ namespace ROS_ImageWPF
                 }
             }
             else
-                Console.WriteLine("FUCK YOUR BPP!");
+                Console.WriteLine("non-fatal BPP mismatch. If you see images, then you should go to vegas and bet your life savings on black.");
         }
 
         /// <summary>

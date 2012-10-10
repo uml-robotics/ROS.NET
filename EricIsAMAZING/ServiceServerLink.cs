@@ -54,9 +54,9 @@ namespace Ros_CSharp
         internal bool call<MReq, MRes>(MReq request, ref MRes response)
         {
             //THIS IS WRONG!!!
-            TransportSubscriberLink bisexual = new TransportSubscriberLink();
+            /*TransportSubscriberLink bisexual = new TransportSubscriberLink(connection);
             bisexual.initialize(connection);
-            bisexual.enqueueMessage(request as IRosMessage, true, true);
+            bisexual.enqueueMessage(request as IRosMessage, true, true);*/
             Console.WriteLine("FINISH ME!");
             return true;
         }

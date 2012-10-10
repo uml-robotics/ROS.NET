@@ -19,13 +19,15 @@ using nm = Messages.nav_msgs;
 namespace Ros_CSharp
 {
     public static class EDB
-    {        
-        //[DebuggerStepThrough]
-        public static void WriteLine(object o)
+    {
+        public delegate void otheroutput(object o);
+        public static event otheroutput OtherOutput;
+
+        private static void _writeline(object o)
         {
 #if DEBUG
-            if (("" + o) == "0")
-                Console.WriteLine("BINGO!");
+            if (OtherOutput != null)
+                OtherOutput(o);
             Debug.WriteLine(o);
 #else
             Console.WriteLine(o);
@@ -33,12 +35,24 @@ namespace Ros_CSharp
         }
 
         //[DebuggerStepThrough]
+        public static void WriteLine(object o)
+        {
+            _writeline(o);
+        }
+
+        //[DebuggerStepThrough]
         public static void WriteLine(string format, params object[] args)
         {
 #if DEBUG
-            Debug.WriteLine(string.Format(format, args));
+            if (args != null && args.Length > 0)
+                _writeline(string.Format(format, args));
+            else
+                _writeline(format);
 #else
-            Console.WriteLine(string.Format(format, args));
+            if (args != null && args.Length > 0)
+                Console.WriteLine(string.Format(format, args));
+            else
+                Console.WriteLine(format);
 #endif
         }
     }
@@ -67,21 +81,32 @@ namespace Ros_CSharp
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
-        public static int WallDuration = 10;
+        public static int WallDuration = 100;
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
         public static Timer internal_queue_thread;
         public static object shutting_down_mutex = new object();
         private static bool dictinit;
+
+        private static long frequency = Stopwatch.Frequency;
+        private static long nanosecPerTick = (1000L * 1000L * 1000L) / frequency;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
+        public static Time GetTime(DateTime time)
+        {
+            return GetTime(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
+        }
+        public static Time GetTime(TimeSpan timestamp)
+        {
+            uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
+            uint nanoseconds = ((uint)Math.Floor(((double)(timestamp.TotalSeconds - seconds) * 1000000000)));
+            Time stamp = new Time(new TimeData(seconds, nanoseconds));
+            return stamp;
+        }
         public static Time GetTime()
         {
-            TimeSpan timestamp = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
-            uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            Time stamp = new Time(new TimeData(seconds, (((uint) Math.Floor((timestamp.TotalSeconds - seconds)) << 32) & 0xFFFFFFFF)));
-            return stamp;
+            return GetTime(DateTime.Now);
         }
 
         public static IRosMessage MakeMessage(MsgTypes type)
@@ -103,15 +128,15 @@ namespace Ros_CSharp
             return (G) Activator.CreateInstance(typeof (T));
         }
 
-        public static void FREAKTHEFUCKOUT()
+        public static void FREAKOUT()
         {
-            throw new Exception("ROS IS FREAKING THE FUCK OUT!");
+            throw new Exception("ROS IS FREAKING OUT!");
         }
 
         [DebuggerStepThrough]
         public static void Info(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.INFO);
         }
 
@@ -124,7 +149,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Debug(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
 
@@ -137,7 +162,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Error(object o)
         {
-            if (initialized)
+            if (initialized && rosoutappender != null)
                 rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
@@ -299,7 +324,7 @@ namespace Ros_CSharp
                 rosoutappender = new RosOutAppender();
 
                 //Time.Init();
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 1,
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
                                          Timeout.Infinite);
                 GlobalCallbackQueue.Enable();
             }
@@ -307,11 +332,11 @@ namespace Ros_CSharp
 
         public static void internalCallbackQueueThreadFunc(object nothing)
         {
-            GlobalCallbackQueue.callAvailable(1);
+            GlobalCallbackQueue.callAvailable(100);
             if (!ok)
                 timer_manager.RemoveTimer(ref internal_queue_thread);
             else
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 1,
+                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
                                          Timeout.Infinite);
         }
 

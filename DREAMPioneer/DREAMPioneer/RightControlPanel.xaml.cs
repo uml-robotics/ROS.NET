@@ -79,6 +79,11 @@ namespace DREAMPioneer
         /// </summary>
         public void cleanup()
         {
+            if (webcam != null)
+            {
+                webcam.shutdown();
+                webcam = null;
+            }
         }
 
         /// <summary>

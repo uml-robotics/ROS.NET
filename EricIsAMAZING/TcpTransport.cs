@@ -155,7 +155,7 @@ namespace Ros_CSharp
             }
             if (!expecting_read)
             {
-                Console.WriteLine("ENABLE READ:   " + Topic + "(" + sock.FD + ")");
+                //Console.WriteLine("ENABLE READ:   " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLIN);
                 expecting_read = true;
             }
@@ -171,7 +171,7 @@ namespace Ros_CSharp
             }
             if (expecting_read)
             {
-                Console.WriteLine("DISABLE READ:  " + Topic + "(" + sock.FD + ")");
+                //Console.WriteLine("DISABLE READ:  " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLIN);
                 expecting_read = false;
             }
@@ -186,7 +186,7 @@ namespace Ros_CSharp
             }
             if (!expecting_write)
             {
-                Console.WriteLine("ENABLE WRITE:  " + Topic + "(" + sock.FD + ")");
+                //Console.WriteLine("ENABLE WRITE:  " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLOUT);
                 expecting_write = true;
             }
@@ -201,7 +201,7 @@ namespace Ros_CSharp
             }
             if (expecting_write)
             {
-                Console.WriteLine("DISABLE WRITE: " + Topic + "(" + sock.FD + ")");
+                //Console.WriteLine("DISABLE WRITE: " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLOUT);
                 expecting_write = false;
             }

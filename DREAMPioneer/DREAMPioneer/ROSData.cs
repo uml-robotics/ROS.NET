@@ -101,7 +101,7 @@ namespace DREAMPioneer
         Subscriber<cm.robotMortality> GhostWhisperer;
         private DateTime LastBeat = DateTime.Now;
         public Timer Dethklok;
-        bool IsItAlive = true;
+        bool IsItAlive = false;
         public bool OnLast = false;
 
         public void CheckMortality(object state)
@@ -118,7 +118,7 @@ namespace DREAMPioneer
             if (IsItAlive && DateTime.Now.Subtract(LastBeat).TotalMilliseconds >= 5000)
             {
                 IsItAlive = false;
-                    Console.WriteLine("He was an asshole, anyways... (" + Name + ")");
+                    Console.WriteLine("BWUHBYE... (" + Name + ")");
                     window.current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             //UNDO WPF STUFF
@@ -160,7 +160,7 @@ namespace DREAMPioneer
             tempTwist.angular.z = .5 ;
             joyPub.publish(tempTwist);
             CheckingIn = true;
-            Console.WriteLine("***Checking in robot number: " + RobotNumber + "***"); 
+            Console.WriteLine("Checking in robot number: " + RobotNumber); 
         }
     
         public void endCheckIn()
@@ -174,7 +174,7 @@ namespace DREAMPioneer
             tempTwistStop.angular.z = 0;
             joyPub.publish(tempTwistStop);
             CheckingIn = false;
-            Console.WriteLine("***Ending check in for robot number: " + RobotNumber + "***"); 
+            Console.WriteLine("Ending check in for robot number: " + RobotNumber); 
         }
             
         }
@@ -232,18 +232,44 @@ namespace DREAMPioneer
 
             JagerBombs(true);
 
-            Dethklok = new Timer(CheckMortality, null, 0, 50);
+            //Dethklok = new Timer(CheckMortality, null, 0, 50);
             numRobots++;
+            window.current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                //UNDO WPF STUFF
+                myRobot.robot.Visibility = Visibility.Hidden;
+                myRobot.Visibility = Visibility.Hidden;
+                RobotControl.DoneCheck(RobotNumber);
+                if (window.current.selectedList.Contains(RobotNumber))
+                    window.current.RemoveSelected(RobotNumber, null, "Robot Died");
+                if (ManualNumber == RobotNumber)
+                    window.current.changeManual(-1);
+            }));                 
 
         }
 
         public void Heartbeat(cm.robotMortality Life)
         {
           LastBeat = DateTime.Now;
+          if (!IsItAlive)
+          {
+              IsItAlive = true;
+              if (joyPub != null)
+              {
+                  CheckIn();
+
+              }
+              window.current.Dispatcher.BeginInvoke(new Action(() =>
+              {
+                  myRobot.Visibility = Visibility.Visible;
+                  myRobot.robot.Visibility = Visibility.Visible;
+              }));
+          }
         }
 
         public static void unSub()
         {
+            Console.WriteLine("UNSUB "+ROSData.ManualNumber);
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.publish(new Messages.geometry_msgs.Twist { 
                 linear = new Messages.geometry_msgs.Vector3 { x = 0 }, 
                 angular = new Messages.geometry_msgs.Vector3 { z = 0 } 
@@ -251,14 +277,16 @@ namespace DREAMPioneer
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.shutdown();
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = null;
             servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
+            
             servosPub.shutdown();
             servosPub = null;
             laserSub.shutdown();
             laserSub = null;
-            ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
+            //ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
         public static void reSub()
         {
+            Console.WriteLine("RESUB "+ROSData.ManualNumber);
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 1, true);
             servosPub = node.advertise<cm.ptz>(manualPTZ, 1, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;

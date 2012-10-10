@@ -23,7 +23,7 @@ namespace videoView
     {
         private static void Main(string[] args)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.179:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";  
             ROS.ROS_HOSTNAME = "10.0.2.47";
             ROS.Init(args, "add_two_ints_client_csharp");
             NodeHandle node = new NodeHandle();

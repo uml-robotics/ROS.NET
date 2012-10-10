@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <exception>
 using namespace XmlRpc;
-//bullshit check
+//superficial check
 extern "C" XMLRPC_API int IntegerEcho(int val)
 { 
 	return val;

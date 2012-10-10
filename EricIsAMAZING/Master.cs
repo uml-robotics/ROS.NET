@@ -95,8 +95,7 @@ namespace Ros_CSharp
                 bool slept = false;
                 bool ok = true;
                 while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
-                       !client.Execute(method, request, response) ||
-                       !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
+                       !(ok = client.Execute(method, request, response) && XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload)))
                 {
                     if (!printed)
                     {
@@ -119,7 +118,7 @@ namespace Ros_CSharp
                         return false;
                     }
                     slept = true;
-                    Thread.Sleep(50);
+                    Thread.Sleep(10);
                 }
                 if (ok && !firstsucces)
                 {

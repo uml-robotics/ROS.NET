@@ -33,7 +33,7 @@ namespace Ros_CSharp
             }
             bool res = (i == size);
             if (!res)
-                EDB.WriteLine("WHAT THE FUCK ASS?");
+                EDB.WriteLine("OH NOES CONNECTION HEADER FAILED TO PARSE!");
             return res;
         }
 
@@ -64,7 +64,7 @@ namespace Ros_CSharp
                 buffer = concat(buffer, val);
             }
             if (totallength != buffer.Length)
-                throw new Exception("FUCKING EXCEPTION!");
+                throw new Exception("HEADER AIN'T WRITE GOOD! SHOULD'VE STAYED IN SCHOOL!");
         }
 
         public static byte[] ByteLength(int num)

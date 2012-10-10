@@ -162,26 +162,20 @@ namespace Ros_CSharp
 
         public CallOneResult callOneCB(TLS tls)
         {
-            ICallbackInfo info = null;
-            if (tls.calling_in_this_thread == 0xffffffffffffffff)
-            {
-                info = tls.head;
-            }
-            if (info == null)
-                return CallOneResult.Empty;             
-            CallbackInterface cb = info.Callback;
+            if (tls.Count == 0) return CallOneResult.Empty;
+            ICallbackInfo info = tls.head;
             IDInfo idinfo = getIDInfo(info.removal_id);
             if (idinfo != null)
             {
+                CallbackInterface cb = info.Callback;
                 lock (idinfo.calling_rw_mutex)
                 {
-                    UInt64 last_calling = tls.calling_in_this_thread;
-                    tls.calling_in_this_thread = idinfo.id;
                     CallbackInterface.CallResult result = CallbackInterface.CallResult.Invalid;
                     tls.spliceout(info);
                     if (!info.marked_for_removal)
+                    {
                         result = cb.Call();
-                    tls.calling_in_this_thread = last_calling;
+                    }                    
                     if (result == CallbackInterface.CallResult.TryAgain && !info.marked_for_removal)
                     {
                         lock (mutex)
@@ -197,9 +191,9 @@ namespace Ros_CSharp
             {
                 ICallbackInfo cbi = tls.spliceout(info);
                 if (cbi != null)
-                    cbi.Callback.Call();
+                    cbi.Callback.Call();                
+                return CallOneResult.Called;
             }
-            return CallOneResult.Called;
         }
 
         public CallOneResult callOne()
@@ -270,7 +264,8 @@ namespace Ros_CSharp
                 {
                     sem.WaitOne(timeout);
                 }
-                if (callbacks.Count == 0 || !enabled) return;
+                if (callbacks.Count == 0 || !enabled)
+                    return;
                 bool wasempty = tls.Count == 0;
                 callbacks.ForEach((cbi) => tls.enqueue(cbi));
                 callbacks.Clear();
@@ -281,6 +276,7 @@ namespace Ros_CSharp
             {
                 if (callOneCB(tls) != CallOneResult.Empty)
                     ++called;
+                //Console.WriteLine(tls.calling_in_this_thread + " = " + tls.Count+" -- "+called);
             }
 
             lock (mutex)
@@ -293,16 +289,16 @@ namespace Ros_CSharp
     public class TLS
     {
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
-        private List<CallbackQueueInterface.ICallbackInfo> _queue = new List<CallbackQueueInterface.ICallbackInfo>();
+        private Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
         private object mut = new object();
         public int Count { get { return _queue.Count; } }
         public CallbackQueueInterface.ICallbackInfo head
         {
-            get { return _queue[0]; }
+            get { return _queue.Peek(); }
         }
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { return _queue[_queue.Count - 1]; }
+            get { return _queue.ToArray()[_queue.Count - 1]; }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
@@ -310,16 +306,17 @@ namespace Ros_CSharp
             CallbackQueueInterface.ICallbackInfo icb;
             lock (mut)
             {
-                icb = _queue[0];
-                _queue.RemoveAt(0);
+                icb = _queue.Dequeue();
             }
             return icb;
         }
 
         public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
+            if (info.Callback == null)
+                return;                
             lock (mut)
-                _queue.Insert(_queue.Count, info);
+                _queue.Enqueue(info);
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
@@ -328,7 +325,15 @@ namespace Ros_CSharp
             {
                 if (!_queue.Contains(info))
                     return null;
-                _queue.Remove(info);
+                Stack<CallbackQueueInterface.ICallbackInfo> temp = new Stack<CallbackQueueInterface.ICallbackInfo>();
+                while (_queue.Count > 0)
+                {
+                    CallbackQueueInterface.ICallbackInfo icbi = _queue.Dequeue();
+                    if (icbi != info)
+                        temp.Push(icbi);
+                }
+                while (temp.Count > 0)
+                    _queue.Enqueue(temp.Pop());
             }
             return info;
         }

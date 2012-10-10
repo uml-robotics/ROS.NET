@@ -20,6 +20,7 @@ namespace Ros_CSharp
         private object outbox_mutex = new object();
         private bool queue_full;
         private bool writing_message;
+        private Publication parent;
 
         public TransportSubscriberLink()
         {
@@ -39,6 +40,8 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
+            if (parent != null)
+                EDB.WriteLine("Init transport publisher link: " + parent.Name);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             return true;
@@ -46,7 +49,6 @@ namespace Ros_CSharp
 
         public bool handleHeader(Header header)
         {
-            Console.WriteLine("Many headers! Both sides! Handle it!");
             if (!header.Values.Contains("topic"))
             {
                 string msg = "Header from subscriber did not have the required element: topic";
@@ -80,7 +82,7 @@ namespace Ros_CSharp
             IDictionary m = new Hashtable();
             m["type"] = pt.DataType;
             m["md5sum"] = pt.Md5sum;
-            m["meddage_definition"] = pt.MessageDefinition;
+            m["message_definition"] = pt.MessageDefinition;
             m["callerid"] = this_node.Name;
             m["latching"] = pt.Latch;
             connection.writeHeader(m, onHeaderWritten);

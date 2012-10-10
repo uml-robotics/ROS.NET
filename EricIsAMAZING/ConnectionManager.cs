@@ -168,6 +168,8 @@ namespace Ros_CSharp
                               "]. Fail.");
                 return false;
             }
+            EDB.WriteLine("CONNECTED [" + val +
+                          "]. WIN.");
             return ret;
         }
 
@@ -198,7 +200,7 @@ namespace Ros_CSharp
 
 #if TCPSERVER
             tcpserver_transport = new TcpListener(IPAddress.Any, network.tcpros_server_port);
-            tcpserver_transport.Start(0);
+            tcpserver_transport.Start(10);
             ROS.timer_manager.StartTimer(ref acceptor, CheckAndAccept, 100, 100);
 #else
             tcpserver_transport = new TcpTransport(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), poll_manager.poll_set);
