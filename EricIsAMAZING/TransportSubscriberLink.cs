@@ -82,7 +82,7 @@ namespace Ros_CSharp
             IDictionary m = new Hashtable();
             m["type"] = pt.DataType;
             m["md5sum"] = pt.Md5sum;
-            m["meddage_definition"] = pt.MessageDefinition;
+            m["message_definition"] = pt.MessageDefinition;
             m["callerid"] = this_node.Name;
             m["latching"] = pt.Latch;
             connection.writeHeader(m, onHeaderWritten);
