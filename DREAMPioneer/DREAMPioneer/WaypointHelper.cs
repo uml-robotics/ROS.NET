@@ -12,7 +12,7 @@ namespace DREAMPioneer
 {
     public class WaypointHelper
     {
-        private static uint GoalCounter;
+        public static uint GoalCounter;
         public static WaypointPubSubs[] PubSubs;
         public string ID;
         public GoalDot goalDot;
@@ -99,6 +99,7 @@ namespace DREAMPioneer
             m.goal.target_pose.header.stamp = ROS.GetTime();
             PubSubs[r].goalPub.publish(m);
         }
+
         public static void Publish(List<Point> wayp, params int[] indeces)
         {
             CommonList DisList = new CommonList(wayp);
