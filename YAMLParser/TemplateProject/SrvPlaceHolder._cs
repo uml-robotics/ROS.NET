@@ -1,0 +1,115 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Runtime.InteropServices;
+using uint8 = System.Byte;
+
+namespace Messages
+{
+	public class $WHATAMI
+	{
+		public class Request : IRosMessage
+		{
+			$$REQUESTDOLLADOLLABILLS
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public $WHATAMI() : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM")
+			{
+				$REQUESTNULLCONSTBODY
+			}
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM")
+			{
+			}
+
+	$REQUESTEXTRACONSTRUCTOR		
+					
+			//[System.Diagnostics.DebuggerStepThrough]
+			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			{		
+				return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+			}
+
+			/*		
+			[System.Diagnostics.DebuggerStepThrough]
+			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
+			{			
+				return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+			}
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
+			{			
+				//$REQUESTDESERIALIZATIONCODEHERE
+			}*/
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize()
+			{
+				return Serialize(false);
+			}
+
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize(bool partofsomethingelse)
+			{
+				//$REQUESTSERIALIZATIONCODEHERE			
+				return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
+			}
+		}
+		
+		public class Response : IRosMessage
+		{
+			$$RESPONSEDOLLADOLLABILLS
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public $WHATAMI() : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM")
+			{
+				$RESPONSENULLCONSTBODY
+			}
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM")
+			{
+			}
+
+	$RESPONSEEXTRACONSTRUCTOR		
+					
+			//[System.Diagnostics.DebuggerStepThrough]
+			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			{		
+				return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+			}
+
+					
+			/*[System.Diagnostics.DebuggerStepThrough]
+			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
+			{			
+				return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+			}
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
+			{			
+				//$RESPONSEDESERIALIZATIONCODEHERE
+			}*/
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize()
+			{
+				return Serialize(false);
+			}
+
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize(bool partofsomethingelse)
+			{
+				$RESPONSESERIALIZATIONCODEHERE			
+				return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
+			}	
+		}
+	}
+}

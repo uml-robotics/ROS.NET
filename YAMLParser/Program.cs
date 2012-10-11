@@ -1,4 +1,5 @@
-﻿#define NO_SRVS_RIGHT_NOW
+﻿//#define NO_SRVS_RIGHT_NOW
+//#define SINGLE_PASS
 #define ON_TOP_OF_ITSELF
 #region USINGZ
 
@@ -333,6 +334,7 @@ namespace YAMLParser
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
             string output2="", error2="";
+#if !SINGLE_PASS
             if (File.Exists(outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe"))
             {
                 Process proc2 = new Process();
@@ -370,6 +372,7 @@ namespace YAMLParser
                 Console.WriteLine(output3);
             if (error3.Length > 0)
                 Console.WriteLine(error3);
+#endif
             Console.WriteLine("FINAL PASS DONE");
         }
 

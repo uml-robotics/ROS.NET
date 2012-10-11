@@ -24,36 +24,51 @@ namespace Messages
         public string Name;
         public string Namespace = "Messages";
         public List<SingleType> Stuff = new List<SingleType>();
+        public string requestbackhalf;
+        public string responsebackhalf;
         public string backhalf;
         public string classname;
         private List<string> def = new List<string>();
         public string dimensions = "";
+        public string requestfronthalf;
+        public string resposonebackhalf;
         public string fronthalf;
         private string memoizedcontent;
         private bool meta;
         public MsgsFile Request, Response;
+
         public SrvsFile(string filename)
         {
+            //read in srv file
             string[] lines = File.ReadAllLines(filename);
+
             string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "").Split('\\');
+            //Parse The file name to get the classname;
             classname = sp[sp.Length - 1];
+            //Parse for the Namespace
             Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
+            
+            //split up Namespace and put it back together without the last part, aka. classname
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
             for (int i = 0; i < sp2.Length - 2; i++)
                 Namespace += sp2[i] + ".";
             Namespace += sp2[sp2.Length - 2];
             //THIS IS BAD!
+            //Name set to Namespace + classname
             classname = classname.Replace("/", ".");
             Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
             Name = Name.TrimStart('.');
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
+           
+            //def is the list of all lines in the file
             def = new List<string>(lines);
             int mid = 0;
             bool found = false;
             List<string> request = new List<string>(), response = new List<string>();
+            //Search through for the "---" separator between request and response
             for (; mid < lines.Length; mid++)
             {
                 if (lines[mid].Contains("---"))
@@ -66,6 +81,7 @@ namespace Messages
                 else
                     request.Add(lines[mid]);
             }
+            //add lines aproprietly
             Request = new MsgsFile(filename, true, request, "\t");
             Response = new MsgsFile(filename, false, response, "\t");
         }
@@ -85,17 +101,20 @@ namespace Messages
 
         public override string ToString()
         {
-            if (fronthalf == null)
+            if (requestfronthalf == null)
             {
-                fronthalf = "";
-                backhalf = "";
-                string[] lines = File.ReadAllLines("TemplateProject\\PlaceHolder._cs");
-                bool hitvariablehole = false;
+                requestfronthalf = "";
+                requestbackhalf = "";
+                string[] lines = File.ReadAllLines("TemplateProject\\SrvPlaceHolder._cs");
+                bool requesthitvariablehole = false;
+                bool responsehitvariablehole = false;
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    if (lines[i].Contains("$$DOLLADOLLABILLS"))
+                    //read until you find public class request... do everything once.
+                    //then, do it again response
+                    if (lines[i].Contains("$$REQUESTDOLLADOLLABILLS"))
                     {
-                        hitvariablehole = true;
+                        requesthitvariablehole = true;
                         continue;
                     }
                     if (lines[i].Contains("namespace"))
@@ -105,15 +124,23 @@ namespace Messages
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
-                    if (!hitvariablehole)
-                        fronthalf += lines[i] + "\n";
+                    if (lines[i].Contains("$$RESPONSEDOLLADOLLABILLS"))
+                    {
+                        responsehitvariablehole = true;
+                        continue;
+                    }
+                    if (!requesthitvariablehole)
+                        requestfronthalf += lines[i] + "\n";
+                    else if (!responsehitvariablehole)
+                        requestbackhalf += lines[i] + "\n";
                     else
-                        backhalf += lines[i] + "\n";
+                        responsebackhalf += lines[i] + "\n";
                 }
             }
 
-            GUTS = fronthalf + "\n\t\tpublic class " + classname + "\n\t\t{" + Request.GetSrvHalf() + Response.GetSrvHalf() + "\t\t}" + "\n" +
-                   backhalf;
+            GUTS = requestfronthalf + Request.GetSrvHalf() + requestbackhalf + Response.GetSrvHalf() +"\n" +
+                   responsebackhalf;
+
             return GUTS;
         }
     }
@@ -139,7 +166,8 @@ namespace Messages
         :this(filename, isrequest,lines,  "")
         {}
 
-        public MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
+        public 
+            MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
         {
             if (resolver == null) resolver = new Dictionary<string, string>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
@@ -288,7 +316,7 @@ namespace Messages
             GeneratedDictHelper = "";
             foreach (SingleType S in Stuff)
                 GeneratedDictHelper += MessageFieldHelper.Generate(S);
-            GUTS = fronthalf + "\n\t\t\tpublic class " + classname + "\n\t\t\t{\n" + memoizedcontent + "\t\t\t}" + "\n" +
+            GUTS = fronthalf + memoizedcontent + "\n" +
                    backhalf;
             return GUTS;
         }
@@ -699,3 +727,63 @@ namespace Messages
         }
     }
 }
+
+//Possible working code, notsure
+
+/*if (classname.ToLower() == "string")
+            {
+                GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
+                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            else if (classname == "Time" || classname == "Duration")
+            {
+                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            for (int i = 0; i < def.Count; i++)
+            {
+                while (def[i].Contains("\t"))
+                    def[i] = def[i].Replace("\t", " ");
+                while (def[i].Contains("\n\n"))
+                    def[i] = def[i].Replace("\n\n", "\n");
+                def[i] = def[i].Replace('\t', ' ');
+                while (def[i].Contains("  "))
+                    def[i] = def[i].Replace("  ", " ");
+                def[i] = def[i].Replace(" = ", "=");
+            }
+            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
+            GUTS = GUTS.Replace("$REQUESTMYHASHEADER", HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYFIELDS", "()");
+            GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "");
+            GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "");
+
+            if (classname.ToLower() == "string")
+            {
+                GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
+                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            else if (classname == "Time" || classname == "Duration")
+            {
+                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$RESPONSEMYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$RESPONSEMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            for (int i = 0; i < def.Count; i++)
+            {
+                while (def[i].Contains("\t"))
+                    def[i] = def[i].Replace("\t", " ");
+                while (def[i].Contains("\n\n"))
+                    def[i] = def[i].Replace("\n\n", "\n");
+                def[i] = def[i].Replace('\t', ' ');
+                while (def[i].Contains("  "))
+                    def[i] = def[i].Replace("  ", " ");
+                def[i] = def[i].Replace(" = ", "=");
+            }
+            GUTS = GUTS.Replace("$RESPONSEMYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
+            GUTS = GUTS.Replace("$RESPONSEMYHASHEADER", HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", "()");
+            GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
+            GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");*/
