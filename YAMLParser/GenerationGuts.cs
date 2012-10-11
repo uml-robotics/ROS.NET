@@ -119,9 +119,9 @@ namespace Messages
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        fronthalf +=
-                            "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
-                        fronthalf += "namespace " + Namespace + "\n";
+                        //requestfronthalf +=
+                          //  "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
+                        requestfronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
                     if (lines[i].Contains("$$RESPONSEDOLLADOLLABILLS"))
@@ -140,6 +140,96 @@ namespace Messages
 
             GUTS = requestfronthalf + Request.GetSrvHalf() + requestbackhalf + Response.GetSrvHalf() +"\n" +
                    responsebackhalf;
+            /***********************************/
+            /*       CODE BLOCK DUMP           */
+            /***********************************/
+
+            if (classname.ToLower() == "string")
+            {
+                GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
+                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            else if (classname == "Time" || classname == "Duration")
+            {
+                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            for (int i = 0; i < def.Count; i++)
+            {
+                while (def[i].Contains("\t"))
+                    def[i] = def[i].Replace("\t", " ");
+                while (def[i].Contains("\n\n"))
+                    def[i] = def[i].Replace("\n\n", "\n");
+                def[i] = def[i].Replace('\t', ' ');
+                while (def[i].Contains("  "))
+                    def[i] = def[i].Replace("  ", " ");
+                def[i] = def[i].Replace(" = ", "=");
+            }
+            string MessageDefinition="";
+            foreach(string s in def)
+            {
+                if (s == "---")
+                {
+                      break;
+                }
+             MessageDefinition += s;
+            }
+          
+            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" +MessageDefinition +"\"");
+            GUTS = GUTS.Replace("$REQUESTMYHASHEADER", HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYFIELDS", "()");
+            GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "");
+            GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "");
+
+            if (classname.ToLower() == "string")
+            {
+                GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
+                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            else if (classname == "Time" || classname == "Duration")
+            {
+                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$RESPONSEMYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$RESPONSEMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            for (int i = 0; i < def.Count; i++)
+            {
+                while (def[i].Contains("\t"))
+                    def[i] = def[i].Replace("\t", " ");
+                while (def[i].Contains("\n\n"))
+                    def[i] = def[i].Replace("\n\n", "\n");
+                def[i] = def[i].Replace('\t', ' ');
+                while (def[i].Contains("  "))
+                    def[i] = def[i].Replace("  ", " ");
+                def[i] = def[i].Replace(" = ", "=");
+            }
+
+            MessageDefinition = "";
+            for(int i=def.Count-1;i>0;i--)
+            {
+                if (def[i] == "---")
+                {
+                      break;
+                }
+                MessageDefinition += def[i];
+            }
+            
+
+            GUTS = GUTS.Replace("$RESPONSEMYMESSAGEDEFINITION", "@\"" + MessageDefinition + "\"");
+            GUTS = GUTS.Replace("$RESPONSEMYHASHEADER", HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", "()");
+            GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
+            GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
+             /********END BLOCK**********/
+
+
+
+
+
+
 
             return GUTS;
         }
