@@ -213,11 +213,11 @@ namespace Messages
             FieldInfo[] infos = GetFields(T, ref thestructure, out MSG);
             if (MSG != null)
                 MT = MSG.msgtype;
-            currpos = 0; // sizeknown ? 0 : 4;
             startingpos = currpos;
             int currinfo = 0;
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
+                Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
                 Type type = GetType(infos[currinfo].FieldType.FullName);
                 //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
@@ -504,6 +504,8 @@ namespace Messages
                         info.SetValue(instance, "");
                     else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
                         info.SetValue(instance, 0);
+                    else if (info.FieldType.IsArray)
+                        info.SetValue(instance, Array.CreateInstance(info.FieldType.GetElementType(), 0));
                     else
                         info.SetValue(instance, Activator.CreateInstance(info.FieldType));
                 }
