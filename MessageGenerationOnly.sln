@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{83517BB8-F42D-4249-8B7F-A982115CF47E}"
+	ProjectSection(SolutionItems) = preProject
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		MessageGenerationOnly.vsmdi = MessageGenerationOnly.vsmdi
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLParser", "YAMLParser\YAMLParser.csproj", "{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}"
 EndProject
@@ -9,7 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondPass", "SecondPass\Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "Messages\Messages.csproj", "{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagesTest", "MessagesTest\MessagesTest.csproj", "{13A262B6-22A6-4775-AEF0-54682440AFD3}"
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = MessageGenerationOnly.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -79,6 +88,24 @@ Global
 		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Mixed Platforms.Build.0 = Release|Any CPU
 		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|Win32.ActiveCfg = Release|Any CPU
 		{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}.Template|x86.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Release|x86.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Any CPU.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Any CPU.Build.0 = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Mixed Platforms.Build.0 = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Win32.ActiveCfg = Release|Any CPU
+		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
