@@ -49,6 +49,7 @@ namespace Messages
         public byte[] Serialized;
         public IDictionary connection_header;
         public MsgTypes msgtype;
+        public bool IsServiceComponent;
         public Dictionary<string, MsgFieldInfo> Fields;
 
         public IRosMessage()
@@ -62,7 +63,12 @@ namespace Messages
         {}
 
         [DebuggerStepThrough]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5)
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5) : this(t,def,hasheader,meta,fields,ms5,false)
+        {
+        }
+
+        [DebuggerStepThrough]
+        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5, bool isservicemessage)
         {
             msgtype = t;
             MessageDefinition = def;
@@ -70,6 +76,7 @@ namespace Messages
             IsMetaType = meta;
             Fields = fields;
             MD5Sum = ms5;
+            IsServiceComponent = isservicemessage;
         }
 
         public IRosMessage(byte[] SERIALIZEDSTUFF)

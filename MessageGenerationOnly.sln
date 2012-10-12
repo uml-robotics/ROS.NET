@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "Messages\Messag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagesTest", "MessagesTest\MessagesTest.csproj", "{13A262B6-22A6-4775-AEF0-54682440AFD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{C0B5FE58-43EA-4409-9A91-E523054115CF}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = MessageGenerationOnly.vsmdi
@@ -106,6 +108,24 @@ Global
 		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Mixed Platforms.Build.0 = Release|Any CPU
 		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|Win32.ActiveCfg = Release|Any CPU
 		{13A262B6-22A6-4775-AEF0-54682440AFD3}.Template|x86.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|Win32.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Release|x86.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|Any CPU.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|Any CPU.Build.0 = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|Mixed Platforms.Build.0 = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|Win32.ActiveCfg = Release|Any CPU
+		{C0B5FE58-43EA-4409-9A91-E523054115CF}.Template|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

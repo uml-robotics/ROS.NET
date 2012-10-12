@@ -14,3 +14,4 @@ Messages/
 *.sdf
 *.vcxproj.user
 TempMessages/
+TestResults/

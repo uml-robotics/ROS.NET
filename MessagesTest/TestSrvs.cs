@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Messages;
 
 namespace MessagesTest
 {
@@ -10,13 +11,18 @@ namespace MessagesTest
     /// Summary description for TestMsgs
     /// </summary>
     [TestClass]
-    public class TestMsgs
+    public class TestSrvs
     {
-        public TestMsgs()
+        List<IRosService> srvs = new List<IRosService>();
+        public TestSrvs()
         {
-            //
-            // TODO: Add constructor logic here
-            //
+            Array arr = Enum.GetValues(typeof(SrvTypes));
+            SrvTypes[] all = arr as SrvTypes[];
+            foreach (SrvTypes s in all)
+            {
+                if (s == SrvTypes.Unknown) continue;
+                srvs.Add(IRosService.generate(s));
+            }
         }
 
         private TestContext testContextInstance;

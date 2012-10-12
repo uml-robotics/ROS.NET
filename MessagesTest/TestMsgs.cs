@@ -11,15 +11,19 @@ namespace MessagesTest
     /// Summary description for TestMsgs
     /// </summary>
     [TestClass]
-    public class TestSrvs
+    public class TestMsgs
     {
-        List<IRosService> srvs = new List<IRosService>();
+        List<IRosMessage> msgs = new List<IRosMessage>();
 
-        public TestSrvs()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
+        public TestMsgs()
+        {        
+            Array arr = Enum.GetValues(typeof(MsgTypes));
+            MsgTypes[] all = arr as MsgTypes[];
+            foreach (MsgTypes s in all)
+            {
+                if (s == MsgTypes.Unknown) continue;
+                msgs.Add(IRosMessage.generate(s));
+            }
         }
 
         private TestContext testContextInstance;
@@ -65,9 +69,12 @@ namespace MessagesTest
         [TestMethod]
         public void TestMethod1()
         {
-            //
-            // TODO: Add test logic	here
-            //
+            foreach (IRosMessage m in msgs)
+            {
+                byte [] res = m.Serialize();
+                IRosMessage deserialized = IRosMessage.generate(m.msgtype);
+                deserialized = deserialized.Deserialize(res);                
+            }
         }
     }
 }
