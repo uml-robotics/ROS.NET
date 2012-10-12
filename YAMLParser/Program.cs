@@ -387,7 +387,7 @@ namespace YAMLParser
                     backhalf = "\n}";
                 }
 
-                List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
+                List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);                
                 foreach (SrvsFile sf in srvFiles)
                 {
                     everything.Add(sf.Request);
@@ -395,16 +395,26 @@ namespace YAMLParser
                 }
                 fronthalf += "\n\tpublic enum MsgTypes\n\t{";
                 fronthalf += "\n\t\tUnknown,";
+                string srvs = "\n\t\tUnknown,";
                 for (int i = 0; i < everything.Count; i++)
                 {
                     fronthalf += "\n\t\t";
                     if (everything[i].classname == "Request" || everything[i].classname == "Response")
+                    {
+                        if (everything[i].classname == "Request")
+                        {
+                            srvs += "\n\t\t"+everything[i].Name.Replace(".","__") + ",";
+                        }
                         everything[i].Name += "." + everything[i].classname;
-                    fronthalf += everything[i].Name.Replace(".", "__");
+                    }                    
+                    fronthalf += everything[i].Name.Replace(".", "__");                    
                     if (i < everything.Count - 1)
                         fronthalf += ",";
                 }
                 fronthalf += "\n\t}\n";
+                srvs = srvs.TrimEnd(',');
+                fronthalf += "\n\tpublic enum SrvTypes\n\t{";
+                fronthalf += srvs + "\n\t}\n";
                 uberpwnage = fronthalf + backhalf;
             }
             return uberpwnage;

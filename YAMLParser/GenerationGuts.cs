@@ -20,7 +20,7 @@ namespace Messages
     {
         private string GUTS;
         public string GeneratedDictHelper;
-        private bool HasHeader;
+        public bool HasHeader;
         public string Name;
         public string Namespace = "Messages";
         public List<SingleType> Stuff = new List<SingleType>();
@@ -143,19 +143,8 @@ namespace Messages
             /***********************************/
             /*       CODE BLOCK DUMP           */
             /***********************************/
-
-            if (classname.ToLower() == "string")
-            {
-                GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
-                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-            }
-            else if (classname == "Time" || classname == "Duration")
-            {
-                GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($REQUESTMYMSGTYPE, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-            }
-            GUTS = GUTS.Replace("$WHATAMI", classname);
-            GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
-            GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            
+            #region definitions
             for (int i = 0; i < def.Count; i++)
             {
                 while (def[i].Contains("\t"))
@@ -167,69 +156,63 @@ namespace Messages
                     def[i] = def[i].Replace("  ", " ");
                 def[i] = def[i].Replace(" = ", "=");
             }
-            string MessageDefinition="";
+            StringBuilder md=new StringBuilder();
+            StringBuilder reqd = new StringBuilder();
+            StringBuilder resd = null;
             foreach(string s in def)
-            {
+            {                
                 if (s == "---")
                 {
-                      break;
+                    //only put this string in md, because the subclass defs don't contain it
+                    md.AppendLine(s);
+
+                    //we've hit the middle... move from the request to the response by making responsedefinition not null.
+                    resd = new StringBuilder();
+                    continue;
                 }
-             MessageDefinition += s;
+
+                //add every line to MessageDefinition for whole service
+                md.AppendLine(s);
+
+                //before we hit ---, add lines to request Definition. Otherwise, add them to response.
+                if (resd == null)
+                    reqd.AppendLine(s);
+                else
+                    resd.AppendLine(s);
             }
-          
-            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" +MessageDefinition +"\"");
-            GUTS = GUTS.Replace("$REQUESTMYHASHEADER", HasHeader.ToString().ToLower());
-            GUTS = GUTS.Replace("$REQUESTMYFIELDS", "()");
+            string MessageDefinition = md.ToString().Trim();
+            string RequestDefinition = reqd.ToString().Trim();
+            string ResponseDefinition = resd.ToString().Trim();
+            #endregion
+
+            #region THE SERVICE
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$MYSRVTYPE", "SrvTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            GUTS = GUTS.Replace("$MYSERVICEDEFINITION", "@\""+MessageDefinition+"\"");
+            #endregion            
+
+            #region request
+            string RequestDict = Request.GenFields();
+            GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" +RequestDefinition +"\"");
+            GUTS = GUTS.Replace("$REQUESTMYHASHEADER", Request.HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$REQUESTMYFIELDS", RequestDict.Length > 5 ? "{{" + RequestDict + "}}" : "()");
             GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "");
             GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "");
+            #endregion
 
-            if (classname.ToLower() == "string")
-            {
-                GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
-                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-            }
-            else if (classname == "Time" || classname == "Duration")
-            {
-                GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($RESPONSEMYMSGTYPE, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-            }
-            GUTS = GUTS.Replace("$WHATAMI", classname);
-            GUTS = GUTS.Replace("$RESPONSEMYISMETA", meta.ToString().ToLower());
+            #region response
+            string ResponseDict = Response.GenFields();
+            GUTS = GUTS.Replace("$RESPONSEMYISMETA", Response.meta.ToString().ToLower());
             GUTS = GUTS.Replace("$RESPONSEMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
-            for (int i = 0; i < def.Count; i++)
-            {
-                while (def[i].Contains("\t"))
-                    def[i] = def[i].Replace("\t", " ");
-                while (def[i].Contains("\n\n"))
-                    def[i] = def[i].Replace("\n\n", "\n");
-                def[i] = def[i].Replace('\t', ' ');
-                while (def[i].Contains("  "))
-                    def[i] = def[i].Replace("  ", " ");
-                def[i] = def[i].Replace(" = ", "=");
-            }
-
-            MessageDefinition = "";
-            for(int i=def.Count-1;i>0;i--)
-            {
-                if (def[i] == "---")
-                {
-                      break;
-                }
-                MessageDefinition += def[i];
-            }
-            
-
-            GUTS = GUTS.Replace("$RESPONSEMYMESSAGEDEFINITION", "@\"" + MessageDefinition + "\"");
-            GUTS = GUTS.Replace("$RESPONSEMYHASHEADER", HasHeader.ToString().ToLower());
-            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", "()");
+            GUTS = GUTS.Replace("$RESPONSEMYMESSAGEDEFINITION", "@\"" + ResponseDefinition + "\"");
+            GUTS = GUTS.Replace("$RESPONSEMYHASHEADER", Response.HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", RequestDict.Length > 5 ? "{{" + RequestDict + "}}" : "()");
             GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
             GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
-             /********END BLOCK**********/
-
-
-
-
-
-
+            #endregion 
+            /********END BLOCK**********/
 
             return GUTS;
         }
@@ -239,7 +222,7 @@ namespace Messages
     {
         private string GUTS;
         public string GeneratedDictHelper;
-        private bool HasHeader;
+        public bool HasHeader;
         public string Name;
         public string Namespace = "Messages";
         public List<SingleType> Stuff = new List<SingleType>();
@@ -249,7 +232,7 @@ namespace Messages
         public string dimensions = "";
         public string fronthalf;
         private string memoizedcontent;
-        private bool meta;
+        public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
         public static Dictionary<string, string> resolver;
         public MsgsFile(string filename, bool isrequest, List<string> lines)
@@ -411,6 +394,18 @@ namespace Messages
             return GUTS;
         }
 
+        public string GenFields()
+        {
+            string ret = "\n\t\t\t\t";
+            for (int i = 0; i < Stuff.Count; i++)
+            {
+                if (resolver.ContainsKey(Stuff[i].Type))
+                    Stuff[i].refinalize(resolver[Stuff[i].Type]);
+                ret += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);
+            }
+            return ret;
+        }
+
         public override string ToString()
         {
             bool wasnull = false;
@@ -480,7 +475,7 @@ namespace Messages
                     memoizedcontent = memoizedcontent.Replace("DataData", "Data");
                 //if (GeneratedDictHelper == null)
                 //    GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
-                GeneratedDictHelper = "\n\t\t\t\t";
+                GeneratedDictHelper = GenFields();
                 string GeneratedDeserializationCode = "";
                 bool literal = false;
                 StringBuilder DEF = new StringBuilder();
@@ -495,12 +490,6 @@ namespace Messages
                 for (int i = 0; i < Stuff.Count; i++)
                     GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
             }
-                for (int i = 0; i < Stuff.Count; i++)
-                {
-                    if (resolver.ContainsKey(Stuff[i].Type))
-                        Stuff[i].refinalize(resolver[Stuff[i].Type]);
-                    GeneratedDictHelper += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);
-                }
                 GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                        (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
                 if (classname.ToLower() == "string")

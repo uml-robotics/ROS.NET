@@ -94,4 +94,65 @@ namespace Messages
             throw new NotImplementedException();
         }
     }
+
+    public delegate IRosMessage RosServiceDelegate(IRosMessage request);
+
+    public class IRosService
+    {
+        public string MD5Sum;
+        public string ServiceDefinition;
+        public SrvTypes srvtype = SrvTypes.Unknown;
+        public IRosMessage RequestMessage, ResponseMessage;
+
+        protected IRosMessage GeneralInvoke(RosServiceDelegate invocation, IRosMessage m)
+        {
+            return invocation.Invoke(m);
+        }
+        public IRosService()
+            : this(SrvTypes.Unknown, "", "")
+        {
+        }
+
+        public IRosService(SrvTypes t, string def, string md5)
+        {
+            srvtype = t;
+            ServiceDefinition = def;
+            MD5Sum = md5;
+        }
+
+        protected void InitSubtypes(IRosMessage request, IRosMessage response)
+        {
+            RequestMessage = request;
+            ResponseMessage = response;
+        }
+
+        internal static Dictionary<SrvTypes, Func<SrvTypes, IRosService>> constructors = new Dictionary<SrvTypes, Func<SrvTypes, IRosService>>();
+        private static Dictionary<SrvTypes, Type> _typeregistry = new Dictionary<SrvTypes, Type>();
+
+        [DebuggerStepThrough]
+        public static IRosService generate(SrvTypes t)
+        {
+            if (constructors.ContainsKey(t))
+                return constructors[t].Invoke(t);
+            Type thistype = typeof(IRosService);
+            foreach (Type othertype in thistype.Assembly.GetTypes())
+            {
+                if (thistype == othertype || !othertype.IsSubclassOf(thistype)) continue;
+                IRosService srv = Activator.CreateInstance(othertype) as IRosService;
+                if (srv != null)
+                {
+                    if (srv.srvtype == SrvTypes.Unknown)
+                        throw new Exception("OH NOES IRosMessage.generate is borked!");
+                    if (!_typeregistry.ContainsKey(srv.srvtype))
+                        _typeregistry.Add(srv.srvtype, srv.GetType());
+                    if (!constructors.ContainsKey(srv.srvtype))
+                        constructors.Add(srv.srvtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosService);
+                }
+            }
+            if (constructors.ContainsKey(t))
+                return constructors[t].Invoke(t);
+            else
+                throw new Exception("OH NOES IRosMessage.generate is borked!");
+        }
+    }
 }

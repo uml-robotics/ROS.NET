@@ -16,4 +16,9 @@ namespace Messages
         std_msgs__Duration,
         std_msgs__Byte
     }
+
+    public enum SrvTypes
+    {
+        Unknown
+    }
 }

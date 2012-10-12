@@ -8,8 +8,25 @@ using uint8 = System.Byte;
 
 namespace Messages
 {
-	public class $WHATAMI
+	public class $WHATAMI : IRosService
 	{
+		[System.Diagnostics.DebuggerStepThrough]
+		public $WHATAMI() : base($MYSRVTYPE, $MYSERVICEDEFINITION, "$MYSRVMD5SUM")
+		{
+			InitSubtypes(new Request(), new Response());
+		}
+		
+		public Response Invoke(Func<Request, Response> fn, Request req)
+		{
+			RosServiceDelegate rsd = (m)=>{
+				Request r = m as Request;
+				if (r == null)
+					throw new Exception("Invalid Service Request Type");
+				return fn(r);
+			};
+			return (Response)GeneralInvoke(rsd, (IRosMessage)req);
+		}
+	
 		public class Request : IRosMessage
 		{
 			$$REQUESTDOLLADOLLABILLS
