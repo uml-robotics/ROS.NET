@@ -133,9 +133,6 @@
     <Content Include="ROS_MESSAGES\custom_msgs\arraytest.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ROS_MESSAGES\custom_msgs\cgeo.msg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="ROS_MESSAGES\custom_msgs\simpleintarray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -347,9 +344,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ROS_MESSAGES\ServiceTest\AddTwoInts.srv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ROS_MESSAGES\custom_msgs\arrayofdeez.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="ROS_MESSAGES\actionlib_msgs\GoalID.msg">

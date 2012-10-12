@@ -37,13 +37,17 @@ namespace Messages
             return mt;
         }
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static Type GetType(string s)
         {
+            Type ret;
             MsgTypes mt = GetMessageType(s);
             if (mt == MsgTypes.Unknown)
-                return Type.GetType(s, true, true);
-            return IRosMessage.generate(mt).GetType();
+                ret = Type.GetType(s, true, true);
+            else
+                ret = IRosMessage.generate(mt).GetType();
+            Console.WriteLine(s + "=" + ret.Name);
+            return ret;
         }
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
@@ -66,7 +70,7 @@ namespace Messages
                     Array types = Enum.GetValues(typeof(MsgTypes));
                     MsgTypes[] mts = (MsgTypes[])types;
                     string test = s.Split('.')[1];
-                    MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Contains(test.ToLower()));
+                    MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Equals(test.ToLower()));
                     GetMessageTypeMemoString.Add(s, m);
                     return m;
                 }
@@ -241,7 +245,7 @@ namespace Messages
                     else if (infos[currinfo].FieldType.IsArray && msgtype != MsgTypes.std_msgs__String)
                     //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
                     {
-                        Type TT = GetType(realtype.GetElementType().FullName);
+                        Type TT = GetType(infos[currinfo].FieldType.GetElementType().FullName);
                         if (TT.IsArray)
                             throw new Exception("ERIC, YOU NEED TO MAKE DESERIALIZATION RECURSE!!!");
                         Array vals = (infos[currinfo].GetValue(thestructure) as Array);
@@ -502,10 +506,10 @@ namespace Messages
                 {
                     if (info.FieldType == typeof(string))
                         info.SetValue(instance, "");
-                    else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
-                        info.SetValue(instance, 0);
                     else if (info.FieldType.IsArray)
                         info.SetValue(instance, Array.CreateInstance(info.FieldType.GetElementType(), 0));
+                    else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
+                        info.SetValue(instance, 0);
                     else
                         info.SetValue(instance, Activator.CreateInstance(info.FieldType));
                 }
@@ -616,6 +620,8 @@ namespace Messages
                 Queue<byte[]> arraychunks = new Queue<byte[]>();
                 for (int i = 0; i < vals.Length; i++)
                 {
+                    if (vals[i] == null)
+                        vals[i] = Activator.CreateInstance(T.GetElementType());
                     Type TT = vals[i].GetType();
                     MsgTypes mt = GetMessageType(TT);
                     bool piecelengthknown = mt != MsgTypes.std_msgs__String;
