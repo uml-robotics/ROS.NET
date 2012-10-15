@@ -46,7 +46,7 @@ namespace Messages
                 ret = Type.GetType(s, true, true);
             else
                 ret = IRosMessage.generate(mt).GetType();
-            Console.WriteLine(s + "=" + ret.Name);
+//            Console.WriteLine(s + "=" + ret.Name);
             return ret;
         }
 
@@ -184,7 +184,7 @@ namespace Messages
         {
             if (bytes.Length == 0 && !WHAT_IS_HAPPENING)
             {
-                Console.WriteLine("Deserializing empty array?");
+//                Console.WriteLine("Deserializing empty array?");
                 amountread = 0;
                 return null;
             }

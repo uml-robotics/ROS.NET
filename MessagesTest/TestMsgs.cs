@@ -69,12 +69,39 @@ namespace MessagesTest
         [TestMethod]
         public void TestMethod1()
         {
+            bool pass;
             foreach (IRosMessage m in msgs)
             {
                 byte [] res = m.Serialize();
                 IRosMessage deserialized = IRosMessage.generate(m.msgtype);
-                deserialized = deserialized.Deserialize(res);                
+                deserialized = deserialized.Deserialize(res);
+                deserialized.Serialized=null;
+                byte[] dres = deserialized.Serialize();
+                pass = TestEqual(res, dres);
+                if (!pass)
+                { 
+                    Console.Error.WriteLine("\nTestEqual Failed: " + m.GetType().ToString() + " != " + deserialized.GetType().ToString());
+                }
+                else
+                    Console.Error.WriteLine("\nTestEqual Succeded: " + m.GetType().ToString() + " == " + deserialized.GetType().ToString());
             }
+        }
+        bool TestEqual(byte[] original, byte[] copy)
+        {
+            if (original.Count() != copy.Count())
+            {
+                Console.Error.WriteLine("\nSize Mismatch:");
+                return false;
+            }
+                for (int i = 0; i < original.Count(); i++)
+                {
+                    if (original[i] != copy[i])
+                    {
+                        return false;
+                    }
+
+                }
+                return true;
         }
     }
 }
