@@ -1,0 +1,3 @@
+[submodule "lib_3mtouchdrivers"]
+	path = lib_3mtouchdrivers
+	url = git@code.cs.uml.edu:multitouch/lib_3mtouchdrivers.git
