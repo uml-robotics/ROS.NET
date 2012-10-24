@@ -200,6 +200,7 @@ namespace Ros_CSharp
 
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
+            
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {

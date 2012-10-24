@@ -11,7 +11,7 @@
             <Viewbox.RenderTransform>
                 <ScaleTransform ScaleX="-1" ScaleY="-1"/>
             </Viewbox.RenderTransform>
-            <E:CompressedImageControl E:CompressedImageControl.TopicName="/robot_brain_1/camera/rgb/image_color/compressed" x:FieldModifier="public" x:Name="webcam" />
+            <E:CompressedImageControl E:CompressedImageControl.TopicName="/robot_brain_1/robot_brain_1/image_color/compressed" x:FieldModifier="public" x:Name="webcam" />
          </Viewbox>
     </Grid>
 </DREAM:ControlPanel>

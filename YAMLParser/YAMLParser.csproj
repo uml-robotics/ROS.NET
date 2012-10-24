@@ -111,6 +111,7 @@
     <Compile Include="TemplateProject\Interfaces.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <None Include="TemplateProject\PubSubTest._cs" />
     <Compile Include="TemplateProject\Time.cs" />
     <Compile Include="TemplateProject\SerializationHelper.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

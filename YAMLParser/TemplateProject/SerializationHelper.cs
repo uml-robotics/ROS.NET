@@ -202,26 +202,30 @@ namespace Messages
                 amountread = size;
                 if (WHAT_IS_HAPPENING)
                 {
-                    Console.WriteLine("//deserialize: " + T.FullName);
-                    Console.WriteLine(string.Format(@"    $A = new {0}();    
+                    /*
+Console.WriteLine("//deserialize: " + T.FullName);
+                    /*Console.WriteLine(string.Format(@"    $A = new {0}();    
     IntPtr $B = Marshal.AllocHGlobal({1})
     Marshal.Copy(bytes, 0, $B, {1});
     $A = Marshal.PtrToStructure($B, typeof({0}));    
-", T.FullName, Marshal.SizeOf(T)));
-                }
+", T.FullName, Marshal.SizeOf(T)));*/
+            }
                 return mem != IntPtr.Zero ? Marshal.PtrToStructure(mem, T) : null;
             }
             IRosMessage MSG;
             int startingpos = 0, currpos = 0;
+            /*if (container==null)
+               currpos = 4;*/
             MsgTypes MT = MsgTypes.Unknown;
             FieldInfo[] infos = GetFields(T, ref thestructure, out MSG);
             if (MSG != null)
                 MT = MSG.msgtype;
             startingpos = currpos;
+            
             int currinfo = 0;
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
-                Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
+               // Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
                 Type type = GetType(infos[currinfo].FieldType.FullName);
                 //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
@@ -459,7 +463,7 @@ namespace Messages
                             }
                             else
                             {
-                                Console.WriteLine("ZOMG HANDLE: " + infos[currinfo].FieldType.FullName);
+                                //Console.WriteLine("ZOMG HANDLE: " + infos[currinfo].FieldType.FullName);
                                 amountread = currpos - startingpos;
                                 return thestructure;
                             }
@@ -523,6 +527,7 @@ namespace Messages
             }
             byte[] wholeshebang = new byte[totallength];
             int currpos = 0;
+            
             if (!partofsomethingelse)
             {
                 wholeshebang = new byte[totallength + 4]; //THE WHOLE SHEBANG

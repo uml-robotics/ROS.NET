@@ -106,7 +106,7 @@ namespace ROS_ImageWPF
             }
             if (imgsub == null || imgsub.topic != TopicName)
             {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                               {
                                                                                                                                   UpdateImage(i.data);
                                                                                                                                   if (ImageReceivedEvent != null)
@@ -125,7 +125,7 @@ namespace ROS_ImageWPF
                         if (STOPIT)
                             break;
                         ROS.spinOnce(imagehandle); 
-                        Thread.Sleep(100);
+                        Thread.Sleep(10);
                     }
                     spinnin = null;
                 })); 

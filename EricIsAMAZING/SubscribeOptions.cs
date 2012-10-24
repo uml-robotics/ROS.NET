@@ -51,10 +51,29 @@ namespace Ros_CSharp
 
             Type msgtype = new T().GetType();
             string[] chunks = msgtype.FullName.Split('.');
-            datatype = chunks[1] + "/" + chunks[2];
+            datatype = chunks[chunks.Length-2] + "/" + chunks[chunks.Length-1];
+            md5sum = thisisveryverybad ?? new T().MD5Sum;
+        }
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL, string thisisveryverybad, Type JPAddedType)
+        {
+            // TODO: Complete member initialization
+            this.topic = topic;
+            this.queue_size = queue_size;
+            if (CALL != null)
+                helper = new SubscriptionCallbackHelper<T>(new T().msgtype, CALL);
+            else
+                helper = new SubscriptionCallbackHelper<T>(new T().msgtype);
+
+
+            Type msgtype = JPAddedType;
+            string[] chunks = msgtype.FullName.Split('.');
+            datatype = chunks[chunks.Length - 2] + "/" + chunks[chunks.Length - 1];
             md5sum = thisisveryverybad ?? new T().MD5Sum;
         }
     }
+
+           
+    
 
     public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();
 }

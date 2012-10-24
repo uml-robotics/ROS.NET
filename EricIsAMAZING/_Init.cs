@@ -121,6 +121,8 @@ namespace Ros_CSharp
             return msg;
         }
 
+        //new Subscriber<type>()
+        //MakeAndDownCast<Subscriber<>, IRosMessage>(typeof(type));
         public static G MakeAndDowncast<T, G>(params Type[] types)
         {
             if (typeof (T).IsGenericTypeDefinition)
@@ -371,6 +373,7 @@ namespace Ros_CSharp
                     ServiceManager.Instance.shutdown();
                     PollManager.Instance.shutdown();
                     XmlRpcManager.Instance.shutdown();
+                    rosoutappender.shutdown();
                 }
 
                 started = false;

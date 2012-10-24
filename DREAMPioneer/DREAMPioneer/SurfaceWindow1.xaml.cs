@@ -519,7 +519,7 @@ namespace DREAMPioneer
                     break;
                 default:
                     Console.WriteLine(Environment.MachineName + " is not a special case... setting ROS_HOSTNAME to 10.0.2.178");
-                    ROS.ROS_HOSTNAME = "10.0.2.178";
+                    ROS.ROS_HOSTNAME = "10.0.2.47";
                     NODE_NAME = Environment.MachineName;
                     break;
             }            
@@ -561,7 +561,7 @@ namespace DREAMPioneer
             while (ROS.ok)
             {
                 ROS.spinOnce(nodeHandle);
-                Thread.Sleep(100);
+                Thread.Sleep(10);
             }
         }
         

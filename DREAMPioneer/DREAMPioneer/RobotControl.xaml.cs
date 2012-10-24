@@ -273,7 +273,7 @@ namespace DREAMPioneer
 
             WaypointHelper.PubSubs[myData.RobotNumber].SubSetup(myData.Name + "/move_base/status", (j) =>
                 {
-                    MyLastCount = j.status_list.Length;
+                    
                     if (TwoInAMillion.ContainsKey(index))
                     {
                         Dictionary<string, WaypointHelper> ericisthegreatest = new Dictionary<string, WaypointHelper>();

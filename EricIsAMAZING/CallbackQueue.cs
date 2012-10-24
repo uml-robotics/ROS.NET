@@ -164,7 +164,9 @@ namespace Ros_CSharp
         {
             if (tls.Count == 0) return CallOneResult.Empty;
             ICallbackInfo info = tls.head;
-            IDInfo idinfo = getIDInfo(info.removal_id);
+            IDInfo idinfo = null;
+            if (info != null)
+                idinfo = getIDInfo(info.removal_id);
             if (idinfo != null)
             {
                 CallbackInterface cb = info.Callback;
