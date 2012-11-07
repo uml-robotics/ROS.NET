@@ -544,7 +544,7 @@ namespace Ros_CSharp
                 {
                     if (info.helper == helper)
                     {
-                        //info.subscription_queue.clear();
+                        info.subscription_queue.clear();
                         info.callback.removeByID(info.Get());
                         callbacks.Remove(info);
                         //if (!helper.isConst())

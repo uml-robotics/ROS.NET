@@ -106,12 +106,12 @@ namespace ROS_ImageWPF
             }
             if (imgsub == null || imgsub.topic != TopicName)
             {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                               {
                                                                                                                                   UpdateImage(i.data);
                                                                                                                                   if (ImageReceivedEvent != null)
                                                                                                                                       ImageReceivedEvent(this);
-                                                                                                                              })));
+                                                                                                                              }))){allow_concurrent_callbacks=true});
             }
             wtf = DateTime.Now;
             Console.WriteLine("IMG TOPIC " + TopicName);

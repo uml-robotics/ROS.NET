@@ -69,8 +69,7 @@ namespace DREAMPioneer
         }
 
 
-
-        
+               
         public int RobotNumber;
         public string Name;
         public static NodeHandle node;
@@ -78,7 +77,7 @@ namespace DREAMPioneer
         public static int ManualNumber = -1;
         public Messages.geometry_msgs.Twist t;
         public Publisher<gm.Twist> joyPub;
-        public static Publisher<cm.ptz> servosPub;
+        public Publisher<cm.ptz> servosPub;
         public Publisher<gm.PoseWithCovarianceStamped> initialPub;
         public static Subscriber<sm.LaserScan> laserSub;
         //public Subscriber<m.String> androidSub;
@@ -97,7 +96,7 @@ namespace DREAMPioneer
 
         public RobotControl myRobot;
         public static int numRobots;
-
+        public Thread SERVOMADNESS;
         Subscriber<cm.robotMortality> GhostWhisperer;
         private DateTime LastBeat = DateTime.Now;
         public Timer Dethklok;
@@ -195,6 +194,8 @@ namespace DREAMPioneer
         }
         public ROSData(NodeHandle n, int i, specificAndroidDelegate android)
         {
+
+            ROS_ImageWPF.CompressedImageControl.newTopicName ="/TestImageTopic";
             RobotNumber = i;
             //specificAndroidEvent += android;
             if (node == null)
@@ -204,6 +205,7 @@ namespace DREAMPioneer
                     node = n;
             Name = "/robot_brain_" + (i);
             joyPub = node.advertise<gm.Twist>(Name + "/virtual_joystick/cmd_vel", 1, true);
+            servosPub = node.advertise<cm.ptz>(Name + "/servos", 1, true);
 
             
             /*
@@ -276,10 +278,10 @@ namespace DREAMPioneer
             });
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub.shutdown();
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = null;
-            servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
-            
-            servosPub.shutdown();
-            servosPub = null;
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].servosPub.publish(new ptz { x = 0, y = 0, CAM_MODE = ptz.CAM_ABS });
+
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].servosPub.shutdown();
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].servosPub = null;
             laserSub.shutdown();
             laserSub = null;
             //ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
@@ -288,7 +290,7 @@ namespace DREAMPioneer
         {
             Console.WriteLine("RESUB "+ROSData.ManualNumber);
             SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].joyPub = node.advertise<gm.Twist>(manualVelocity, 1, true);
-            servosPub = node.advertise<cm.ptz>(manualPTZ, 1, true);
+            SurfaceWindow1.current.ROSStuffs[ROSData.ManualNumber].servosPub = node.advertise<cm.ptz>(manualPTZ, 1, true);
             ROS_ImageWPF.CompressedImageControl.newTopicName = ROSData.manualCamera;
         }
 

@@ -1,6 +1,8 @@
 ﻿#region USINGZ
 
 using System;
+using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -87,7 +89,8 @@ namespace Ros_CSharp
 
             lock (mutex)
             {
-                if (!enabled) return;
+                if (!enabled) 
+                    return;
                 callbacks.Add(info);
             }
             lock (id_info_mutex)
@@ -300,7 +303,7 @@ namespace Ros_CSharp
         }
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { return _queue.ToArray()[_queue.Count - 1]; }
+            get { return _queue.Last(); }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
@@ -323,19 +326,19 @@ namespace Ros_CSharp
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
+            CallbackQueueInterface.ICallbackInfo icb;
+            int stop;
             lock (mut)
             {
                 if (!_queue.Contains(info))
                     return null;
-                Stack<CallbackQueueInterface.ICallbackInfo> temp = new Stack<CallbackQueueInterface.ICallbackInfo>();
-                while (_queue.Count > 0)
+                stop = _queue.Count;
+                for (int i = 0; i < stop; i++)
                 {
-                    CallbackQueueInterface.ICallbackInfo icbi = _queue.Dequeue();
-                    if (icbi != info)
-                        temp.Push(icbi);
+                    icb = _queue.Dequeue();
+                    if (icb != info)
+                        _queue.Enqueue(icb);
                 }
-                while (temp.Count > 0)
-                    _queue.Enqueue(temp.Pop());
             }
             return info;
         }

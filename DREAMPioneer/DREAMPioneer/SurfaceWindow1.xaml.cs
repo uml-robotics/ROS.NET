@@ -509,7 +509,7 @@ namespace DREAMPioneer
 
         private void rosStart()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
             Console.WriteLine("CONNECTING TO ROS_MASTER URI: " + ROS.ROS_MASTER_URI);            
             switch (Environment.MachineName.ToLower())
             {
@@ -632,7 +632,6 @@ namespace DREAMPioneer
 
         private double lastT, lastR;
         private double servopan, servotilt;
-        private Thread SERVOMADNESS;
         private bool dieservo;
         bool lastzerozerowasright;
         private void joymgr_Joystick(bool RightJoystick, double rx, double ry)
@@ -653,10 +652,10 @@ namespace DREAMPioneer
             }
             else
             {
-                if (SERVOMADNESS == null && !dieservo)
+                if (ROSStuffs[ROSData.ManualNumber].SERVOMADNESS == null && !dieservo)
                 {
-                    SERVOMADNESS = new Thread(servomgr);
-                    SERVOMADNESS.Start();
+                    ROSStuffs[ROSData.ManualNumber].SERVOMADNESS = new Thread(servomgr);
+                    ROSStuffs[ROSData.ManualNumber].SERVOMADNESS.Start(index);
                 }
                 servopan = (rx / -100.0);
                 servotilt = (ry / -100.0);
@@ -673,16 +672,16 @@ namespace DREAMPioneer
                 //}
             }
         }
-        private void servomgr()
+        private void servomgr(object index)
         {
             while (ROS.ok)
             {
-                if (ROSData.servosPub == null)
+                if (ROSStuffs[(int)index].servosPub == null)
                 {
                     Thread.Sleep(1000);
                     continue;
                 }
-                ROSData.servosPub.publish(new ptz { x = (float)servopan, y = (float)servotilt, CAM_MODE = ptz.CAM_ABS });
+                ROSStuffs[(int)index].servosPub.publish(new ptz { x = (float)servopan, y = (float)servotilt, CAM_MODE = ptz.CAM_ABS });
                 Thread.Sleep(100);
             }
         }
@@ -714,7 +713,7 @@ namespace DREAMPioneer
         {
             if (e.Key == Key.Q && e.KeyStates == KeyStates.Down)
                 Close();
-        }
+                    }
 
         public void androidCallback(m.String str)
         {

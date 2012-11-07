@@ -23,15 +23,16 @@ namespace videoView
     {
         private static void Main(string[] args)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.42:11311";  
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";  
             ROS.ROS_HOSTNAME = "10.0.2.47";
-            ROS.Init(args, "add_two_ints_client_csharp");
+            ROS.Init(args, "Image_Test");
             NodeHandle node = new NodeHandle();
-            Publisher<Messages.std_msgs.String> fuckYouNoob;                                    
-            fuckYouNoob = node.advertise<Messages.std_msgs.String>("/suckit", 10);
+            Publisher<Messages.sensor_msgs.CompressedImage> fuckYouNoob;
+            fuckYouNoob = node.advertise<Messages.sensor_msgs.CompressedImage>("/robot_brain_2/robot_brain_2/image_color/compressed", 1);
             while (true)
             {
-                Messages.std_msgs.String pow = new String("RIGHT IN THE KISSER");
+                Messages.sensor_msgs.CompressedImage pow = new sm.CompressedImage();
+                
                 fuckYouNoob.publish(pow);
                 ROS.spinOnce(node);
                 Thread.Sleep(100);

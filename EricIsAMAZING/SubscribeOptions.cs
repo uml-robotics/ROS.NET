@@ -12,7 +12,7 @@ namespace Ros_CSharp
 {
     public class SubscribeOptions<T> where T : IRosMessage, new()
     {
-        public bool allow_concurrent_callbacks;
+        public bool allow_concurrent_callbacks = true;
         public CallbackQueueInterface callback_queue;
         public string datatype = "";
         public bool has_header;
@@ -25,7 +25,8 @@ namespace Ros_CSharp
 
         public SubscribeOptions() : this("", 1, null)
         {
-            allow_concurrent_callbacks = false;
+            //allow_concurrent_callbacks = false;
+            //allow_concurrent_callbacks = true;
         }
          public SubscribeOptions(string topic, int queue_size)
          :this ( topic, queue_size, null, null)
