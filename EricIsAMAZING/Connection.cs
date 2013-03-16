@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -42,6 +42,9 @@ namespace Ros_CSharp
         public uint write_sent, write_size;
         public bool writing;
 
+        /// <summary>
+        /// Returns the ID of the connection
+        /// </summary>
         public string CallerID
         {
             get

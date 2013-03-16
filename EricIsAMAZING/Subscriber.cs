@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Diagnostics;
@@ -9,6 +9,12 @@ namespace Ros_CSharp
 {
     public class Subscriber<M> : ISubscriber
     {
+        /// <summary>
+        /// Creates a ROS Subscriber
+        /// </summary>
+        /// <param name="topic">Topic name to subscribe to</param>
+        /// <param name="nodeHandle">nodehandle</param>
+        /// <param name="cb">callback function to be fired when message is received</param>
         public Subscriber(string topic, NodeHandle nodeHandle, ISubscriptionCallbackHelper cb)
         {
             // TODO: Complete member initialization
@@ -17,6 +23,10 @@ namespace Ros_CSharp
             helper = cb;
         }
 
+        /// <summary>
+        /// Deep Copy of a subscriber
+        /// </summary>
+        /// <param name="s">Subscriber to copy</param>
         public Subscriber(Subscriber<M> s)
         {
             topic = s.topic;
@@ -24,10 +34,16 @@ namespace Ros_CSharp
             helper = s.helper;
         }
 
+        /// <summary>
+        /// Creates a ROS subscriber
+        /// </summary>
         public Subscriber()
         {
         }
 
+        /// <summary>
+        /// Returns the number of publishers on the subscribers topic
+        /// </summary>
         public int NumPublishers
         {
             get
@@ -38,6 +54,9 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Shutdown a subscriber
+        /// </summary>
         public override void shutdown()
         {
             unsubscribe();

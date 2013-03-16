@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -22,6 +22,7 @@ namespace Ros_CSharp
     {
         public delegate void otheroutput(object o);
         public static event otheroutput OtherOutput;
+        
 
         private static void _writeline(object o)
         {
