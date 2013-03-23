@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 #endregion
 
-namespace Messages
+namespace FauxMessages
 {
     public enum MsgTypes
     {

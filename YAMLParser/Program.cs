@@ -1,4 +1,4 @@
-﻿//#define NO_SRVS_RIGHT_NOW
+﻿#define NO_SRVS_RIGHT_NOW
 //#define SINGLE_PASS
 #define ON_TOP_OF_ITSELF
 #region USINGZ
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Messages;
+using FauxMessages;
 using System.Threading;
 
 #endregion 
@@ -210,9 +210,9 @@ namespace YAMLParser
                 Thread.Sleep(10);
             }
             #if !ON_TOP_OF_ITSELF
-            File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString());
-            #endif
-            File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString());
+            File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString().Replace("FauxMessages",""));
+#endif
+            File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages","Messages"));
             Thread.Sleep(100);
         }
 

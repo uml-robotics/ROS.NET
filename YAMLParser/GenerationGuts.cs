@@ -9,12 +9,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using String = Messages.std_msgs.String;
+using String = FauxMessages.std_msgs.String;
 using System.Threading;
 
 #endregion
 
-namespace Messages
+namespace FauxMessages
 {
     public class SrvsFile
     {
@@ -95,7 +95,7 @@ namespace Messages
                 Directory.CreateDirectory(outdir);
             string localcn = classname;
             localcn = classname.Replace("Request", "").Replace("Response", "");
-            File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
+            File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString().Replace("FauxMessages", "Messages"));
             Thread.Sleep(10);
         }
 
@@ -544,9 +544,9 @@ namespace Messages
             if (serviceMessageType != ServiceMessageType.Not)
                 localcn = classname.Replace("Request", "").Replace("Response", "");
             if (serviceMessageType == ServiceMessageType.Response)
-                File.AppendAllText(outdir + "\\" + localcn + ".cs", ToString());
+                File.AppendAllText(outdir + "\\" + localcn + ".cs", ToString().Replace("FauxMessages", "Messages"));
             else
-                File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString());
+                File.WriteAllText(outdir + "\\" + localcn + ".cs", ToString().Replace("FauxMessages", "Messages"));
             Thread.Sleep(10);
         }
     }
