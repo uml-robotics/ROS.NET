@@ -130,7 +130,7 @@ namespace Ros_CSharp
         private bool validateFailed(string method, string errorfmat, params object[] info)
         {
 #if DEBUG
-            //EDB.WriteLine("XML-RPC Call [{0}] {1}", method, string.Format(errorfmat, info));
+            EDB.WriteLine("XML-RPC Call [{0}] {1} failed validation", method, string.Format(errorfmat, info));
 #endif
             return false;
         }

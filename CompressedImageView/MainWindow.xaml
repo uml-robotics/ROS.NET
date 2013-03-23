@@ -4,6 +4,6 @@
         xmlns:c="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
         Title="MainWindow" Loaded="Window_Loaded">
     <Grid>
-        <c:CompressedImageControl x:FieldModifier="public" c:CompressedImageControl.TopicName="/robot_brain_2/robot_brain_2/rgb/image_color/compressed" x:Name="TestImage" Width="640" Height="480"></c:CompressedImageControl>
+        <c:CompressedImageControl x:FieldModifier="public" c:CompressedImageControl.TopicName="/camera/rgb/image_color/compressed" x:Name="TestImage" Width="640" Height="480"></c:CompressedImageControl>
     </Grid>
 </Window>

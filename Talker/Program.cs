@@ -23,14 +23,15 @@ namespace videoView
     {
         private static void Main(string[] args)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";  
-            ROS.ROS_HOSTNAME = "10.0.2.47";
+            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";  
+            ROS.ROS_HOSTNAME = "10.0.3.10";
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);
             int count = 0;
-            while (true)
+            while (ROS.ok)
             {
+                ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
                 String pow = new String("Blah blah blah "+(count++));
                 
                 Talker.publish(pow);

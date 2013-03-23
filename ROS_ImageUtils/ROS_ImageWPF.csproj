@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ROS_ImageUtils</RootNamespace>
     <AssemblyName>ROS_ImageUtils</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -72,12 +73,17 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Messages\Messages.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Presentation">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -146,13 +152,13 @@
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Messages\Messages.csproj">
-      <Project>{94C4DF5B-1566-4ACC-9BD3-167AAC83F9FD}</Project>
-      <Name>Messages</Name>
-    </ProjectReference>
     <ProjectReference Include="..\XmlRpc_Wrapper\XmlRpc_Wrapper.csproj">
       <Project>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</Project>
       <Name>XmlRpc_Wrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\YAMLParser\YAMLParser.csproj">
+      <Project>{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}</Project>
+      <Name>YAMLParser</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

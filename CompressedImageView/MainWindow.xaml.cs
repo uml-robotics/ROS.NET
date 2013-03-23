@@ -44,8 +44,8 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.43:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.47";
+            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
+            ROS.ROS_HOSTNAME = "YOURIP";
             ROS.Init(new string[0], "Image_Test");
             new Thread(() =>
             {

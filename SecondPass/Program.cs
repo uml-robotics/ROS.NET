@@ -20,7 +20,6 @@ namespace SecondPass
                 output += mt + "\t" + MD5.Sum(mt) + "\n";
             }
             output += ("</MD5>\n");
-            output += ("<<>>/<>></>> FUCKING YOUR SHIT UP!!!!!");
             Console.WriteLine(output);
             Dictionary<string, string> output2 = SecondPassHelper.ParseDisString(output);
             string path;
