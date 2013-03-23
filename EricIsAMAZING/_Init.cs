@@ -145,7 +145,9 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Info(string format, params object[] args)
         {
-            Info((object)string.Format(format, args));
+            string s = string.Format(format, args);
+            Console.WriteLine("[Info] " + s);
+            Info((object)s);
         }
 
         [DebuggerStepThrough]
@@ -171,6 +173,8 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Error(string format, params object[] args)
         {
+            string s = string.Format(format, args);
+            Console.WriteLine("[Error] " + s);
             Error((object)string.Format(format, args));
         }
 
