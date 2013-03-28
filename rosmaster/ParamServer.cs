@@ -35,8 +35,6 @@ namespace rosmaster
  }
         public class ParamDictionary : ParamServer
         {
-            
-
             private Dictionary<String, Param> parameters;
             private RegistrationManager reg_manager;
             public ParamDictionary(RegistrationManager _reg_manager)
@@ -190,6 +188,38 @@ namespace rosmaster
             /// [(subscribers, param_key, param_Value)*] The empty dictionary represents an unset parameter</param>
             public void delete_param(String key, Func<Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>>, int> notify_task = null)
             {
+                if (key == "/")
+                    throw new Exception("CANNOT DELETE ROOT OF NODE.");
+
+                String[] namespaces = key.Split('/');
+                String value_key = namespaces.Last();
+                namespaces = namespaces.Take(namespaces.Length - 1).ToArray();
+                Dictionary<String, Param> d = parameters;
+
+
+                foreach (String ns in namespaces) //descend tree to the node we are setting
+                    {
+                        if (!d.ContainsKey(ns))
+                        {
+                            throw new KeyNotFoundException("WHATCHA BE DOING? YOU CAN'T DELETE THINGS THAT DON'T EXIST SILLY");
+                        }
+                        else
+                        {
+                            d = d[ns];
+                        }
+                    }
+                if (d.ContainsKey(value_key))
+                    throw new KeyNotFoundException("GO AWAY");
+
+                d.Remove(value_key);
+                
+                if(notify_task != null)
+                {
+                    //Boolean updates = compute_param_updates(reg_manager.param_subscribers, key, value)
+                    //if(updates)
+                    //notify_task(updates);
+                    // TODO : ADD NOTIFY TASK DEALY
+                }
 
             }
 
@@ -221,14 +251,21 @@ namespace rosmaster
             {
                 get
                 {
-                    return Count == 0 && _value.Length > 0;
+                    return Count == 0 && _value != null;
                 }
             }
 
-            private string _value;
+            //private string _value;
+            private XmlRpc_Wrapper.XmlRpcValue _value = null;
+            
             public string getString()
             {
-                return _value.ToString();
+                if (_value.Type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                    return _value.ToString();
+                else if (_value.Type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                    return _value.ToString();
+
+                return null;
             }
             public Param getParam(string k)
             {
@@ -247,8 +284,9 @@ namespace rosmaster
 
             public Param()
             {
+
             }
-            public Param(string val)
+            public Param(XmlRpc_Wrapper.XmlRpcValue val)
             {
                 _value = val;
             }

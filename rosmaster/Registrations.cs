@@ -14,13 +14,16 @@ namespace rosmaster
 
         public static readonly String[] TYPE = { "TOPIC_SUBSCRIPTIONS", "TOPIC_PUBLICATIONS", "SERVICE", "PARAM_SUBSCRIPTIONS" };
 
-        public Dictionary<String, Tuple<String, String>> map;
-        public Dictionary<String, Tuple<String, String>> service_api_map;
+        /// <summary>
+        /// Key:   Value:
+        /// </summary>
+        public Dictionary<String, List<String>> map;
+        public Dictionary<String, List<String>> service_api_map;
         //public Tuple<String, String> key;
 
 
         public int type;
-        public Tuple<String, String> providers;
+        public List<String> providers;
 
         /// <summary>
         /// 
@@ -31,7 +34,7 @@ namespace rosmaster
             if ( type_ == TOPIC_SUBSCRIPTIONS || type_ == TOPIC_PUBLICATIONS || type_ == SERVICE || type_ == PARAM_SUBSCRIPTIONS)
             {
                 type = type_;
-                map = new Dictionary<String, Tuple<String, String>>();
+                map = new Dictionary<String, List<String>>();
                 //service_api_map = new Dictionary<String, Tuple<String ,String>>();
                 //providers = Tuple<String, String>();
             }
@@ -52,7 +55,7 @@ namespace rosmaster
         /// 
         /// </summary>
         /// <returns></returns>
-        public Dictionary<String, Tuple<String, String>>.Enumerator IterKeys()
+        public Dictionary<String, List<String>>.Enumerator IterKeys()
         {
             return map.GetEnumerator();
             //return new IEnumerator<Dictionary<int, String>(map);
@@ -67,7 +70,7 @@ namespace rosmaster
         {
             if (service_api_map != null && service_api_map.ContainsKey(service))
             {
-                return service_api_map[service].Item2;
+                return service_api_map[service][1];
             }
             else 
                 return null;
@@ -78,10 +81,10 @@ namespace rosmaster
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public String get_apis(String key)
+        public List<String> get_apis(String key)
         {
             if (map.ContainsKey(key))
-                return map[key].Item2;
+                return map[key];
             else
                 return null;
         }
@@ -101,7 +104,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Tuple<String,String> __getitem__(String key)
+        public List<String> __getitem__(String key)
         {
             return map[key];
         }
@@ -116,28 +119,40 @@ namespace rosmaster
             return map.ContainsKey(key);
         }
 
-        public void get_state()
+        public List<String> get_state()
         {
-            throw new Exception("What does this button do?");
+            List<String> retval = new List<String>();
+
+            foreach (KeyValuePair<String, List<String>> pair in map)
+            {
+                retval.Add(pair.Key);
+                foreach(String s in pair.Value)
+                {
+                    retval.Add(s);
+                }
+            }
+            return retval;
         }
 
 
         public void register(String key, String caller_id, String caller_api, String service_api=null)
         {
-            //Dictionary<String, String> _map = map;
+            List<String> tmplist = new List<string>();
+            tmplist.Add(caller_id);
+            tmplist.Add(caller_api);
 
             if (map.ContainsKey(key) && service_api == null)
             {
                 providers = map[key];
-
-                if (providers != new Tuple<String, String>(caller_id, caller_api) )
+                if (providers != tmplist )
                 {
-                     providers = new Tuple<string,string>(caller_id, caller_api); //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
+                    providers = tmplist; //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
                 }
             }
             else
             {
-                 map[key] = providers = new Tuple<String,String>(caller_id, caller_api);
+
+                 map[key] = providers = tmplist;
                  //map.Add(key,providers.First());
             }
 
@@ -145,10 +160,10 @@ namespace rosmaster
             {
                 if (service_api_map == null)
                 {
-                    service_api_map = new Dictionary<string,Tuple<string,string>>();
+                    service_api_map = new Dictionary<string,List<String>>();
                 }
 
-                service_api_map[key] = new Tuple<string,string>(caller_id, service_api);
+                service_api_map[key] = tmplist;
             }else if(type == Registrations.SERVICE)
             {
                 //raise rosmaster.exceptions.InternalException("service_api must be specified for Registrations.SERVICE");
@@ -167,7 +182,10 @@ namespace rosmaster
                     val = 0;
                     return 1;
                 }
-                if (service_api_map[key] != new Tuple<String, String>(caller_id, caller_api))
+                List<String> tmplist = new List<string>();
+                tmplist.Add(caller_id);
+                tmplist.Add(caller_api);
+                if (service_api_map[key] != tmplist)
                 {
                     msg = String.Format("[{0}] is no longer the current service api handle for [{1}]", service_api, key);
                     val = 0;
@@ -189,7 +207,10 @@ namespace rosmaster
             else
             {
                 providers = map[key];
-                if (providers == new Tuple<String,String>(caller_id, caller_api) )
+                List<String> tmplist = new List<string>();
+                tmplist.Add(caller_id);
+                tmplist.Add(caller_api);
+                if (providers == tmplist )
                 {
                     map.Remove(key);
                     //providers.Remove(new Tuple<String, String>(caller_id, caller_api));
@@ -212,9 +233,9 @@ namespace rosmaster
             foreach (String key in map.Keys)
             {
                 providers = map[key];
-                Tuple<String,String> to_remove;// = new Tuple<String,String>();
+                List<String> to_remove;// = new Tuple<String,String>();
 
-                if(map[key].Item1 == caller_id)
+                if(map[key][0] == caller_id)
                 {
                     to_remove = map[key];
                 }
@@ -238,7 +259,7 @@ namespace rosmaster
 
                 foreach (String key in service_api_map.Keys)
                 {
-                    if (service_api_map[key].Item1 == caller_id)
+                    if (service_api_map[key][0] == caller_id)
                     {
                         dead_keys.Add(key);
                     }
@@ -375,7 +396,10 @@ namespace rosmaster
 
         public NodeRef _register_node_api(String caller_id, String caller_api, ref bool rtn)
         {
-            NodeRef node_ref = nodes[caller_id];
+            NodeRef node_ref = null;
+                if(nodes.ContainsKey(caller_id))
+                 node_ref= nodes[caller_id];
+
             String bumped_api = "";
             if (node_ref != null)
             {
@@ -418,6 +442,10 @@ namespace rosmaster
         private List<String> topic_publications;
         private List<String> services;
 
+        public NodeRef()
+        {
+
+        }
         public NodeRef(String _id, String _api)
         {
             id = _id;

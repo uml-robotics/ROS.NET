@@ -32,7 +32,8 @@ namespace rosmaster
             Console.WriteLine("Master started.... ");
             
             handler = new Master_API.ROSMasterHandler();
-            master_node = new XmlRpcManager();
+            master_node = new XmlRpcManager(handler);
+            
             master_node.Start(_ROS_MASTER_URI);
 
             while (master_node.uri == "")

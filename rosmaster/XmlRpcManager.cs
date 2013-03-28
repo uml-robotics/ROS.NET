@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using XmlRpc_Wrapper;
+using System.Runtime.InteropServices;
 
 #endregion
 
@@ -31,8 +32,10 @@ namespace rosmaster
         public bool unbind_requested;
         public string uri = "";
 
-        public XmlRpcManager()
+        Master_API.ROSMasterHandler handler;
+        public XmlRpcManager(Master_API.ROSMasterHandler _handler = null)
         {
+            handler = _handler;
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
@@ -260,7 +263,37 @@ namespace rosmaster
             int what = int.Parse( hostname.Split(':')[2].TrimEnd('/'));
             shutting_down = false;
             port = 0;
+
+            bind("getPublications", getPublications);
+            bind("getSubscriptions", getSubscriptions);
+
+            bind("publisherUpdate", pubUpdate);
+
+            bind("requestTopic", requestTopic);
+            bind("getSystemState", getSystemState);
+
+
+            bind("getPublishedTopics",getPublishedTopics);
+
+            bind("registerPublisher", registerPublisher);
+            bind("unregisterPublisher", unregisterPublisher);
+
+            bind("registerSubscriber",registerSubscriber);
+            bind("unregisterSubscriber",unregisterSubscriber);
+
+            bind("hasParam", hasParam);
+            bind("setParam", setParam);
+            bind("getParam", getParam);
+            bind("deleteParam", deleteParam);
+            bind("paramUpdate", paramUpdate);
+            bind("subscribeParam", subscribeParam);
+
             bind("getPid", getPid);
+            bind("getBusStats", getBusStatus);
+            bind("getBusInfo", getBusInfo);
+            
+            
+            //SERVICE??
 
             bool bound = server.BindAndListen(what); //use any port available
             if (!bound)
@@ -322,6 +355,424 @@ namespace rosmaster
         }
 
         #endregion
+
+
+
+        /// <summary>
+        /// Returns list of all publications
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getPublications([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            res.Set(0, 1); //length
+            res.Set(1, "publications"); //response too
+            XmlRpcValue response = new XmlRpcValue(); //guts, new value here
+
+            //response.Size = 0;
+            List<String> current = handler.getPublishedTopics("","");
+            
+            for (int i = 0; i < current.Count; i += 2)
+            {
+                XmlRpcValue pub = new XmlRpcValue();
+                pub.Set(0, current[0]);
+                current.RemoveAt(0);
+                pub.Set(1, current[0]);
+                current.RemoveAt(0);
+                response.Set(i, pub);
+            }
+            res.Set(2, response);
+
+        }
+
+        //public void getPublications(ref XmlRpcValue pubs)
+        //{
+           // pubs.Size = 0;
+            //lock (advertised_topics_mutex)
+            // {
+            //handler.getPublishedTopics();
+            //int sidx = 0;
+            //foreach (Publication t in advertised_topics)
+            //{
+              //  XmlRpcValue pub = new XmlRpcValue();
+                //pub.Set(0, t.Name);
+               // pub.Set(1, t.DataType);
+                //pubs.Set(sidx++, pub);
+                //    }
+            //}
+        //}
+
+
+        /// <summary>
+        /// Get a list of all subscriptions
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //XmlRpcValue res = XmlRpcValue.Create(ref result);
+            //res.Set(0, 1);
+            //res.Set(1, "subscriptions");
+            //XmlRpcValue response = new XmlRpcValue();
+            //getSubscriptions(ref response);
+            //res.Set(2, response);
+
+            //subs.Size = 0;
+            //lock (subs_mutex)
+            //{
+            //    int sidx = 0;
+            //    foreach (Subscription t in subscriptions)
+            //    {
+            //        subs.Set(sidx++, new XmlRpcValue(t.name, t.datatype));
+            //    }
+            //}
+        }
+
+
+        /// <summary>
+        /// Notify subscribers of an update??
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void pubUpdate([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+
+            //mlRpcValue parm = XmlRpcValue.Create(ref parms);
+            //List<string> pubs = new List<string>();
+            //for (int idx = 0; idx < parm[2].Size; idx++)
+            //    pubs.Add(parm[2][idx].Get<string>());
+            //if (pubUpdate(parm[1].Get<string>(), pubs))
+            //    XmlRpcManager.Instance.responseInt(1, "", 0)(result);
+            //else
+            //{
+            //    EDB.WriteLine("Unknown Error");
+            //    XmlRpcManager.Instance.responseInt(0, "Unknown Error or something", 0)(result);
+            //}
+
+
+
+            //EDB.WriteLine("TopicManager is updating publishers for " + topic);
+            //Subscription sub = null;
+            //lock (subs_mutex)
+            //{
+            //    if (shutting_down) return false;
+            //    foreach (Subscription s in subscriptions)
+            //    {
+            //        if (s.name != topic || s.IsDropped)
+            //            continue;
+            //        sub = s;
+            //        break;
+            //    }
+            //}
+            //if (sub != null)
+            //    return sub.pubUpdate(pubs);
+            //else
+            //    EDB.WriteLine("got a request for updating publishers of topic " + topic +
+            //                  ", but I don't have any subscribers to that topic.");
+            //return false;
+        }
+
+
+        /// <summary>
+        /// No clue.
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void requestTopic([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+
+            /* if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
+             {
+                 string last_error = "Unknown error";
+
+                 responseInt(0, last_error, 0)(result);
+             }*/
+        }
+
+        /// <summary>
+        /// Returns list of all, publishers, subscribers, and services
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getSystemState([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            List<String> list = handler.getSystemState("");//parm.GetString()
+
+            XmlRpcValue pub = new XmlRpcValue();
+           // for (int i = 0; i < list.Count; i++)
+           // {
+           //     pub.Set(i, list[i]);
+           // }
+            pub.Set(0, 1);
+            pub.Set(1, "getSystemState");
+            XmlRpcValue tmp = new XmlRpcValue();
+
+            XmlRpcValue sup = new XmlRpcValue();
+            sup.Set(0, "MYTOPIC");
+            sup.Set(1, "TYPE??");
+            tmp.Set(0, sup);
+
+
+           // tmp.Set(2, "MYTOPIC2");
+           // tmp.Set(31, "TYPE2??");
+
+            pub.Set(2, tmp);
+            //pub.Set(2, list);
+            result = pub.instance;
+        }
+
+
+
+        /// <summary>
+        /// Get a list of all published topics
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getPublishedTopics([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            List<String> str = handler.getPublishedTopics("","");
+            res.Set(0, 1);
+            res.Set(1, "getPublishesTopics");
+            XmlRpcValue payload = new XmlRpcValue();
+            for (int i = 0; i < str.Count; i += 2)
+            {
+                XmlRpcValue tmp = new XmlRpcValue();
+                tmp.Set(0, str[0]);
+                str.RemoveAt(0);
+                tmp.Set(0, str[0]);
+                str.RemoveAt(0);
+                payload.Set(i, str);
+            }
+            XmlRpcValue bs = new XmlRpcValue();
+            XmlRpcValue sup = new XmlRpcValue();
+            sup.Set(0, "/wtf");
+            sup.Set(1, "String");
+            bs.Set(0, sup);
+            //res.Set(2, "String");
+            res.Set(2, bs);
+           // res.Set(3, "FUCK YOU");
+            //topicss.Clear();
+            //for (int i = 0; i < payload.Size; i++)
+            //    topicss.Add(new TopicInfo(payload[i][0].Get<string>(), payload[i][1].Get<string>()));
+            //topics = topicss.ToArray();
+        }
+
+        /// <summary>
+        /// Register a new publisher to a topic
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void registerPublisher([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+            String type = parm[2].GetString();
+            String hostname = parm[3].GetString(); //hostname
+
+            handler.registerPublisher(caller_id, topic, type, hostname);
+            res.Set(0,1);
+            res.Set(1,"GOOD JOB!");
+            res.Set(2, new XmlRpcValue());
+
+
+        }
+
+        /// <summary>
+        /// Unregister an existing publisher
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void unregisterPublisher([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            /*XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
+                        result = new XmlRpcValue(),
+                        payload = new XmlRpcValue();
+            master.execute("unregisterPublisher", args, ref result, ref payload, false);
+            return true;*/
+        }
+
+        /// <summary>
+        /// Register a new subscriber
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void registerSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //string uri = XmlRpcManager.Instance.uri;
+
+            //XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
+            //XmlRpcValue result = new XmlRpcValue();
+            //XmlRpcValue payload = new XmlRpcValue();
+            //if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
+            //    return false;
+            //List<string> pub_uris = new List<string>();
+            //for (int i = 0; i < payload.Size; i++)
+            //{
+            //    XmlRpcValue asshole = payload[i];
+            //    string pubed = asshole.Get<string>();
+            //    if (pubed != uri && !pub_uris.Contains(pubed))
+            //    {
+            //        pub_uris.Add(pubed);
+            //    }
+            //}
+            //bool self_subscribed = false;
+            //Publication pub = null;
+            //string sub_md5sum = s.md5sum;
+            //lock (advertised_topics_mutex)
+            //{
+            //    foreach (Publication p in advertised_topics)
+            //    {
+            //        pub = p;
+            //        string pub_md5sum = pub.Md5sum;
+            //        if (pub.Name == s.name && md5sumsMatch(pub_md5sum, sub_md5sum) && !pub.Dropped)
+            //        {
+            //            self_subscribed = true;
+            //            break;
+            //        }
+            //    }
+            //}
+
+            //s.pubUpdate(pub_uris);
+            //if (self_subscribed)
+            //    s.addLocalConnection(pub);
+            //return true;
+        }
+
+        /// <summary>
+        /// Unregister an existing subscriber
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void unregisterSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
+            //            result = new XmlRpcValue(),
+            //            payload = new XmlRpcValue();
+            //master.execute("unregisterSubscriber", args, ref result, ref payload, false);
+            //return true;
+        }
+
+        
+
+
+
+        /// <summary>
+        /// Check whether a parameter exists
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void hasParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            //parm.Set(0, this_node.Name);
+            //parm.Set(1, names.resolve(key));
+            //if (!master.execute("hasParam", parm, ref result, ref payload, false))
+            //    return false;
+            //return payload.Get<bool>();
+        }
+
+        /// <summary>
+        /// Set a new parameter
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void setParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //string mapped_key = names.resolve(key);
+            //XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            //parm.Set(0, this_node.Name);
+            //parm.Set(1, mapped_key);
+            //parm.Set(2, val);
+            //execute("setParam", parm, ref response, ref payload, true);
+
+        }
+
+
+
+        /// <summary>
+        /// Retrieve a value for an existing parameter, if it exists
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //XmlRpcValue parm2 = new XmlRpcValue(), result2 = new XmlRpcValue();
+            //parm2.Set(0, this_node.Name);
+            //parm2.Set(1, mapped_key);
+
+            //bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
+        }
+
+        /// <summary>
+        /// Delete a parameter, if it exists
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void deleteParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            //parm.Set(0, this_node.Name);
+            //parm.Set(1, mapped_key);
+            //if (!master.execute("deleteParam", parm, ref result, ref payload, false))
+            //    return false;
+            //return true;
+        }
+
+
+
+        /// <summary>
+        /// Notify of new parameter updates
+        /// </summary>
+        /// <param name="parm"></param>
+        /// <param name="result"></param>
+        public static void paramUpdate(IntPtr parm, IntPtr result)
+        {
+            XmlRpcValue val = XmlRpcValue.LookUp(parm);
+            val.Set(0, 1);
+            val.Set(1, "");
+            val.Set(2, 0);
+            //update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
+        }
+
+        /// <summary>
+        /// Subscribe to a param value
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void subscribeParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+
+        }
+        
+
+        /// <summary>
+        /// Get BUS status??? WUT
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getBusStatus([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+
+        }
+
+        /// <summary>
+        /// Get BUS info??? WUT
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getBusInfo([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+
+        }
+
     }
 
     public class CachedXmlRpcClient
