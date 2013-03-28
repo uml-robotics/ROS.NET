@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 //#define REFDEBUGWrapper
 using System;
@@ -106,7 +106,7 @@ namespace XmlRpc_Wrapper
                     if (_refs[ptr] <= 0)
                     {
 #if REFDEBUGWrapper
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S NOT VERY NICE!");
 #endif
                         _refs.Remove(ptr);
                         new XMLRPCCallWrapper(ptr).FUNC = null;
