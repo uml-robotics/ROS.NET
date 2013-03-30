@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using XmlRpc_Wrapper;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace rosmaster
 {
@@ -12,7 +14,7 @@ namespace rosmaster
         {
             foreach (KeyValuePair<String, Param> pair in d)
             {
-                if (pair.Value.isANamespace)
+                if (!pair.Value.isNotANamespace)
                 {
                     _get_param_names(ref names, Names.ns_join(key, pair.Key), pair.Value);
                 }
@@ -35,12 +37,12 @@ namespace rosmaster
  }
         public class ParamDictionary : ParamServer
         {
-            private Dictionary<String, Param> parameters;
+            private Param parameters;
             private RegistrationManager reg_manager;
             public ParamDictionary(RegistrationManager _reg_manager)
             {
                 reg_manager = _reg_manager;
-                parameters = new Dictionary<string, Param>();
+                parameters = new Param();
             }
 
             public List<String> get_param_names()
@@ -84,26 +86,44 @@ namespace rosmaster
                 return null;
             }
 
-            public Dictionary<String, Param> get_param(String key)
+            public XmlRpcValue get_param(String key)
             {
-                var val = parameters;
+                Param val = parameters;//ObjectCopy.Clone(parameters);// new Param(parameters);
 
                 if (key != "/")
                 {
                     var namespaces = key.Split('/').Select(tag => tag.Trim()).Where(tag => !String.IsNullOrEmpty(tag));
                     foreach (String ns in namespaces)
                     {
-                        val = val[ns];
+                        if (val.ContainsKey(ns)) //TODO: THIS
+                        {
+                            if (val[ns].isNotANamespace)
+                            {
+                                if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                                    return new XmlRpcValue(val[ns].fuckyou);
+                                else if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                                    return new XmlRpcValue(val[ns].thisblows);
+                                else if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
+                                    return new XmlRpcValue(val[ns].jesuschrist);
+                                else
+                                    throw new Exception("FUCKKKKKKKKKKKKKKKKKKKKKKK");
+                            }
+                            else
+                                val = val[ns];
+                            
+                                
+                        }
                     }
                 }
-                return val;
+                return (XmlRpcValue)val.get();
             }
 
-            public void set_param(String key, Param value, Func<Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>>, int> notify_task = null)
+            public void set_param(String key, XmlRpcValue value, Func<Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>>, int> notify_task = null)
             {
+                
                 if (key == "/") //create root
                 {
-                    parameters = value;
+                    parameters = new Param(value);
                 }
                 else //add branch
                 {
@@ -114,21 +134,36 @@ namespace rosmaster
 
                     foreach (String ns in namespaces) //descend tree to the node we are setting
                     {
-                        if (!d.ContainsKey(ns))
+                        if (ns != "")
                         {
-                            Param new_parameters = new Param();
-                            d.Add(ns, new_parameters);
-                            d = new_parameters;
-                        }
-                        else
-                        {
-                            var val = d[ns];
-                            if (!val.isANamespace)
-                                d[ns] = val = new Param();
-                            d = val;
+                            if (!d.ContainsKey(ns))
+                            {
+                                Param new_parameters = new Param();
+                                d.Add(ns, new_parameters);
+                                d = new_parameters;
+                            }
+                            else
+                            {
+                                var val = d[ns];
+                                if (val.isNotANamespace)
+                                    d[ns] = val = new Param();
+                                d = val;
+                            }
                         }
                     }
-                    d[value_key] = value;
+                    if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                    {
+                        d[value_key] = new Param(value.GetString());
+                    }
+                    else if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                    {
+                        d[value_key] = new Param(value.GetInt());
+                    }
+                    else if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
+                    {
+                        d[value_key] = new Param(value.GetDouble());
+                    }
+                    else d[value_key] = new Param(value);
                 }
                 if (notify_task != null)
                 {
@@ -146,18 +181,18 @@ namespace rosmaster
             /// <param name="caller_id">Caller id</param>
             /// <param name="caller_api">Caller api</param>
             /// <returns></returns>
-            public Dictionary<String, Param> subscribe_param(String key, String caller_id, String caller_api)
+            public XmlRpcValue subscribe_param(String key, String caller_id, String caller_api)
             {
                 if (key != "/")
                     key = Names.canonicalize_name(key) + "/";
-                Dictionary<String, Param> val;
+                XmlRpcValue val;
                 try
                 {
                     val = get_param(key);
                 }
                 catch (KeyNotFoundException e)
                 {
-                    val = new Dictionary<string, Param>();
+                    val = new XmlRpcValue();
                 }
                 reg_manager.register_param_subscriber(key, caller_id, caller_api);
                 return val;
@@ -245,31 +280,38 @@ namespace rosmaster
 
         }
 
+        [Serializable]
         public class Param : Dictionary<string, Param>
         {
-            public bool isANamespace
+
+            public bool isNotANamespace
             {
                 get
                 {
-                    return Count == 0 && _value != null;
+                    return Count == 0 && fuckyou != null && thisblows != null && jesuschrist != null;
                 }
             }
 
             //private string _value;
-            private XmlRpc_Wrapper.XmlRpcValue _value = null;
+            public XmlRpc_Wrapper.XmlRpcValue _value = null;
+            public XmlRpc_Wrapper.TypeEnum type;
             
             public string getString()
             {
-                if (_value.Type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                if (type == null)
+                    return null;
+                if (type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                    return fuckyou;
+                else if (type == XmlRpc_Wrapper.TypeEnum.TypeInt)
                     return _value.ToString();
-                else if (_value.Type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                else if (type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
                     return _value.ToString();
 
                 return null;
             }
-            public Param getParam(string k)
+            public XmlRpcValue getParam(string k)
             {
-                return this[k];
+                return this._value;
             }
 
             public object get(string k = null)
@@ -281,7 +323,9 @@ namespace rosmaster
                 else
                     return (object)getString();
             }
-
+            public String fuckyou = "";
+            public int thisblows;
+            public double jesuschrist;
             public Param()
             {
 
@@ -290,9 +334,49 @@ namespace rosmaster
             {
                 _value = val;
             }
+
+            public Param(String sigh)
+            {
+                fuckyou = sigh;
+                type = XmlRpc_Wrapper.TypeEnum.TypeString;
+            }
+            public Param(int sigh)
+            {
+                thisblows = sigh;
+                type = XmlRpc_Wrapper.TypeEnum.TypeInt;
+            }
+            public Param(double sigh)
+            {
+                jesuschrist = sigh;
+                type = XmlRpc_Wrapper.TypeEnum.TypeDouble;
+            }
             public Param(string key, Param val)
             {
                 this[key] = val;
+            }
+
+            public Param(SerializationInfo info, StreamingContext context)
+
+      : base(info, context) {
+
+    }
+
+            /*public Object Clone()
+            {
+
+                Param cloned = new Param();
+                foreach (KeyValuePair<String, Param> pair in this)
+                {
+                    cloned.Add(pair.Key, pair.Value);
+                }
+                if(this.isNotANamespace)
+                    
+                return this;
+            }*/
+
+            public Object Clone(Param p)
+            {
+                return this;
             }
         }
     }

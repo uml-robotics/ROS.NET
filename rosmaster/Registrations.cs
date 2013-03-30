@@ -119,17 +119,16 @@ namespace rosmaster
             return map.ContainsKey(key);
         }
 
-        public List<String> get_state()
+        public List<List<String>> get_state()
         {
-            List<String> retval = new List<String>();
+            List<List<String>> retval = new List<List<String>>();
 
             foreach (KeyValuePair<String, List<String>> pair in map)
             {
-                retval.Add(pair.Key);
-                foreach(String s in pair.Value)
-                {
-                    retval.Add(s);
-                }
+                List<String> value = new List<String>();
+                value.Add(pair.Key);
+                value.AddRange(pair.Value);
+                retval.Add(value);
             }
             return retval;
         }

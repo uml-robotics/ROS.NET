@@ -291,6 +291,14 @@ namespace rosmaster
             bind("getPid", getPid);
             bind("getBusStats", getBusStatus);
             bind("getBusInfo", getBusInfo);
+
+            bind("Time", getTime);
+
+            bind("Duration", getTime);
+
+            bind("get_rostime", getTime);
+
+            bind("get_time", getTime);
             
             
             //SERVICE??
@@ -371,7 +379,7 @@ namespace rosmaster
             XmlRpcValue response = new XmlRpcValue(); //guts, new value here
 
             //response.Size = 0;
-            List<String> current = handler.getPublishedTopics("","");
+            List<List<String>> current = handler.getPublishedTopics("","");
             
             for (int i = 0; i < current.Count; i += 2)
             {
@@ -403,7 +411,10 @@ namespace rosmaster
             //}
         //}
 
+        public void getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
 
+        }
         /// <summary>
         /// Get a list of all subscriptions
         /// </summary>
@@ -500,33 +511,74 @@ namespace rosmaster
         public void getSystemState([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            res.Set(0, 1);
+            res.Set(1, "getSystemState");
+            List<List<List<String>>> systemstatelist = handler.getSystemState("");//parm.GetString()
 
-            List<String> list = handler.getSystemState("");//parm.GetString()
+           /* switch (systemstatelist.Count)
+            {
+                case 0:
+                    systemstatelist.Add(new List<List<String>>());
+                    systemstatelist.Add(new List<List<String>>());
+                    systemstatelist.Add(new List<List<String>>());
+                    break;
+                case 1:
+                    systemstatelist.Add(new List<List<String>>());
+                    systemstatelist.Add(new List<List<String>>());
+                    break;
+                case 2:
+                    systemstatelist.Add(new List<List<String>>());
+                    break;
+                case 3:
+                    break;
+                default:
+                    break;
+            }*/
 
-            XmlRpcValue pub = new XmlRpcValue();
-           // for (int i = 0; i < list.Count; i++)
-           // {
-           //     pub.Set(i, list[i]);
-           // }
-            pub.Set(0, 1);
-            pub.Set(1, "getSystemState");
-            XmlRpcValue tmp = new XmlRpcValue();
+            if (systemstatelist.Count == 0)
+            {
 
-            XmlRpcValue sup = new XmlRpcValue();
-            sup.Set(0, "MYTOPIC");
-            sup.Set(1, "TYPE??");
-            tmp.Set(0, sup);
+            }
+            XmlRpcValue listoftypes = new XmlRpcValue();
+            XmlRpcValue tmp1 = new XmlRpcValue();
+            XmlRpcValue tmp2 = new XmlRpcValue();
+            XmlRpcValue tmp3 = new XmlRpcValue();
+            XmlRpcValue tmp4 = new XmlRpcValue();
+            XmlRpcValue tmp5 = new XmlRpcValue();
+            tmp1.Set(0, new XmlRpcValue());
+            tmp2.Set(0, new XmlRpcValue());
+            tmp3.Set(0, new XmlRpcValue());
+            tmp4.Set(0, tmp2);
+            tmp5.Set(0, tmp3);
 
+            listoftypes.Set(0, tmp1);
+            listoftypes.Set(1, tmp4);
+            listoftypes.Set(2, tmp5);
 
-           // tmp.Set(2, "MYTOPIC2");
-           // tmp.Set(31, "TYPE2??");
+            XmlRpcValue listofvalues = new XmlRpcValue();
 
-            pub.Set(2, tmp);
-            //pub.Set(2, list);
-            result = pub.instance;
+            int index = 0;
+            
+            foreach (List<List<String>> types in systemstatelist) //publisher, subscriber, services
+            {
+                int typeindex = 0;
+                XmlRpcValue typelist = new XmlRpcValue();
+                foreach (List<String> l in types)
+                {
+                    XmlRpcValue value = new XmlRpcValue();
+                    value.Set(0, l[0]);
+                    XmlRpcValue payload = new XmlRpcValue();
+                    for (int i = 1; i < l.Count; i++)
+                    {
+                        payload.Set(i - 1, l[i]);
+                    }
+                    value.Set(1, payload);
+                    typelist.Set(typeindex++, value);
+                }
+                listoftypes.Set(index++,typelist);
+            }
+            res.Set(2,listoftypes);
         }
-
-
 
         /// <summary>
         /// Get a list of all published topics
@@ -536,26 +588,43 @@ namespace rosmaster
         public void getPublishedTopics([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            List<String> str = handler.getPublishedTopics("","");
+            List<List<String>> publishedtopics = handler.getPublishedTopics("","");
             res.Set(0, 1);
             res.Set(1, "getPublishesTopics");
-            XmlRpcValue payload = new XmlRpcValue();
-            for (int i = 0; i < str.Count; i += 2)
+
+            XmlRpcValue listofvalues = new XmlRpcValue();
+            int index = 0;
+            foreach (List<String> l in publishedtopics)
             {
-                XmlRpcValue tmp = new XmlRpcValue();
-                tmp.Set(0, str[0]);
-                str.RemoveAt(0);
-                tmp.Set(0, str[0]);
-                str.RemoveAt(0);
-                payload.Set(i, str);
+                XmlRpcValue value = new XmlRpcValue();
+                value.Set(0, l[0]); //Topic Name
+                value.Set(1, l[1]); // Topic type
+                listofvalues.Set(index, value);
+                index++;
             }
-            XmlRpcValue bs = new XmlRpcValue();
-            XmlRpcValue sup = new XmlRpcValue();
-            sup.Set(0, "/wtf");
-            sup.Set(1, "String");
-            bs.Set(0, sup);
+            /*for (int i = 0; i < str.Count; i += 2)
+            {
+                XmlRpcValue value = new XmlRpcValue();
+                value.Set(0, publishedtopics[i]); //Topic Name
+                str.RemoveAt(0);
+                value.Set(0, str[i]); //Topic Type
+                str.RemoveAt(0);
+
+                listofvalues.Set(i, value);
+                //payload.Set(i, str);
+            }
+
+            */
+            //XmlRpcValue value2 = new XmlRpcValue();
+            //XmlRpcValue value1 = new XmlRpcValue();
+           // value1.Set(0, "/wtf");
+           // value1.Set(1, "String");
+           // value2.Set(0, "/wut");
+            //value2.Set(1, "String");
+            //listofvalues.Set(0, value1);
+            //listofvalues.Set(1, value2);
             //res.Set(2, "String");
-            res.Set(2, bs);
+            res.Set(2, listofvalues);
            // res.Set(3, "FUCK YOU");
             //topicss.Clear();
             //for (int i = 0; i < payload.Size; i++)
@@ -580,7 +649,7 @@ namespace rosmaster
             handler.registerPublisher(caller_id, topic, type, hostname);
             res.Set(0,1);
             res.Set(1,"GOOD JOB!");
-            res.Set(2, new XmlRpcValue());
+            res.Set(2, new XmlRpcValue(""));
 
 
         }
@@ -606,6 +675,19 @@ namespace rosmaster
         /// <param name="result"></param>
         public void registerSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+            String type = parm[2].GetString();
+            String hostname = parm[3].GetString(); //hostname
+
+            handler.registerSubscriber(caller_id, topic, type, hostname);
+            res.Set(0, 1);
+            res.Set(1, "GOOD JOB!");
+            res.Set(2, new XmlRpcValue(""));
+
             //string uri = XmlRpcManager.Instance.uri;
 
             //XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
@@ -686,6 +768,20 @@ namespace rosmaster
         /// <param name="result"></param>
         public void setParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            res.Set(0, 1);
+            res.Set(1,"setParam");
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+            XmlRpcValue value = parm[2];
+            handler.setParam(caller_id, topic,value);
+            res.Set(2,"");
+            //String hostname = parm[3].GetString(); //hostname
+
+
+
+            //String key = Names.resolve_name();
             //string mapped_key = names.resolve(key);
             //XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
             //parm.Set(0, this_node.Name);
@@ -704,11 +800,31 @@ namespace rosmaster
         /// <param name="result"></param>
         public void getParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            res.Set(0, 1);
+            res.Set(1, "getParam");
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+
+            // value = new XmlRpcValue();
+             XmlRpcValue value = handler.getParam(caller_id, topic);
+            //value
+             // String vi = v.getString();
+             if (value == null)
+             {
+                 res.Set(0, 0);
+                 res.Set(1, "Parameter "+ topic+" is not set");
+                 value = new XmlRpcValue("");
+             }
+            res.Set(2,value);
+            
             //XmlRpcValue parm2 = new XmlRpcValue(), result2 = new XmlRpcValue();
             //parm2.Set(0, this_node.Name);
             //parm2.Set(1, mapped_key);
 
             //bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
+            
         }
 
         /// <summary>

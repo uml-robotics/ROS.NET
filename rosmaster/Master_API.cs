@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using XmlRpc_Wrapper;
 
 namespace rosmaster
 {
@@ -96,7 +97,7 @@ namespace rosmaster
                 }
                 catch (KeyNotFoundException e) { return -1; }
             }
-            public void setParam(String caller_id, String key, Param value) 
+            public void setParam(String caller_id, String key, XmlRpcValue value) 
             {
                 key = Names.resolve_name(key,caller_id);
                 param_server.set_param(key, value, _notify_param_subscribers);
@@ -108,7 +109,7 @@ namespace rosmaster
             /// <param name="caller_id"></param>
             /// <param name="key"></param>
             /// <returns>Dictionary</Dictionary></returns>
-            public Dictionary<String,Param> getParam(String caller_id, String key) 
+            public XmlRpcValue getParam(String caller_id, String key)
             {
                 try
                 {
@@ -125,7 +126,7 @@ namespace rosmaster
                 String search_key = param_server.search_param(caller_id,key);
                 return search_key;
             }
-            public Dictionary<String, Param> subscribeParam(String caller_id, String caller_api, String key) 
+            public XmlRpcValue subscribeParam(String caller_id, String caller_api, String key) 
             {
                 key = Names.resolve_name(key,caller_id);
 
@@ -240,20 +241,26 @@ namespace rosmaster
             /// <summary>
             /// 
             /// </summary>
-            /// <param name="caller_id"></param>
-            /// <param name="subgraph"></param>
+            /// <param name="caller_id">Not used?Wtf?</param>
+            /// <param name="subgraph">Optional String, only returns topics that start with that name</param>
             /// <returns></returns>
-            public List<String> getPublishedTopics(String caller_id, String subgraph) 
+            public List<List<String>> getPublishedTopics(String caller_id, String subgraph) 
             {
                 if (subgraph != "" && !subgraph.EndsWith("/"))
                     subgraph = subgraph + "/";
                 Dictionary<String, List<String>> e = new Dictionary<String, List<String>>(publishers.map);
-                List<String> rtn = new List<String>();
-                foreach (var d in e)
+                List<List<String>> rtn = new List<List<String>>();
+
+                foreach (KeyValuePair<String,List<String>> pair in e)
                 {
-                    if (d.Key.StartsWith(subgraph))
-                        foreach(String s in d.Value)
-                            rtn.Add(s);
+                    if (pair.Key.StartsWith(subgraph))
+                        foreach (String s in pair.Value)
+                        {
+                            List<String> value = new List<string>();
+                            value.Add(pair.Key);
+                            value.Add(s);
+                            rtn.Add(value);
+                        }
                 }
                 return rtn;
             }
@@ -262,12 +269,12 @@ namespace rosmaster
                 return new Dictionary<String,String>(topic_types);
             }
 
-            public List<String> getSystemState(String caller_id) 
+            public List<List<List<String>>> getSystemState(String caller_id) 
             {
-                List<String> rtn = new List<String>();
-                rtn = publishers.get_state();
-                rtn.AddRange(subscribers.get_state());
-                rtn.AddRange(services.get_state());
+                List<List<List<String>>> rtn = new List<List<List<String>>>();
+                rtn.Add(publishers.get_state());
+                rtn.Add(subscribers.get_state());
+                rtn.Add(services.get_state());
                 return rtn;
             }
 
