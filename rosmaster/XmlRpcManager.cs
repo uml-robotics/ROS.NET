@@ -496,14 +496,6 @@ namespace rosmaster
         {
             throw new Exception("NOT IMPLEMENTED YET!");
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-
-            /* if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
-             {
-                 string last_error = "Unknown error";
-
-                 responseInt(0, last_error, 0)(result);
-             }*/
         }
 
         /// <summary>
@@ -570,34 +562,7 @@ namespace rosmaster
                 listofvalues.Set(index, value);
                 index++;
             }
-            /*for (int i = 0; i < str.Count; i += 2)
-            {
-                XmlRpcValue value = new XmlRpcValue();
-                value.Set(0, publishedtopics[i]); //Topic Name
-                str.RemoveAt(0);
-                value.Set(0, str[i]); //Topic Type
-                str.RemoveAt(0);
-
-                listofvalues.Set(i, value);
-                //payload.Set(i, str);
-            }
-
-            */
-            //XmlRpcValue value2 = new XmlRpcValue();
-            //XmlRpcValue value1 = new XmlRpcValue();
-           // value1.Set(0, "/wtf");
-           // value1.Set(1, "String");
-           // value2.Set(0, "/wut");
-            //value2.Set(1, "String");
-            //listofvalues.Set(0, value1);
-            //listofvalues.Set(1, value2);
-            //res.Set(2, "String");
             res.Set(2, listofvalues);
-           // res.Set(3, "FUCK YOU");
-            //topicss.Clear();
-            //for (int i = 0; i < payload.Size; i++)
-            //    topicss.Add(new TopicInfo(payload[i][0].Get<string>(), payload[i][1].Get<string>()));
-            //topics = topicss.ToArray();
         }
 
         /// <summary>
@@ -638,7 +603,8 @@ namespace rosmaster
 
             int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
             res.Set(0, ret);
-            res.Set(1, "unregisterPublisher");
+            res.Set(1, "unregistered " + caller_id+ "as provder of "+ topic);
+
 
 
         }
@@ -709,6 +675,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void unregisterSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+
             throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
             //            result = new XmlRpcValue(),
@@ -728,13 +695,14 @@ namespace rosmaster
         /// <param name="result"></param>
         public void hasParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            throw new Exception("NOT IMPLEMENTED YET!");
-            //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            //parm.Set(0, this_node.Name);
-            //parm.Set(1, names.resolve(key));
-            //if (!master.execute("hasParam", parm, ref result, ref payload, false))
-            //    return false;
-            //return payload.Get<bool>();
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            res.Set(0, 1);
+            res.Set(1, "hasParam");
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+
+            res.Set(2, handler.hasParam(caller_id, topic));
         }
 
         /// <summary>
@@ -753,18 +721,6 @@ namespace rosmaster
             XmlRpcValue value = parm[2];
             handler.setParam(caller_id, topic,value);
             res.Set(2, "parameter " + topic + " set");
-            //String hostname = parm[3].GetString(); //hostname
-
-
-
-            //String key = Names.resolve_name();
-            //string mapped_key = names.resolve(key);
-            //XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
-            //parm.Set(0, this_node.Name);
-            //parm.Set(1, mapped_key);
-            //parm.Set(2, val);
-            //execute("setParam", parm, ref response, ref payload, true);
-
         }
 
 
