@@ -332,7 +332,7 @@ namespace rosmaster
         {
             int code = 0;
 
-            if (!nodes.ContainsKey(caller_id))
+            if (nodes.ContainsKey(caller_id))
             {
                 NodeRef node_ref = nodes[caller_id];
                 ret = r.unregister(key, caller_api, service_api, ref msg, ref code);

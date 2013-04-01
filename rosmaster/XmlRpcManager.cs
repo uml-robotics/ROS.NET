@@ -287,6 +287,7 @@ namespace rosmaster
             bind("deleteParam", deleteParam);
             bind("paramUpdate", paramUpdate);
             bind("subscribeParam", subscribeParam);
+            bind("getParamNames", getParamNames);
 
             bind("getPid", getPid);
             bind("getBusStats", getBusStatus);
@@ -413,7 +414,7 @@ namespace rosmaster
 
         public void getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
+            throw new Exception("NOT IMPLEMENTED YET!");
         }
         /// <summary>
         /// Get a list of all subscriptions
@@ -422,6 +423,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue res = XmlRpcValue.Create(ref result);
             //res.Set(0, 1);
             //res.Set(1, "subscriptions");
@@ -448,7 +450,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void pubUpdate([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
+            throw new Exception("NOT IMPLEMENTED YET!");
             //mlRpcValue parm = XmlRpcValue.Create(ref parms);
             //List<string> pubs = new List<string>();
             //for (int idx = 0; idx < parm[2].Size; idx++)
@@ -492,6 +494,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void requestTopic([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            throw new Exception("NOT IMPLEMENTED YET!");
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
 
 
@@ -515,45 +518,7 @@ namespace rosmaster
             res.Set(1, "getSystemState");
             List<List<List<String>>> systemstatelist = handler.getSystemState("");//parm.GetString()
 
-           /* switch (systemstatelist.Count)
-            {
-                case 0:
-                    systemstatelist.Add(new List<List<String>>());
-                    systemstatelist.Add(new List<List<String>>());
-                    systemstatelist.Add(new List<List<String>>());
-                    break;
-                case 1:
-                    systemstatelist.Add(new List<List<String>>());
-                    systemstatelist.Add(new List<List<String>>());
-                    break;
-                case 2:
-                    systemstatelist.Add(new List<List<String>>());
-                    break;
-                case 3:
-                    break;
-                default:
-                    break;
-            }*/
-
-            if (systemstatelist.Count == 0)
-            {
-
-            }
             XmlRpcValue listoftypes = new XmlRpcValue();
-            XmlRpcValue tmp1 = new XmlRpcValue();
-            XmlRpcValue tmp2 = new XmlRpcValue();
-            XmlRpcValue tmp3 = new XmlRpcValue();
-            XmlRpcValue tmp4 = new XmlRpcValue();
-            XmlRpcValue tmp5 = new XmlRpcValue();
-            tmp1.Set(0, new XmlRpcValue());
-            tmp2.Set(0, new XmlRpcValue());
-            tmp3.Set(0, new XmlRpcValue());
-            tmp4.Set(0, tmp2);
-            tmp5.Set(0, tmp3);
-
-            listoftypes.Set(0, tmp1);
-            listoftypes.Set(1, tmp4);
-            listoftypes.Set(2, tmp5);
 
             XmlRpcValue listofvalues = new XmlRpcValue();
 
@@ -565,18 +530,21 @@ namespace rosmaster
                 XmlRpcValue typelist = new XmlRpcValue();
                 foreach (List<String> l in types)
                 {
-                    XmlRpcValue value = new XmlRpcValue();
-                    value.Set(0, l[0]);
+                    //XmlRpcValue value = new XmlRpcValue();
+                    typelist.Set(typeindex++, l[0]);
                     XmlRpcValue payload = new XmlRpcValue();
                     for (int i = 1; i < l.Count; i++)
                     {
                         payload.Set(i - 1, l[i]);
                     }
-                    value.Set(1, payload);
-                    typelist.Set(typeindex++, value);
+                    typelist.Set(typeindex++, payload);
+                    //typelist.Set(typeindex++, value);
                 }
-                listoftypes.Set(index++,typelist);
+                XmlRpcValue bullshit = new XmlRpcValue();
+                bullshit.Set(0,typelist);
+                listoftypes.Set(index++,bullshit);
             }
+
             res.Set(2,listoftypes);
         }
 
@@ -661,11 +629,18 @@ namespace rosmaster
         /// <param name="result"></param>
         public void unregisterPublisher([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            /*XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
-                        result = new XmlRpcValue(),
-                        payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, ref result, ref payload, false);
-            return true;*/
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+            String caller_api = parm[2].GetString();
+            //String hostname = parm[3].GetString(); //hostname
+
+            int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
+            res.Set(0, ret);
+            res.Set(1, "unregisterPublisher");
+
+
         }
 
         /// <summary>
@@ -675,7 +650,6 @@ namespace rosmaster
         /// <param name="result"></param>
         public void registerSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
 
             String caller_id = parm[0].GetString();
@@ -735,6 +709,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void unregisterSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
             //            result = new XmlRpcValue(),
             //            payload = new XmlRpcValue();
@@ -753,6 +728,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void hasParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             //parm.Set(0, this_node.Name);
             //parm.Set(1, names.resolve(key));
@@ -834,6 +810,35 @@ namespace rosmaster
         /// <param name="result"></param>
         public void deleteParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            throw new Exception("NOT IMPLEMENTED YET!");
+            //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            //parm.Set(0, this_node.Name);
+            //parm.Set(1, mapped_key);
+            //if (!master.execute("deleteParam", parm, ref result, ref payload, false))
+            //    return false;
+            //return true;
+        }
+
+        public void getParamNames([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            res.Set(0, 1);
+            res.Set(1, "getParamNames");
+
+            String caller_id = parm[0].GetString();
+            List<String> list = handler.getParamNames(caller_id);
+
+            XmlRpcValue response = new XmlRpcValue();
+            int index = 0;
+            foreach (String s in list)
+            {
+                response.Set(index++, s);
+            }
+
+            res.Set(2, response);
+
+
+            //throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             //parm.Set(0, this_node.Name);
             //parm.Set(1, mapped_key);
@@ -865,7 +870,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void subscribeParam([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
+            throw new Exception("NOT IMPLEMENTED YET!");
         }
         
 
@@ -876,7 +881,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void getBusStatus([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
+            throw new Exception("NOT IMPLEMENTED YET!");
         }
 
         /// <summary>
@@ -886,7 +891,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void getBusInfo([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-
+            throw new Exception("NOT IMPLEMENTED YET!");
         }
 
     }
