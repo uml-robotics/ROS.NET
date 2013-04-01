@@ -209,7 +209,7 @@ namespace rosmaster
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
                 tmplist.Add(caller_api);
-                if (providers == tmplist )
+                if (providers[0] == tmplist[0] && providers[1] == tmplist[1])
                 {
                     map.Remove(key);
                     //providers.Remove(new Tuple<String, String>(caller_id, caller_api));
@@ -335,7 +335,7 @@ namespace rosmaster
             if (nodes.ContainsKey(caller_id))
             {
                 NodeRef node_ref = nodes[caller_id];
-                ret = r.unregister(key, caller_api, service_api, ref msg, ref code);
+                ret = r.unregister(key, caller_id, caller_api, ref msg, ref code, service_api);
                 if (code == 1)
                 {
                     node_ref.remove(r.type, key);

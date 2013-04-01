@@ -392,25 +392,7 @@ namespace rosmaster
                 response.Set(i, pub);
             }
             res.Set(2, response);
-
         }
-
-        //public void getPublications(ref XmlRpcValue pubs)
-        //{
-           // pubs.Size = 0;
-            //lock (advertised_topics_mutex)
-            // {
-            //handler.getPublishedTopics();
-            //int sidx = 0;
-            //foreach (Publication t in advertised_topics)
-            //{
-              //  XmlRpcValue pub = new XmlRpcValue();
-                //pub.Set(0, t.Name);
-               // pub.Set(1, t.DataType);
-                //pubs.Set(sidx++, pub);
-                //    }
-            //}
-        //}
 
         public void getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
@@ -424,22 +406,6 @@ namespace rosmaster
         public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
-            //XmlRpcValue res = XmlRpcValue.Create(ref result);
-            //res.Set(0, 1);
-            //res.Set(1, "subscriptions");
-            //XmlRpcValue response = new XmlRpcValue();
-            //getSubscriptions(ref response);
-            //res.Set(2, response);
-
-            //subs.Size = 0;
-            //lock (subs_mutex)
-            //{
-            //    int sidx = 0;
-            //    foreach (Subscription t in subscriptions)
-            //    {
-            //        subs.Set(sidx++, new XmlRpcValue(t.name, t.datatype));
-            //    }
-            //}
         }
 
 
@@ -518,22 +484,35 @@ namespace rosmaster
             
             foreach (List<List<String>> types in systemstatelist) //publisher, subscriber, services
             {
-                int typeindex = 0;
-                XmlRpcValue typelist = new XmlRpcValue();
-                foreach (List<String> l in types)
-                {
-                    //XmlRpcValue value = new XmlRpcValue();
-                    typelist.Set(typeindex++, l[0]);
-                    XmlRpcValue payload = new XmlRpcValue();
-                    for (int i = 1; i < l.Count; i++)
-                    {
-                        payload.Set(i - 1, l[i]);
-                    }
-                    typelist.Set(typeindex++, payload);
-                    //typelist.Set(typeindex++, value);
-                }
+                int bullshitindex = 0;
+                XmlRpcValue typelist;
                 XmlRpcValue bullshit = new XmlRpcValue();
-                bullshit.Set(0,typelist);
+                if (types.Count > 0)
+                {
+                    foreach (List<String> l in types)
+                    {
+                        int typeindex = 0;
+                        typelist = new XmlRpcValue();
+                        //XmlRpcValue value = new XmlRpcValue();
+                        typelist.Set(typeindex++, l[0]);
+                        XmlRpcValue payload = new XmlRpcValue();
+                        for (int i = 1; i < l.Count; i++)
+                        {
+                            payload.Set(i - 1, l[i]);
+                        }
+
+                        typelist.Set(typeindex++, payload);
+                        //typelist.Set(typeindex++, value);
+                        bullshit.Set(bullshitindex++, typelist);
+                    }
+                }
+                else
+                {
+                    typelist = new XmlRpcValue();
+                    bullshit.Set(bullshitindex++, typelist);
+                }
+
+
                 listoftypes.Set(index++,bullshit);
             }
 
@@ -577,9 +556,11 @@ namespace rosmaster
             String caller_id = parm[0].GetString();
             String topic = parm[1].GetString();
             String type = parm[2].GetString();
-            String hostname = parm[3].GetString(); //hostname
+            String caller_api = parm[3].GetString(); //hostname
 
-            handler.registerPublisher(caller_id, topic, type, hostname);
+            Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api);
+
+            handler.registerPublisher(caller_id, topic, type, caller_api);
             res.Set(0,1);
             res.Set(1,"GOOD JOB!");
             res.Set(2, new XmlRpcValue(""));
@@ -599,7 +580,8 @@ namespace rosmaster
             String caller_id = parm[0].GetString();
             String topic = parm[1].GetString();
             String caller_api = parm[2].GetString();
-            //String hostname = parm[3].GetString(); //hostname
+            String hostname = parm[3].GetString(); //hostname
+            Console.WriteLine("UNPUBLISHING: " + caller_id + " : " + caller_api);
 
             int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
             res.Set(0, ret);
