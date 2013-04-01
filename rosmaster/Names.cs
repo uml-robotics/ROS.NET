@@ -82,7 +82,7 @@ namespace rosmaster
             for (int i = 0; i < str.Length; i++)
             {
                 if(str[i].Length > 1)
-                    rtn = "/" + str[i];
+                    rtn += "/" + str[i];
             }
             return rtn;
         }

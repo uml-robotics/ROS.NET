@@ -752,7 +752,7 @@ namespace rosmaster
             String topic = parm[1].GetString();
             XmlRpcValue value = parm[2];
             handler.setParam(caller_id, topic,value);
-            res.Set(2,"");
+            res.Set(2, "parameter " + topic + " set");
             //String hostname = parm[3].GetString(); //hostname
 
 
