@@ -1,5 +1,5 @@
-﻿Build started 4/25/2013 5:58:19 PM.
-     1>Project "C:\Users\Luan\Desktop\gittoohard\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
+﻿Build started 4/25/2013 6:11:56 PM.
+     1>Project "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\XmlRpcWin32.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
@@ -7,22 +7,22 @@
          All outputs are up-to-date.
        Link:
          All outputs are up-to-date.
-         XmlRpcWin32.vcxproj -> C:\Users\Luan\Desktop\gittoohard\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+         XmlRpcWin32.vcxproj -> C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
        PostBuildEvent:
-         "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\dumpbin.exe" /EXPORTS "C:\Users\Luan\Desktop\gittoohard\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll"
+         "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\dumpbin.exe" /EXPORTS "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll"
          :VCEnd
          Microsoft (R) COFF/PE Dumper Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
          
-         Dump of file C:\Users\Luan\Desktop\gittoohard\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+         Dump of file C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
          
          File Type: DLL
          
            Section contains the following exports for XmlRpcWin32.dll
          
              00000000 characteristics
-             517986BB time date stamp Thu Apr 25 15:40:43 2013
+             5179A9D2 time date stamp Thu Apr 25 18:10:26 2013
                  0.00 version
                     1 ordinal base
                    79 number of functions
@@ -120,8 +120,8 @@
        FinalizeBuildStatus:
          Deleting file "Debug\XmlRpcWin32.unsuccessfulbuild".
          Touching "Debug\XmlRpcWin32.lastbuildstate".
-     1>Done Building Project "C:\Users\Luan\Desktop\gittoohard\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.19
+Time Elapsed 00:00:00.17

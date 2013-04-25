@@ -135,6 +135,8 @@ namespace WpfApplication1
                     Thread.Sleep(10);
                 }
             }).Start();
+
+            //SubCamera2.Focus();
         }
 
         // close ros when application closes
