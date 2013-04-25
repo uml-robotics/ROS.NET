@@ -1,0 +1,139 @@
+<<<<<<< HEAD
+﻿Build started 4/25/2013 6:20:36 PM.
+     1>Project "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (clean target(s)).
+     1>_PrepareForClean:
+         Deleting file "Debug\XmlRpcWin32.lastbuildstate".
+     1>Done Building Project "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (clean target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.03
+=======
+﻿Build started 4/25/2013 6:11:56 PM.
+     1>Project "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\XmlRpcWin32.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         XmlRpcWin32.vcxproj -> C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+       PostBuildEvent:
+         "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\dumpbin.exe" /EXPORTS "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll"
+         :VCEnd
+         Microsoft (R) COFF/PE Dumper Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         
+         Dump of file C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+         
+         File Type: DLL
+         
+           Section contains the following exports for XmlRpcWin32.dll
+         
+             00000000 characteristics
+             5179A9D2 time date stamp Thu Apr 25 18:10:26 2013
+                 0.00 version
+                    1 ordinal base
+                   79 number of functions
+                   79 number of names
+         
+             ordinal hint RVA      name
+         
+                   1    0 0001F300 IntegerEcho = _IntegerEcho
+                   2    1 0001F310 IntegerEchoFunctionPtr = _IntegerEchoFunctionPtr
+                   3    2 0001F320 IntegerEchoRepeat = _IntegerEchoRepeat
+                   4    3 0001F370 SetStringOutFunc = _SetStringOutFunc
+                   5    4 0001F350 StringPassingTest = _StringPassingTest
+                   6    5 0001F7B0 XmlRpcClient_ClearFault = _XmlRpcClient_ClearFault
+                   7    6 0001F430 XmlRpcClient_Close = _XmlRpcClient_Close
+                   8    7 0001F380 XmlRpcClient_Create = _XmlRpcClient_Create
+                   9    8 0001F4B0 XmlRpcClient_Execute = _XmlRpcClient_Execute
+                  10    9 0001F640 XmlRpcClient_ExecuteCheckDone = _XmlRpcClient_ExecuteCheckDone
+                  11    A 0001F570 XmlRpcClient_ExecuteNonBlock = _XmlRpcClient_ExecuteNonBlock
+                  12    B 0001FB80 XmlRpcClient_GetBytesWritten = _XmlRpcClient_GetBytesWritten
+                  13    C 0001FCD0 XmlRpcClient_GetContentLength = _XmlRpcClient_GetContentLength
+                  14    D 0001FC60 XmlRpcClient_GetEOF = _XmlRpcClient_GetEOF
+                  15    E 0001FBF0 XmlRpcClient_GetExecuting = _XmlRpcClient_GetExecuting
+                  16    F 0001FA10 XmlRpcClient_GetHeader = _XmlRpcClient_GetHeader
+                  17   10 0001F820 XmlRpcClient_GetHost = _XmlRpcClient_GetHost
+                  18   11 0001F920 XmlRpcClient_GetPort = _XmlRpcClient_GetPort
+                  19   12 0001F990 XmlRpcClient_GetRequest = _XmlRpcClient_GetRequest
+                  20   13 0001FA90 XmlRpcClient_GetResponse = _XmlRpcClient_GetResponse
+                  21   14 0001FB10 XmlRpcClient_GetSendAttempts = _XmlRpcClient_GetSendAttempts
+                  22   15 0001F8A0 XmlRpcClient_GetUri = _XmlRpcClient_GetUri
+                  23   16 0001FD40 XmlRpcClient_GetXmlRpcDispatch = _XmlRpcClient_GetXmlRpcDispatch
+                  24   17 0001F6C0 XmlRpcClient_HandleEvent = _XmlRpcClient_HandleEvent
+                  25   18 0001F630 XmlRpcClient_IsConnected = _XmlRpcClient_IsConnected
+                  26   19 0001F740 XmlRpcClient_IsFault = _XmlRpcClient_IsFault
+                  27   1A 00020C70 XmlRpcDispatch_AddSource = _XmlRpcDispatch_AddSource
+                  28   1B 00020ED0 XmlRpcDispatch_Clear = _XmlRpcDispatch_Clear
+                  29   1C 00020C00 XmlRpcDispatch_Close = _XmlRpcDispatch_Close
+                  30   1D 00020B60 XmlRpcDispatch_Create = _XmlRpcDispatch_Create
+                  31   1E 00020E60 XmlRpcDispatch_Exit = _XmlRpcDispatch_Exit
+                  32   1F 00020CF0 XmlRpcDispatch_RemoveSource = _XmlRpcDispatch_RemoveSource
+                  33   20 00020D60 XmlRpcDispatch_SetSourceEvents = _XmlRpcDispatch_SetSourceEvents
+                  34   21 00020DE0 XmlRpcDispatch_Work = _XmlRpcDispatch_Work
+                  35   22 00021210 XmlRpcServerMethod_Create = _XmlRpcServerMethod_Create
+                  36   23 00021380 XmlRpcServerMethod_Execute = _XmlRpcServerMethod_Execute
+                  37   24 00021310 XmlRpcServerMethod_SetFunc = _XmlRpcServerMethod_SetFunc
+                  38   25 000214A0 XmlRpcServer_AddMethod = _XmlRpcServer_AddMethod
+                  39   26 000216C0 XmlRpcServer_BindAndListen = _XmlRpcServer_BindAndListen
+                  40   27 00021400 XmlRpcServer_Create = _XmlRpcServer_Create
+                  41   28 000217C0 XmlRpcServer_Exit = _XmlRpcServer_Exit
+                  42   29 00021620 XmlRpcServer_FindMethod = _XmlRpcServer_FindMethod
+                  43   2A 00021910 XmlRpcServer_GetDispatch = _XmlRpcServer_GetDispatch
+                  44   2B 000218A0 XmlRpcServer_GetPort = _XmlRpcServer_GetPort
+                  45   2C 00021510 XmlRpcServer_RemoveMethod = _XmlRpcServer_RemoveMethod
+                  46   2D 00021580 XmlRpcServer_RemoveMethodByName = _XmlRpcServer_RemoveMethodByName
+                  47   2E 00021830 XmlRpcServer_Shutdown = _XmlRpcServer_Shutdown
+                  48   2F 00021740 XmlRpcServer_Work = _XmlRpcServer_Work
+                  49   30 00020F40 XmlRpcSource_Close = _XmlRpcSource_Close
+                  50   31 00020FC0 XmlRpcSource_GetFd = _XmlRpcSource_GetFd
+                  51   32 000210A0 XmlRpcSource_GetKeepOpen = _XmlRpcSource_GetKeepOpen
+                  52   33 00021190 XmlRpcSource_HandleEvent = _XmlRpcSource_HandleEvent
+                  53   34 00021030 XmlRpcSource_SetFd = _XmlRpcSource_SetFd
+                  54   35 00021110 XmlRpcSource_SetKeepOpen = _XmlRpcSource_SetKeepOpen
+                  55   36 000201C0 XmlRpcValue_Clear = _XmlRpcValue_Clear
+                  56   37 0001FDB0 XmlRpcValue_Create1 = _XmlRpcValue_Create1
+                  57   38 0001FE50 XmlRpcValue_Create2 = _XmlRpcValue_Create2
+                  58   39 0001FF00 XmlRpcValue_Create3 = _XmlRpcValue_Create3
+                  59   3A 0001FFB0 XmlRpcValue_Create4 = _XmlRpcValue_Create4
+                  60   3B 00020060 XmlRpcValue_Create5 = _XmlRpcValue_Create5
+                  61   3C 00020110 XmlRpcValue_Create6 = _XmlRpcValue_Create6
+                  62   3D 000209B0 XmlRpcValue_Dump = _XmlRpcValue_Dump
+                  63   3E 00020490 XmlRpcValue_Get1 = _XmlRpcValue_Get1
+                  64   3F 00020510 XmlRpcValue_Get2 = _XmlRpcValue_Get2
+                  65   40 000208C0 XmlRpcValue_GetBool0 = _XmlRpcValue_GetBool0
+                  66   41 00020930 XmlRpcValue_GetDouble0 = _XmlRpcValue_GetDouble0
+                  67   42 000207D0 XmlRpcValue_GetInt0 = _XmlRpcValue_GetInt0
+                  68   43 00020840 XmlRpcValue_GetString0 = _XmlRpcValue_GetString0
+                  69   44 000203F0 XmlRpcValue_HasMember = _XmlRpcValue_HasMember
+                  70   45 00020590 XmlRpcValue_Set1 = _XmlRpcValue_Set1
+                  71   46 00020600 XmlRpcValue_Set3 = _XmlRpcValue_Set3
+                  72   47 00020670 XmlRpcValue_Set5 = _XmlRpcValue_Set5
+                  73   48 000206E0 XmlRpcValue_Set7 = _XmlRpcValue_Set7
+                  74   49 00020760 XmlRpcValue_Set9 = _XmlRpcValue_Set9
+                  75   4A 00020380 XmlRpcValue_SetSize = _XmlRpcValue_SetSize
+                  76   4B 00020310 XmlRpcValue_Size = _XmlRpcValue_Size
+                  77   4C 00020AB0 XmlRpcValue_ToString = _XmlRpcValue_ToString
+                  78   4D 000202A0 XmlRpcValue_Type = _XmlRpcValue_Type
+                  79   4E 00020230 XmlRpcValue_Valid = _XmlRpcValue_Valid
+         
+           Summary
+         
+                 1000 .data
+                10000 .rdata
+                 3000 .reloc
+                 1000 .rsrc
+                27000 .text
+       FinalizeBuildStatus:
+         Deleting file "Debug\XmlRpcWin32.unsuccessfulbuild".
+         Touching "Debug\XmlRpcWin32.lastbuildstate".
+     1>Done Building Project "C:\Users\Luan\Desktop\ROS_Sharp\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.17
+>>>>>>> origin/master
