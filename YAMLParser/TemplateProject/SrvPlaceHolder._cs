@@ -1,0 +1,132 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Runtime.InteropServices;
+using uint8 = System.Byte;
+
+namespace Messages
+{
+	public class $WHATAMI : IRosService
+	{
+		[System.Diagnostics.DebuggerStepThrough]
+		public $WHATAMI() : base($MYSRVTYPE, $MYSERVICEDEFINITION, "$MYSRVMD5SUM")
+		{
+			InitSubtypes(new Request(), new Response());
+		}
+		
+		public Response Invoke(Func<Request, Response> fn, Request req)
+		{
+			RosServiceDelegate rsd = (m)=>{
+				Request r = m as Request;
+				if (r == null)
+					throw new Exception("Invalid Service Request Type");
+				return fn(r);
+			};
+			return (Response)GeneralInvoke(rsd, (IRosMessage)req);
+		}
+	
+		public class Request : IRosMessage
+		{
+			$$REQUESTDOLLADOLLABILLS
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public Request() : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+			{
+				$REQUESTNULLCONSTBODY
+			}
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public Request(byte[] SERIALIZEDSTUFF) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+			{
+			}
+
+	$REQUESTEXTRACONSTRUCTOR		
+					
+			//[System.Diagnostics.DebuggerStepThrough]
+			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			{		
+				return SerializationHelper.Deserialize<$WHATAMI.Request>(SERIALIZEDSTUFF, null);
+			}
+
+			/*		
+			[System.Diagnostics.DebuggerStepThrough]
+			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
+			{			
+				return SerializationHelper.Deserialize<$WHATAMI.Request>(SERIALIZEDSTUFF, null);
+			}
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
+			{			
+				//$REQUESTDESERIALIZATIONCODEHERE
+			}*/
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize()
+			{
+				return Serialize(false);
+			}
+
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize(bool partofsomethingelse)
+			{
+				//$REQUESTSERIALIZATIONCODEHERE			
+				return SerializationHelper.Serialize<$WHATAMI.Request>(this, partofsomethingelse);
+			}
+		}
+		
+		public class Response : IRosMessage
+		{
+			$$RESPONSEDOLLADOLLABILLS
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public Response() : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+			{
+				$RESPONSENULLCONSTBODY
+			}
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public Response(byte[] SERIALIZEDSTUFF) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+			{
+			}
+
+	$RESPONSEEXTRACONSTRUCTOR		
+					
+			//[System.Diagnostics.DebuggerStepThrough]
+			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			{		
+				return SerializationHelper.Deserialize<$WHATAMI.Response>(SERIALIZEDSTUFF, null);
+			}
+
+					
+			/*[System.Diagnostics.DebuggerStepThrough]
+			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
+			{			
+				return SerializationHelper.Deserialize<$WHATAMI.Response>(SERIALIZEDSTUFF, null);
+			}
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
+			{			
+				//$RESPONSEDESERIALIZATIONCODEHERE
+			}*/
+
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize()
+			{
+				return Serialize(false);
+			}
+
+			
+			[System.Diagnostics.DebuggerStepThrough]
+			public override byte[] Serialize(bool partofsomethingelse)
+			{
+				//$RESPONSESERIALIZATIONCODEHERE			
+				return SerializationHelper.Serialize<$WHATAMI.Response>(this, partofsomethingelse);
+			}	
+		}
+	}
+}
