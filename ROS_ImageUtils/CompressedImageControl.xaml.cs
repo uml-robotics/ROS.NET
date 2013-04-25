@@ -47,8 +47,8 @@ namespace ROS_ImageWPF
             set { SetValue(TopicProperty, value); }
         }
         private Thread waitforinit;
-        private static NodeHandle imagehandle;
-        private static Subscriber<sm.CompressedImage> imgsub;
+        private NodeHandle imagehandle;
+        private Subscriber<sm.CompressedImage> imgsub;
         private bool STOPIT;
         public void shutdown()
         {
@@ -94,11 +94,11 @@ namespace ROS_ImageWPF
             }
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
-        private static Thread spinnin;
+        private Thread spinnin;
         private void SetupTopic()
         {
             if (imagehandle == null)
-                imagehandle = new NodeHandle();
+               imagehandle = ROS.GlobalNodeHandle;
             if (imgsub != null)
             {
                 imgsub.shutdown();
