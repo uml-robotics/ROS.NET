@@ -123,6 +123,7 @@
     <Content Include="ROS_MESSAGES\arm_status_msgs\ArmMovement.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\sensor_msgs\Joy.msg" />
     <None Include="TemplateProject\PubSubTest._cs" />
     <Content Include="TemplateProject\Time.cs" />
     <Content Include="TemplateProject\SerializationHelper.cs">
