@@ -5,3 +5,4 @@ Messages/
 ROS_dotNET.sdf
 ROS_dotNET.suo
 XmlRpcWin32/Debug/XmlRpcWin32.Build.CppClean.log
+*.opensdf
