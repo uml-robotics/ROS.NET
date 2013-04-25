@@ -135,6 +135,8 @@ namespace WpfApplication1
                     Thread.Sleep(10);
                 }
             }).Start();
+
+            SubCamera2.Focus();
         }
 
         // close ros when application closes
@@ -244,7 +246,7 @@ namespace WpfApplication1
             // switch tab item index (0 to 3)
             switch (MainCameraTabControl.SelectedIndex)
             {
-                // 1st tab item
+                    // 1st tab item
                 case 0:
                     // change background of tab control to gold
                     MainCameraTabControl.Background = Brushes.Gold;
@@ -255,7 +257,7 @@ namespace WpfApplication1
                     SubCamera3.Focusable = true;
                     SubCamera4.Focusable = true;
                     return;
-                // 2nd tab item
+                    // 2nd tab item
                 case 1:
                     // change background of tab control to red
                     MainCameraTabControl.Background = Brushes.Red;
@@ -266,7 +268,7 @@ namespace WpfApplication1
                     SubCamera3.Focusable = true;
                     SubCamera4.Focusable = true;
                     return;
-                // 3rd tab item
+                    // 3rd tab item
                 case 2:
                     // change background of tab control to green
                     MainCameraTabControl.Background = Brushes.Green;
@@ -277,7 +279,7 @@ namespace WpfApplication1
                     SubCamera3.Focusable = false;
                     SubCamera4.Focusable = true;
                     return;
-                // 4th tab item
+                    // 4th tab item
                 case 3:
                     // change background of tab control to blue
                     MainCameraTabControl.Background = Brushes.Blue;
@@ -297,7 +299,7 @@ namespace WpfApplication1
             // switch tab item index (0 to 3)
             switch (SubCameraTabControl.SelectedIndex)
             {
-                // 1st tab itm
+                    // 1st tab itm
                 case 0:
                     // change background of tab control to gold
                     SubCameraTabControl.Background = Brushes.Gold;
@@ -308,7 +310,7 @@ namespace WpfApplication1
                     MainCamera3.Focusable = true;
                     MainCamera4.Focusable = true;
                     return;
-                // 2nd tab item
+                    // 2nd tab item
                 case 1:
                     // change background of tab control to gred
                     SubCameraTabControl.Background = Brushes.Red;
@@ -319,7 +321,7 @@ namespace WpfApplication1
                     MainCamera3.Focusable = true;
                     MainCamera4.Focusable = true;
                     return;
-                // 3rd tab item
+                    // 3rd tab item
                 case 2:
                     // change background of tab control to green
                     SubCameraTabControl.Background = Brushes.Green;
@@ -330,7 +332,7 @@ namespace WpfApplication1
                     MainCamera3.Focusable = false;
                     MainCamera4.Focusable = true;
                     return;
-                // 4th tab item
+                    // 4th tab item
                 case 3:
                     // change background of tab control to blue
                     SubCameraTabControl.Background = Brushes.Blue;

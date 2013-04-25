@@ -58,25 +58,32 @@ namespace WpfApplication1
             {
                 // make the rectangle white
                 LeftTrigger.Fill = Brushes.White;
-                // 
+                // set progress bar value to trigger value
                 LeftTriggerProgressBar.Value = currentState.Triggers.Left;
+                // display trigger value as %
                 LeftTriggerValueTextBlock.Text = (LeftTriggerProgressBar.Value * 100).ToString("F0") + '%';
+                // move display up as trigger value increases
                 LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219 + (currentState.Triggers.Left * 100));
+                // set left vibration motor to trigger value (to be removed)
                 leftMotor = currentState.Triggers.Left;
-                GamePad.SetVibration(PlayerIndex.One, leftMotor, rightMotor);
             }
+                // if trigger is equal to 0
             else
             {
+                // remove left vibration motor value
                 leftMotor = 0;
-                GamePad.SetVibration(PlayerIndex.One, leftMotor, rightMotor);
             }
 
+            // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(LeftTriggerButton));
         }
 
+        // right trigger functions
         public void RightTriggerButton()
         {
+            // rectangle box is transparent
             RightTrigger.Fill = Brushes.Transparent;
+            // value is 0
             RightTriggerProgressBar.Value = 0;
             RightTriggerValueTextBlock.Text = "0%";
             RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219);

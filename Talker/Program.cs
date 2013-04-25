@@ -13,7 +13,6 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using am = Messages.arm_status_msgs;
 using System.Text;
 
 #endregion
@@ -24,8 +23,8 @@ namespace videoView
     {
         private static void Main(string[] args)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.ROS_HOSTNAME = "10.0.3.141";
+            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";  
+            ROS.ROS_HOSTNAME = "10.0.3.10";
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);
@@ -42,4 +41,3 @@ namespace videoView
         }
     }
 }
-
