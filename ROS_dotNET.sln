@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_C-Sharp", "EricIsAMAZIN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Talker", "Talker\Talker.csproj", "{0A642FA3-58AB-4DBD-94DD-87948062F559}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62BF0BBD-313B-448C-A434-B1DD5FEFF10C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_ImageWPF", "ROS_ImageUtils\ROS_ImageWPF.csproj", "{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompressedImageView", "CompressedImageView\CompressedImageView.csproj", "{684FFC24-B4C8-48B9-8195-1EE725F2312C}"
