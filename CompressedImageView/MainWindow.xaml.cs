@@ -93,7 +93,7 @@ namespace WpfApplication1
             Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Voice));
 
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.ROS_HOSTNAME = "10.0.3.101";
+            ROS.ROS_HOSTNAME = "10.0.3.117";
             ROS.Init(new string[0], "Image_Test");
             nh = new NodeHandle();
             new Thread(() =>

@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLParser", "YAMLParser\YA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "armgauge", "armgauge\armgauge.csproj", "{B553A998-E52A-4B69-B160-EE137E97816E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompressedImageView", "CompressedImageView\CompressedImageView.csproj", "{684FFC24-B4C8-48B9-8195-1EE725F2312C}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -130,8 +132,23 @@ Global
 		{B553A998-E52A-4B69-B160-EE137E97816E}.Release|Win32.ActiveCfg = Release|x86
 		{B553A998-E52A-4B69-B160-EE137E97816E}.Release|x86.ActiveCfg = Release|x86
 		{B553A998-E52A-4B69-B160-EE137E97816E}.Release|x86.Build.0 = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|Win32.ActiveCfg = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|x86.ActiveCfg = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Debug|x86.Build.0 = Debug|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|Any CPU.ActiveCfg = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|Mixed Platforms.Build.0 = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|Win32.ActiveCfg = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|x86.ActiveCfg = Release|x86
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{684FFC24-B4C8-48B9-8195-1EE725F2312C} = {62BF0BBD-313B-448C-A434-B1DD5FEFF10C}
 	EndGlobalSection
 EndGlobal
