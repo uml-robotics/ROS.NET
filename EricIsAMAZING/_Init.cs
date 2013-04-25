@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Threading;
 using Messages;
@@ -74,7 +76,11 @@ namespace Ros_CSharp
         public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;
         public static int init_options;
         public static string ROS_MASTER_URI;
-        public static string ROS_HOSTNAME;
+
+        /// <summary>
+        /// This is now set automagically
+        /// </summary>
+        private static string ROS_HOSTNAME;
         public static string ROS_IP;
         public static object start_mutex = new object();
 
@@ -178,10 +184,15 @@ namespace Ros_CSharp
             Error((object)string.Format(format, args));
         }
 
-         public static void Init(string[] args, string name)
+        public static void ROS_HOSTNAME_FORCE(string s)
+        {
+            ROS_HOSTNAME = s;
+        }
+
+        public static void Init(string[] args, string name)
         {
                Init(args, name, 0);
-       }
+        }
 
         public static void Init(string[] args, string name, int options)
         {
@@ -198,13 +209,35 @@ namespace Ros_CSharp
                     remapping.Add(chunks[0], chunks[1]);
                 }
             }
+
             if (!string.IsNullOrEmpty(ROS.ROS_MASTER_URI))
             {
                 remapping.Add("__master", ROS.ROS_MASTER_URI);
             }
+            if (string.IsNullOrEmpty(ROS_HOSTNAME))
+            {
+                IPHostEntry iphe = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in iphe.AddressList)
+                {
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && ip.ToString().StartsWith("10.0.3."))
+                    {
+                        ROS_HOSTNAME = ip.ToString();
+                        break;
+                    }
+                }
+                
+            }
             if (!string.IsNullOrEmpty(ROS.ROS_HOSTNAME))
             {
                 remapping.Add("__hostname", ROS.ROS_HOSTNAME);
+            }
+            else
+            {
+                Error("You are probably not connected to the VPN. ZOMG!");
+                Console.WriteLine("Press enter after you've thought about what you've done!");
+                Console.ReadLine();
+                System.Threading.Thread.CurrentThread.Abort();
+                return;
             }
             if (!string.IsNullOrEmpty(ROS.ROS_IP))
             {
@@ -363,8 +396,12 @@ namespace Ros_CSharp
 
                 EDB.WriteLine("We're going down down....");
 
-                GlobalCallbackQueue.Disable();
-                GlobalCallbackQueue.Clear();
+                if (GlobalCallbackQueue != null)
+                {
+                    GlobalCallbackQueue.Disable();
+                    GlobalCallbackQueue.Clear();
+                    GlobalCallbackQueue = null;
+                }
                 if (internal_queue_thread != null)
                 {
                     internal_queue_thread.Dispose();

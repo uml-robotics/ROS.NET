@@ -20,3 +20,7 @@ RosoutDebug/RosoutDebug/obj/*
 *.pdb
 *.tlog
 *.lastbuildstate
+*.dll.intermediate.manifest
+*.lastbuildstate
+*.orig
+*.vcxproj.user

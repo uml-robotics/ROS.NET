@@ -124,7 +124,6 @@ namespace WpfApplication1
 
             // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.ROS_HOSTNAME = "10.0.3.101";
             ROS.Init(new string[0], "Image_Test");
             nh = new NodeHandle();
             new Thread(() =>
