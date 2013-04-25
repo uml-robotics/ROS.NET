@@ -19,3 +19,4 @@ RosoutDebug/RosoutDebug/obj/*
 *.lib
 *.pdb
 *.tlog
+*.lastbuildstate
