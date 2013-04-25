@@ -92,28 +92,28 @@ namespace WpfApplication1
             LeftShoulder.Fill = Brushes.Transparent;
             currentState = GamePad.GetState(PlayerIndex.One);
 
-            if (currentState.Buttons.LeftShoulder == ButtonState.Pressed)
+            if ((currentState.Buttons.LeftShoulder == ButtonState.Pressed) && (currentState.Buttons.RightShoulder == ButtonState.Released))
             {
                 LeftShoulder.Fill = Brushes.White;
 
                 if (currentState.Buttons.Y == ButtonState.Pressed)
                 {
-                    MainCamera1.IsSelected = true;
-                }
-
-                if (currentState.Buttons.X == ButtonState.Pressed)
-                {
-                    MainCamera2.IsSelected = true;
+                    MainCamera1.Focus();
                 }
 
                 if (currentState.Buttons.B == ButtonState.Pressed)
                 {
-                    MainCamera3.IsSelected = true;
+                    MainCamera2.Focus();
                 }
 
                 if (currentState.Buttons.A == ButtonState.Pressed)
                 {
-                    MainCamera4.IsSelected = true;
+                    MainCamera3.Focus();
+                }
+
+                if (currentState.Buttons.X == ButtonState.Pressed)
+                {
+                    MainCamera4.Focus();
                 }
             }
 
@@ -125,28 +125,28 @@ namespace WpfApplication1
             RightShoulder.Fill = Brushes.Transparent;
             currentState = GamePad.GetState(PlayerIndex.One);
 
-            if (currentState.Buttons.RightShoulder == ButtonState.Pressed)
+            if ((currentState.Buttons.RightShoulder == ButtonState.Pressed) && (currentState.Buttons.LeftShoulder == ButtonState.Released))
             {
                 RightShoulder.Fill = Brushes.White;
 
                 if (currentState.Buttons.Y == ButtonState.Pressed)
                 {
-                    SubCamera1.IsSelected = true;
-                }
-
-                if (currentState.Buttons.X == ButtonState.Pressed)
-                {
-                    SubCamera2.IsSelected = true;
+                    SubCamera1.Focus();
                 }
 
                 if (currentState.Buttons.B == ButtonState.Pressed)
                 {
-                    SubCamera3.IsSelected = true;
+                    SubCamera2.Focus();
                 }
 
                 if (currentState.Buttons.A == ButtonState.Pressed)
                 {
-                    SubCamera4.IsSelected = true;
+                    SubCamera3.Focus();
+                }
+
+                if (currentState.Buttons.X == ButtonState.Pressed)
+                {
+                    SubCamera4.Focus();
                 }
             }
 

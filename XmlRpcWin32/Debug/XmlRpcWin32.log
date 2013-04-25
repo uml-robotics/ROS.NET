@@ -1,56 +1,13 @@
-﻿Build started 3/22/2013 1:18:58 PM.
-     1>Project "C:\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
+﻿Build started 4/25/2013 3:18:56 PM.
+     1>Project "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\XmlRpcWin32.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D XMLRPCWIN32_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHa /MDd /GS- /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt XmlRpcClient.cpp XmlRpcDispatch.cpp XmlRpcServer.cpp XmlRpcServerConnection.cpp XmlRpcServerMethod.cpp XmlRpcSocket.cpp XmlRpcSource.cpp XmlRpcUtil.cpp XmlRpcValue.cpp Callers.cpp
-         XmlRpcClient.cpp
-     1>XmlRpcClient.cpp(302): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-     1>XmlRpcClient.cpp(307): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         XmlRpcDispatch.cpp
-     1>XmlRpcDispatch.cpp(215): warning C4996: '_ftime64': This function or variable may be unsafe. Consider using _ftime64_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\sys/timeb.h(124) : see declaration of '_ftime64'
-         XmlRpcServer.cpp
-         XmlRpcServerConnection.cpp
-     1>XmlRpcServerConnection.cpp(350): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         XmlRpcServerMethod.cpp
-         XmlRpcSocket.cpp
-     1>XmlRpcSocket.cpp(18): warning C4005: 'EINPROGRESS' : macro redefinition
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(104) : see previous definition of 'EINPROGRESS'
-     1>XmlRpcSocket.cpp(19): warning C4005: 'EWOULDBLOCK' : macro redefinition
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(132) : see previous definition of 'EWOULDBLOCK'
-     1>XmlRpcSocket.cpp(20): warning C4005: 'ETIMEDOUT' : macro redefinition
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(130) : see previous definition of 'ETIMEDOUT'
-     1>XmlRpcSocket.cpp(293): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcSocket.cpp(293): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
-         XmlRpcSource.cpp
-         XmlRpcUtil.cpp
-     1>XmlRpcUtil.cpp(90): warning C4996: '_vsnprintf': This function or variable may be unsafe. Consider using _vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_vsnprintf'
-     1>XmlRpcUtil.cpp(108): warning C4996: '_vsnprintf': This function or variable may be unsafe. Consider using _vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_vsnprintf'
-         XmlRpcValue.cpp
-     1>XmlRpcValue.cpp(323): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcValue.cpp(396): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(325) : see declaration of 'sscanf'
-     1>XmlRpcValue.cpp(411): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcValue.cpp(563): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-         Callers.cpp
-     1>Callers.cpp(592): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         Generating Code...
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D XMLRPCWIN32_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHa /MDd /GS- /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
+         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D XMLRPCWIN32_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHa /MDd /GS- /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
          dllmain.cpp
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\XmlRpcWin32.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\ROS_Sharp\XmlRpc_Wrapper\XmlRpcWin32.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.lib" /MACHINE:X86 /PROFILE /DLL Debug\XmlRpcClient.obj
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\XmlRpcWin32.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpc_Wrapper\XmlRpcWin32.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.lib" /MACHINE:X86 /PROFILE /DLL Debug\XmlRpcClient.obj
          Debug\XmlRpcDispatch.obj
          Debug\XmlRpcServer.obj
          Debug\XmlRpcServerConnection.obj
@@ -61,25 +18,25 @@
          Debug\XmlRpcValue.obj
          Debug\Callers.obj
          Debug\dllmain.obj
-            Creating library C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.lib and object C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.exp
-         XmlRpcWin32.vcxproj -> C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+            Creating library C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.lib and object C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.exp
+         XmlRpcWin32.vcxproj -> C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
        Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll;#2" /manifest Debug\XmlRpcWin32.dll.intermediate.manifest
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll;#2" /manifest Debug\XmlRpcWin32.dll.intermediate.manifest
        PostBuildEvent:
-         "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\dumpbin.exe" /EXPORTS "C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll"
+         "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\dumpbin.exe" /EXPORTS "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll"
          :VCEnd
          Microsoft (R) COFF/PE Dumper Version 10.00.40219.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
          
-         Dump of file C:\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
+         Dump of file C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\..\XmlRpc_Wrapper\XmlRpcWin32.dll
          
          File Type: DLL
          
            Section contains the following exports for XmlRpcWin32.dll
          
              00000000 characteristics
-             514C9287 time date stamp Fri Mar 22 13:19:03 2013
+             517981A4 time date stamp Thu Apr 25 15:19:00 2013
                  0.00 version
                     1 ordinal base
                    79 number of functions
@@ -177,8 +134,8 @@
        FinalizeBuildStatus:
          Deleting file "Debug\XmlRpcWin32.unsuccessfulbuild".
          Touching "Debug\XmlRpcWin32.lastbuildstate".
-     1>Done Building Project "C:\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.89
+Time Elapsed 00:00:04.10

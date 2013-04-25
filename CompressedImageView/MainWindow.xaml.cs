@@ -40,45 +40,70 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
+
+        // loop delegate function
         public delegate void LoopDelegate();
+
+        // timer variable
         private static System.Timers.Timer aTimer;
+
+        // controller
         GamePadState currentState;
+
+        // nodes
         NodeHandle nh;
 
+        // timer near end
+        // timer ended
         bool end, near;
+
+        // left vibration motor value, right vibration motor value
         float leftMotor, rightMotor;
+
+        // initialize timer values; 1 full hour
         int hours = 1, minutes = 0, seconds = 0;
 
+        // initialize stuff for MainWindow
         public MainWindow()
         {
             InitializeComponent();
 
+            // timer ticks 10000 times
             aTimer = new System.Timers.Timer(10000);
+            // timer runs UpdateTimer function when ticked
             aTimer.Elapsed += new ElapsedEventHandler(UpdateTimer);
+            // timer ticks every 1000ms = 1s
             aTimer.Interval = 1000;
         }
 
+        // when timer is ticked, do this stuff
         private void UpdateTimer(object source, ElapsedEventArgs e)
         {
+            // if 0 minutes, take 60 from hours
             if (minutes == 0)
             {
                 hours--;
                 minutes = 60;
             }
 
+            // if 0 seconds, pull 60 from minutes
             if (seconds == 0)
             {
                 minutes--;
                 seconds = 60;
             }
 
+            // decrements seconds for counting down
             seconds--;
 
+            // if at 00:59:50, timer is near end
             if ((minutes == 59) && (seconds == 55))
             {
                 near = true;
             }
 
+            // if at 00:50:00, timer is at end
+            // disable timer
             if ((minutes == 59) && (seconds == 50))
             {
                 aTimer.Enabled = false;
@@ -88,10 +113,13 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // dispatcher for timer
             Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Link));
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Voice));
 
+            // dispatcher for controller link
+            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Link));
+
+            // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.ROS_HOSTNAME = "10.0.3.101";
             ROS.Init(new string[0], "Image_Test");
@@ -106,35 +134,37 @@ namespace WpfApplication1
             }).Start();
         }
 
+        // close ros when application closes
         protected override void OnClosed(EventArgs e)
         {
             ROS.shutdown();
             base.OnClosed(e);
         }
 
+        // timer delegate
         public void Timer()
         {
+            // display timer
             TimerTextBlock.Text = "Elapsed: " + hours.ToString("D2") + ':' + minutes.ToString("D2") + ':' + seconds.ToString("D2");
 
+            // change timer textblock to yellow when near = true;
             if (near == true)
                 TimerTextBlock.Foreground = Brushes.Yellow;
 
+            // change timer textblock to red when end = true
             if (end == true)
             {
                 TimerTextBlock.Foreground = Brushes.Red;
+
+                // display end of time in timer textblock
                 TimerStatusTextBlock.Text = "END OF TIME";
+                // display this in timer status textblock when end is true
                 TimerTextBlock.Text = "Press Right Stick to restart";
                 TimerStatusTextBlock.Foreground = Brushes.Red;
             }
 
+            // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
-        }
-
-        public void Voice()
-        {
-            currentState = GamePad.GetState(PlayerIndex.One);
-
-            Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Voice));
         }
 
         public void Link()
@@ -193,35 +223,66 @@ namespace WpfApplication1
             {
                 case 0:
                     MainCameraTabControl.Background = Brushes.Gold;
+                    SubCamera1.Focusable = false;
+                    SubCamera2.Focusable = true;
+                    SubCamera3.Focusable = true;
+                    SubCamera4.Focusable = true;
                     return;
                 case 1:
-                    MainCameraTabControl.Background = Brushes.Blue;
+                    MainCameraTabControl.Background = Brushes.Red;
+                    SubCamera1.Focusable = true;
+                    SubCamera2.Focusable = false;
+                    SubCamera3.Focusable = true;
+                    SubCamera4.Focusable = true;
                     return;
                 case 2:
-                    MainCameraTabControl.Background = Brushes.Red;
+                    MainCameraTabControl.Background = Brushes.Green;
+                    SubCamera1.Focusable = true;
+                    SubCamera2.Focusable = true;
+                    SubCamera3.Focusable = false;
+                    SubCamera4.Focusable = true;
                     return;
                 case 3:
-                    MainCameraTabControl.Background = Brushes.Green;
+                    MainCameraTabControl.Background = Brushes.Blue;
+                    SubCamera1.Focusable = true;
+                    SubCamera2.Focusable = true;
+                    SubCamera3.Focusable = true;
+                    SubCamera4.Focusable = false;
                     return;
             }
         }
 
         private void SubCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //Create a vertical linear gradient 
             switch (SubCameraTabControl.SelectedIndex)
             {
                 case 0:
                     SubCameraTabControl.Background = Brushes.Gold;
+                    MainCamera1.Focusable = false;
+                    MainCamera2.Focusable = true;
+                    MainCamera3.Focusable = true;
+                    MainCamera4.Focusable = true;
                     return;
                 case 1:
-                    SubCameraTabControl.Background = Brushes.Blue;
+                    SubCameraTabControl.Background = Brushes.Red;
+                    MainCamera1.Focusable = true;
+                    MainCamera2.Focusable = false;
+                    MainCamera3.Focusable = true;
+                    MainCamera4.Focusable = true;
                     return;
                 case 2:
-                    SubCameraTabControl.Background = Brushes.Red;
+                    SubCameraTabControl.Background = Brushes.Green;
+                    MainCamera1.Focusable = true;
+                    MainCamera2.Focusable = true;
+                    MainCamera3.Focusable = false;
+                    MainCamera4.Focusable = true;
                     return;
                 case 3:
-                    SubCameraTabControl.Background = Brushes.Green;
+                    SubCameraTabControl.Background = Brushes.Blue;
+                    MainCamera1.Focusable = true;
+                    MainCamera2.Focusable = true;
+                    MainCamera3.Focusable = true;
+                    MainCamera4.Focusable = false;
                     return;
             }
         }
