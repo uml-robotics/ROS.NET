@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// same shit from MainWindow.xaml.cs
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -35,17 +36,29 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
+        // Left Trigger functions
         public void LeftTriggerButton()
         {
+            // default values
+
+            // rectangle box is transparent
             LeftTrigger.Fill = Brushes.Transparent;
+            // value is 0
             LeftTriggerProgressBar.Value = 0;
+            // text says 0%
             LeftTriggerValueTextBlock.Text = "0%";
+            // original margin location
             LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219);
+
+            // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
 
+            // if left trigger gets a value
             if (currentState.Triggers.Left != 0)
             {
+                // make the rectangle white
                 LeftTrigger.Fill = Brushes.White;
+                // 
                 LeftTriggerProgressBar.Value = currentState.Triggers.Left;
                 LeftTriggerValueTextBlock.Text = (LeftTriggerProgressBar.Value * 100).ToString("F0") + '%';
                 LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219 + (currentState.Triggers.Left * 100));
