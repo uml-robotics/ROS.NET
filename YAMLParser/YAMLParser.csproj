@@ -120,6 +120,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
+    <Content Include="ROS_MESSAGES\arm_status_msgs\ArmMovement.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="TemplateProject\PubSubTest._cs" />
     <Content Include="TemplateProject\Time.cs" />
     <Content Include="TemplateProject\SerializationHelper.cs">

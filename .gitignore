@@ -6,3 +6,17 @@ ROS_dotNET.sdf
 ROS_dotNET.suo
 XmlRpcWin32/Debug/XmlRpcWin32.Build.CppClean.log
 *.opensdf
+**bin/*
+**obj/*
+RosoutDebug/RosoutDebug/bin/*
+RosoutDebug/RosoutDebug/obj/*
+*.csproj.user
+*.suo
+*.exp
+*.dll
+*.log
+*.obj
+*.lib
+*.pdb
+*.tlog
+*.lastbuildstate
