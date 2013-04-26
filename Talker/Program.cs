@@ -24,7 +24,6 @@ namespace videoView
         private static void Main(string[] args)
         {
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";  
-            ROS.ROS_HOSTNAME = "10.0.3.10";
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);

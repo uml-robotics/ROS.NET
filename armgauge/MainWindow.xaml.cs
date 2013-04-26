@@ -46,8 +46,6 @@ namespace armgauge
         {
 
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            //ROS.ROS_MASTER_URI = "http://10.0.3.37:11311";
-            ROS.ROS_HOSTNAME = "10.0.3.141";
             ROS.Init(new string[0], "Arm_Gauge");
 
             NodeHandle node = new NodeHandle();
