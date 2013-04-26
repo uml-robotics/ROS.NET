@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{684FFC24-B4C8-48B9-8195-1EE725F2312C}</ProjectGuid>
+    <ProjectGuid>{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RosoutDebug</RootNamespace>
@@ -63,20 +63,12 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Messages\Messages.dll</HintPath>
-    </Reference>
-    <Reference Include="Ros_CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Ros_CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="ROS_ImageUtils, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\ROS_ImageUtils.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -93,12 +85,12 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="XmlRpc_Wrapper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\XmlRpc_Wrapper.dll</HintPath>
+      <HintPath>..\XmlRpc_Wrapper\bin\Debug\XmlRpc_Wrapper.dll</HintPath>
     </Reference>
     <Reference Include="YAMLParser, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>bin\Debug\YAMLParser.exe</HintPath>
+      <HintPath>..\YAMLParser\bin\Debug\YAMLParser.exe</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +157,16 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
+      <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
+      <Name>ROS_C-Sharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ROS_ImageUtils\ROS_ImageWPF.csproj">
+      <Project>{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}</Project>
+      <Name>ROS_ImageWPF</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
