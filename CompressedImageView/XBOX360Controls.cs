@@ -85,8 +85,12 @@ namespace WpfApplication1
             RightTrigger.Fill = Brushes.Transparent;
             // value is 0
             RightTriggerProgressBar.Value = 0;
+            // display 0%
             RightTriggerValueTextBlock.Text = "0%";
+            // original margins
             RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219);
+
+            // get state of player one controller
             currentState = GamePad.GetState(PlayerIndex.One);
 
             if (currentState.Triggers.Right != 0)

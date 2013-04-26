@@ -175,7 +175,7 @@ namespace WpfApplication1
         // controller link dispatcher
         public void Link()
         {
-            // get status of player one
+            // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
 
             // if controller is connected...

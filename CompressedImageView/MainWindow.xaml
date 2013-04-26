@@ -11,7 +11,7 @@
         <TabControl Background="Gold" Height="518" HorizontalAlignment="Center" Margin="0,60,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
-                <c:CompressedImageControl Background="Gold" c:CompressedImageControl.TopicName="image_raw1/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="image_raw1/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
@@ -31,7 +31,7 @@
             </TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
-                <c:CompressedImageControl Background="Blue" c:CompressedImageControl.TopicName="image_raw2/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="image_raw2/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
