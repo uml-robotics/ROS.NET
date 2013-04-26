@@ -21,3 +21,5 @@ RosoutDebug/RosoutDebug/obj/*
 *.tlog
 *.lastbuildstate
 *.dll.intermediate.manifest
+*.lastbuildstate
+*.orig
