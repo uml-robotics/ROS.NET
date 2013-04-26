@@ -1,52 +1,9 @@
-﻿Build started 4/25/2013 6:28:34 PM.
+﻿Build started 4/26/2013 12:46:53 PM.
      1>Project "C:\Users\Alexander Chea\Documents\GitHub\ROS_Sharp\XmlRpcWin32\XmlRpcWin32.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\XmlRpcWin32.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D XMLRPCWIN32_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHa /MDd /GS- /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt XmlRpcClient.cpp XmlRpcDispatch.cpp XmlRpcServer.cpp XmlRpcServerConnection.cpp XmlRpcServerMethod.cpp XmlRpcSocket.cpp XmlRpcSource.cpp XmlRpcUtil.cpp XmlRpcValue.cpp Callers.cpp
-         XmlRpcClient.cpp
-     1>XmlRpcClient.cpp(302): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-     1>XmlRpcClient.cpp(307): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         XmlRpcDispatch.cpp
-     1>XmlRpcDispatch.cpp(215): warning C4996: '_ftime64': This function or variable may be unsafe. Consider using _ftime64_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\sys/timeb.h(124) : see declaration of '_ftime64'
-         XmlRpcServer.cpp
-         XmlRpcServerConnection.cpp
-     1>XmlRpcServerConnection.cpp(350): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         XmlRpcServerMethod.cpp
-         XmlRpcSocket.cpp
-     1>XmlRpcSocket.cpp(18): warning C4005: 'EINPROGRESS' : macro redefinition
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(104) : see previous definition of 'EINPROGRESS'
-     1>XmlRpcSocket.cpp(19): warning C4005: 'EWOULDBLOCK' : macro redefinition
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(132) : see previous definition of 'EWOULDBLOCK'
-     1>XmlRpcSocket.cpp(20): warning C4005: 'ETIMEDOUT' : macro redefinition
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\errno.h(130) : see previous definition of 'ETIMEDOUT'
-     1>XmlRpcSocket.cpp(293): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcSocket.cpp(293): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
-         XmlRpcSource.cpp
-         XmlRpcUtil.cpp
-     1>XmlRpcUtil.cpp(90): warning C4996: '_vsnprintf': This function or variable may be unsafe. Consider using _vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_vsnprintf'
-     1>XmlRpcUtil.cpp(108): warning C4996: '_vsnprintf': This function or variable may be unsafe. Consider using _vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_vsnprintf'
-         XmlRpcValue.cpp
-     1>XmlRpcValue.cpp(323): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcValue.cpp(396): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(325) : see declaration of 'sscanf'
-     1>XmlRpcValue.cpp(411): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-     1>XmlRpcValue.cpp(563): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_snprintf'
-         Callers.cpp
-     1>Callers.cpp(592): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-         Generating Code...
+         All outputs are up-to-date.
          c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D XMLRPCWIN32_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHa /MDd /GS- /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
          dllmain.cpp
        Link:
@@ -79,7 +36,7 @@
            Section contains the following exports for XmlRpcWin32.dll
          
              00000000 characteristics
-             5179AE19 time date stamp Thu Apr 25 18:28:41 2013
+             517AAF80 time date stamp Fri Apr 26 12:46:56 2013
                  0.00 version
                     1 ordinal base
                    79 number of functions
@@ -181,4 +138,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:06.62
+Time Elapsed 00:00:04.53
