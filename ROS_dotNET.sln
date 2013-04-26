@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompressedImageView", "Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosoutDebug", "RosoutDebug\RosoutDebug.csproj", "{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboOps_Mockup", "RoboOps_Mockup\RoboOps_Mockup.csproj", "{1790824A-255E-4E26-9E06-0A8792C137EB}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -158,6 +160,18 @@ Global
 		{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}.Release|Win32.ActiveCfg = Release|x86
 		{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}.Release|x86.ActiveCfg = Release|x86
 		{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}.Release|x86.Build.0 = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|Win32.ActiveCfg = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|x86.ActiveCfg = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Debug|x86.Build.0 = Debug|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|Any CPU.ActiveCfg = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|Mixed Platforms.Build.0 = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|Win32.ActiveCfg = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|x86.ActiveCfg = Release|x86
+		{1790824A-255E-4E26-9E06-0A8792C137EB}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
