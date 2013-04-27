@@ -66,13 +66,13 @@ namespace RosoutDebugUC
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                //scroller.ScrollToBottom();
-                textcolm0.Text += FromUnixTime(msg.header.stamp.data.sec) + "\n";
+                scroller.ScrollToBottom();
+                textcolm0.Text += DateTime.Now.ToShortTimeString() + "\n";
                 textcolm1.Text += ConvertVerbosityLevel(msg.level) + "\n";
-                textcolm2.Text += msg.name.data + "\n";
-                textcolm3.Text += msg.msg.data + "\n";
+                textcolm2.Text += msg.msg.data + "\n";
+                textcolm3.Text += msg.name.data + "\n";
                 //textcolm4.Text += msg.file.data + "\n";
-                textcolm5.Text += msg.function.data + "\n";
+                //textcolm5.Text += msg.function.data + "\n";
             }));
 
         }

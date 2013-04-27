@@ -29,8 +29,7 @@
         </TabControl>
 
         <TabControl Background="Gold" HorizontalAlignment="Center" Height="284" Margin="0,580,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
-            <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1">
-            </TabItem>
+            <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="image_raw2/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
@@ -76,7 +75,7 @@
         <Rectangle Fill="DarkGray" Height="20" Margin="115,0,0,29" Name="DPadDown"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="95,0,0,49" Name="DPadLeft"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="135,0,0,49" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
-        <ArmGaugeUC:ArmGauge Visibility="Visible" Margin="1308,29,111,283" Width="160" Height="510"/>
-        <RosoutDebugUC:UserControl1 Visibility="Visible" Margin="1065,629,27,49" />
+        <ArmGaugeUC:ArmGauge Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0" />
+        <RosoutDebugUC:UserControl1 Visibility="Visible" Width="480"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
     </Grid>
 </Window>

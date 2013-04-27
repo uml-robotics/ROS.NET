@@ -30,7 +30,7 @@ namespace videoView
             int count = 0;
             while (ROS.ok)
             {
-                ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
+                ROS.Info("Publishing a chatter message:    \"sdhiashdchsdcijhasdjc " + count + "\"");
                 String pow = new String("Blah blah blah "+(count++));
                 
                 Talker.publish(pow);

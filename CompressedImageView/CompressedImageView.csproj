@@ -40,10 +40,6 @@
     <Reference Include="Accessibility">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="ArmGaugeUC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ArmGaugeUC\ArmGaugeUC\bin\Debug\ArmGaugeUC.dll</HintPath>
-    </Reference>
     <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Messages\Messages.dll</HintPath>
@@ -111,6 +107,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ArmGaugeUC\ArmGaugeUC\ArmGaugeUC.csproj">
+      <Project>{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}</Project>
+      <Name>ArmGaugeUC</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
