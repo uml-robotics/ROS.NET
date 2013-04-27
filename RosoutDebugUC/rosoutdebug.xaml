@@ -1,0 +1,37 @@
+﻿<UserControl x:Class="RosoutDebugUC.UserControl1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="564" Loaded="UserControl_Loaded">
+    <Grid>
+        <ScrollViewer Name="scroller" HorizontalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30*" />
+                    <ColumnDefinition Width="20*" MaxWidth="40" />
+                    <ColumnDefinition Width="30*" />
+                    <ColumnDefinition Width="50*" />
+                    <ColumnDefinition Width="50*" />
+                </Grid.ColumnDefinitions>
+                <TextBox Text="Time Stamp" Grid.Column="0" Grid.Row="0" Margin="2" HorizontalAlignment="Center"/>
+                <TextBox Text="Level" Grid.Column="1" Grid.Row="0" Margin="2" HorizontalAlignment="Center"/>
+                <TextBox Text="Name" Grid.Column="2" Grid.Row="0" Margin="2" HorizontalAlignment="Center" />
+                <TextBox Text="Message" Grid.Column="3" Grid.Row="0" Margin="2" HorizontalAlignment="Center" />
+               <!-- <TextBox Text="File Location" Grid.Column="4" Grid.Row="0" Margin="2" HorizontalAlignment="Center" />-->
+                <TextBox Text="Function" Grid.Column="4" Grid.Row="0" Margin="2" HorizontalAlignment="Center" />
+                <TextBox Grid.Column="0" Grid.Row="1" Margin="2" Name="textcolm0" HorizontalAlignment="Center"/>
+                <TextBox Grid.Column="1" Grid.Row="1" Margin="0" Name="textcolm1" HorizontalAlignment="Center"/>
+                <TextBox Grid.Column="2" Grid.Row="1" Margin="2" Name="textcolm2" HorizontalAlignment="Center"/>
+                <TextBox Grid.Column="3" Grid.Row="1" Margin="2" Name="textcolm3" HorizontalAlignment="Center"/>
+                <!--<TextBox Grid.Column="4" Grid.Row="1" Margin="2" Name="textcolm4" HorizontalAlignment="Center"/> -->
+                <TextBox Grid.Column="5" Grid.Row="1" Margin="2" Name="textcolm5" HorizontalAlignment="Center"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
