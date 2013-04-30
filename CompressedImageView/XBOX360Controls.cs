@@ -42,14 +42,14 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // the light yellow button is invisible
-            LTrigPress.Visibility = Visibility.Hidden;
+            LTrigPress.Fill = Brushes.Transparent;
 
             // value is 0
             LeftTriggerProgressBar.Value = 0;
             // text says 0%
             LeftTriggerValueTextBlock.Text = "0%";
             // original margin location
-            LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219);
+            LeftTriggerValueTextBlock.Margin = new Thickness(111, 0, 0, 203);
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -58,13 +58,13 @@ namespace WpfApplication1
             if (currentState.Triggers.Left != 0)
             {
                 // reveal the light yellow button
-                LTrigPress.Visibility = Visibility.Visible;
+                LTrigPress.Fill = Brushes.White;
                 // set progress bar value to trigger value
                 LeftTriggerProgressBar.Value = currentState.Triggers.Left;
                 // display trigger value as a %
                 LeftTriggerValueTextBlock.Text = (LeftTriggerProgressBar.Value * 100).ToString("F0") + '%';
                 // move display trigger value up as trigger value increases
-                LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219 + (currentState.Triggers.Left * 100));
+                LeftTriggerValueTextBlock.Margin = new Thickness(111, 0, 0, 203 + (currentState.Triggers.Left * 100));
                 // set left vibration motor to trigger value (to be removed)
                 leftMotor = currentState.Triggers.Left;
                 
@@ -103,14 +103,14 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // the light yellow button is invisible
-            RTrigPress.Visibility = Visibility.Hidden;
+            RTrigPress.Fill = Brushes.Transparent;
 
             // value is 0
             RightTriggerProgressBar.Value = 0;
             // display 0%
             RightTriggerValueTextBlock.Text = "0%";
             // original margins
-            RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219);
+            RightTriggerValueTextBlock.Margin = new Thickness(223, 0, 0, 203);
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -119,13 +119,13 @@ namespace WpfApplication1
             if (currentState.Triggers.Right != 0)
             {
                 // reveal the light yellow button
-                RTrigPress.Visibility = Visibility.Visible;
+                RTrigPress.Fill = Brushes.White;
                 // set progress bar value to trigger value
                 RightTriggerProgressBar.Value = currentState.Triggers.Right;
                 // display trigger value as a %
                 RightTriggerValueTextBlock.Text = (RightTriggerProgressBar.Value * 100).ToString("F0") + '%';
                 // move display trigger value up as trigger value increases
-                RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219 + (currentState.Triggers.Right * 100));
+                RightTriggerValueTextBlock.Margin = new Thickness(223, 0, 0, 203 + (currentState.Triggers.Right * 100));
                 // set right vibration motor to trigger value (to be removed)
                 rightMotor = currentState.Triggers.Right;
             }
@@ -149,7 +149,7 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // rectangle box is transparent
-            LShPress.Visibility = Visibility.Hidden;
+            LShPress.Fill = Brushes.Transparent;
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -158,7 +158,7 @@ namespace WpfApplication1
             if ((currentState.Buttons.LeftShoulder == ButtonState.Pressed) && (currentState.Buttons.RightShoulder == ButtonState.Released))
             {
                 // ractangle box is white
-                LShPress.Visibility = Visibility.Visible;
+                LShPress.Fill = Brushes.White;
 
                 // if Y is pressed while left shoulder is pressed
                 if (currentState.Buttons.Y == ButtonState.Pressed)
@@ -199,7 +199,7 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // rectangle box is transparent
-            RShPress.Visibility = Visibility.Hidden;
+            RShPress.Fill = Brushes.Transparent;
 
             // get status of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -208,7 +208,7 @@ namespace WpfApplication1
             if ((currentState.Buttons.RightShoulder == ButtonState.Pressed) && (currentState.Buttons.LeftShoulder == ButtonState.Released))
             {
                 // rectangle box is white
-                RShPress.Visibility = Visibility.Visible;
+                RShPress.Fill = Brushes.White;
 
                 // if Y is pressed while right shoulder is pressed
                 if (currentState.Buttons.Y == ButtonState.Pressed)
@@ -326,7 +326,7 @@ namespace WpfApplication1
 }
 
             // move the smaller circle with x and y values of the stick
-            LeftStickValue.Margin = new Thickness(52 + (currentState.ThumbSticks.Left.X * 25), 0, 0, 111 + (currentState.ThumbSticks.Left.Y * 25));
+            LeftStickValue.Margin = new Thickness(131 + (currentState.ThumbSticks.Left.X * 25), 0, 0, 87 + (currentState.ThumbSticks.Left.Y * 25));
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(LeftStickButton));
@@ -460,7 +460,7 @@ namespace WpfApplication1
             }
 
             // move smaller circle with x and y values of the right stick
-            RightStickValue.Margin = new Thickness(238 + (currentState.ThumbSticks.Right.X * 25), 0, 0, 53 + (currentState.ThumbSticks.Right.Y * 25));
+            RightStickValue.Margin = new Thickness(243 + (currentState.ThumbSticks.Right.X * 25), 0, 0, 87 + (currentState.ThumbSticks.Right.Y * 25));
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(RightStickButton));
