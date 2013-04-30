@@ -4,13 +4,13 @@
         xmlns:c="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
         xmlns:ArmGaugeUC="clr-namespace:ArmGaugeUC;assembly=ArmGaugeUC"
         xmlns:RosoutDebugUC="clr-namespace:RosoutDebugUC;assembly=RosoutDebugUC"
-        AllowsTransparency="True" Background="Silver" Height="900" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1600" WindowState="Normal" WindowStyle="None">
+        AllowsTransparency="True" Background="Silver" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Normal" WindowStyle="None">
     <Grid>
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,20,0,0" Name="TimerStatusTextBlock" Text="Timer Status Text Block"  Foreground="Green" VerticalAlignment="Top"/>
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,40,0,0" Name="TimerTextBlock" Text="Timer Text Block" VerticalAlignment="Top"/>
+        <TextBlock Height="30" HorizontalAlignment="Center" Margin="0,40,0,0" Name="TimerTextBlock" Text="Timer Text Block" VerticalAlignment="Top" FontSize="20" />
 
-        <TabControl Background="Gold" Height="518" HorizontalAlignment="Center" Margin="0,60,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
+        <TabControl Background="Gold" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="image_raw1/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
@@ -26,9 +26,12 @@
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
             </TabItem>
+            <TabItem Header="tabItem1" HorizontalAlignment="Left" Name="tabItem1" VerticalAlignment="Top">
+                <Grid></Grid>
+            </TabItem>
         </TabControl>
 
-        <TabControl Background="Gold" HorizontalAlignment="Center" Height="284" Margin="0,580,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
+        <TabControl Background="Gold" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
@@ -44,19 +47,19 @@
             </TabItem>
         </TabControl>
 
-        <Image Height="240" HorizontalAlignment="Left" Margin="0,0,0,0" Name="XBOX360ControllerImage" Source="XBOX360Controller.png" VerticalAlignment="Bottom"/>
+        <Image Height="240" HorizontalAlignment="Left" Margin="0,0,0,0" Name="XBOX360ControllerImage" Source="XBOX360Controller.png" VerticalAlignment="Bottom" />
 
         <ProgressBar Height="100" HorizontalAlignment="Left" Margin="101,0,0,219" Maximum="1" Minimum="0" Name="LeftTriggerProgressBar" Orientation="Vertical" Width="50" VerticalAlignment="Bottom"/>
-        <Rectangle Fill="White" Height="22" HorizontalAlignment="Left" Margin="269,0,0,219" Name="RightTrigger" VerticalAlignment="Bottom" Width="40" />
         <TextBlock HorizontalAlignment="Left" Margin="101,0,0,219" Name="LeftTriggerValueTextBlock" Text="0%" TextAlignment="Center" Width="50" VerticalAlignment="Bottom"/>
         
         <ProgressBar Height="100" HorizontalAlignment="Left" Margin="220,0,0,219" Maximum="1" Minimum="0" Name="RightTriggerProgressBar" Width="50" Orientation="Vertical" VerticalAlignment="Bottom"/>
-        <Rectangle Fill ="White" Height="22" HorizontalAlignment="Left" Margin="61,0,0,219" Name="LeftTrigger" VerticalAlignment="Bottom" Width="40" />
+        <Image Source="lefttrigger.png" Name="LTrigPress" Width="30" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="63,0,0,218" Visibility="Hidden"></Image>
         <TextBlock HorizontalAlignment="Left" Margin="220,0,0,219" Name="RightTriggerValueTextBlock" Text="0%" TextAlignment="Center" VerticalAlignment="Bottom" Width="50" />
+        <Image Source="righttrigger.png" Name="RTrigPress" Width="30" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="278,0,0,218" Visibility="Hidden"></Image>
 
-        <Rectangle Fill="White" Height="38" HorizontalAlignment="Left" Margin="15,0,0,182" Name="LeftShoulder" Width="86" VerticalAlignment="Bottom"/>
-        <Rectangle Fill="White" Height="38" HorizontalAlignment="Left" Margin="270,0,0,182" Name="RightShoulder" Width="86" VerticalAlignment="Bottom"/>
-
+        <Image Source="left shoulder.png" Name="LShPress" Width="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="19,0,0,185" Visibility="Hidden"></Image>
+        <Image Source="right shoulder.png" Name="RShPress" Width="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="272,0,0,185" Visibility="Hidden"></Image>
+        
         <Ellipse Fill="White" Height="15" HorizontalAlignment="Left" Margin="135,0,0,117" Name="Back" Stroke="DarkGray" Width="20" VerticalAlignment="Bottom"/>
         <Ellipse Fill="White" Height="15" HorizontalAlignment="Left" Margin="219,0,0,117" Name="Start" Stroke="DarkGray" Width="20" VerticalAlignment="Bottom"/>
 
@@ -77,5 +80,65 @@
         <Rectangle Fill="DarkGray" Height="20" Margin="135,0,0,49" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <ArmGaugeUC:ArmGauge Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0" />
         <RosoutDebugUC:UserControl1 Visibility="Visible" Width="480"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="0,0,250,0" Fill="Red"/>
+
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,250,0" Name="RedCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,250,0" Name="RedCount" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="White"/>
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="OrangeRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="0,0,150,0" Fill="Orange"/>
+
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,150,0" Name="OrangeCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,150,0" Name="OrangeCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="YellowRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="0,0,50,0" Fill="Yellow"/>
+
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,50,0" Name="YellowCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,50,0" Name="YellowCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="GreenRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="50,0,0,0" Fill="Green"/>
+
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="50,0,0,0" Name="GreenCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="50,0,0,0" Name="GreenCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="BlueRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="150,0,0,0" Fill="Blue"/>
+
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="150,0,0,0" Name="BlueCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="150,0,0,0" Name="BlueCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
+        
+        <Rectangle Height="50" HorizontalAlignment="Center" Name="PurpleRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="250,0,0,0" Fill="Purple"/>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="250,0,0,0" Name="PurpleCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Height="50" HorizontalAlignment="Center" Margin="250,0,0,0" Name="PurpleCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
+
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,250,50" Name="RedTextBlock" Text="Red" VerticalAlignment="Bottom" FontWeight="UltraBold"/>
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,150,50" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Bottom" />
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,50,50" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Bottom" />
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="50,0,0,50" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="150,0,0,50" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
+        <TextBlock Height="20" HorizontalAlignment="Center" Margin="250,0,0,50" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
     </Grid>
 </Window>
