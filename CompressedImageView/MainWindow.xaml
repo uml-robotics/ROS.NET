@@ -76,6 +76,6 @@
         <Rectangle Fill="DarkGray" Height="20" Margin="95,0,0,49" Name="DPadLeft"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="135,0,0,49" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <ArmGaugeUC:ArmGauge Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0" />
-        <RosoutDebugUC:UserControl1 Visibility="Visible" Width="480"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
+        <RosoutDebugUC:UserControl1 Visibility="Visible" Width="480"  Height="225" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
     </Grid>
 </Window>

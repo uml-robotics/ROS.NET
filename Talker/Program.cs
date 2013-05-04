@@ -34,7 +34,7 @@ namespace videoView
                 String pow = new String("Blah blah blah "+(count++));
                 
                 Talker.publish(pow);
-                ROS.spinOnce(node);
+               ROS.spinOnce(node);
                 Thread.Sleep(100);
             }
         }

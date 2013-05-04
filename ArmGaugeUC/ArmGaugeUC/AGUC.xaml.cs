@@ -34,6 +34,10 @@ namespace ArmGaugeUC
     /// </summary>
     public partial class ArmGauge : UserControl
     {
+        //gross, I know...
+        private double degrees;
+        private NodeHandle node;
+
         public ArmGauge()
         {
             InitializeComponent();
@@ -50,13 +54,13 @@ namespace ArmGaugeUC
             //ROS.ROS_HOSTNAME = "10.0.3.141";
             ROS.Init(new string[0], "Arm_Gauge");
 
-            NodeHandle node = new NodeHandle();
+            node = new NodeHandle();
 
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callback);
+                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
                     ROS.spin();
                     Thread.Sleep(1);
                 }
@@ -64,7 +68,7 @@ namespace ArmGaugeUC
 
         }
 
-        private void callback(am.ArmMovement msg)
+        private void callbackMonitor(am.ArmMovement msg)
         {
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -76,10 +80,82 @@ namespace ArmGaugeUC
 
                 PanAnim.To = (pan * -90 + 180);
                 TiltAnim.To = (tilt * -50);
-                GripAnim.To = (grip * -30 + 30);
+                //GripAnim.To = (grip * -30 + 30);
                 PanStory.Begin();
                 TiltStory.Begin();
-                GripStory.Begin();
+                //GripStory.Begin();
+
+            }));
+
+        }
+
+        private void PanCirle_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+            Point clickPoint = e.GetPosition(PanCirle);
+
+            double y = clickPoint.X;
+            double x = clickPoint.Y;
+
+            //correct the points so they align with cartesian coordinate system, with the center of the circle being point (0,0)
+            x = (x - 50) * -1;
+            y = (y - 50) * -1;
+
+            //double dist = Math.Sqrt( Math.Pow( (x), 2) + Math.Pow( (y), 2) );
+
+            double radians = Math.Atan2(x, y);
+
+            degrees = radians * 180 / Math.PI;
+
+            ROS.Info("x:" + x + " y:" + y + " angle:" + degrees);
+
+            
+            new Thread(() =>
+            {
+                while (!ROS.shutting_down)
+                {
+                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
+                    ROS.spin();
+                    //Thread.Sleep(1);
+                }
+            }).Start();
+
+            
+            Publisher<am.ArmMovement> pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
+
+            am.ArmMovement movecommand = new am.ArmMovement() ;
+
+            movecommand.pan_motor_velocity = 1;
+            movecommand.tilt_motor_velocity = 1;
+
+            pub.publish(movecommand);
+             
+
+        }
+
+        private void callbackMove(am.ArmMovement msg)
+        {
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+
+                Publisher<am.ArmMovement> pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
+                am.ArmMovement movecommand = new am.ArmMovement() ;
+
+                double tilt = msg.tilt_motor_position;
+                double pan = msg.pan_motor_position;
+                double grip = msg.cable_motor_position;
+
+                PanAnim.To = (pan * -90 + 180);
+                TiltAnim.To = (tilt * -50);
+                PanStory.Begin();
+                TiltStory.Begin();
+
+                if ((msg.pan_motor_position * -90 + 180) < degrees)
+                    movecommand.pan_motor_velocity = 1;
+                else movecommand.pan_motor_velocity = -1;
+
+                pub.publish(movecommand);
 
             }));
 

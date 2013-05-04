@@ -18,12 +18,39 @@
             <ColumnDefinition Width="150*" />
  
         </Grid.ColumnDefinitions>
-        <TextBox Text="Pan" Grid.Column="0" Grid.Row="0" Margin="0" HorizontalAlignment="Center"/>
-        <TextBox Text="Tilt" Grid.Column="0" Grid.Row="2" Margin="0" HorizontalAlignment="Center"/>
-        <TextBox Text="Gripper" Grid.Column="0" Grid.Row="4" Margin="0" HorizontalAlignment="Center"/>
+        <TextBlock Text="Pan" Grid.Column="0" Grid.Row="0" Margin="0" HorizontalAlignment="Center"/>
+        <TextBlock Text="Tilt" Grid.Column="0" Grid.Row="2" Margin="0" HorizontalAlignment="Center"/>
+        <TextBlock Text="Gripper" Grid.Column="0" Grid.Row="4" Margin="0" HorizontalAlignment="Center"/>
         
         <Image Source="Resources/robotop.png" Visibility="Visible" Grid.Row="1" Margin="40,31,38,20" />
-        <Rectangle  Name="pan" Width="40" Height="5" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,49,40,95">
+        
+       
+        <Canvas VerticalAlignment="Center" Margin="133,2,-74,46" Grid.Row="1" Height="100" Name="PanCanvas">
+            <Ellipse
+                Mouse.MouseDown="PanCirle_MouseDown"
+              Name="PanCirle"
+              Width="100"
+              Height="100"
+              Canvas.Left="0"
+              Canvas.Top="0"
+              Stretch="Fill" 
+              Stroke="Black"
+              Opacity=".4"
+              Fill="Yellow">
+              <Ellipse.Clip>
+                  <RectangleGeometry Rect="0,50,100,100"/>
+              </Ellipse.Clip>
+                <Ellipse.Triggers>
+                    
+                </Ellipse.Triggers>
+            </Ellipse>
+            <Canvas.RenderTransform>
+                <RotateTransform Angle="90" />
+            </Canvas.RenderTransform>
+        </Canvas>
+        
+
+            <Rectangle  Name="pan" Width="50" Height="5" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="-90"/>
             </Rectangle.RenderTransform>
@@ -62,6 +89,8 @@
             </Rectangle.Triggers>
         </Rectangle>
 
+        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="gripStatus" Width="50" Grid.Row="5" Orientation="Horizontal"/>
+        <!--
         <Image Source="Resources/grip.png" Visibility="Visible" Grid.Row="5" Margin="20,29,25,43" />
         <Rectangle  Name="grip" Fill="green" Opacity="1" Grid.Row="5" Margin="53,67,61,75">
             <Rectangle.RenderTransform>
@@ -80,6 +109,6 @@
                     </BeginStoryboard>
                 </EventTrigger>
             </Rectangle.Triggers>
-        </Rectangle>
+        </Rectangle>-->
     </Grid>
 </UserControl>
