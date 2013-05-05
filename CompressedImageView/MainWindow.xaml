@@ -52,11 +52,7 @@
         <ProgressBar Height="100" HorizontalAlignment="Left" Margin="223,0,0,203" Maximum="1" Minimum="0" Name="RightTriggerProgressBar" Width="50" Orientation="Vertical" VerticalAlignment="Bottom"/>
         
         <TextBlock HorizontalAlignment="Left" Margin="223,0,0,203" Name="RightTriggerValueTextBlock" Text="0%" TextAlignment="Center" VerticalAlignment="Bottom" Width="50" />
-        
-
-        
-        
-        
+  
         <Ellipse Fill="White" Height="15" HorizontalAlignment="Left" Margin="148,0,0,137" Name="Back" Stroke="DarkGray" Width="20" VerticalAlignment="Bottom"/>
         <Ellipse Fill="White" Height="15" HorizontalAlignment="Left" Margin="214,0,0,137" Name="Start" Stroke="DarkGray" Width="20" VerticalAlignment="Bottom"/>
 
@@ -76,7 +72,7 @@
         <Rectangle Fill="DarkGray" Height="20" Margin="48,0,0,142" Name="DPadLeft"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="89,0,0,142" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0" />
-        <RosoutDebugUC:UserControl1 Visibility="Visible" Width="480"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
+        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500"  Height="300" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
         
         <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="0,0,250,0" Fill="Red"/>
 
