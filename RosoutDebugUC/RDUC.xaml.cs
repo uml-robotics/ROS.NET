@@ -31,13 +31,13 @@ namespace RosoutDebugUC
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class UserControl1 : UserControl
+    public partial class RosoutDebug : UserControl
     {
 
         ObservableCollection<rosoutString> rosoutdata;
         //Subscriber<Messages.rosgraph_msgs.Log> info;
 
-        public UserControl1()
+        public RosoutDebug()
         {
             InitializeComponent();
         }
@@ -52,6 +52,7 @@ namespace RosoutDebugUC
             ROS.Init(new string[0], "Image_Test");
 
             rosoutdata = new ObservableCollection<rosoutString>();
+            dataGrid1.ItemsSource = rosoutdata;
 
             NodeHandle node = new NodeHandle();
 
@@ -59,7 +60,7 @@ namespace RosoutDebugUC
             {
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<Messages.rosgraph_msgs.Log> info = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
+                    node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
                     ROS.spin();
                     Thread.Sleep(10);
                 }
@@ -80,16 +81,12 @@ namespace RosoutDebugUC
                 //textcolm4.Text += msg.file.data + "\n";
                 //textcolm5.Text += msg.function.data + "\n";
 
-                
-                rosoutdata.Add( new rosoutString(timestamp, level, msgdata, msgname) );
-
-                dataGrid1.ItemsSource = rosoutdata;
-                //this.dataGrid1// = rosoutdata;
+                if (!(msgname == "/uirepublisher\n"))
+                    rosoutdata.Add( new rosoutString(timestamp, level, msgdata, msgname) ); 
 
             }));
 
         }
-
 
         private string ConvertVerbosityLevel(int level)
         {

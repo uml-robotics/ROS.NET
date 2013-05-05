@@ -36,7 +36,7 @@ namespace ArmGaugeUC
     {
         //gross, I know...
         private double degrees;
-        private NodeHandle node;
+        Publisher<am.ArmMovement> pub;
         Subscriber<am.ArmMovement> sub;
 
         public ArmGauge()
@@ -49,24 +49,20 @@ namespace ArmGaugeUC
 
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
+        }
 
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            //ROS.ROS_MASTER_URI = "http://10.0.3.37:11311";
-            //ROS.ROS_HOSTNAME = "10.0.3.141";
-            ROS.Init(new string[0], "Arm_Gauge");
-
-            node = new NodeHandle();
-
+        public void startListening(NodeHandle node)
+        {
+            sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
+            pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
                 {
-                    node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
-                    ROS.spin();
+                    ROS.spinOnce(node);
                     Thread.Sleep(1);
                 }
             }).Start();
-
         }
 
         private void callbackMonitor(am.ArmMovement msg)
@@ -102,33 +98,21 @@ namespace ArmGaugeUC
             x = (x - 50) * -1;
             y = (y - 50) * -1;
 
+            //double dist = Math.Sqrt( Math.Pow( (x), 2) + Math.Pow( (y), 2) );
+
             double radians = Math.Atan2(x, y);
 
             degrees = radians * 180 / Math.PI;
 
             ROS.Info("x:" + x + " y:" + y + " angle:" + degrees);
 
-            /*
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
-                    ROS.spin();
-                    //Thread.Sleep(1);
-                }
-            }).Start();
-
-            
-            Publisher<am.ArmMovement> pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
-
-            am.ArmMovement movecommand = new am.ArmMovement() ;
+            am.ArmMovement movecommand = new am.ArmMovement();
 
             movecommand.pan_motor_velocity = 1;
             movecommand.tilt_motor_velocity = 1;
 
             pub.publish(movecommand);
-             */
+
 
         }
 
@@ -137,9 +121,7 @@ namespace ArmGaugeUC
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-
-                Publisher<am.ArmMovement> pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
-                am.ArmMovement movecommand = new am.ArmMovement() ;
+                am.ArmMovement movecommand = new am.ArmMovement();
 
                 double tilt = msg.tilt_motor_position;
                 double pan = msg.pan_motor_position;

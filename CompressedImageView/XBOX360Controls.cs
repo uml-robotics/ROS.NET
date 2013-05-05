@@ -1,4 +1,4 @@
-﻿// same shit from MainWindow.xaml.cs
+﻿// same stuff from MainWindow.xaml.cs
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,14 +41,15 @@ namespace WpfApplication1
         {
             // default values; when not pressed
 
-            // rectangle box is transparent
-            LeftTrigger.Fill = Brushes.Transparent;
+            // the light yellow button is invisible
+            LTrigPress.Fill = Brushes.Transparent;
+
             // value is 0
             LeftTriggerProgressBar.Value = 0;
             // text says 0%
             LeftTriggerValueTextBlock.Text = "0%";
             // original margin location
-            LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219);
+            LeftTriggerValueTextBlock.Margin = new Thickness(111, 0, 0, 203);
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -56,23 +57,41 @@ namespace WpfApplication1
             // if left trigger is pushed, it gets a value greater than 0
             if (currentState.Triggers.Left != 0)
             {
-                // make the rectangle white
-                LeftTrigger.Fill = Brushes.White;
+                // reveal the light yellow button
+                LTrigPress.Fill = Brushes.White;
                 // set progress bar value to trigger value
                 LeftTriggerProgressBar.Value = currentState.Triggers.Left;
                 // display trigger value as a %
                 LeftTriggerValueTextBlock.Text = (LeftTriggerProgressBar.Value * 100).ToString("F0") + '%';
                 // move display trigger value up as trigger value increases
-                LeftTriggerValueTextBlock.Margin = new Thickness(101, 0, 0, 219 + (currentState.Triggers.Left * 100));
+                LeftTriggerValueTextBlock.Margin = new Thickness(111, 0, 0, 203 + (currentState.Triggers.Left * 100));
                 // set left vibration motor to trigger value (to be removed)
                 leftMotor = currentState.Triggers.Left;
+                
+                if (swapCam == true)
+                {
+                    swapCam = false;
+                    // get current main camera index
+                    mainCam = MainCameraTabControl.SelectedIndex;
+                    // get current sub camera index
+                    subCam = SubCameraTabControl.SelectedIndex;
+                    // set the main camera index the same as the sub camera index
+                    MainCameraTabControl.SelectedIndex = subCam;
+                    // set the sub camera index the same as the main camera index
+                    SubCameraTabControl.SelectedIndex = mainCam;
+                }
             }
-                // if trigger is released (entire else is to be removed)
-            else
+            // if trigger is released (entire else is to be removed)
+            if (currentState.Triggers.Left == 0)
             {
+                swapCam = true;
+
                 // left vibration motor value is 0
                 leftMotor = 0;
             }
+
+            // vibrate motors
+            GamePad.SetVibration(PlayerIndex.One, leftMotor, rightMotor);
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(LeftTriggerButton));
@@ -83,14 +102,15 @@ namespace WpfApplication1
         {
             // default values; when not pressed
 
-            // rectangle box is transparent
-            RightTrigger.Fill = Brushes.Transparent;
+            // the light yellow button is invisible
+            RTrigPress.Fill = Brushes.Transparent;
+
             // value is 0
             RightTriggerProgressBar.Value = 0;
             // display 0%
             RightTriggerValueTextBlock.Text = "0%";
             // original margins
-            RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219);
+            RightTriggerValueTextBlock.Margin = new Thickness(223, 0, 0, 203);
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -98,14 +118,14 @@ namespace WpfApplication1
             // if right trigger is pushed, it gets a value greater than 0
             if (currentState.Triggers.Right != 0)
             {
-                // make the rectangle white
-                RightTrigger.Fill = Brushes.White;
+                // reveal the light yellow button
+                RTrigPress.Fill = Brushes.White;
                 // set progress bar value to trigger value
                 RightTriggerProgressBar.Value = currentState.Triggers.Right;
                 // display trigger value as a %
                 RightTriggerValueTextBlock.Text = (RightTriggerProgressBar.Value * 100).ToString("F0") + '%';
                 // move display trigger value up as trigger value increases
-                RightTriggerValueTextBlock.Margin = new Thickness(220, 0, 0, 219 + (currentState.Triggers.Right * 100));
+                RightTriggerValueTextBlock.Margin = new Thickness(223, 0, 0, 203 + (currentState.Triggers.Right * 100));
                 // set right vibration motor to trigger value (to be removed)
                 rightMotor = currentState.Triggers.Right;
             }
@@ -115,6 +135,9 @@ namespace WpfApplication1
                 // right vibration motor value is 0
                 rightMotor = 0;
             }
+
+            // vibrate motors
+            GamePad.SetVibration(PlayerIndex.One, leftMotor, rightMotor);
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(RightTriggerButton));
@@ -126,7 +149,7 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // rectangle box is transparent
-            LeftShoulder.Fill = Brushes.Transparent;
+            LShPress.Fill = Brushes.Transparent;
 
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -135,7 +158,7 @@ namespace WpfApplication1
             if ((currentState.Buttons.LeftShoulder == ButtonState.Pressed) && (currentState.Buttons.RightShoulder == ButtonState.Released))
             {
                 // ractangle box is white
-                LeftShoulder.Fill = Brushes.White;
+                LShPress.Fill = Brushes.White;
 
                 // if Y is pressed while left shoulder is pressed
                 if (currentState.Buttons.Y == ButtonState.Pressed)
@@ -176,7 +199,7 @@ namespace WpfApplication1
             // default values; when not pressed
 
             // rectangle box is transparent
-            RightShoulder.Fill = Brushes.Transparent;
+            RShPress.Fill = Brushes.Transparent;
 
             // get status of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -185,7 +208,7 @@ namespace WpfApplication1
             if ((currentState.Buttons.RightShoulder == ButtonState.Pressed) && (currentState.Buttons.LeftShoulder == ButtonState.Released))
             {
                 // rectangle box is white
-                RightShoulder.Fill = Brushes.White;
+                RShPress.Fill = Brushes.White;
 
                 // if Y is pressed while right shoulder is pressed
                 if (currentState.Buttons.Y == ButtonState.Pressed)
@@ -300,10 +323,10 @@ namespace WpfApplication1
             {
                 // bigger circle is actually light gray; some color name mistake which is still unfixed
                 LeftStick.Fill = Brushes.DarkGray;
-            }
+}
 
             // move the smaller circle with x and y values of the stick
-            LeftStickValue.Margin = new Thickness(52 + (currentState.ThumbSticks.Left.X * 25), 0, 0, 111 + (currentState.ThumbSticks.Left.Y * 25));
+            LeftStickValue.Margin = new Thickness(131 + (currentState.ThumbSticks.Left.X * 25), 0, 0, 87 + (currentState.ThumbSticks.Left.Y * 25));
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(LeftStickButton));
@@ -437,7 +460,7 @@ namespace WpfApplication1
             }
 
             // move smaller circle with x and y values of the right stick
-            RightStickValue.Margin = new Thickness(238 + (currentState.ThumbSticks.Right.X * 25), 0, 0, 53 + (currentState.ThumbSticks.Right.Y * 25));
+            RightStickValue.Margin = new Thickness(243 + (currentState.ThumbSticks.Right.X * 25), 0, 0, 87 + (currentState.ThumbSticks.Right.Y * 25));
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(RightStickButton));
@@ -459,7 +482,25 @@ namespace WpfApplication1
             {
                 // upper square is actually light gray; some color name mistake which is still unfixed
                 DPadUp.Fill = Brushes.DarkGray;
+
+                // run this ring stuff one time when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+
+                    // set the increment value to 1
+                    incrementValue = 1;
+                    // call the function
+                    rockIncrement();
+                }
             }
+
+            // allow ring stuff to run again when pressed
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(DPadUpButton));
@@ -481,7 +522,27 @@ namespace WpfApplication1
             {
                 // left square is actually ligght gray; some color name mistake which is still unfixed
                 DPadLeft.Fill = Brushes.DarkGray;
+
+                // run this ring stuff once when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    rockRing--;
+
+                    if (rockRing < 0)
+                        rockRing = 5;
+
+                    ringSwitch();
+                }
             }
+
+            // allow ring stuff to run again 
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
+
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(DPadLeftButton));
@@ -503,7 +564,23 @@ namespace WpfApplication1
             {
                 // right square is actually light gray; some color name mistake which is still unfixed
                 DPadRight.Fill = Brushes.DarkGray;
+
+                // run this ring stuff once when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    rockRing++;
+                    rockRing = rockRing % 6;
+                    ringSwitch();
+                }
             }
+
+            // allow ring stuff to run again when pressed again
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(DPadRightButton));
@@ -525,7 +602,25 @@ namespace WpfApplication1
             {
                 // lower square is actually light gray; some color name mistake which is still unfixed
                 DPadDown.Fill = Brushes.DarkGray;
+
+                // run this ring stuff when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    // set the increment value to -1
+                    incrementValue = -1;
+                    // call this function
+                    rockIncrement();
+                }
             }
+
+            // allow ring stuff to run again when pressed again
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
+
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(DPadDownButton));

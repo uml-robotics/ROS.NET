@@ -38,7 +38,6 @@ using System.Timers;
 
 #endregion
 
-
 namespace WpfApplication1
 {
     public partial class MainWindow : Window
@@ -56,8 +55,7 @@ namespace WpfApplication1
         // nodes
         NodeHandle nh;
 
-        // timer near end
-        // timer ended
+        // timer near end, timer ended
         bool end, near;
 
         // left vibration motor value, right vibration motor value
@@ -65,6 +63,15 @@ namespace WpfApplication1
 
         // initialize timer values; 1 full hour
         int hours = 1, minutes = 0, seconds = 0;
+
+        // initialize rock count values to 0
+        int red = 0, orange = 0, yellow = 0, green = 0, blue = 0, purple = 0;
+
+        // mutex for ring, mutex for switching main camera and sub camera
+        bool ringIsFree = true, swapCam = true;
+
+        // ring buffer for rocks, main camera index, sub camera index
+        int rockRing = 0, incrementValue, mainCam, subCam;
 
         // initialize stuff for MainWindow
         public MainWindow()
@@ -126,6 +133,7 @@ namespace WpfApplication1
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.Init(new string[0], "Image_Test");
             nh = new NodeHandle();
+            armGauge.startListening(nh);
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
@@ -181,7 +189,7 @@ namespace WpfApplication1
             if (currentState.IsConnected)
             {
                 // ...say its connected in the textbloxk, color it green cuz its good to go
-                LinkTextBlock.Text = "Link: Connected";
+                LinkTextBlock.Text = "Controller: Connected";
                 LinkTextBlock.Foreground = Brushes.Green;
 
                 // press left and right shoulders, and back and start to close application by controller
@@ -228,12 +236,9 @@ namespace WpfApplication1
             else if (!currentState.IsConnected)
             {
                 // ...have program complain controller is disconnected
-                LinkTextBlock.Text = "Link: Disconnected";
+                LinkTextBlock.Text = "Controller: Disconnected";
                 LinkTextBlock.Foreground = Brushes.Red;
             }
-
-            // vibrate motors
-            GamePad.SetVibration(PlayerIndex.One, leftMotor, rightMotor);
 
             // run dispatcher again, forever
             Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Link));
@@ -341,6 +346,154 @@ namespace WpfApplication1
                     MainCamera2.Focusable = true;
                     MainCamera3.Focusable = true;
                     MainCamera4.Focusable = false;
+                    return;
+            }
+        }
+
+        // stuff that happens when to move arond the ring buffer
+        void ringSwitch()
+        {
+            switch (rockRing)
+            {
+                // bold text block for red rocks and normalizes neighboring text blocks
+                case 0:
+                    PurpleTextBlock.FontWeight = FontWeights.Normal;
+                    RedTextBlock.FontWeight = FontWeights.UltraBold;
+                    OrangeTextBlock.FontWeight = FontWeights.Normal;
+
+                    PurpleRock.Stroke = Brushes.Black;
+                    RedRock.Stroke = Brushes.White;
+                    OrangeRock.Stroke = Brushes.Black;
+
+                    PurpleRock.StrokeThickness = 1;
+                    RedRock.StrokeThickness = 4;
+                    OrangeRock.StrokeThickness = 1;
+                    return;
+                // bold text block for orange rocks and normalizes neighboring text blocks
+                case 1:
+                    RedTextBlock.FontWeight = FontWeights.Normal;
+                    OrangeTextBlock.FontWeight = FontWeights.UltraBold;
+                    YellowTextBlock.FontWeight = FontWeights.Normal;
+
+                    RedRock.Stroke = Brushes.Black;
+                    OrangeRock.Stroke = Brushes.White;
+                    YellowRock.Stroke = Brushes.Black;
+
+                    RedRock.StrokeThickness = 1;
+                    OrangeRock.StrokeThickness = 4;
+                    YellowRock.StrokeThickness = 1;
+                    return;
+                // bold text block for yellow rocks and normalizes neighboring text blocks
+                case 2:
+                    OrangeTextBlock.FontWeight = FontWeights.Normal;
+                    YellowTextBlock.FontWeight = FontWeights.UltraBold;
+                    GreenTextBlock.FontWeight = FontWeights.Normal;
+
+                    OrangeRock.Stroke = Brushes.Black;
+                    YellowRock.Stroke = Brushes.White;
+                    GreenRock.Stroke = Brushes.Black;
+
+                    OrangeRock.StrokeThickness = 1;
+                    YellowRock.StrokeThickness = 4;
+                    GreenRock.StrokeThickness = 1;
+                    return;
+                // bold text block for green rocks and normalizes neighboring text blocks
+                case 3:
+                    YellowTextBlock.FontWeight = FontWeights.Normal;
+                    GreenTextBlock.FontWeight = FontWeights.UltraBold;
+                    BlueTextBlock.FontWeight = FontWeights.Normal;
+
+                    YellowRock.Stroke = Brushes.Black;
+                    GreenRock.Stroke = Brushes.White;
+                    BlueRock.Stroke = Brushes.Black;
+
+                    YellowRock.StrokeThickness = 1;
+                    GreenRock.StrokeThickness = 4;
+                    BlueRock.StrokeThickness = 1;
+                    return;
+                // bold text block for blue rocks and normalizes neighboring text blocks
+                case 4:
+                    GreenTextBlock.FontWeight = FontWeights.Normal;
+                    BlueTextBlock.FontWeight = FontWeights.UltraBold;
+                    PurpleTextBlock.FontWeight = FontWeights.Normal;
+
+                    GreenRock.Stroke = Brushes.Black;
+                    BlueRock.Stroke = Brushes.White;
+                    PurpleRock.Stroke = Brushes.Black;
+
+                    GreenRock.StrokeThickness = 1;
+                    BlueRock.StrokeThickness = 4;
+                    PurpleRock.StrokeThickness = 1;
+                    return;
+                // bold text block for purple rocks and normalizes neighboring text blocks
+                case 5:
+                    BlueTextBlock.FontWeight = FontWeights.Normal;
+                    PurpleTextBlock.FontWeight = FontWeights.UltraBold;
+                    RedTextBlock.FontWeight = FontWeights.Normal;
+
+                    BlueRock.Stroke = Brushes.Black;
+                    PurpleRock.Stroke = Brushes.White;
+                    RedRock.Stroke = Brushes.Black;
+
+                    BlueRock.StrokeThickness = 1;
+                    PurpleRock.StrokeThickness = 4;
+                    RedRock.StrokeThickness = 1;
+                    return;
+            }
+        }
+
+        // the function that changes rock count
+        void rockIncrement()
+        {
+            switch (rockRing)
+            {
+                // change red count and display it
+                case 0:
+                    red = red + incrementValue;
+                    if (red < 0)
+                        red = 0;
+                    RedCount.Text = red.ToString();
+                    RedCountShadow.Text = red.ToString();
+                    return;
+                // change red count and display it
+                case 1:
+                    orange = orange + incrementValue;
+                    if (orange < 0)
+                        orange = 0;
+                    OrangeCount.Text = orange.ToString();
+                    OrangeCountShadow.Text = orange.ToString();
+                    return;
+                // change red count and display it
+                case 2:
+                    yellow = yellow + incrementValue;
+                    if (yellow < 0)
+                        yellow = 0;
+                    YellowCount.Text = yellow.ToString();
+                    YellowCountShadow.Text = yellow.ToString();
+                    return;
+                // change red count and display it
+                case 3:
+                    green = green + incrementValue;
+                    if (green < 0)
+                        green = 0;
+                    GreenCount.Text = green.ToString();
+                    GreenCountShadow.Text = green.ToString();
+                    return;
+                // change red count and display it
+                case 4:
+                    blue = blue + incrementValue;
+                    if (blue < 0)
+                        blue = 0;
+                    BlueCount.Text = blue.ToString();
+                    BlueCountShadow.Text = blue.ToString();
+                    return;
+                // change red count and display it
+                case 5:
+                    purple = purple + incrementValue;
+                    if (purple == -1)
+                        purple = 0;
+                    PurpleCount.Text = purple.ToString();
+                    PurpleCountShadow.Text = purple.ToString();
                     return;
             }
         }

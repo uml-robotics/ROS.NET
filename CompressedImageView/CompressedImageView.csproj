@@ -135,7 +135,20 @@
     <Resource Include="Icon.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="lefttrigger.png" />
     <Resource Include="XBOX360Controller.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="left shoulder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="right shoulder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="righttrigger.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="PSController.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
