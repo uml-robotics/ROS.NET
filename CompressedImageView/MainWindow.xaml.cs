@@ -133,6 +133,7 @@ namespace WpfApplication1
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.Init(new string[0], "Image_Test");
             nh = new NodeHandle();
+            armGauge.startListening(nh);
             new Thread(() =>
             {
                 while (!ROS.shutting_down)

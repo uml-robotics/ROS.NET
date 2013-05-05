@@ -54,10 +54,10 @@ namespace armgauge
 
             new Thread(() =>
             {
+                Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callback);
             while (!ROS.shutting_down)
                 {
-                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callback);
-                    ROS.spin();
+                    ROS.spinOnce(node);
                     Thread.Sleep(1);
                 }
             }).Start();

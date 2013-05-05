@@ -50,13 +50,12 @@ namespace RosoutDebug
 
 
             NodeHandle node = new NodeHandle();
-
             new Thread(() =>
             {
+                Subscriber<Messages.rosgraph_msgs.Log> info = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<Messages.rosgraph_msgs.Log> info = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
-                    ROS.spin();
+                    ROS.spinOnce();
                     Thread.Sleep(10);
                 }
             }).Start();

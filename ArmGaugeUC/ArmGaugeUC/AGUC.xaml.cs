@@ -44,24 +44,19 @@ namespace ArmGaugeUC
 
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
+        }
 
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            //ROS.ROS_MASTER_URI = "http://10.0.3.37:11311";
-            //ROS.ROS_HOSTNAME = "10.0.3.141";
-            ROS.Init(new string[0], "Arm_Gauge");
-
-            NodeHandle node = new NodeHandle();
-
+        public void startListening(NodeHandle node)
+        {
             new Thread(() =>
             {
+                Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callback);
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callback);
-                    ROS.spin();
+                    ROS.spinOnce(node);
                     Thread.Sleep(1);
                 }
             }).Start();
-
         }
 
         private void callback(am.ArmMovement msg)
