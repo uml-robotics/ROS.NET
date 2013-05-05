@@ -37,6 +37,7 @@ namespace ArmGaugeUC
         //gross, I know...
         private double degrees;
         private NodeHandle node;
+        Subscriber<am.ArmMovement> sub;
 
         public ArmGauge()
         {
@@ -60,7 +61,7 @@ namespace ArmGaugeUC
             {
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
+                    node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
                     ROS.spin();
                     Thread.Sleep(1);
                 }
@@ -101,20 +102,18 @@ namespace ArmGaugeUC
             x = (x - 50) * -1;
             y = (y - 50) * -1;
 
-            //double dist = Math.Sqrt( Math.Pow( (x), 2) + Math.Pow( (y), 2) );
-
             double radians = Math.Atan2(x, y);
 
             degrees = radians * 180 / Math.PI;
 
             ROS.Info("x:" + x + " y:" + y + " angle:" + degrees);
 
-            
+            /*
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
                 {
-                    Subscriber<am.ArmMovement> sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
+                    node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
                     ROS.spin();
                     //Thread.Sleep(1);
                 }
@@ -129,7 +128,7 @@ namespace ArmGaugeUC
             movecommand.tilt_motor_velocity = 1;
 
             pub.publish(movecommand);
-             
+             */
 
         }
 

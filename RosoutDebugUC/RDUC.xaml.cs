@@ -24,6 +24,7 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Text;
+using System.Collections.ObjectModel;
 
 namespace RosoutDebugUC
 {
@@ -32,6 +33,10 @@ namespace RosoutDebugUC
     /// </summary>
     public partial class UserControl1 : UserControl
     {
+
+        ObservableCollection<rosoutString> rosoutdata;
+        //Subscriber<Messages.rosgraph_msgs.Log> info;
+
         public UserControl1()
         {
             InitializeComponent();
@@ -46,6 +51,7 @@ namespace RosoutDebugUC
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.Init(new string[0], "Image_Test");
 
+            rosoutdata = new ObservableCollection<rosoutString>();
 
             NodeHandle node = new NodeHandle();
 
@@ -66,13 +72,20 @@ namespace RosoutDebugUC
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                scroller.ScrollToBottom();
-                textcolm0.Text += DateTime.Now.ToShortTimeString() + "\n";
-                textcolm1.Text += ConvertVerbosityLevel(msg.level) + "\n";
-                textcolm2.Text += msg.msg.data + "\n";
-                textcolm3.Text += msg.name.data + "\n";
+
+                string timestamp = DateTime.Now.ToShortTimeString() + "\n";
+                string level= ConvertVerbosityLevel(msg.level) + "\n";
+                string msgdata = msg.msg.data + "\n";
+                string msgname = msg.name.data + "\n";
                 //textcolm4.Text += msg.file.data + "\n";
                 //textcolm5.Text += msg.function.data + "\n";
+
+                
+                rosoutdata.Add( new rosoutString(timestamp, level, msgdata, msgname) );
+
+                dataGrid1.ItemsSource = rosoutdata;
+                //this.dataGrid1// = rosoutdata;
+
             }));
 
         }
@@ -108,4 +121,26 @@ namespace RosoutDebugUC
             base.OnClosed(e);
         }*/
     }
+
+
+    //used for datagrid
+    public class rosoutString
+    {
+        public string timestamp { get; set; }
+        public string level { get; set; }
+        public string msgdata { get; set; }
+        public string msgname { get; set; }
+
+        public rosoutString(string stamp, string level, string data, string name)
+        {
+
+            timestamp = stamp;
+            this.level = level;
+            msgdata = data;
+            msgname = name;
+
+        }
+
+    }
+
 }
