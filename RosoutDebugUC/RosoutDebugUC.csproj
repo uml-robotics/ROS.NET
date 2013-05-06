@@ -52,13 +52,12 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="rosoutdebug.xaml">
+    <Page Include="RDUC.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="rosoutdebug.xaml.cs">
-      <DependentUpon>rosoutdebug.xaml</DependentUpon>
-      <SubType>Code</SubType>
+    <Compile Include="RDUC.xaml.cs">
+      <DependentUpon>RDUC.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
