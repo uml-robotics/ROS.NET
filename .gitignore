@@ -24,3 +24,5 @@ RosoutDebug/RosoutDebug/obj/*
 *.lastbuildstate
 *.orig
 *.vcxproj.user
+ArmGaugeUC/ArmGaugeUC/bin/*
+ArmGaugeUC/ArmGaugeUC/obj/*

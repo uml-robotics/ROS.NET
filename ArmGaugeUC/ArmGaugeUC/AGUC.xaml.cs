@@ -34,7 +34,7 @@ namespace ArmGaugeUC
     /// </summary>
     public partial class ArmGauge : UserControl
     {
-       .
+       
         double ClickPanAngle, pan, tilt;
         double ArmPanAngle;
         Publisher<am.ArmMovement> pub;
