@@ -58,6 +58,7 @@
     </Page>
     <Compile Include="RDUC.xaml.cs">
       <DependentUpon>RDUC.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>

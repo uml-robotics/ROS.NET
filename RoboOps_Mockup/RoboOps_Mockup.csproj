@@ -93,9 +93,17 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\armgauge\armgauge.csproj">
+      <Project>{B553A998-E52A-4B69-B160-EE137E97816E}</Project>
+      <Name>armgauge</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RosoutDebug\RosoutDebug.csproj">
+      <Project>{003A7CF0-4211-4236-9E9A-0E3EB44A02D1}</Project>
+      <Name>RosoutDebug</Name>
     </ProjectReference>
     <ProjectReference Include="..\ROS_ImageUtils\ROS_ImageWPF.csproj">
       <Project>{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}</Project>

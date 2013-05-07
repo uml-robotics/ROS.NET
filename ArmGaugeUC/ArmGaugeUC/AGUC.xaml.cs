@@ -34,10 +34,14 @@ namespace ArmGaugeUC
     /// </summary>
     public partial class ArmGauge : UserControl
     {
-        //gross, I know...
-        private double degrees;
+       
+        double ClickPanAngle, pan, tilt;
+        double ArmPanAngle;
         Publisher<am.ArmMovement> pub;
         Subscriber<am.ArmMovement> sub;
+        NodeHandle nodecopy;
+        DestinationMarker destMark;
+        am.ArmMovement movecommand;
 
         public ArmGauge()
         {
@@ -53,6 +57,10 @@ namespace ArmGaugeUC
 
         public void startListening(NodeHandle node)
         {
+            this.nodecopy = node;
+            this.destMark = new DestinationMarker();
+            this.movecommand = new am.ArmMovement();
+
             sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
             pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
             new Thread(() =>
@@ -71,16 +79,32 @@ namespace ArmGaugeUC
             Dispatcher.BeginInvoke(new Action(() =>
             {
 
-                double tilt = msg.tilt_motor_position;
-                double pan = msg.pan_motor_position;
+                tilt = msg.tilt_motor_position;
+                pan = msg.pan_motor_position;
                 double grip = msg.cable_motor_position;
 
-                PanAnim.To = (pan * -90 + 180);
+                ArmPanAngle = (pan * -90 + 180);
+
+                PanAnim.To = ArmPanAngle;
                 TiltAnim.To = (tilt * -50);
                 //GripAnim.To = (grip * -30 + 30);
                 PanStory.Begin();
                 TiltStory.Begin();
                 //GripStory.Begin();
+
+
+                if (destMark.isActive == true)
+                    if (!(ArmPanAngle < (destMark.PanAngle + 5) && ArmPanAngle > (destMark.PanAngle - 5)))
+                    {
+                        if (ClickPanAngle < ArmPanAngle)
+                            movecommand.pan_motor_velocity = 1;
+                        else
+                            movecommand.pan_motor_velocity = -1;
+
+                        pub.publish(movecommand);
+                    }
+                    else destMark.isActive = false;
+                        
 
             }));
 
@@ -98,49 +122,38 @@ namespace ArmGaugeUC
             x = (x - 50) * -1;
             y = (y - 50) * -1;
 
-            //double dist = Math.Sqrt( Math.Pow( (x), 2) + Math.Pow( (y), 2) );
+            double angleRad = Math.Atan2(x, y);
 
-            double radians = Math.Atan2(x, y);
+            ClickPanAngle = (angleRad * 180 / Math.PI) + 270;
 
-            degrees = radians * 180 / Math.PI;
+            ROS.Info("x:" + x + " y:" + y + " ClickAngle:" + ClickPanAngle + " ArmAngle:" + ArmPanAngle);
 
-            ROS.Info("x:" + x + " y:" + y + " angle:" + degrees);
+            destMark.PanAngle = ClickPanAngle;
+            destMark.isActive = true;
 
-            am.ArmMovement movecommand = new am.ArmMovement();
-
-            movecommand.pan_motor_velocity = 1;
-            movecommand.tilt_motor_velocity = 1;
+            if (ClickPanAngle < ArmPanAngle)
+                movecommand.pan_motor_velocity = 1;
+            else
+                movecommand.pan_motor_velocity = -1;
 
             pub.publish(movecommand);
 
+        } 
+        
+    }
 
-        }
+    public class DestinationMarker
+    {
 
-        private void callbackMove(am.ArmMovement msg)
+        public double PanAngle { set; get; }
+        public double TiltAngle { set; get; }
+        public bool isActive { set; get; }
+
+        public DestinationMarker() 
         {
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                am.ArmMovement movecommand = new am.ArmMovement();
-
-                double tilt = msg.tilt_motor_position;
-                double pan = msg.pan_motor_position;
-                double grip = msg.cable_motor_position;
-
-                PanAnim.To = (pan * -90 + 180);
-                TiltAnim.To = (tilt * -50);
-                PanStory.Begin();
-                TiltStory.Begin();
-
-                if ((msg.pan_motor_position * -90 + 180) < degrees)
-                    movecommand.pan_motor_velocity = 1;
-                else movecommand.pan_motor_velocity = -1;
-
-                pub.publish(movecommand);
-
-            }));
-
+            isActive = false;
         }
 
     }
+
 }
