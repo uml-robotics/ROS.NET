@@ -50,9 +50,9 @@
         </Canvas>
         
 
-            <Rectangle  Name="pan" Width="50" Height="5" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
+            <Rectangle  Name="PanRec" Width="50" Height="5" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
             <Rectangle.RenderTransform>
-                <RotateTransform  CenterX="2" CenterY="2" Angle="-90"/>
+                <RotateTransform  CenterX="2" CenterY="2" Angle="270"/>
             </Rectangle.RenderTransform>
             <Rectangle.Triggers>
                 <EventTrigger RoutedEvent="Loaded">
@@ -62,7 +62,7 @@
                                 Name="PanAnim"
                                 Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                                 Duration="0:0:0.01"
-                                Storyboard.TargetName="pan" />
+                                Storyboard.TargetName="PanRec" />
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>
@@ -70,7 +70,7 @@
         </Rectangle>
         
         <Image Source="Resources/roboside.png" Visibility="Visible" Grid.Row="3" Margin="40,34,38,20" />
-        <Rectangle  Name="tilt" Width="35" Height="5" Fill="Blue" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
+        <Rectangle  Name="TiltRec" Width="35" Height="5" Fill="Blue" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="-60"/>
             </Rectangle.RenderTransform>
@@ -82,7 +82,7 @@
                                 Name="TiltAnim"
                                 Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                                 Duration="0:0:0.01"
-                                Storyboard.TargetName="tilt" />
+                                Storyboard.TargetName="TiltRec" />
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>

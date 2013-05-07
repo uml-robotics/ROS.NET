@@ -78,8 +78,6 @@ namespace RosoutDebugUC
                 string level= ConvertVerbosityLevel(msg.level) + "\n";
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
-                //textcolm4.Text += msg.file.data + "\n";
-                //textcolm5.Text += msg.function.data + "\n";
 
                 if (!(msgname == "/uirepublisher\n"))
                     rosoutdata.Add( new rosoutString(timestamp, level, msgdata, msgname) ); 
@@ -87,6 +85,8 @@ namespace RosoutDebugUC
             }));
 
         }
+
+        //private void cleanup()
 
         private string ConvertVerbosityLevel(int level)
         {
@@ -111,12 +111,6 @@ namespace RosoutDebugUC
             return epoch.AddSeconds(unixTime);
         }
         
-        /*
-        protected override void OnClosed(EventArgs e)
-        {
-            ROS.shutdown();
-            base.OnClosed(e);
-        }*/
     }
 
 
@@ -137,7 +131,5 @@ namespace RosoutDebugUC
             msgname = name;
 
         }
-
     }
-
 }
