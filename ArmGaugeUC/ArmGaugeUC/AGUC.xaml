@@ -50,7 +50,7 @@
         </Canvas>
         
 
-            <Rectangle  Name="PanRec" Width="50" Height="5" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
+            <Rectangle  Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="270"/>
             </Rectangle.RenderTransform>
@@ -70,7 +70,7 @@
         </Rectangle>
         
         <Image Source="Resources/roboside.png" Visibility="Visible" Grid.Row="3" Margin="40,34,38,20" />
-        <Rectangle  Name="TiltRec" Width="35" Height="5" Fill="Blue" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
+        <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="-60"/>
             </Rectangle.RenderTransform>
@@ -89,7 +89,7 @@
             </Rectangle.Triggers>
         </Rectangle>
 
-        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="gripStatus" Width="50" Grid.Row="5" Orientation="Horizontal"/>
+        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Horizontal"/>
         <!--
         <Image Source="Resources/grip.png" Visibility="Visible" Grid.Row="5" Margin="20,29,25,43" />
         <Rectangle  Name="grip" Fill="green" Opacity="1" Grid.Row="5" Margin="53,67,61,75">

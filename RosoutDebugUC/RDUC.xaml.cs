@@ -35,7 +35,6 @@ namespace RosoutDebugUC
     {
 
         ObservableCollection<rosoutString> rosoutdata;
-        //Subscriber<Messages.rosgraph_msgs.Log> info;
 
         public RosoutDebug()
         {
@@ -68,6 +67,7 @@ namespace RosoutDebugUC
 
         }
 
+        //callback holla back
         private void callback(Messages.rosgraph_msgs.Log msg)
         {
 
@@ -79,14 +79,15 @@ namespace RosoutDebugUC
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
 
-                if (!(msgname == "/uirepublisher\n"))
-                    rosoutdata.Add( new rosoutString(timestamp, level, msgdata, msgname) ); 
+                //if (!(msgname == "/uirepublisher\n"))
+
+                //slower than hell itself.  Should have used add().  Will regret it in the morning.
+                rosoutdata.Insert( 0, new rosoutString(timestamp, level, msgdata, msgname) );
+                cleanList();
 
             }));
 
         }
-
-        //private void cleanup()
 
         private string ConvertVerbosityLevel(int level)
         {
@@ -110,9 +111,16 @@ namespace RosoutDebugUC
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return epoch.AddSeconds(unixTime);
         }
-        
-    }
 
+        //prevents the list of growing too large. The hardcoded limit is set to 100 elements for the rosout display.
+        public void cleanList()
+        {
+
+            if (rosoutdata.Count > 200)
+                rosoutdata.RemoveAt(rosoutdata.Count - 1);
+
+        }
+    }
 
     //used for datagrid
     public class rosoutString

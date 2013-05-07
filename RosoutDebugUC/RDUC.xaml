@@ -6,15 +6,16 @@
              mc:Ignorable="d" 
              d:DesignHeight="250" d:DesignWidth="480" Loaded="UserControl_Loaded">
     
-        <DataGrid AutoGenerateColumns="False"  Height="auto" Name="dataGrid1" Width="auto">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Time Stamp" Binding="{Binding timestamp}"/>
-                <DataGridTextColumn Header="Level" Binding="{Binding level}"/>
-                <DataGridTextColumn Header="Message" Binding="{Binding msgdata}"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding msgname}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+       <DataGrid AutoGenerateColumns="False"  Height="auto" Name="dataGrid1" Width="auto">
+          <DataGrid.Columns>
+              <DataGridTextColumn Header="Time Stamp" Binding="{Binding timestamp}"/>
+              <DataGridTextColumn Header="Level" Binding="{Binding level}"/>
+              <DataGridTextColumn Header="Message" Binding="{Binding msgdata}"/>
+              <DataGridTextColumn Header="Name" Binding="{Binding msgname}"/>
+          </DataGrid.Columns>
+      </DataGrid>
     
+
     <!--   <Grid Name="GridMain" >
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />

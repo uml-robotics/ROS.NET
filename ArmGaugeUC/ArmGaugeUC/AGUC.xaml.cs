@@ -87,10 +87,10 @@ namespace ArmGaugeUC
 
                 PanAnim.To = ArmPanAngle;
                 TiltAnim.To = (tilt * -50);
+                GripStatus.Value = grip;
                 //GripAnim.To = (grip * -30 + 30);
                 PanStory.Begin();
                 TiltStory.Begin();
-                //GripStory.Begin();
 
 
                 if (destMark.isActive == true)
@@ -138,7 +138,7 @@ namespace ArmGaugeUC
 
             pub.publish(movecommand);
 
-        } 
+        }
         
     }
 
