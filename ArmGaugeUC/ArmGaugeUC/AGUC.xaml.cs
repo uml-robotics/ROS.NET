@@ -88,11 +88,12 @@ namespace ArmGaugeUC
                 PanAnim.To = ArmPanAngle;
                 TiltAnim.To = (tilt * -50);
                 GripStatus.Value = grip;
-                //GripAnim.To = (grip * -30 + 30);
                 PanStory.Begin();
                 TiltStory.Begin();
 
-
+                //checks to see if the destination marker is set, and moves to that location.  one publish at a time.
+                //this action is asynchronous.  If another click happens before gets to the destination, 
+                //the destMark will be moved without issue
                 if (destMark.isActive == true)
                     if (!(ArmPanAngle < (destMark.PanAngle + 5) && ArmPanAngle > (destMark.PanAngle - 5)))
                     {
@@ -110,6 +111,8 @@ namespace ArmGaugeUC
 
         }
 
+
+        //registers the click, converts the click location into an angle, and saves it in the destination marker
         private void PanCirle_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
@@ -141,6 +144,7 @@ namespace ArmGaugeUC
         }
         
     }
+
 
     public class DestinationMarker
     {

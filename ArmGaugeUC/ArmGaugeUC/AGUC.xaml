@@ -6,6 +6,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="510" d:DesignWidth="160" Loaded="UserControl_Loaded">
     <Grid Name="grid1">
+
+        <!-- BEGIN Grid definitions and naming -->
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />
             <RowDefinition Height="150" />
@@ -16,15 +18,16 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150*" />
- 
         </Grid.ColumnDefinitions>
+
         <TextBlock Text="Pan" Grid.Column="0" Grid.Row="0" Margin="0" HorizontalAlignment="Center"/>
         <TextBlock Text="Tilt" Grid.Column="0" Grid.Row="2" Margin="0" HorizontalAlignment="Center"/>
         <TextBlock Text="Gripper" Grid.Column="0" Grid.Row="4" Margin="0" HorizontalAlignment="Center"/>
-        
+        <!-- END Grid definitions and naming-->
+
+
+        <!-- BEGIN pan arm monitor -->
         <Image Source="Resources/robotop.png" Visibility="Visible" Grid.Row="1" Margin="40,31,38,20" />
-        
-       
         <Canvas VerticalAlignment="Center" Margin="133,2,-74,46" Grid.Row="1" Height="100" Name="PanCanvas">
             <Ellipse
                 Mouse.MouseDown="PanCirle_MouseDown"
@@ -37,20 +40,18 @@
               Stroke="Black"
               Opacity=".4"
               Fill="Yellow">
-              <Ellipse.Clip>
-                  <RectangleGeometry Rect="0,50,100,100"/>
-              </Ellipse.Clip>
+                <Ellipse.Clip>
+                    <RectangleGeometry Rect="0,50,100,100"/>
+                </Ellipse.Clip>
                 <Ellipse.Triggers>
-                    
+
                 </Ellipse.Triggers>
             </Ellipse>
             <Canvas.RenderTransform>
                 <RotateTransform Angle="90" />
             </Canvas.RenderTransform>
         </Canvas>
-        
-
-            <Rectangle  Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
+        <Rectangle  Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="270"/>
             </Rectangle.RenderTransform>
@@ -68,7 +69,10 @@
                 </EventTrigger>
             </Rectangle.Triggers>
         </Rectangle>
+        <!-- END pan arm monitor -->
+
         
+        <!-- BEGIN tilt arm monitor -->
         <Image Source="Resources/roboside.png" Visibility="Visible" Grid.Row="3" Margin="40,34,38,20" />
         <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
             <Rectangle.RenderTransform>
@@ -88,27 +92,12 @@
                 </EventTrigger>
             </Rectangle.Triggers>
         </Rectangle>
+        <!-- END tilt arm monitor -->
 
+        
+        <!-- BEGIN gripper monitor -->
         <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Horizontal"/>
-        <!--
-        <Image Source="Resources/grip.png" Visibility="Visible" Grid.Row="5" Margin="20,29,25,43" />
-        <Rectangle  Name="grip" Fill="green" Opacity="1" Grid.Row="5" Margin="53,67,61,75">
-            <Rectangle.RenderTransform>
-                <RotateTransform  CenterX="0" CenterY="0" Angle="0"/>
-            </Rectangle.RenderTransform>
-            <Rectangle.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard Name="GripStory">
-                            <DoubleAnimation 
-                                Name="GripAnim"
-                                Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
-                                Duration="0:0:0.01"
-                                Storyboard.TargetName="grip" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Rectangle.Triggers>
-        </Rectangle>-->
+        <!-- END gripper monitor -->
+
     </Grid>
 </UserControl>

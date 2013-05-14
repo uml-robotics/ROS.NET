@@ -52,7 +52,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RosoutDebug.cs" />
     <Page Include="AGUC.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

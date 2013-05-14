@@ -497,5 +497,10 @@ namespace WpfApplication1
                     return;
             }
         }
+
+        private void MainCamera1_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
     }
 }

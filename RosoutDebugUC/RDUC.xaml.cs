@@ -67,7 +67,6 @@ namespace RosoutDebugUC
 
         }
 
-        //callback holla back
         private void callback(Messages.rosgraph_msgs.Log msg)
         {
 
@@ -79,16 +78,19 @@ namespace RosoutDebugUC
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
 
-                //if (!(msgname == "/uirepublisher\n"))
 
                 //slower than hell itself.  Should have used add().  Will regret it in the morning.
-                rosoutdata.Insert( 0, new rosoutString(timestamp, level, msgdata, msgname) );
+                if (!(msgname == "/uirepublisher\n"))
+                    rosoutdata.Insert(0, new rosoutString(timestamp, level, msgdata, msgname));
+                
+                
                 cleanList();
 
             }));
 
         }
 
+        //converts the int warning value from msg to a meaningful string
         private string ConvertVerbosityLevel(int level)
         {
 
@@ -122,7 +124,7 @@ namespace RosoutDebugUC
         }
     }
 
-    //used for datagrid
+    //used for datagrid.  this is the data structure bound to it.
     public class rosoutString
     {
         public string timestamp { get; set; }

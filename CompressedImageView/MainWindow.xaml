@@ -6,12 +6,16 @@
         xmlns:RosoutDebugUC="clr-namespace:RosoutDebugUC;assembly=RosoutDebugUC"
         AllowsTransparency="True" Background="Silver" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Normal" WindowStyle="None">
     <Grid>
+        <!-- BEGIN status blocks -->
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,20,0,0" Name="TimerStatusTextBlock" Text="Timer Status Text Block"  Foreground="Green" VerticalAlignment="Top"/>
         <TextBlock Height="30" HorizontalAlignment="Center" Margin="0,40,0,0" Name="TimerTextBlock" Text="Timer Text Block" VerticalAlignment="Top" FontSize="20" />
+        <!-- END status blocks -->
 
+
+        <!-- BEGIN main camera windows -->
         <TabControl Background="Turquoise" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
-            <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
+            <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1" Mouse.MouseDown="T">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/jpeg_compressed_ui/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
                     <c:CompressedImageControl.LayoutTransform>
@@ -27,7 +31,10 @@
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
             </TabItem>
         </TabControl>
-
+        <!-- END main camera windows -->
+        
+        
+        <!-- BEGIN sub camera windows -->
         <TabControl Background="Gold" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
@@ -43,7 +50,10 @@
             <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
             </TabItem>
         </TabControl>
-
+        <!-- END sub camera windows -->
+        
+        
+        <!-- BEGIN controller image display -->
         <Image Height="240" HorizontalAlignment="Left" Margin="0,0,0,0" Name="PSControllerImage" Source="PSController.png" VerticalAlignment="Bottom" />
 
         <ProgressBar Height="100" HorizontalAlignment="Left" Margin="111,0,0,203" Maximum="1" Minimum="0" Name="LeftTriggerProgressBar" Orientation="Vertical" Width="50" VerticalAlignment="Bottom"/>
@@ -71,9 +81,16 @@
         <Rectangle Fill="DarkGray" Height="20" Margin="68,0,0,121" Name="DPadDown"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="48,0,0,142" Name="DPadLeft"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="89,0,0,142" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
+        <!-- END controller image display -->
+        
+        
+        <!-- BEGIN user control interfaces -->
         <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0" />
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500"  Height="300" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" />
+        <!-- END user control interfaces -->
         
+        
+        <!-- BEGIN rock counter -->
         <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="0,0,250,0" Fill="Red"/>
 
         <TextBlock Height="50" HorizontalAlignment="Center" Margin="0,0,250,0" Name="RedCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
@@ -137,5 +154,8 @@
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="48,0,0,247" Name="LTrigPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="275,0,0,228" Name="RShPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="275,0,0,247" Name="RTrigPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
+        <!-- END rock counter -->
+        
+        
     </Grid>
 </Window>
