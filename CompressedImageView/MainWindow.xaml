@@ -18,7 +18,7 @@
         <TabControl Background="Gold" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1" Mouse.MouseDown="MainCamera1_MouseDown">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/image_raw" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
@@ -40,11 +40,11 @@
             <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
-                <!--<c:CompressedImageControl c:CompressedImageControl.TopicName="image_raw2/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2/image_raw/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
-                </c:CompressedImageControl>-->
+                </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
             </TabItem>

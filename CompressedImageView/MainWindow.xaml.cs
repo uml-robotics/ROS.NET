@@ -25,6 +25,8 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
+using Messages.arm_status_msgs;
+using Messages.rock_publisher;
 
 // for threading
 using System.Windows.Threading;
