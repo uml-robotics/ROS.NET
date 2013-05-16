@@ -71,10 +71,34 @@
         </Rectangle>
         <!-- END pan arm monitor -->
 
-        
+
         <!-- BEGIN tilt arm monitor -->
         <Image Source="Resources/roboside.png" Visibility="Visible" Grid.Row="3" Margin="40,34,38,20" />
-        <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="100,65,25,80">
+        <!--<Canvas VerticalAlignment="Center" Margin="63,105,-4,115" Grid.Row="3" Height="100" Name="TiltCanvas" Grid.RowSpan="3">
+            <Ellipse
+                Mouse.MouseDown="TiltCirle_MouseDown"
+              Name="TiltCirle"
+              Width="80"
+              Height="80"
+              Canvas.Left="0"
+              Canvas.Top="0"
+              Stretch="Fill" 
+              Stroke="Black"
+              Opacity=".4"
+              Fill="Yellow">
+                <Ellipse.Clip>
+                    <RectangleGeometry Rect="0,50,100,100"/>
+                </Ellipse.Clip>
+                <Ellipse.Triggers>
+
+                </Ellipse.Triggers>
+            </Ellipse>
+            <Canvas.RenderTransform>
+                <RotateTransform Angle="-90" />
+            </Canvas.RenderTransform>
+        </Canvas>-->
+
+        <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="106,63,19,84">
             <Rectangle.RenderTransform>
                 <RotateTransform  CenterX="2" CenterY="2" Angle="-60"/>
             </Rectangle.RenderTransform>
