@@ -1,8 +1,0 @@
-float64 pan_motor_position
-float64 tilt_motor_position
-float64 cable_motor_position
-float64 pan_motor_velocity
-float64 tilt_motor_velocity
-float64 cable_motor_velocity
-bool position
-bool velocity
