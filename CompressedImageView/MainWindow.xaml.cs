@@ -137,7 +137,6 @@ namespace WpfApplication1
             nh = new NodeHandle();
             armGauge.startListening(nh);
             battvolt.startListening(nh);
-            
 
             new Thread(() =>
             {

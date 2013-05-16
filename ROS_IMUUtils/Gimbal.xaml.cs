@@ -45,7 +45,7 @@ namespace ROS_IMUUtil
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        //private Subscriber<sm.Image> imgsub;
+        private Subscriber<sm.Imu> imusub;
 
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -89,6 +89,18 @@ namespace ROS_IMUUtil
         }
 
         private Thread spinnin;
+        private void imu_callback(sm.Imu i)
+        {
+            emQuaternion q = new emQuaternion(i.orientation);
+            emMatrix3x3 mat = new emMatrix3x3(q);
+            emMatrix3x3.OILER euler = mat.getEuler();
+            Console.WriteLine("" + euler.roll + " " + euler.pitch + " " + euler.yaw);
+
+            Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    
+                }));
+        }
         private void SetupTopic()
         {
             if (imagehandle == null)
@@ -97,12 +109,7 @@ namespace ROS_IMUUtil
            //     imgsub.shutdown();
             wtf = DateTime.Now;
 
-            /*imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data);
-                        if (ImageReceivedEvent != null) ImageReceivedEvent(this);
-                    })));*/
+            imusub = imagehandle.subscribe<sm.Imu>(TopicName, 1, imu_callback);
             if (spinnin == null)
             {
                 spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(100); })); spinnin.Start();
