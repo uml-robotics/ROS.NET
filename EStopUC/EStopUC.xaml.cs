@@ -31,7 +31,7 @@ namespace EStopUC
 
         private Subscriber<m.Bool> sub;
         private Publisher<m.Bool> pub;
-        private Boolean state;
+        private Boolean state = false ;
 
         public UserControl1()
         {
@@ -60,28 +60,27 @@ namespace EStopUC
 
             state = msg.data;
 
-            if (msg.data == false)
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                EStopCircle.Fill = Brushes.Green;
-                EStopText.Text = "OFF";
-            }
-            else
-            {
-                EStopCircle.Fill = Brushes.Red;
-                EStopText.Text = "ON";
-            }
+                if (msg.data == false)
+                {
+                    EStopCircle.Fill = Brushes.Green;
+                    EStopText.Text = "OFF";
+                }
+                else
+                {
+                    EStopCircle.Fill = Brushes.Red;
+                    EStopText.Text = "ON";
+                }
+            }));
+
 
         }
 
         private void EStopCircle_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
-            m.Bool newstate = new m.Bool();
-
-            if (state == false) newstate.data = true;
-            else newstate.data = false;
-
-            pub.publish(newstate);
+            pub.publish(new m.Bool() { data = !state });
 
         }
 
