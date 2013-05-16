@@ -58,8 +58,9 @@ namespace BattVoltUC
 
         public void callbackVoltMonitor( m.Float32 msg)
         {
-
-            textBlock1.Text = msg.ToString() + "v";
+            Dispatcher.BeginInvoke(new Action(()=>{
+                textBlock1.Text = msg.ToString() + "v";
+            }));
 
         }
 

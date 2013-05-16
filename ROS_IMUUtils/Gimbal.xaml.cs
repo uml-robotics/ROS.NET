@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -11,9 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Point = System.Drawing.Point;
-using Size = System.Windows.Size;
-using d = System.Drawing;
 using Messages;
 using Messages.custom_msgs;
 using Ros_CSharp;
@@ -100,6 +95,18 @@ namespace ROS_IMUUtil
                 {
                     
                 }));
+        }
+        private void translate(double degrees)
+        {
+            double pixelsto90 = AngleMeter.Height / 2.0;
+            trans.Y = degrees * pixelsto90 / 90.0;
+        }
+        private void rotate(double degrees)
+        {
+            Point transd = TransformToDescendant(AngleMeter).Transform(new Point(Width / 2.0, Height / 2.0));
+            rot.CenterX = transd.X;
+            rot.CenterY = transd.Y;
+            rot.Angle = degrees * Math.PI / 180.0;
         }
         private void SetupTopic()
         {
