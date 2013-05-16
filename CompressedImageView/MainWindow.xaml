@@ -54,7 +54,7 @@
         <!-- END sub camera windows -->
         
         
-        <!-- BEGIN controller image display -->
+        <!-- BEGIN controller image display 
         <Image Height="240" HorizontalAlignment="Left" Margin="83,0,0,50" Name="PSControllerImage" Source="PSController.png" VerticalAlignment="Bottom" />
 
         <ProgressBar Height="100" HorizontalAlignment="Left" Margin="194,0,0,253" Maximum="1" Minimum="0" Name="LeftTriggerProgressBar" Orientation="Vertical" Width="50" VerticalAlignment="Bottom"/>
@@ -69,20 +69,20 @@
 
         <Ellipse Fill="Gray" Height="50" HorizontalAlignment="Left" Margin="195,0,0,117" Name="LeftStick"  Width="50" VerticalAlignment="Bottom"/>
         <Ellipse Fill="LightGray" Height="10" HorizontalAlignment="Left" Margin="214,0,0,137" Name="LeftStickValue" Width="10" VerticalAlignment="Bottom"/>
-        <!--Y, X, B, A-->
+        
         <Ellipse Fill="Gold" Height="30" HorizontalAlignment="Left" Margin="375,0,0,214" Name="Y" Stroke="Gold" Width="30" VerticalAlignment="Bottom"/>
         <Ellipse Fill="Blue" Height="30" HorizontalAlignment="Left" Margin="347,0,0,186" Name="X" Stroke="Blue" Width="30" VerticalAlignment="Bottom"/>
         <Ellipse Fill="Red" Height="30" HorizontalAlignment="Left" Margin="403,0,0,186" Name="B" Stroke="Red" Width="30" VerticalAlignment="Bottom"/>
         <Ellipse Fill="Green" Height="30" HorizontalAlignment="Left" Margin="375,0,0,158" Name="A" Stroke="Green" Width="30" VerticalAlignment="Bottom"/>
-        <!--Right Stick-->
+        
         <Ellipse Fill="Gray" Height="50" Margin="306,0,0,117" Name="RightStick"  Width="50" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
         <Ellipse Height="10" Margin="326,0,0,137" Name="RightStickValue" Width="10" Fill="LightGray" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-        <!--DPad-->
+        
         <Rectangle Fill="DarkGray" Height="20" Margin="151,0,0,213" Name="DPadUp"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="151,0,0,171" Name="DPadDown"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="131,0,0,192" Name="DPadLeft"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
         <Rectangle Fill="DarkGray" Height="20" Margin="172,0,0,192" Name="DPadRight"  Width="20" HorizontalAlignment="Left" Stroke="DarkGray" VerticalAlignment="Bottom"/>
-        <!-- END controller image display -->
+         END controller image display -->
         
         
         <!-- BEGIN user control interfaces -->
@@ -152,11 +152,11 @@
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="50,0,0,50" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="150,0,0,50" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="250,0,0,50" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-        <Rectangle Height="20" HorizontalAlignment="Left" Margin="131,0,0,278" Name="LShPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
+        <!--<Rectangle Height="20" HorizontalAlignment="Left" Margin="131,0,0,278" Name="LShPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="131,0,0,297" Name="LTrigPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="358,0,0,278" Name="RShPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
         <Rectangle Height="20" HorizontalAlignment="Left" Margin="358,0,0,297" Name="RTrigPress" Stroke="DarkGray" VerticalAlignment="Bottom" Width="60" />
-        <!-- END rock counter -->
+         END rock counter -->
         
         
     </Grid>
