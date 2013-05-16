@@ -142,6 +142,8 @@ namespace ArmGaugeUC
             pub.publish(movecommand);
 
         }
+
+        
         
     }
 

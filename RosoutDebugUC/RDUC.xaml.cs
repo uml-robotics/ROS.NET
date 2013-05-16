@@ -78,13 +78,12 @@ namespace RosoutDebugUC
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
 
-
                 //slower than hell itself.  Should have used add().  Will regret it in the morning.
                 if (!(msgname == "/uirepublisher\n"))
                     rosoutdata.Insert(0, new rosoutString(timestamp, level, msgdata, msgname));
-                
-                
-                cleanList();
+
+               //To prevent the list from getting too big, this cuts off old 
+               cleanList();
 
             }));
 
