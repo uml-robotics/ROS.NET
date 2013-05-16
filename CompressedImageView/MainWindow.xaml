@@ -5,9 +5,12 @@
         xmlns:ArmGaugeUC="clr-namespace:ArmGaugeUC;assembly=ArmGaugeUC"
         xmlns:RosoutDebugUC="clr-namespace:RosoutDebugUC;assembly=RosoutDebugUC"
         xmlns:BattVoltUC="clr-namespace:BattVoltUC;assembly=VoltageUC"
+        xmlns:IMU="clr-namespace:ROS_IMUUtil;assembly=ROS_IMUUtils"
         xmlns:EStopUC="clr-namespace:EStopUC;assembly=EStopUC"
         AllowsTransparency="True" Background="Silver" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Normal" WindowStyle="None">
     <Grid>
+        <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
+        
         <!-- BEGIN status blocks -->
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,20,0,0" Name="TimerStatusTextBlock" Text="Timer Status Text Block"  Foreground="Green" VerticalAlignment="Top"/>
