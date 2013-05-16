@@ -38,7 +38,7 @@
               Canvas.Top="0"
               Stretch="Fill" 
               Stroke="Black"
-              Opacity=".4"
+              Opacity=".0"
               Fill="Yellow">
                 <Ellipse.Clip>
                     <RectangleGeometry Rect="0,50,100,100"/>
@@ -96,7 +96,7 @@
 
         
         <!-- BEGIN gripper monitor -->
-        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Horizontal"/>
+        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Vertical"/>
         <!-- END gripper monitor -->
 
     </Grid>
