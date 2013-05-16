@@ -122,6 +122,10 @@
       <Project>{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}</Project>
       <Name>ROS_ImageWPF</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ROS_IMUUtils\ROS_IMUUtil.csproj">
+      <Project>{03154B06-B16C-447C-AEEE-7AD153ACF2B7}</Project>
+      <Name>ROS_IMUUtil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VoltageUC\BattVoltUC.csproj">
       <Project>{4ECB4384-3D98-43F3-9466-B88EC1046AFF}</Project>
       <Name>BattVoltUC</Name>
