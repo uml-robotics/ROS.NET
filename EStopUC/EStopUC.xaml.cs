@@ -42,7 +42,7 @@ namespace EStopUC
         {
 
             sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
-            pub = node.advertise<m.Bool>( "/estopState", 1000 );
+            pub = node.advertise<m.Bool>("/setEstop", 1000);
 
             new Thread(() =>
             {

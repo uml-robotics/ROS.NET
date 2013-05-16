@@ -16,7 +16,7 @@
 
 
         <!-- BEGIN main camera windows -->
-        <TabControl Background="Gold" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
+        <TabControl Background="WhiteSmoke" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1" Mouse.MouseDown="MainCamera1_MouseDown">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
@@ -37,7 +37,7 @@
         
         
         <!-- BEGIN sub camera windows -->
-        <TabControl Background="Gold" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
+        <TabControl Background="WhiteSmoke" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
             <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
@@ -59,7 +59,7 @@
         <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />
         <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,235,33" />
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="450" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-        <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" HorizontalAlignment="Right" Margin="0,678,265,213" />
+        <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" HorizontalAlignment="Left" />
         <!-- END user control interfaces -->
         
         
