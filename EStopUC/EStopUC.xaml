@@ -6,6 +6,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="150">
     <Grid>
-            
+        <Ellipse Name="EStopCircle" Height="100" HorizontalAlignment="Left" Fill="Green" Margin="24,38,0,0" Stroke="Black" VerticalAlignment="Top" Width="100" Mouse.MouseDown="EStopCircle_MouseDown"/>
+        <TextBlock Name="EStopText" Height="33" HorizontalAlignment="Left" Margin="39,71,0,0"  Text="OFF" VerticalAlignment="Top" Width="71" TextAlignment="Center" FontSize="24" FontWeight="Bold" />
+        <Label Content="  Emergency Stop" Height="25" HorizontalAlignment="Left" Margin="18,7,0,0" Name="label1" VerticalAlignment="Top" Width="111" FontWeight="Bold" FontSize="12" />
     </Grid>
 </UserControl>

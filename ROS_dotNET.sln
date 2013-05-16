@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboOps_Mockup", "RoboOps_M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosoutDebugUC", "RosoutDebugUC\RosoutDebugUC.csproj", "{60B4B7ED-B9F4-4016-9443-26F305C8B56A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompressedImageView", "CompressedImageView\CompressedImageView.csproj", "{684FFC24-B4C8-48B9-8195-1EE725F2312C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_THE_UI", "CompressedImageView\_THE_UI.csproj", "{684FFC24-B4C8-48B9-8195-1EE725F2312C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BattVoltUC", "VoltageUC\BattVoltUC.csproj", "{4ECB4384-3D98-43F3-9466-B88EC1046AFF}"
 EndProject

@@ -299,11 +299,11 @@ namespace Ros_CSharp
         public int Count { get { return _queue.Count; } }
         public CallbackQueueInterface.ICallbackInfo head
         {
-            get { return _queue.Peek(); }
+            get { lock(mut) return _queue.Peek(); }
         }
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { return _queue.Last(); }
+            get { lock (mut) return _queue.Last(); }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
