@@ -2,23 +2,21 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{684FFC24-B4C8-48B9-8195-1EE725F2312C}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <ProjectGuid>{4ECB4384-3D98-43F3-9466-B88EC1046AFF}</ProjectGuid>
+    <OutputType>library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WpfApplication1</RootNamespace>
-    <AssemblyName>WpfApplication1</AssemblyName>
+    <RootNamespace>BattVoltUC</RootNamespace>
+    <AssemblyName>VoltageUC</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -27,8 +25,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -37,16 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Accessibility">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Messages\Messages.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="RosoutDebugUC">
-      <HintPath>..\RosoutDebugUC\bin\Debug\RosoutDebugUC.dll</HintPath>
+    <Reference Include="Messages">
+      <HintPath>..\..\..\..\..\ROS_Sharp\EricIsAMAZING\bin\Debug\Messages.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -63,21 +52,12 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Page Include="MainWindow.xaml">
+    <Page Include="BattVoltUC.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="XBOX360Controls.cs" />
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="BattVoltUC.xaml.cs">
+      <DependentUpon>BattVoltUC.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -99,7 +79,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -107,52 +86,14 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ArmGaugeUC\ArmGaugeUC\ArmGaugeUC.csproj">
-      <Project>{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}</Project>
-      <Name>ArmGaugeUC</Name>
-    </ProjectReference>
     <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ROS_ImageUtils\ROS_ImageWPF.csproj">
-      <Project>{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}</Project>
-      <Name>ROS_ImageWPF</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VoltageUC\BattVoltUC.csproj">
-      <Project>{4ECB4384-3D98-43F3-9466-B88EC1046AFF}</Project>
-      <Name>BattVoltUC</Name>
     </ProjectReference>
     <ProjectReference Include="..\XmlRpc_Wrapper\XmlRpc_Wrapper.csproj">
       <Project>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</Project>
       <Name>XmlRpc_Wrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\YAMLParser\YAMLParser.csproj">
-      <Project>{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}</Project>
-      <Name>YAMLParser</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="lefttrigger.png" />
-    <Resource Include="XBOX360Controller.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="left shoulder.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="right shoulder.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="righttrigger.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="PSController.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

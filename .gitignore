@@ -27,6 +27,8 @@ RosoutDebug/RosoutDebug/obj/*
 ArmGaugeUC/ArmGaugeUC/bin/*
 ArmGaugeUC/ArmGaugeUC/obj/*
 **/Debug/*
-ArmGaugeUC/ArmGaugeUC/bin/
-ArmGaugeUC/ArmGaugeUC/obj/
+*.log
+*/bin/*
+ArmGaugeUC/ArmGaugeUC/obj/*
+*/obj/*
 ArmGaugeUC/ArmGaugeUC/obj/*

@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="BattVoltUC.BattVolt"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="125" d:DesignWidth="200" Loaded="UserControl_Loaded">
+    <Grid>
+        <Label Content="Battery Voltage" Height="28" HorizontalAlignment="Left" Margin="51,9,0,0" VerticalAlignment="Top" Width="110" FontSize="14" FontWeight="Normal" />
+        
+        <Rectangle Height="49" Margin="32,0,26,32" Name="rectangle1" Stroke="Gray" VerticalAlignment="Bottom" Fill="LawnGreen"/>
+        <Rectangle Height="16" HorizontalAlignment="Right" Margin="0,60,19,0" Name="rectangle2" Stroke="Gray" VerticalAlignment="Top" Width="8" Fill="LawnGreen" />
+        
+        <TextBlock Height="31" HorizontalAlignment="Left" Margin="48,52,0,0" Name="textBlock1" Text="0v" VerticalAlignment="Top" Width="112" FontSize="20" FontStretch="Normal" FontWeight="Bold" FontStyle="Normal" TextAlignment="Center" />
+    </Grid>
+</UserControl>

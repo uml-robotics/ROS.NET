@@ -136,6 +136,9 @@ namespace WpfApplication1
             ROS.Init(new string[0], "Image_Test");
             nh = new NodeHandle();
             armGauge.startListening(nh);
+            battvolt.startListening(nh);
+            
+
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
@@ -257,44 +260,44 @@ namespace WpfApplication1
                     // change background of tab control to gold
                     MainCameraTabControl.Background = Brushes.Gold;
 
-                    // disable ability to focus for SubCamera1 because its the same camera, enable the rest
+                    /* disable ability to focus for SubCamera1 because its the same camera, enable the rest
                     SubCamera1.Focusable = false;
                     SubCamera2.Focusable = true;
                     SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = true;
+                    SubCamera4.Focusable = true;*/
                     return;
                     // 2nd tab item
                 case 1:
                     // change background of tab control to red
                     MainCameraTabControl.Background = Brushes.Red;
 
-                    // disable ability to focus for SubCamera2 because its the same camera, enable the rest
+                    /* disable ability to focus for SubCamera2 because its the same camera, enable the rest
                     SubCamera1.Focusable = true;
                     SubCamera2.Focusable = false;
                     SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = true;
+                    SubCamera4.Focusable = true;*/
                     return;
                     // 3rd tab item
                 case 2:
                     // change background of tab control to green
                     MainCameraTabControl.Background = Brushes.Green;
 
-                    // disable ability to focus for SubCamera3 because its the same camera, enable the rest
+                    /* disable ability to focus for SubCamera3 because its the same camera, enable the rest
                     SubCamera1.Focusable = true;
                     SubCamera2.Focusable = true;
                     SubCamera3.Focusable = false;
-                    SubCamera4.Focusable = true;
+                    SubCamera4.Focusable = true;*/
                     return;
                     // 4th tab item
                 case 3:
                     // change background of tab control to blue
                     MainCameraTabControl.Background = Brushes.Blue;
 
-                    // disable ability to focus for SubCamera4 because its the same camera, enable the rest
+                    /* disable ability to focus for SubCamera4 because its the same camera, enable the rest
                     SubCamera1.Focusable = true;
                     SubCamera2.Focusable = true;
                     SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = false;
+                    SubCamera4.Focusable = false;*/
                     return;
             }
         }
@@ -310,44 +313,44 @@ namespace WpfApplication1
                     // change background of tab control to gold
                     SubCameraTabControl.Background = Brushes.Gold;
 
-                    // disable ability to focus for MainCamera1 because its the same camera, enable the rest
+                    /* disable ability to focus for MainCamera1 because its the same camera, enable the rest
                     MainCamera1.Focusable = false;
                     MainCamera2.Focusable = true;
                     MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = true;
+                    MainCamera4.Focusable = true;*/
                     return;
                     // 2nd tab item
                 case 1:
                     // change background of tab control to gred
                     SubCameraTabControl.Background = Brushes.Red;
 
-                    // disable ability to focus for MainCamera2 because its the same camera, enable the rest
+                    /* disable ability to focus for MainCamera2 because its the same camera, enable the rest
                     MainCamera1.Focusable = true;
                     MainCamera2.Focusable = false;
                     MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = true;
+                    MainCamera4.Focusable = true;*/
                     return;
                     // 3rd tab item
                 case 2:
                     // change background of tab control to green
                     SubCameraTabControl.Background = Brushes.Green;
 
-                    // disable ability to focus for MainCamera3 because its the same camera, enable the rest
+                    /* disable ability to focus for MainCamera3 because its the same camera, enable the rest
                     MainCamera1.Focusable = true;
                     MainCamera2.Focusable = true;
                     MainCamera3.Focusable = false;
-                    MainCamera4.Focusable = true;
+                    MainCamera4.Focusable = true;*/
                     return;
                     // 4th tab item
                 case 3:
                     // change background of tab control to blue
                     SubCameraTabControl.Background = Brushes.Blue;
 
-                    // disable ability to focus for MainCamera4 because its the same camera, enable the rest
+                    /* disable ability to focus for MainCamera4 because its the same camera, enable the rest
                     MainCamera1.Focusable = true;
                     MainCamera2.Focusable = true;
                     MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = false;
+                    MainCamera4.Focusable = false;*/
                     return;
             }
         }
