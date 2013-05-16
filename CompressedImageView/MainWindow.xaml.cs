@@ -80,12 +80,10 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
-            // timer ticks 10000 times
-            aTimer = new System.Timers.Timer(10000);
+            aTimer = new System.Timers.Timer(100);
             // timer runs UpdateTimer function when ticked
             aTimer.Elapsed += new ElapsedEventHandler(UpdateTimer);
-            // timer ticks every 1000ms = 1s
-            aTimer.Interval = 1000;
+            aTimer.Start();
         }
 
         // when timer is ticked, do this stuff
@@ -126,10 +124,10 @@ namespace WpfApplication1
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // dispatcher for timer
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
-
-            // dispatcher for controller link
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Link));
+            DispatcherTimer dt = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            dt.Tick += Timer;
+            DispatcherTimer dl = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            dl.Tick += Link;
 
             // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
@@ -160,7 +158,7 @@ namespace WpfApplication1
         }
 
         // timer delegate
-        public void Timer()
+        public void Timer(object dontcare, EventArgs alsodontcare)
         {
             // display timer
             TimerTextBlock.Text = "Elapsed: " + hours.ToString("D2") + ':' + minutes.ToString("D2") + ':' + seconds.ToString("D2");
@@ -180,13 +178,10 @@ namespace WpfApplication1
                 TimerTextBlock.Text = "Press Right Stick to restart";
                 TimerStatusTextBlock.Foreground = Brushes.Red;
             }
-
-            // run dispatcher again, forever
-            Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
         }
 
         // controller link dispatcher
-        public void Link()
+        public void Link(object dontcare, EventArgs alsodontcare)
         {
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -245,9 +240,6 @@ namespace WpfApplication1
                 LinkTextBlock.Text = "Controller: Disconnected";
                 LinkTextBlock.Foreground = Brushes.Red;
             }
-
-            // run dispatcher again, forever
-            Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Link));
         }
 
         // when MainCameraControl tabs are selected

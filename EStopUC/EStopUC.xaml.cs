@@ -31,7 +31,7 @@ namespace EStopUC
 
         private Subscriber<m.Bool> sub;
         private Publisher<m.Bool> pub;
-        private Boolean state = false ;
+        private Boolean state ;
 
         public UserControl1()
         {
