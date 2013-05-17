@@ -227,13 +227,13 @@ Console.WriteLine("//deserialize: " + T.FullName);
             int currinfo = 0;
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
-                Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
+                //Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
                 Type type = GetType(infos[currinfo].FieldType.FullName);
-                Console.WriteLine("GetType returned: " + type.FullName);
+                //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
-                Console.WriteLine("Real type = " + realtype.FullName);
+                //Console.WriteLine("Real type = " + realtype.FullName);
                 MsgTypes msgtype = GetMessageType(type);
-                Console.WriteLine("Msg type = " + msgtype);
+                //Console.WriteLine("Msg type = " + msgtype);
                 if (msgtype == MsgTypes.std_msgs__Bool)
                 {
                     infos[currinfo].SetValue(thestructure, (bool)(bytes[currpos] == 1));
