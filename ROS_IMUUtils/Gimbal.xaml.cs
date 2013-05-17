@@ -84,6 +84,7 @@ namespace ROS_IMUUtil
         }
 
         private Thread spinnin;
+
         private void imu_callback(sm.Imu i)
         {
             emQuaternion q = new emQuaternion(i.orientation);
@@ -93,20 +94,26 @@ namespace ROS_IMUUtil
 
             Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    
+                    rotate(euler.pitch);
+                    translate(euler.roll * -1);
                 }));
         }
+
         private void translate(double degrees)
         {
             double pixelsto90 = AngleMeter.Height / 2.0;
-            trans.Y = degrees * pixelsto90 / 90.0;
+            trans.Y = (degrees * 190) + 20;
+                //*pixelsto90 / 90.0;
+            Console.WriteLine(trans.Y);
         }
+
         private void rotate(double degrees)
         {
             Point transd = TransformToDescendant(AngleMeter).Transform(new Point(Width / 2.0, Height / 2.0));
             rot.CenterX = transd.X;
             rot.CenterY = transd.Y;
-            rot.Angle = degrees * Math.PI / 180.0;
+            rot.Angle = degrees * 180;
+                //* Math.PI / 180.0;
         }
         private void SetupTopic()
         {
@@ -149,9 +156,5 @@ namespace ROS_IMUUtil
         }
 
         #endregion
-
-        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-        }
     }
 }
