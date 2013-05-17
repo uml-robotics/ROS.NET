@@ -182,6 +182,7 @@ namespace WpfApplication1
 
         private void JimCarry()
         {
+            if (multiplexPub == null) return;
             m.Byte msg = new m.Byte { data = (byte)(maincameramask | secondcameramask) };
             multiplexPub.publish(msg);
         }
