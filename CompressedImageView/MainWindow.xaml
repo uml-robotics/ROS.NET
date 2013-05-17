@@ -19,7 +19,7 @@
 
 
         <!-- BEGIN main camera windows -->
-        <TabControl Background="WhiteSmoke" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
+        <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
@@ -126,9 +126,9 @@
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="985,0,881,50" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="1040,0,836,50" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="1084,0,780,50" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-        
-        
-        
-        
+        <!-- BEGIN rock counter -->
+
+
+
     </Grid>
 </Window>
