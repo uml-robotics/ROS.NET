@@ -526,6 +526,8 @@ namespace WpfApplication1
         private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
 
+
+
         }
 
     }
