@@ -65,6 +65,8 @@ namespace WpfApplication1
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
 
+        TabItem[] mainCameras, subCameras;
+
         DispatcherTimer controllerUpdater;
 
         private bool ringIsFree;
@@ -90,7 +92,7 @@ namespace WpfApplication1
             EStop.startListening(nh);
 
             velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
-            multiplexPub = nh.advertise<m.Byte>("/camera_select", 1);
+            multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
 
             new Thread(() =>
             {
@@ -101,7 +103,14 @@ namespace WpfApplication1
                 }
             }).Start();
 
-            SubCamera2.Focus();
+            mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
+            subCameras = new TabItem[mainCameras.Length];
+            for (int i=0;i<mainCameras.Length;i++)
+            {
+                SubCameraTabControl.Items.Add(mainCameras[i].Content);
+                subCameras[i] = (TabItem)SubCameraTabControl.Items[SubCameraTabControl.Items.Count-1];
+            }
+            subCameras[1].Focus();
         }
 
         // close ros when application closes
@@ -186,6 +195,7 @@ namespace WpfApplication1
         {
             if (multiplexPub == null) return;
             m.Byte msg = new m.Byte { data = (byte)(maincameramask | secondcameramask) };
+            Console.WriteLine("SENDING CAM SELECT: " + msg.data);
             multiplexPub.publish(msg);
         }
 

@@ -21,19 +21,32 @@
         <!-- BEGIN main camera windows -->
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
-                <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage0" Width="864">
+                    <c:CompressedImageControl.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:CompressedImageControl.LayoutTransform>
+                </c:CompressedImageControl>
+            </TabItem>            
+            <TabItem Background="Red" Header="Main Camera 2" Name="MainCamera2">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage1" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
                 </c:CompressedImageControl>
             </TabItem>
-            
-            <TabItem Background="Red" Header="Main Camera 2" Name="MainCamera2">
-            </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage2" Width="864">
+                    <c:CompressedImageControl.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:CompressedImageControl.LayoutTransform>
+                </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera3_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage3" Width="864">
+                    <c:CompressedImageControl.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:CompressedImageControl.LayoutTransform>
+                </c:CompressedImageControl>
             </TabItem>
         </TabControl>
         <!-- END main camera windows -->
@@ -41,19 +54,6 @@
         
         <!-- BEGIN sub camera windows -->
         <TabControl Background="WhiteSmoke" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
-            <TabItem Background="Gold" Header="Sub Camera 1" Name="SubCamera1"></TabItem>
-            <TabItem Background="Red" Header="Sub Camera 2" Name="SubCamera2">
-                <!--Currently displaying 4:3 aspect ratio. Make Width 448 for 16:9 Widescreen-->
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2/image_raw/compressed" Height="252" x:FieldModifier="public" x:Name="TestImage1" Width="336">
-                    <c:CompressedImageControl.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>
-                </c:CompressedImageControl>
-            </TabItem>
-            <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
-            </TabItem>
-            <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
-            </TabItem>
         </TabControl>
         <!-- END sub camera windows -->
 
