@@ -161,8 +161,9 @@ namespace WpfApplication1
                     Button(b);
                 }
 
-                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = currentState.ThumbSticks.Left.Y }, angular = new gm.Vector3 { z = currentState.ThumbSticks.Left.X } };
-                Console.WriteLine("JOY: (" + vel.linear.x +", " + vel.angular.z+")");
+                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = currentState.ThumbSticks.Left.Y * slider1.Value }, angular = new gm.Vector3 { z = currentState.ThumbSticks.Left.X * slider1.Value } };
+                if(velPub != null)
+                    velPub.publish(vel);
             }
             // unless if controller is not connected...
             else if (!currentState.IsConnected)
