@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="70" d:DesignWidth="300">
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20*" />
@@ -21,7 +22,7 @@
 
         <!-- Red counter -->
         <Rectangle Height="50" Grid.Column="0" Grid.Row="1"  HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4"  Width="50" Fill="Red"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Row="1" Name="RedCountShadow" Text="0"   FontSize="35" Foreground="Black">
+        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCountShadow" Text="0"   FontSize="35" Foreground="Black">
             <TextBlock.Effect>
             <BlurEffect Radius="2.0" KernelType="Box"/>
             </TextBlock.Effect>
@@ -82,4 +83,5 @@
         <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
 
     </Grid>
+    
 </UserControl>

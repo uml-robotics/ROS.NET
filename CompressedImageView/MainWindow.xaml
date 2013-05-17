@@ -21,28 +21,28 @@
         <!-- BEGIN main camera windows -->
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage0" Width="864">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage0" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
                 </c:CompressedImageControl>
             </TabItem>            
             <TabItem Background="Red" Header="Main Camera 2" Name="MainCamera2">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage1" Width="864">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage1" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage2" Width="864">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage2" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera3_stream/republished/compressed" Height="486" x:FieldModifier="public" x:Name="camImage3" Width="864">
+                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage3" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
                     </c:CompressedImageControl.LayoutTransform>
@@ -60,13 +60,79 @@
         
         <!-- BEGIN user control interfaces -->
         <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />
-        <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,235,33" />
-        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="450" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+        <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,110,146" />
+        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
         <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" HorizontalAlignment="Left" />
         <!-- END user control interfaces -->
         
         
-        <!-- BEGIN rock counter -->
+        
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,76,30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20*" />
+                <RowDefinition Height="50*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50*" />
+                <ColumnDefinition Width="50*" />
+                <ColumnDefinition Width="50*" />
+                <ColumnDefinition Width="50*" />
+                <ColumnDefinition Width="50*" />
+            </Grid.ColumnDefinitions>
+            <!-- Red counter -->
+            <Rectangle Height="50" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" Width="50" Fill="Red" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCountShadow" Text="0" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCount" Text="0" FontSize="35" Foreground="White" />
+            <!-- Orange counter -->
+            <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Orange" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
+            <!-- Yellow counter -->
+            <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Yellow" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
+            <!-- Green counter -->
+            <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Green" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
+            <!-- Blue counter -->
+            <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Blue" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
+            <!-- Purple counter -->
+            <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Purple" />
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
+            <TextBlock.Effect>
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+            <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
+            <!-- First row labels -->
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="0" Name="RedTextBlock" Text="Red" VerticalAlignment="Bottom" FontWeight="UltraBold" />
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="0" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Bottom" />
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="0" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Bottom" />
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="0" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="0" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
+            <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
+        </Grid>
+        
+        <!-- BEGIN rock counter 
+        <Canvas VerticalAlignment="Bottom">
         <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="826,0,1022,0" Fill="Red"/>
 
         <TextBlock Height="50" HorizontalAlignment="Center" Margin="842,0,1038,0" Name="RedCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
@@ -126,7 +192,8 @@
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="985,0,881,50" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="1040,0,836,50" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="1084,0,780,50" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-        <!-- BEGIN rock counter -->
+        </Canvas>
+         BEGIN rock counter -->
 
 
 
