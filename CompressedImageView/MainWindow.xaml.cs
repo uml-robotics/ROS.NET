@@ -523,5 +523,10 @@ namespace WpfApplication1
                 ringIsFree = true;
         }
 
+        private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
+        }
+
     }
 }

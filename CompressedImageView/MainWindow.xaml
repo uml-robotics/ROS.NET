@@ -64,9 +64,19 @@
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
         <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" HorizontalAlignment="Left" />
         <!-- END user control interfaces -->
+
+
+        <Grid Height="185" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="172,436,0,421" Width="50">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20*" />
+                <RowDefinition Height="100*" />
+            </Grid.RowDefinitions>
+            <Slider Grid.Row="1" Height="130"  Name="slider1"  Width="25" ValueChanged="slider1_ValueChanged" Orientation="Vertical"  />
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Name="textBlock1" Text="Velocity Slider" Width="50" TextAlignment="Center" TextWrapping="WrapWithOverflow" />
+        </Grid>
         
-        
-        
+
+
         <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,76,30">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20*" />
