@@ -112,7 +112,7 @@ namespace WpfApplication1
         }
 
         // timer delegate
-        public void Timer()
+        public void Timer(object dontcare, EventArgs alsodontcare)
         {
             // display timer
             TimerTextBlock.Text = "Elapsed: " + hours.ToString("D2") + ':' + minutes.ToString("D2") + ':' + seconds.ToString("D2");

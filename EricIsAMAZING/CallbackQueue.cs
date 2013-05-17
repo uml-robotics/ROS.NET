@@ -166,7 +166,8 @@ namespace Ros_CSharp
         public CallOneResult callOneCB(TLS tls)
         {
             ICallbackInfo info = tls.head;
-            if (info == null) return CallOneResult.Empty;
+            if (info == null) 
+                return CallOneResult.Empty;
             IDInfo idinfo = null;
             if (info != null)
                 idinfo = getIDInfo(info.removal_id);
@@ -296,7 +297,7 @@ namespace Ros_CSharp
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         private Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
         private object mut = new object();
-        public int Count { get { return _queue.Count; } }
+        public int Count { get { lock (mut) return _queue.Count; } }
         public CallbackQueueInterface.ICallbackInfo head
         {
             get { lock (mut) return (_queue.Count == 0 ? null : _queue.Peek()); }
