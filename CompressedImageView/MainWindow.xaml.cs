@@ -92,7 +92,7 @@ namespace WpfApplication1
             EStop.startListening(nh);
 
             velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
-            multiplexPub = nh.advertise<m.Byte>("/camera_select", 1);
+            multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
 
             new Thread(() =>
             {
@@ -193,6 +193,7 @@ namespace WpfApplication1
         {
             if (multiplexPub == null) return;
             m.Byte msg = new m.Byte { data = (byte)(maincameramask | secondcameramask) };
+            Console.WriteLine("SENDING CAM SELECT: " + msg.data);
             multiplexPub.publish(msg);
         }
 
