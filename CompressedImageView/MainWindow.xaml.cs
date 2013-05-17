@@ -44,13 +44,6 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
-
-        // loop delegate function
-        public delegate void LoopDelegate();
-
-        // timer variable
-        private static System.Timers.Timer aTimer;
-
         // controller
         GamePadState currentState;
 
@@ -60,77 +53,34 @@ namespace WpfApplication1
         // timer near end, timer ended
         bool end, near;
 
-        // left vibration motor value, right vibration motor value
-        float leftMotor, rightMotor;
-
         // initialize timer values; 1 full hour
         int hours = 1, minutes = 0, seconds = 0;
 
         // initialize rock count values to 0
         int red = 0, orange = 0, yellow = 0, green = 0, blue = 0, purple = 0;
-
-        // mutex for ring, mutex for switching main camera and sub camera
-        bool ringIsFree = true, swapCam = true;
-
+        
         // ring buffer for rocks, main camera index, sub camera index
-        int rockRing = 0, incrementValue, mainCam, subCam;
+        int rockRing = 0, incrementValue;
+
+        Publisher<m.Byte> multiplexPub;
+        Publisher<gm.Twist> velPub;
+
+        DispatcherTimer controllerUpdater;
+
+        private bool ringIsFree;
 
         // initialize stuff for MainWindow
         public MainWindow()
         {
             InitializeComponent();
-
-            // timer ticks 10000 times
-            aTimer = new System.Timers.Timer(10000);
-            // timer runs UpdateTimer function when ticked
-            aTimer.Elapsed += new ElapsedEventHandler(UpdateTimer);
-            // timer ticks every 1000ms = 1s
-            aTimer.Interval = 1000;
-        }
-
-        // when timer is ticked, do this stuff
-        private void UpdateTimer(object source, ElapsedEventArgs e)
-        {
-            // if 0 minutes, take 60 from hours
-            if (minutes == 0)
-            {
-                hours--;
-                minutes = 60;
-            }
-
-            // if 0 seconds, pull 60 from minutes
-            if (seconds == 0)
-            {
-                minutes--;
-                seconds = 60;
-            }
-
-            // decrements seconds for counting down
-            seconds--;
-
-            // if at 00:59:50, timer is near end
-            if ((minutes == 59) && (seconds == 55))
-            {
-                near = true;
-            }
-
-            // if at 00:50:00, timer is at end
-            // disable timer
-            if ((minutes == 59) && (seconds == 50))
-            {
-                aTimer.Enabled = false;
-                end = true;
-            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // dispatcher for timer
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
-
-            // dispatcher for controller link
-            Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(Link));
-
+            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            controllerUpdater.Tick += Link;
+            controllerUpdater.Start();
+            
             // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.Init(new string[0], "The_UI");
@@ -138,6 +88,9 @@ namespace WpfApplication1
             armGauge.startListening(nh);
             battvolt.startListening(nh);
             EStop.startListening(nh);
+
+            velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
+            multiplexPub = nh.advertise<m.Byte>("/camera_select", 1);
 
             new Thread(() =>
             {
@@ -179,13 +132,10 @@ namespace WpfApplication1
                 TimerTextBlock.Text = "Press Right Stick to restart";
                 TimerStatusTextBlock.Foreground = Brushes.Red;
             }
-
-            // run dispatcher again, forever
-            Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Timer));
         }
 
         // controller link dispatcher
-        public void Link()
+        public void Link(object sender, EventArgs dontcare)
         {
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
@@ -197,45 +147,13 @@ namespace WpfApplication1
                 LinkTextBlock.Text = "Controller: Connected";
                 LinkTextBlock.Foreground = Brushes.Green;
 
-                // press left and right shoulders, and back and start to close application by controller
-                if ((currentState.Buttons.Back == ButtonState.Pressed) &&
-                    (currentState.Buttons.Start == ButtonState.Pressed) &&
-                    (currentState.Buttons.LeftShoulder == ButtonState.Pressed) &&
-                    (currentState.Buttons.RightShoulder == ButtonState.Pressed)
-                    )
+                foreach (Buttons b in Enum.GetValues(typeof(Buttons)))
                 {
-                    Close();
+                    Button(b);
                 }
 
-                /* dispatcher for trigger buttons
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(LeftTriggerButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(RightTriggerButton));
-
-                // dispatcher for shoulder buttons
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(LeftShoulderButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(RightShoulderButton));
-
-                // dispatcher for back and start
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(BackButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(StartButton));
-
-                // dispatcher for left stick
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(LeftStickButton));
-
-                // dispatcher for y, b, a, x buttons
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(YButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(XButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(BButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(AButton));
-
-                // dispatcher for right stick
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(RightStickButton));
-
-                // dispatcher for dpad buttons
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(DPadUpButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(DPadLeftButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(DPadRightButton));
-                Window1.Dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, new LoopDelegate(DPadDownButton));*/
+                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = currentState.ThumbSticks.Left.Y }, angular = new gm.Vector3 { z = currentState.ThumbSticks.Left.X } };
+                Console.WriteLine("JOY: (" + vel.linear.x +", " + vel.angular.z+")");
             }
             // unless if controller is not connected...
             else if (!currentState.IsConnected)
@@ -244,116 +162,28 @@ namespace WpfApplication1
                 LinkTextBlock.Text = "Controller: Disconnected";
                 LinkTextBlock.Foreground = Brushes.Red;
             }
-
-            // run dispatcher again, forever
-            Window1.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.SystemIdle, new LoopDelegate(Link));
         }
+
+        private byte maincameramask, secondcameramask;
 
         // when MainCameraControl tabs are selected
         private void MainCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // switch tab item index (0 to 3)
-            switch (MainCameraTabControl.SelectedIndex)
-            {
-                    // 1st tab item
-                case 0:
-
-                    // change background of tab control to gold
-                    //MainCameraTabControl.Background = Brushes.Gold;
-
-                    /* disable ability to focus for SubCamera1 because its the same camera, enable the rest
-                    SubCamera1.Focusable = false;
-                    SubCamera2.Focusable = true;
-                    SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = true;*/
-                    return;
-                    // 2nd tab item
-                case 1:
-                    // change background of tab control to red
-                   //MainCameraTabControl.Background = Brushes.Red;
-
-                    /* disable ability to focus for SubCamera2 because its the same camera, enable the rest
-                    SubCamera1.Focusable = true;
-                    SubCamera2.Focusable = false;
-                    SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = true;*/
-                    return;
-                    // 3rd tab item
-                case 2:
-                    // change background of tab control to green
-                    //MainCameraTabControl.Background = Brushes.Green;
-
-                    /* disable ability to focus for SubCamera3 because its the same camera, enable the rest
-                    SubCamera1.Focusable = true;
-                    SubCamera2.Focusable = true;
-                    SubCamera3.Focusable = false;
-                    SubCamera4.Focusable = true;*/
-                    return;
-                    // 4th tab item
-                case 3:
-                    // change background of tab control to blue
-                    //MainCameraTabControl.Background = Brushes.Blue;
-
-                    /* disable ability to focus for SubCamera4 because its the same camera, enable the rest
-                    SubCamera1.Focusable = true;
-                    SubCamera2.Focusable = true;
-                    SubCamera3.Focusable = true;
-                    SubCamera4.Focusable = false;*/
-                    return;
-            }
+            maincameramask = (byte)Math.Round(Math.Pow(2.0, MainCameraTabControl.SelectedIndex));
+            JimCarry();
         }
 
         // When SubCameraTabControl tabs are selected
         private void SubCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // switch tab item index (0 to 3)
-            switch (SubCameraTabControl.SelectedIndex)
-            {
-                    // 1st tab itm
-                case 0:
-                    // change background of tab control to gold
-                    //SubCameraTabControl.Background = Brushes.Gold;
+            maincameramask = (byte)Math.Round(Math.Pow(2.0, SubCameraTabControl.SelectedIndex));
+            JimCarry();
+        }
 
-                    /* disable ability to focus for MainCamera1 because its the same camera, enable the rest
-                    MainCamera1.Focusable = false;
-                    MainCamera2.Focusable = true;
-                    MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = true;*/
-                    return;
-                    // 2nd tab item
-                case 1:
-                    // change background of tab control to gred
-                    //SubCameraTabControl.Background = Brushes.Red;
-
-                    /* disable ability to focus for MainCamera2 because its the same camera, enable the rest
-                    MainCamera1.Focusable = true;
-                    MainCamera2.Focusable = false;
-                    MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = true;*/
-                    return;
-                    // 3rd tab item
-                case 2:
-                    // change background of tab control to green
-                    //SubCameraTabControl.Background = Brushes.Green;
-
-                    /* disable ability to focus for MainCamera3 because its the same camera, enable the rest
-                    MainCamera1.Focusable = true;
-                    MainCamera2.Focusable = true;
-                    MainCamera3.Focusable = false;
-                    MainCamera4.Focusable = true;*/
-                    return;
-                    // 4th tab item
-                case 3:
-                    // change background of tab control to blue
-                    //SubCameraTabControl.Background = Brushes.Blue;
-
-                    /* disable ability to focus for MainCamera4 because its the same camera, enable the rest
-                    MainCamera1.Focusable = true;
-                    MainCamera2.Focusable = true;
-                    MainCamera3.Focusable = true;
-                    MainCamera4.Focusable = false;*/
-                    return;
-            }
+        private void JimCarry()
+        {
+            m.Byte msg = new m.Byte { data = (byte)(maincameramask | secondcameramask) };
+            multiplexPub.publish(msg);
         }
 
         // stuff that happens when to move arond the ring buffer
@@ -504,9 +334,180 @@ namespace WpfApplication1
             }
         }
 
-        private void MainCamera1_MouseDown(object sender, MouseButtonEventArgs e)
+        private List<Buttons> knownToBeDown = new List<Buttons>();
+        public void Button(Buttons b)
         {
+            // if a is pressed
+            if (currentState.IsButtonDown(b))
+            {
+                if (knownToBeDown.Contains(b))
+                    return;
+                knownToBeDown.Add(b);
+                Console.WriteLine("" + b.ToString() + " pressed");
 
+                switch (b)
+                {
+                    case Buttons.Start:
+                        if (end == false)
+                        {
+                            Console.WriteLine("Start timer");
+                            // display that timer is ticking
+                            TimerStatusTextBlock.Text = "Ticking...";
+                            // display in blue
+                            TimerStatusTextBlock.Foreground = Brushes.Blue;
+                        }
+                        break;
+                    case Buttons.Back:
+                        if (end == false)
+                        {
+                            Console.WriteLine("Pause timer");
+                            // display that timer is paused
+                            TimerStatusTextBlock.Text = "Paused";
+                            // display in yellow
+                            TimerStatusTextBlock.Foreground = Brushes.Yellow;
+                        }
+                        break;
+                    case Buttons.DPadDown: DPadDownButton(); break;
+                    case Buttons.DPadUp: DPadUpButton(); break;
+                    case Buttons.DPadLeft: DPadLeftButton(); break;
+                    case Buttons.DPadRight: DPadRightButton(); break;
+                    case Buttons.RightStick: RightStickButton(); break;
+                }
+            }
+            else
+                knownToBeDown.Remove(b);
+        }
+
+        // right stick function; reset timer
+        public void RightStickButton()
+        {
+            // if right stick is clicked/pressed
+            if (currentState.Buttons.RightStick == ButtonState.Pressed)
+            {
+                // if timer is at the end
+                if (end == true)
+                {
+                    Console.WriteLine("Right stick pressed");
+                    // reset hours to one
+                    hours = 1;
+                    // reset minutes to 0
+                    minutes = 0;
+                    // reset seconds to 0
+                    seconds = 0;
+                    // reset near to false
+                    near = false;
+                    // reset end to false
+                    end = false;
+                    // display timer info in green 
+                    TimerStatusTextBlock.Foreground = Brushes.Green;
+                    // display timer info as ready
+                    TimerStatusTextBlock.Text = "Ready";
+                    // display timer in black
+                    TimerTextBlock.Foreground = Brushes.Black;
+                }
+            }
+        }
+
+        // dpad up functions
+        public void DPadUpButton()
+        {
+            // if up is pressed
+            if (currentState.DPad.Up == ButtonState.Pressed)
+            {
+                // run this ring stuff one time when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+
+                    // set the increment value to 1
+                    incrementValue = 1;
+                    // call the function
+                    rockIncrement();
+                }
+            }
+
+            // allow ring stuff to run again when pressed
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
+        }
+
+        // dpad left functions
+        public void DPadLeftButton()
+        {
+            // if dpad left is pressed
+            if (currentState.DPad.Left == ButtonState.Pressed)
+            {
+                // run this ring stuff once when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    rockRing--;
+
+                    if (rockRing < 0)
+                        rockRing = 5;
+
+                    ringSwitch();
+                }
+            }
+
+            // allow ring stuff to run again 
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
+        }
+
+        // dpad right functions
+        public void DPadRightButton()
+        {
+            // if dpad right is pressed
+            if (currentState.DPad.Right == ButtonState.Pressed)
+            {
+                // run this ring stuff once when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    rockRing++;
+                    rockRing = rockRing % 6;
+                    ringSwitch();
+                }
+            }
+
+            // allow ring stuff to run again when pressed again
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
+        }
+
+        // dpad down functions
+        public void DPadDownButton()
+        {
+            // if dpad down is pressed
+            if (currentState.DPad.Down == ButtonState.Pressed)
+            {
+                // run this ring stuff when button is pressed
+                if (ringIsFree == true)
+                {
+                    ringIsFree = false;
+                    // set the increment value to -1
+                    incrementValue = -1;
+                    // call this function
+                    rockIncrement();
+                }
+            }
+
+            // allow ring stuff to run again when pressed again
+            if ((currentState.DPad.Left == ButtonState.Released) &&
+                (currentState.DPad.Right == ButtonState.Released) &&
+                (currentState.DPad.Up == ButtonState.Released) &&
+                (currentState.DPad.Down == ButtonState.Released))
+                ringIsFree = true;
         }
     }
 }

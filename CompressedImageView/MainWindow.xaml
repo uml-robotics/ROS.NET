@@ -20,7 +20,7 @@
 
         <!-- BEGIN main camera windows -->
         <TabControl Background="WhiteSmoke" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
-            <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1" Mouse.MouseDown="MainCamera1_MouseDown">
+            <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <!--Currently displaying 4:3 aspect ratio. Make Width 864 for 16:9 Widescreen-->
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="TestImage0" Width="648">
                     <c:CompressedImageControl.LayoutTransform>
