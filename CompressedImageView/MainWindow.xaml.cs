@@ -65,6 +65,8 @@ namespace WpfApplication1
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
 
+        TabItem[] mainCameras, subCameras;
+
         DispatcherTimer controllerUpdater;
 
         private bool ringIsFree;
@@ -101,7 +103,14 @@ namespace WpfApplication1
                 }
             }).Start();
 
-            SubCamera2.Focus();
+            mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
+            subCameras = new TabItem[mainCameras.Length];
+            for (int i=0;i<mainCameras.Length;i++)
+            {
+                SubCameraTabControl.Items.Add(mainCameras[i].Content);
+                subCameras[i] = (TabItem)SubCameraTabControl.Items[SubCameraTabControl.Items.Count-1];
+            }
+            subCameras[1].Focus();
         }
 
         // close ros when application closes
