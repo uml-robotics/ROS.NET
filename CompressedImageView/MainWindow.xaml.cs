@@ -18,6 +18,7 @@ using System.Threading;
 using Messages;
 using Messages.custom_msgs;
 using Ros_CSharp;
+using Trust_Interface;
 using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
 using String = Messages.std_msgs.String;
@@ -49,6 +50,8 @@ namespace WpfApplication1
 
         // nodes
         NodeHandle nh;
+
+        JoystickManager jm;
 
         // timer near end, timer ended
         bool end, near;
@@ -97,6 +100,10 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
+            jm = new JoystickManager();
+
             controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
@@ -180,8 +187,11 @@ namespace WpfApplication1
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
 
+            if (!currentState.IsConnected)
+                currentState = jm.XboxState();
+
             // if controller is connected...
-            if (currentState.IsConnected)
+            if (currentState.IsConnected || jm.connected)
             {
                 // ...say its connected in the textbloxk, color it green cuz its good to go
                 LinkTextBlock.Text = "Controller: Connected";
