@@ -102,7 +102,7 @@ namespace WpfApplication1
             
             // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.Init(new string[0], "The_UI");
+            ROS.Init(new string[0], "The_UI_"+System.Environment.MachineName);
             nh = new NodeHandle();
             armGauge.startListening(nh);
             battvolt.startListening(nh);
