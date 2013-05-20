@@ -21,31 +21,31 @@
         <!-- BEGIN main camera windows -->
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage0" Width="864">
-                    <c:CompressedImageControl.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>                    
+                <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
+                <c:CompressedImageControl 
+                    c:CompressedImageControl.TopicName="/camera0/image_raw/compressed"
+                    x:FieldModifier="public" x:Name="camImage0">                
                 </c:CompressedImageControl>
             </TabItem>            
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage1" Width="864">
-                    <c:CompressedImageControl.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>
+                <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
+                <c:CompressedImageControl 
+                    c:CompressedImageControl.TopicName="/camera1/image_raw/compressed"
+                    x:FieldModifier="public" x:Name="camImage1">
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera2_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage2" Width="864">
-                    <c:CompressedImageControl.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>
+                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                <c:CompressedImageControl 
+                    c:CompressedImageControl.TopicName="/camera2/image_raw/compressed"
+                    x:FieldModifier="public" x:Name="camImage2" >
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
-                <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage3" Width="864">
-                    <c:CompressedImageControl.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>
+                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                <c:CompressedImageControl 
+                    c:CompressedImageControl.TopicName="/camera3/image_raw/compressed"
+                    x:FieldModifier="public" x:Name="camImage3">
                 </c:CompressedImageControl>
             </TabItem>
         </TabControl>
@@ -55,31 +55,19 @@
         <!-- BEGIN sub camera windows -->
         <TabControl Background="WhiteSmoke" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">
-                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave0" Width="864">
-                    <c:SlaveImage.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:SlaveImage.LayoutTransform>
+                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave0">
                 </c:SlaveImage>
             </TabItem>
             <TabItem Background="Red" Header="Rear Camera" Name="SubCamera2">
-                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave1" Width="864">
-                    <c:SlaveImage.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:SlaveImage.LayoutTransform>
+                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave1">
                 </c:SlaveImage>
             </TabItem>
             <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
-                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave2" Width="864">
-                    <c:SlaveImage.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:SlaveImage.LayoutTransform>
+                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave2" >
                 </c:SlaveImage>
             </TabItem>
             <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
-                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave3" Width="864">
-                    <c:SlaveImage.LayoutTransform>
-                        <RotateTransform Angle="180"/>
-                    </c:SlaveImage.LayoutTransform>
+                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3">
                 </c:SlaveImage>
             </TabItem>
         </TabControl>

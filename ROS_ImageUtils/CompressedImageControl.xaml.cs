@@ -96,17 +96,38 @@ namespace ROS_ImageWPF
             {
                 Thread.Sleep(100);
             }
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
+            Dispatcher.Invoke(new Action(SetupTopic));
         }
         private Thread spinnin;
         private void SetupTopic()
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             if (imagehandle == null)
-               imagehandle = ROS.GlobalNodeHandle;
+               imagehandle = new NodeHandle();
             if (imgsub != null)
             {
                 imgsub.shutdown();
                 imgsub = null;
+            }
+            wtf = DateTime.Now;
+            Console.WriteLine("IMG TOPIC " + TopicName);
+            STOPIT = false;
+            if (spinnin == null)
+            {
+                Console.WriteLine(TopicName);
+                spinnin = new Thread(new ThreadStart(() =>
+                {
+                    while (ROS.ok && !STOPIT)
+                    {
+                        if (STOPIT)
+                            break;
+                        ROS.spinOnce(imagehandle);
+                        Thread.Sleep(10);
+                    }
+                    spinnin = null;
+                }));
+                spinnin.Start();
             }
             if (imgsub == null || imgsub.topic != TopicName)
             {
@@ -118,24 +139,6 @@ namespace ROS_ImageWPF
                                                                                                                                   if (ImageReceivedEvent != null)
                                                                                                                                       ImageReceivedEvent(this);
                                                                                                                               }))){allow_concurrent_callbacks=true});
-            }
-            wtf = DateTime.Now;
-            Console.WriteLine("IMG TOPIC " + TopicName);
-            STOPIT = false;
-            if (spinnin == null)
-            {
-                Console.WriteLine(imgsub.topic);
-                spinnin = new Thread(new ThreadStart(() => {                      
-                    while (ROS.ok && !STOPIT)
-                    {
-                        if (STOPIT)
-                            break;
-                        ROS.spinOnce(imagehandle); 
-                        Thread.Sleep(10);
-                    }
-                    spinnin = null;
-                })); 
-                spinnin.Start();
             }
         }
 
@@ -541,6 +544,8 @@ namespace ROS_ImageWPF
 
         #region Events
 
+        double _scalex = -1, _scaley = 1;
+
         /// <summary>
         ///   when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a BitmapImage with a MemoryStream,
         ///   the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects that inversion
@@ -553,18 +558,20 @@ namespace ROS_ImageWPF
         /// </param>
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Transform(1, -1);
+            Transform(_scalex, _scaley);
         }
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            Transform(1, -1);
+            Transform(_scalex, _scaley);
         }
 
         #endregion
 
         public void Transform(double scalex, double scaley)
         {
+            _scalex = scalex;
+            _scaley = scaley;
             image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);
         }
     }

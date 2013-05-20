@@ -440,6 +440,7 @@ namespace ROS_ImageWPF
 
 
         #region Events
+        double _scalex = -1, _scaley = 1;
 
         /// <summary>
         ///   when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a BitmapImage with a MemoryStream,
@@ -453,18 +454,20 @@ namespace ROS_ImageWPF
         /// </param>
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Transform(1, -1);
+            Transform(_scalex, _scaley);
         }
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            Transform(1, -1);
+            Transform(_scalex, _scaley);
         }
 
         #endregion
 
         public void Transform(double scalex, double scaley)
         {
+            _scalex = scalex;
+            _scaley = scaley;
             image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);
         }
     }

@@ -83,8 +83,9 @@ namespace WpfApplication1
             if (_adr != status)
             {
                 _adr = status;
-                mainImages[front_cam].Transform(status ? 1 : -1, 1);
-                subImages[back_cam].Transform(status ? 1 : 1, -1);
+                mainImages[back_cam].Transform(status ? -1 : 1, 1);
+                subImages[back_cam].Transform(status ? -1 : 1, 1);
+                subImages[front_cam].Transform(status ? 1 : -1, 1);
             }
         }
         
@@ -99,38 +100,48 @@ namespace WpfApplication1
             controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
-            
-            // ROS stuff
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.Init(new string[0], "The_UI_"+System.Environment.MachineName);
-            nh = new NodeHandle();
-            armGauge.startListening(nh);
-            battvolt.startListening(nh);
-            EStop.startListening(nh);
-
-            velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
-            multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
 
             new Thread(() =>
             {
-                while (!ROS.shutting_down)
+                // ROS stuff
+                ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
+                ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName);
+                nh = new NodeHandle();
+                Dispatcher.Invoke(new Action(() =>
                 {
-                    ROS.spinOnce(ROS.GlobalNodeHandle);
-                    Thread.Sleep(10);
-                }
-            }).Start();
+                    armGauge.startListening(nh);
+                    battvolt.startListening(nh);
+                    EStop.startListening(nh);
+                }));
 
-            mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
-            subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
-            mainImages = new ROS_ImageWPF.CompressedImageControl[mainCameras.Length];
-            subImages = new ROS_ImageWPF.SlaveImage[subCameras.Length];
-            for (int i=0;i<mainCameras.Length;i++)
-            {
-                mainImages[i] = (mainCameras[i].Content as ROS_ImageWPF.CompressedImageControl);
-                subImages[i] = (subCameras[i].Content as ROS_ImageWPF.SlaveImage);
-                mainImages[i].AddSlave(subImages[i]);
-            }
-            subCameras[1].Focus();
+                velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
+                multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
+
+                new Thread(() =>
+                {
+                    while (!ROS.shutting_down)
+                    {
+                        ROS.spinOnce(ROS.GlobalNodeHandle);
+                        Thread.Sleep(10);
+                    }
+                }).Start();
+
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
+                    subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
+                    mainImages = new ROS_ImageWPF.CompressedImageControl[mainCameras.Length];
+                    subImages = new ROS_ImageWPF.SlaveImage[subCameras.Length];
+                    for (int i = 0; i < mainCameras.Length; i++)
+                    {
+                        mainImages[i] = (mainCameras[i].Content as ROS_ImageWPF.CompressedImageControl);
+                        subImages[i] = (subCameras[i].Content as ROS_ImageWPF.SlaveImage);
+                        mainImages[i].AddSlave(subImages[i]);
+                    }
+                    subCameras[1].Focus();
+                    adr(false);
+                }));
+            }).Start();
         }
 
         // close ros when application closes
