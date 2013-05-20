@@ -66,11 +66,28 @@ namespace WpfApplication1
         Publisher<gm.Twist> velPub;
 
         TabItem[] mainCameras, subCameras;
+        ROS_ImageWPF.CompressedImageControl[] mainImages;
+        ROS_ImageWPF.SlaveImage[] subImages;
 
         DispatcherTimer controllerUpdater;
 
         private bool ringIsFree;
 
+        private const int back_cam = 1;
+        private const int front_cam = 0;
+
+        private bool _adr;
+
+        private void adr(bool status)
+        {
+            if (_adr != status)
+            {
+                _adr = status;
+                mainImages[front_cam].Transform(status ? 1 : -1, 1);
+                subImages[back_cam].Transform(status ? 1 : 1, -1);
+            }
+        }
+        
         // initialize stuff for MainWindow
         public MainWindow()
         {
@@ -104,11 +121,14 @@ namespace WpfApplication1
             }).Start();
 
             mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
-            subCameras = new TabItem[mainCameras.Length];
+            subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
+            mainImages = new ROS_ImageWPF.CompressedImageControl[mainCameras.Length];
+            subImages = new ROS_ImageWPF.SlaveImage[subCameras.Length];
             for (int i=0;i<mainCameras.Length;i++)
             {
-                SubCameraTabControl.Items.Add(mainCameras[i].Content);
-                subCameras[i] = (TabItem)SubCameraTabControl.Items[SubCameraTabControl.Items.Count-1];
+                mainImages[i] = (mainCameras[i].Content as ROS_ImageWPF.CompressedImageControl);
+                subImages[i] = (subCameras[i].Content as ROS_ImageWPF.SlaveImage);
+                mainImages[i].AddSlave(subImages[i]);
             }
             subCameras[1].Focus();
         }
@@ -160,8 +180,14 @@ namespace WpfApplication1
                 {
                     Button(b);
                 }
-
-                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = currentState.ThumbSticks.Left.Y * slider1.Value }, angular = new gm.Vector3 { z = currentState.ThumbSticks.Left.X * slider1.Value } };
+                double y = currentState.ThumbSticks.Left.Y;
+                double x = currentState.ThumbSticks.Left.X;
+                if (_adr)
+                {
+                    x *= -1;
+                    y *= -1;
+                }
+                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * speedSlider.Value }, angular = new gm.Vector3 { z = x * speedSlider.Value } };
                 if(velPub != null)
                     velPub.publish(vel);
             }
@@ -180,13 +206,23 @@ namespace WpfApplication1
         private void MainCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             maincameramask = (byte)Math.Round(Math.Pow(2.0, MainCameraTabControl.SelectedIndex));
+
+            //enter ADR?
+            if (MainCameraTabControl.SelectedIndex == back_cam)
+            {
+                SubCameraTabControl.SelectedIndex = front_cam;
+                adr(true);
+            }
+            else
+                adr(false);
+
             JimCarry();
         }
 
         // When SubCameraTabControl tabs are selected
         private void SubCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            maincameramask = (byte)Math.Round(Math.Pow(2.0, SubCameraTabControl.SelectedIndex));
+            secondcameramask = (byte)Math.Round(Math.Pow(2.0, SubCameraTabControl.SelectedIndex));
             JimCarry();
         }
 

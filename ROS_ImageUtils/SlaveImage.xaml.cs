@@ -33,111 +33,9 @@ namespace ROS_ImageWPF
     ///   A general Surface WPF control for the displaying of bitmaps
     /// </summary>
     /// 
-    
-    public partial class CompressedImageControl : UserControl
+
+    public partial class SlaveImage : UserControl
     {
-        public delegate void ImageReceivedHandler(CompressedImageControl sender);
-        public event ImageReceivedHandler ImageReceivedEvent;
-        private List<SlaveImage> _slaves = new List<SlaveImage>();
-        public void AddSlave(SlaveImage s)
-        {
-            _slaves.Add(s);
-        }
-        public static string newTopicName;
-        DateTime wtf;
-        public string TopicName
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
-        }
-        private Thread waitforinit;
-        private NodeHandle imagehandle;
-        private Subscriber<sm.CompressedImage> imgsub;
-        private bool STOPIT;
-        public void shutdown()
-        {
-            STOPIT = true;
-        }
-
-        public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
-            "Topic",
-            typeof(string),
-            typeof(CompressedImageControl),
-            new FrameworkPropertyMetadata(null,
-                FrameworkPropertyMetadataOptions.None, (obj, args) =>
-                {
-                    try
-                    {
-                        if (obj is CompressedImageControl)
-                        {
-                            CompressedImageControl target = obj as CompressedImageControl;
-                            target.TopicName = (string)args.NewValue;
-                            if (newTopicName != null)
-                                target.TopicName = newTopicName;
-                            if (!ROS.isStarted())
-                            {
-                                if (target.waitforinit == null)
-                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
-                                if (!target.waitforinit.IsAlive)
-                                {
-                                    target.waitforinit.Start();
-                                }
-                            }
-                            else
-                                target.SetupTopic();
-                        }
-                    }
-                    catch (Exception e) { Console.WriteLine(e); }
-                }));
-
-        private void waitfunc()
-        {
-            while (!ROS.initialized)
-            {
-                Thread.Sleep(100);
-            }
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
-        }
-        private Thread spinnin;
-        private void SetupTopic()
-        {
-            if (imagehandle == null)
-               imagehandle = ROS.GlobalNodeHandle;
-            if (imgsub != null)
-            {
-                imgsub.shutdown();
-                imgsub = null;
-            }
-            if (imgsub == null || imgsub.topic != TopicName)
-            {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
-                                                                                                                              {
-                                                                                                                                  UpdateImage(i.data);
-                                                                                                                                  foreach (SlaveImage si in _slaves)
-                                                                                                                                      si.UpdateImage(i.data);
-                                                                                                                                  if (ImageReceivedEvent != null)
-                                                                                                                                      ImageReceivedEvent(this);
-                                                                                                                              }))){allow_concurrent_callbacks=true});
-            }
-            wtf = DateTime.Now;
-            Console.WriteLine("IMG TOPIC " + TopicName);
-            STOPIT = false;
-            if (spinnin == null)
-            {
-                Console.WriteLine(imgsub.topic);
-                spinnin = new Thread(new ThreadStart(() => {                      
-                    while (ROS.ok && !STOPIT)
-                    {
-                        if (STOPIT)
-                            break;
-                        ROS.spinOnce(imagehandle); 
-                        Thread.Sleep(10);
-                    }
-                    spinnin = null;
-                })); 
-                spinnin.Start();
-            }
-        }
 
         #region variables and such
 
@@ -277,16 +175,16 @@ namespace ROS_ImageWPF
             }
 
             if (data != null)
-            {                
+            {
                 byte[] correcteddata;
                 switch (encoding)
                 {
                     case "mono16":
-                        correcteddata = new byte[(int)Math.Round(3d * data.Length/2d)];
-                        for (int i = 0, ci = 0; i < data.Length; i += 2,ci+=3)
+                        correcteddata = new byte[(int)Math.Round(3d * data.Length / 2d)];
+                        for (int i = 0, ci = 0; i < data.Length; i += 2, ci += 3)
                         {
-                            ushort realDepth = (ushort)((data[i] << 8) | (data[i+1]));
-                            byte pixelcomponent = (byte)Math.Floor(((double)realDepth)/255d);
+                            ushort realDepth = (ushort)((data[i] << 8) | (data[i + 1]));
+                            byte pixelcomponent = (byte)Math.Floor(((double)realDepth) / 255d);
                             correcteddata[ci] = correcteddata[ci + 1] = correcteddata[ci + 2] = pixelcomponent;
                         }
                         break;
@@ -295,9 +193,9 @@ namespace ROS_ImageWPF
                         int[] balls = new int[(int)Math.Round(data.Length / 2d)];
                         int maxball = 0;
                         int minball = int.MaxValue;
-                        for (int i = 0, ci = 0; i < data.Length; i += 2,ci+=3)
+                        for (int i = 0, ci = 0; i < data.Length; i += 2, ci += 3)
                         {
-                            balls[i/2] = (data[i + 1] << 8) | (data[i]);
+                            balls[i / 2] = (data[i + 1] << 8) | (data[i]);
                             if (balls[i / 2] > maxball)
                                 maxball = balls[i / 2];
                             if (balls[i / 2] < minball)
@@ -305,18 +203,18 @@ namespace ROS_ImageWPF
                         }
                         for (int i = 0, ci = 0; i < balls.Length; i++, ci += 3)
                         {
-                            byte intensity = (byte)Math.Round((maxball - (255d * balls[i] / (maxball-minball))));
+                            byte intensity = (byte)Math.Round((maxball - (255d * balls[i] / (maxball - minball))));
                             correcteddata[ci] = correcteddata[ci + 1] = correcteddata[ci + 2] = intensity;
                         }
                         break;
                     case "mono8":
                         correcteddata = new byte[3 * data.Length];
-                        for (int i = 0, ci = 0; i < data.Length; i += 1,ci+=3)
+                        for (int i = 0, ci = 0; i < data.Length; i += 1, ci += 3)
                         {
                             correcteddata[ci] = correcteddata[ci + 1] = correcteddata[ci + 2] = data[i];
                         }
                         break;
-                    default:                        
+                    default:
                         correcteddata = data;
                         break;
                 }
@@ -401,7 +299,7 @@ namespace ROS_ImageWPF
                 img.EndInit();
                 lastgood = new byte[data.Length];
                 data.CopyTo(lastgood, 0);
-               
+
             }
             catch (Exception e)
             {
@@ -534,10 +432,12 @@ namespace ROS_ImageWPF
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
         ///   constructor... nothing fancy
         /// </summary>
-        public CompressedImageControl()
+        public SlaveImage()
         {
             InitializeComponent();
         }
+
+
 
         #region Events
 

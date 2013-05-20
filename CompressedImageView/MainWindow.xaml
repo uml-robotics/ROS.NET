@@ -24,10 +24,10 @@
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage0" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
-                    </c:CompressedImageControl.LayoutTransform>
+                    </c:CompressedImageControl.LayoutTransform>                    
                 </c:CompressedImageControl>
             </TabItem>            
-            <TabItem Background="Red" Header="Main Camera 2" Name="MainCamera2">
+            <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
                 <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed" Height="486" x:FieldModifier="public" x:Name="camImage1" Width="864">
                     <c:CompressedImageControl.LayoutTransform>
                         <RotateTransform Angle="180"/>
@@ -54,6 +54,34 @@
         
         <!-- BEGIN sub camera windows -->
         <TabControl Background="WhiteSmoke" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
+            <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">
+                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave0" Width="864">
+                    <c:SlaveImage.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:SlaveImage.LayoutTransform>
+                </c:SlaveImage>
+            </TabItem>
+            <TabItem Background="Red" Header="Rear Camera" Name="SubCamera2">
+                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave1" Width="864">
+                    <c:SlaveImage.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:SlaveImage.LayoutTransform>
+                </c:SlaveImage>
+            </TabItem>
+            <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
+                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave2" Width="864">
+                    <c:SlaveImage.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:SlaveImage.LayoutTransform>
+                </c:SlaveImage>
+            </TabItem>
+            <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
+                <c:SlaveImage Height="486" x:FieldModifier="public" x:Name="camImageSlave3" Width="864">
+                    <c:SlaveImage.LayoutTransform>
+                        <RotateTransform Angle="180"/>
+                    </c:SlaveImage.LayoutTransform>
+                </c:SlaveImage>
+            </TabItem>
         </TabControl>
         <!-- END sub camera windows -->
 
@@ -75,7 +103,7 @@
                 <ColumnDefinition Width="30*"/>
             </Grid.ColumnDefinitions>
             <TextBlock HorizontalAlignment="Center" Name="textBlock1" Text="Max Velocity" Width="62" TextAlignment="Center" TextWrapping="WrapWithOverflow" Grid.ColumnSpan="3" Margin="2,0" />
-            <Slider Grid.Column="3" Name="slider1" ValueChanged="slider1_ValueChanged" Orientation="Horizontal" Width="130" VerticalAlignment="Center"/>
+            <Slider Grid.Column="3" Name="speedSlider" ValueChanged="slider1_ValueChanged" Orientation="Horizontal" Width="130" VerticalAlignment="Center"/>
             <TextBlock Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" Name="textblock2" Text="{Binding ElementName=slider1, Path=Value}"/>
         </Grid>
 
