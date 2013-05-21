@@ -18,7 +18,6 @@ using System.Threading;
 using Messages;
 using Messages.custom_msgs;
 using Ros_CSharp;
-using Trust_Interface;
 using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
 using String = Messages.std_msgs.String;
@@ -50,8 +49,6 @@ namespace WpfApplication1
 
         // nodes
         NodeHandle nh;
-
-        JoystickManager jm;
 
         // timer near end, timer ended
         bool end, near;
@@ -98,10 +95,6 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
-                return;
-            jm = new JoystickManager();
-
             controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
@@ -185,11 +178,8 @@ namespace WpfApplication1
             // get state of player one
             currentState = GamePad.GetState(PlayerIndex.One);
 
-            if (!currentState.IsConnected)
-                currentState = jm.XboxState();
-
             // if controller is connected...
-            if (currentState.IsConnected || jm.connected)
+            if (currentState.IsConnected)
             {
                 // ...say its connected in the textbloxk, color it green cuz its good to go
                 LinkTextBlock.Text = "Controller: Connected";
@@ -199,15 +189,14 @@ namespace WpfApplication1
                 {
                     Button(b);
                 }
-                double x = !jm.connected ? currentState.ThumbSticks.Left.X : jm.joysticks[0].X;
-                double y = !jm.connected ? currentState.ThumbSticks.Left.Y : jm.joysticks[0].Y;
+                double y = currentState.ThumbSticks.Left.Y;
+                double x = currentState.ThumbSticks.Left.X;
                 if (_adr)
                 {
                     x *= -1;
                     y *= -1;
                 }
                 gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * speedSlider.Value }, angular = new gm.Vector3 { z = x * speedSlider.Value } };
-                Console.WriteLine("(" + vel.linear.x + ", " + vel.angular.z + ")");
                 if(velPub != null)
                     velPub.publish(vel);
             }
