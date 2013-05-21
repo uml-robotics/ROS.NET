@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmGaugeUC", "ArmGaugeUC\Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockCounterUC", "RockCounterUC\RockCounterUC.csproj", "{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimerStopwatchUC", "TimerStopwatchUC\TimerStopwatchUC.csproj", "{AEE5965A-A9F5-479A-816D-40306C779E1F}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -310,6 +312,24 @@ Global
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|x86.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|Any CPU.Build.0 = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|Mixed Platforms.Build.0 = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|Win32.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.3M4|x86.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{AEE5965A-A9F5-479A-816D-40306C779E1F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
 using System;
 using System.IO;
 using System.Threading;
@@ -27,6 +28,7 @@ using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using Messages.arm_status_msgs;
 using Messages.rock_publisher;
+using System.IO;
 
 // for threading
 using System.Windows.Threading;
@@ -44,6 +46,9 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
+        //checks is rocks restored
+        bool rocks_restored = false;
+
         // controller
         GamePadState currentState;
 
@@ -69,7 +74,8 @@ namespace WpfApplication1
 
         DispatcherTimer controllerUpdater;
 
-        private bool ringIsFree;
+        //Stopwatch
+        Stopwatch sw = new Stopwatch();
 
         // initialize stuff for MainWindow
         public MainWindow()
@@ -77,12 +83,13 @@ namespace WpfApplication1
             InitializeComponent();
         }
 
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
-            
+                        
             // ROS stuff
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.Init(new string[0], "The_UI");
@@ -295,6 +302,8 @@ namespace WpfApplication1
         // the function that changes rock count
         void rockIncrement()
         {
+            string[] rocks;
+            if (rocks_restored == false) { rocks = new string[] { "0", "0,", "0", "0", "0", "0" }; rock_file_writer(rocks); rocks_restored = true; Rock_Restorer.Visibility = Visibility.Hidden; }
             switch (rockRing)
             {
                 // change red count and display it
@@ -304,6 +313,9 @@ namespace WpfApplication1
                         red = 0;
                     RedCount.Text = red.ToString();
                     RedCountShadow.Text = red.ToString();
+                    rocks = rock_file_reader();
+                    rocks[0] = red.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 1:
@@ -312,6 +324,9 @@ namespace WpfApplication1
                         orange = 0;
                     OrangeCount.Text = orange.ToString();
                     OrangeCountShadow.Text = orange.ToString();
+                    rocks = rock_file_reader();
+                    rocks[1] = orange.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 2:
@@ -320,6 +335,9 @@ namespace WpfApplication1
                         yellow = 0;
                     YellowCount.Text = yellow.ToString();
                     YellowCountShadow.Text = yellow.ToString();
+                    rocks = rock_file_reader();
+                    rocks[2] = yellow.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 3:
@@ -328,6 +346,9 @@ namespace WpfApplication1
                         green = 0;
                     GreenCount.Text = green.ToString();
                     GreenCountShadow.Text = green.ToString();
+                    rocks = rock_file_reader();
+                    rocks[3] = green.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 4:
@@ -336,6 +357,9 @@ namespace WpfApplication1
                         blue = 0;
                     BlueCount.Text = blue.ToString();
                     BlueCountShadow.Text = blue.ToString();
+                    rocks = rock_file_reader();
+                    rocks[4] = blue.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 5:
@@ -344,6 +368,9 @@ namespace WpfApplication1
                         purple = 0;
                     PurpleCount.Text = purple.ToString();
                     PurpleCountShadow.Text = purple.ToString();
+                    rocks = rock_file_reader();
+                    rocks[5] = purple.ToString();
+                    rock_file_writer(rocks);
                     return;
             }
         }
@@ -428,24 +455,11 @@ namespace WpfApplication1
             // if up is pressed
             if (currentState.DPad.Up == ButtonState.Pressed)
             {
-                // run this ring stuff one time when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-
                     // set the increment value to 1
                     incrementValue = 1;
                     // call the function
                     rockIncrement();
-                }
             }
-
-            // allow ring stuff to run again when pressed
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad left functions
@@ -454,25 +468,13 @@ namespace WpfApplication1
             // if dpad left is pressed
             if (currentState.DPad.Left == ButtonState.Pressed)
             {
-                // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
                     rockRing--;
 
                     if (rockRing < 0)
                         rockRing = 5;
 
                     ringSwitch();
-                }
             }
-
-            // allow ring stuff to run again 
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad right functions
@@ -481,22 +483,11 @@ namespace WpfApplication1
             // if dpad right is pressed
             if (currentState.DPad.Right == ButtonState.Pressed)
             {
-                // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
                     rockRing++;
                     rockRing = rockRing % 6;
                     ringSwitch();
-                }
+             
             }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad down functions
@@ -505,23 +496,12 @@ namespace WpfApplication1
             // if dpad down is pressed
             if (currentState.DPad.Down == ButtonState.Pressed)
             {
-                // run this ring stuff when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
                     // set the increment value to -1
                     incrementValue = -1;
                     // call this function
                     rockIncrement();
-                }
+                
             }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -530,6 +510,47 @@ namespace WpfApplication1
 
 
         }
+
+        private void Rock_Restorer_Click(object sender, RoutedEventArgs e)
+        {
+            string[] rocks;
+            rocks = rock_file_reader();
+            string rock;
+            for (int i=0; i<6; i++)
+            {
+                rock = rocks[i];
+                int aux = int.Parse(rock);
+                if (i == 0) { red = aux; RedCount.Text = red.ToString(); RedCountShadow.Text = red.ToString(); }
+                if (i == 1) { orange = aux; OrangeCount.Text = orange.ToString(); OrangeCountShadow.Text = orange.ToString(); }
+                if (i == 2) { yellow = aux; YellowCount.Text = yellow.ToString(); YellowCountShadow.Text = yellow.ToString(); }
+                if (i == 3) { green = aux; GreenCount.Text = green.ToString(); GreenCountShadow.Text = green.ToString(); }
+                if (i == 4) { blue = aux; BlueCount.Text = blue.ToString(); BlueCountShadow.Text = blue.ToString(); }
+                if (i == 5) { purple = aux; PurpleCount.Text = purple.ToString(); PurpleCountShadow.Text = purple.ToString(); }
+            }
+            Rock_Restorer.IsEnabled = false;
+            Rock_Restorer.Visibility = Visibility.Hidden;
+            rocks_restored = true;
+
+        }
+
+        private string[] rock_file_reader()
+        {
+            StreamReader rreader = new StreamReader(@"rocks.txt");
+            string[] rocks = rreader.ReadToEnd().Split(',');
+            rreader.Close();            
+            return rocks;
+        }
+
+        private void rock_file_writer(string[] rocks)
+        {
+            StreamWriter rwriter = new StreamWriter(@"rocks.txt");
+            foreach (string rock in rocks)
+            {
+                rwriter.Write(rock + ",");
+            }
+            rwriter.Close();
+        }
+        
 
     }
 }

@@ -7,6 +7,7 @@
         xmlns:BattVoltUC="clr-namespace:BattVoltUC;assembly=VoltageUC"
         xmlns:IMU="clr-namespace:ROS_IMUUtil;assembly=ROS_IMUUtils"
         xmlns:EStopUC="clr-namespace:EStopUC;assembly=EStopUC"
+        xmlns:TimerStopwatchUC="clr-namespace:TimerStopwatchUC;assembly=TimerStopwatchUC"
         AllowsTransparency="True" Background="Silver" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Normal" WindowStyle="None">
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
@@ -63,6 +64,7 @@
         <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,110,146" />
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
         <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" HorizontalAlignment="Left" />
+        <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="712,0" />
         <!-- END user control interfaces -->
 
 
@@ -80,10 +82,11 @@
         </Grid>
 
 
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,76,30">
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,75,49">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20*" />
                 <RowDefinition Height="50*" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="50" />
@@ -142,9 +145,9 @@
             <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="0" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
             <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="0" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
             <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
+            <Button Name="Rock_Restorer" Content="Restore" Height="30" HorizontalAlignment="Center" Width="73" Click="Rock_Restorer_Click" Grid.Row="3" Grid.ColumnSpan="6"/>
         </Grid>
-        
-        <!-- BEGIN rock counter 
+         <!--BEGIN rock counter 
         <Canvas VerticalAlignment="Bottom">
         <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="826,0,1022,0" Fill="Red"/>
 

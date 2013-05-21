@@ -126,6 +126,10 @@
       <Project>{03154B06-B16C-447C-AEEE-7AD153ACF2B7}</Project>
       <Name>ROS_IMUUtil</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TimerStopwatchUC\TimerStopwatchUC.csproj">
+      <Project>{AEE5965A-A9F5-479A-816D-40306C779E1F}</Project>
+      <Name>TimerStopwatchUC</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VoltageUC\BattVoltUC.csproj">
       <Project>{4ECB4384-3D98-43F3-9466-B88EC1046AFF}</Project>
       <Name>BattVoltUC</Name>

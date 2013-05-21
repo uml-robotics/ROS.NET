@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
 
 // for controller; don't forget to include Microsoft.Xna.Framework in References
 using Microsoft.Xna.Framework;
@@ -25,6 +26,8 @@ namespace RockCounterUC
     {
         // controller
         GamePadState currentState;
+
+        bool rock_restored = false;
 
         // ring buffer for rocks, main camera index, sub camera index
         int rockRing = 0, incrementValue;
@@ -288,6 +291,5 @@ namespace RockCounterUC
                 (currentState.DPad.Down == ButtonState.Released))
                 ringIsFree = true;
         }
-
     }
 }

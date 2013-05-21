@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="TimerStopwatchUC.TSWUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" d:DesignHeight="164" d:DesignWidth="299">
+    <Grid Width="299" Height="160">
+        <TextBlock Name="StopwatchTB" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Text="00:00:00" Width="79" Margin="155,56,65,88" />
+        <TextBlock Name="TimeElapsed" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" Text="Time Elapsed:" Margin="49,53,150,85" Width="100" />
+        <Button Name="StartSW" Height="30" Content="Start" Click="StartSW_Click" Margin="49,78,0,52" HorizontalAlignment="Left" Width="86" />
+        <Button Name="ResetSW" Height="30" Content="Resume" Click="ResetSW_Click" IsEnabled="True" Margin="155,78,65,52" />            
+    </Grid>
+</UserControl>
