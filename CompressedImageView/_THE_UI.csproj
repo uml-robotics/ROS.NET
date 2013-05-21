@@ -126,6 +126,10 @@
       <Project>{03154B06-B16C-447C-AEEE-7AD153ACF2B7}</Project>
       <Name>ROS_IMUUtil</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UberSlider\UberSlider.csproj">
+      <Project>{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}</Project>
+      <Name>UberSlider</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VoltageUC\BattVoltUC.csproj">
       <Project>{4ECB4384-3D98-43F3-9466-B88EC1046AFF}</Project>
       <Name>BattVoltUC</Name>

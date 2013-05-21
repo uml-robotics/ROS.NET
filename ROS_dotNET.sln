@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmGaugeUC", "ArmGaugeUC\Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockCounterUC", "RockCounterUC\RockCounterUC.csproj", "{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UberSlider", "UberSlider\UberSlider.csproj", "{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -310,6 +312,24 @@ Global
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}.Release|x86.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|Any CPU.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|Any CPU.Build.0 = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|Mixed Platforms.Build.0 = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|Win32.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.3M4|x86.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

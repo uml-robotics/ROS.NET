@@ -99,6 +99,16 @@ namespace WpfApplication1
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
+            _trans.Label = "Linear Max Vel";
+            _trans.Max = 2.0;
+            _trans.Min = 0.0;
+            _trans.Value = 0.5;
+
+            _rot.Label = "Angular Max Vel";
+            _rot.Max = 3.14;
+            _rot.Min = 0.0;
+            _rot.Value = 0.5;
+
             new Thread(() =>
             {
                 // ROS stuff
@@ -196,7 +206,7 @@ namespace WpfApplication1
                     x *= -1;
                     y *= -1;
                 }
-                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * speedSlider.Value }, angular = new gm.Vector3 { z = x * speedSlider.Value } };
+                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * _trans.Value }, angular = new gm.Vector3 { z = x * _rot.Value } };
                 if(velPub != null)
                     velPub.publish(vel);
             }
@@ -523,13 +533,5 @@ namespace WpfApplication1
                     rockIncrement();
             }
         }
-
-        private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-
-
-
-        }
-
     }
 }
