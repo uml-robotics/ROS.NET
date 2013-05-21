@@ -42,6 +42,7 @@ namespace TimerStopwatchUC
             if (StartSW.Content.ToString() == "Start")
             {
                 StartSW.Content = "Stop";
+                ResetSW.Content = "Reset";
                 dtimer.Start();
                 sw.Start();
                 ResetSW.IsEnabled = false;
