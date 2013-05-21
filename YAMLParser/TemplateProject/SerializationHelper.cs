@@ -58,29 +58,32 @@ namespace Messages
         public static MsgTypes GetMessageType(string s)
         {
             //Console.WriteLine("LOOKING FOR: " + s + "'s type");
-            if (GetMessageTypeMemoString.ContainsKey(s))
-                return GetMessageTypeMemoString[s];
-            if (s.Contains("TimeData"))
+            lock (GetMessageTypeMemoString)
             {
-                GetMessageTypeMemoString.Add(s, MsgTypes.std_msgs__Time);
-                return MsgTypes.std_msgs__Time;
-            }
-            if (!s.Contains("Messages"))
-            {
-                if (s.Contains("System."))
+                if (GetMessageTypeMemoString.ContainsKey(s))
+                    return GetMessageTypeMemoString[s];
+                if (s.Contains("TimeData"))
                 {
-                    Array types = Enum.GetValues(typeof(MsgTypes));
-                    MsgTypes[] mts = (MsgTypes[])types;
-                    string test = s.Split('.')[1];
-                    MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Equals(test.ToLower()));
-                    GetMessageTypeMemoString.Add(s, m);
-                    return m;
+                    GetMessageTypeMemoString.Add(s, MsgTypes.std_msgs__Time);
+                    return MsgTypes.std_msgs__Time;
                 }
-                return MsgTypes.Unknown;
+                if (!s.Contains("Messages"))
+                {
+                    if (s.Contains("System."))
+                    {
+                        Array types = Enum.GetValues(typeof(MsgTypes));
+                        MsgTypes[] mts = (MsgTypes[])types;
+                        string test = s.Split('.')[1];
+                        MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Equals(test.ToLower()));
+                        GetMessageTypeMemoString.Add(s, m);
+                        return m;
+                    }
+                    return MsgTypes.Unknown;
+                }
+                MsgTypes ms = (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__").Replace("[]", ""));
+                GetMessageTypeMemoString.Add(s, ms);
+                return ms;
             }
-            MsgTypes ms = (MsgTypes)Enum.Parse(typeof(MsgTypes), s.Replace("Messages.", "").Replace(".", "__").Replace("[]", ""));
-            GetMessageTypeMemoString.Add(s, ms);
-            return ms;
         }
 
         [DebuggerStepThrough]
