@@ -179,7 +179,7 @@ namespace Trust_Interface
                         case 135: gdp = new GamePadDPad(ButtonState.Released, ButtonState.Pressed, ButtonState.Released, ButtonState.Pressed); pressed |= Buttons.DPadRight | Buttons.DPadDown; break;
                         case 180: gdp = new GamePadDPad(ButtonState.Released, ButtonState.Pressed, ButtonState.Released, ButtonState.Released); pressed |= Buttons.DPadDown; break;
                         case 225: gdp = new GamePadDPad(ButtonState.Released, ButtonState.Pressed, ButtonState.Pressed, ButtonState.Released); pressed |= Buttons.DPadDown | Buttons.DPadLeft; break;
-                        case 270: gdp = new GamePadDPad(ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Pressed); pressed |= Buttons.DPadLeft; break;
+                        case 270: gdp = new GamePadDPad(ButtonState.Released, ButtonState.Released, ButtonState.Pressed, ButtonState.Released); pressed |= Buttons.DPadLeft; break;
                         case 315: gdp = new GamePadDPad(ButtonState.Pressed, ButtonState.Released, ButtonState.Pressed, ButtonState.Released); pressed |= Buttons.DPadUp | Buttons.DPadLeft; break;
                     }
                 }
