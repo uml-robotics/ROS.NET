@@ -5,7 +5,7 @@
          (for 32bit windows, download: http://swupdate.openvpn.org/community/releases/openvpn-install-2.3.0-I005-i686.exe )
          (for 64bit windows, download: http://swupdate.openvpn.org/community/releases/openvpn-install-2.3.0-I005-x86_64.exe )
 5. Install putty (for SSHing into the robot/master)
-6. Download and run http://www.cs.uml.edu/~emccann/robotics/ROS_Sharp.exe
+6. Check this out somewhere
 7. Find OpenVPN GUI in your start menu, run it, then find the icon it created in your system tray, and choose "connect".
 8. Mouse over the icon in your system tray. Make note of your assigned IP, as you will need to use that IP address in the ROS.ROS_HOSTNAME assignment in the nodes' initialization code.
                             
@@ -17,6 +17,6 @@
       -The ROS_MASTER_URI is set to my lab machine, and should be running roscore already
       -The ROS_HOSTNAME needs to be set to the "Assigned IP" as visible in the attached screenshot.
 12. Hit "F5" to run the program, and start publishing /Chatter messages.
-13. To make sure they're visible to other nodes, open up putty, and connect to csrobot@10.0.3.88 (password = 4o6ot)... once connected, rostopic echo /Chatter... if you think you're seeing other students' messages, feel free to change the topic name to something more unique
+13. To make sure they're visible to other nodes, open up putty, and connect to csrobot@10.0.3.88 (password = <THE USUAL>)... once connected, rostopic echo /Chatter... if you think you're seeing other students' messages, feel free to change the topic name to something more unique
 
 Let me know how it goes!
