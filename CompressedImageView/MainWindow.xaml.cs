@@ -74,8 +74,6 @@ namespace WpfApplication1
 
         DispatcherTimer controllerUpdater;
 
-        private bool ringIsFree;
-
         private const int back_cam = 1;
         private const int front_cam = 0;
 
@@ -485,24 +483,11 @@ namespace WpfApplication1
             // if up is pressed
             if (currentState.DPad.Up == ButtonState.Pressed)
             {
-                // run this ring stuff one time when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-
                     // set the increment value to 1
                     incrementValue = 1;
                     // call the function
                     rockIncrement();
-                }
             }
-
-            // allow ring stuff to run again when pressed
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad left functions
@@ -512,24 +497,14 @@ namespace WpfApplication1
             if (currentState.DPad.Left == ButtonState.Pressed)
             {
                 // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
+                
                     rockRing--;
 
                     if (rockRing < 0)
                         rockRing = 5;
 
                     ringSwitch();
-                }
             }
-
-            // allow ring stuff to run again 
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad right functions
@@ -538,22 +513,12 @@ namespace WpfApplication1
             // if dpad right is pressed
             if (currentState.DPad.Right == ButtonState.Pressed)
             {
-                // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
+               
                     rockRing++;
                     rockRing = rockRing % 6;
                     ringSwitch();
-                }
+                
             }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         // dpad down functions
@@ -562,23 +527,11 @@ namespace WpfApplication1
             // if dpad down is pressed
             if (currentState.DPad.Down == ButtonState.Pressed)
             {
-                // run this ring stuff when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
                     // set the increment value to -1
                     incrementValue = -1;
                     // call this function
                     rockIncrement();
-                }
             }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
         }
 
         private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
