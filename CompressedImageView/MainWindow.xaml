@@ -9,7 +9,7 @@
         xmlns:EStopUC="clr-namespace:EStopUC;assembly=EStopUC"
         xmlns:TimerStopwatchUC="clr-namespace:TimerStopwatchUC;assembly=TimerStopwatchUC"
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
-        AllowsTransparency="True" Background="Silver" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Normal" WindowStyle="None">
+        Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
         
