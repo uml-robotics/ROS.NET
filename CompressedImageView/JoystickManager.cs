@@ -165,8 +165,11 @@ namespace Trust_Interface
 
                 for (int i = 0; i < jss.GetButtons().Length; i++)
                 {
-                    if (ps3map.ContainsKey(i+1))
-                        pressed |= ps3map[i+1];
+                    if (jss.GetButtons()[i] == ButtonDown)
+                    {
+                        if (ps3map.ContainsKey(i+1))
+                            pressed |= ps3map[i+1];
+                    }
                 }
                 GamePadDPad gdp = new GamePadDPad();
                 if (jss.GetPointOfView()[0] >= 0)
@@ -216,7 +219,7 @@ namespace Trust_Interface
 
 
                 prevButtonState = jss.GetButtons();
-                Thread.Sleep(100);
+                Thread.Sleep(10);
             }
         }
 
@@ -236,7 +239,8 @@ namespace Trust_Interface
             // Reset PTZ.
             if (jsButton == 5)
             {
-                resetPTZHandler();
+                if (resetPTZHandler != null)
+                    resetPTZHandler();
             }
         }
 
