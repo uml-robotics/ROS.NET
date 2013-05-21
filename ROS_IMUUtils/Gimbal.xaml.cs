@@ -90,7 +90,7 @@ namespace ROS_IMUUtil
             emQuaternion q = new emQuaternion(i.orientation);
             emMatrix3x3 mat = new emMatrix3x3(q);
             emMatrix3x3.OILER euler = mat.getEuler();
-            Console.WriteLine("" + euler.roll + " " + euler.pitch + " " + euler.yaw);
+            //Console.WriteLine("" + euler.roll + " " + euler.pitch + " " + euler.yaw);
 
             Dispatcher.BeginInvoke(new Action(() =>
                 {
@@ -104,7 +104,7 @@ namespace ROS_IMUUtil
             double pixelsto90 = AngleMeter.Height / 2.0;
             trans.Y = (degrees * 190) + 20;
                 //*pixelsto90 / 90.0;
-            Console.WriteLine(trans.Y);
+            //Console.WriteLine(trans.Y);
         }
 
         private void rotate(double degrees)
