@@ -32,3 +32,5 @@ ArmGaugeUC/ArmGaugeUC/obj/*
 ArmGaugeUC/ArmGaugeUC/obj/*
 */obj/*
 ArmGaugeUC/ArmGaugeUC/obj/*
+*.psess
+*.vsp
