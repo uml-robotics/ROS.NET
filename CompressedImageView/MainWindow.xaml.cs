@@ -199,14 +199,15 @@ namespace WpfApplication1
                 {
                     Button(b);
                 }
-                double y = currentState.ThumbSticks.Left.Y;
-                double x = currentState.ThumbSticks.Left.X;
+                double x = !jm.connected ? currentState.ThumbSticks.Left.X : jm.joysticks[0].X;
+                double y = !jm.connected ? currentState.ThumbSticks.Left.Y : jm.joysticks[0].Y;
                 if (_adr)
                 {
                     x *= -1;
                     y *= -1;
                 }
                 gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * speedSlider.Value }, angular = new gm.Vector3 { z = x * speedSlider.Value } };
+                Console.WriteLine("(" + vel.linear.x + ", " + vel.angular.z + ")");
                 if(velPub != null)
                     velPub.publish(vel);
             }

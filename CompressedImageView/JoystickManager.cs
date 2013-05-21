@@ -42,6 +42,7 @@ namespace Trust_Interface
         public bool connected;
 
         GamePadState _xboxState;
+        public Microsoft.Xna.Framework.Vector2[] joysticks = new Microsoft.Xna.Framework.Vector2[2];
         public GamePadState XboxState() { return _xboxState; }
 
         /// <summary>
@@ -148,7 +149,7 @@ namespace Trust_Interface
                 }
                 
                 JoystickArgs ja = CIRCULIZE(new JoystickArgs(jss.X, jss.Y, true));
-                JoystickArgs jb = CIRCULIZE(new JoystickArgs(jss.Rx, -jss.Ry, true));
+                JoystickArgs jb = CIRCULIZE(new JoystickArgs(jss.Z, -jss.Rz, true));
                 Buttons pressed = 0;
 
                 Dictionary<int, Buttons> ps3map = new Dictionary<int,Buttons>() { 
@@ -186,7 +187,9 @@ namespace Trust_Interface
                         case 315: gdp = new GamePadDPad(ButtonState.Pressed, ButtonState.Released, ButtonState.Pressed, ButtonState.Released); pressed |= Buttons.DPadUp | Buttons.DPadLeft; break;
                     }
                 }
-                _xboxState = new GamePadState(new GamePadThumbSticks(new Microsoft.Xna.Framework.Vector2((float)(ja.GetX() / half), (float)(ja.GetY() / half)), new Microsoft.Xna.Framework.Vector2((float)(jb.GetX() / half), (float)(jb.GetY() / half))),
+                joysticks[0] = new Microsoft.Xna.Framework.Vector2((float)(ja.GetX() / 100.0), (float)(ja.GetY() / 100.0));
+                joysticks[1] = new Microsoft.Xna.Framework.Vector2((float)(jb.GetX() / 100.0), (float)(jb.GetY() / 100.0));
+                _xboxState = new GamePadState(new GamePadThumbSticks(joysticks[0], joysticks[1]),
                     new GamePadTriggers((float)(jss.GetButtons()[6] == ButtonDown ? 1 : 0), (float)(jss.GetButtons()[7] == ButtonDown ? 1 : 0)),
                     new GamePadButtons(pressed), gdp);
 
