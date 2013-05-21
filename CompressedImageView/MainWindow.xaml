@@ -59,10 +59,9 @@
             <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="991" />
             <!-- uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" -->
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
-            <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
-            <Grid Canvas.Left="800" Canvas.Top="941">
-                <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="712,0" />
-                <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,75,49">
+            <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />            
+                <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="712,0" />                
+                <Grid VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,75,49" Canvas.Left="800" Canvas.Top="933">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20*" />
                         <RowDefinition Height="50*" />
@@ -127,7 +126,6 @@
                     <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
                     <Button Name="Rock_Restorer" Content="Restore" Height="30" HorizontalAlignment="Center" Width="73" Click="Rock_Restorer_Click" Grid.Row="3" Grid.ColumnSpan="6"/>
                 </Grid>
-            </Grid>
         </Canvas>
         
         <!-- BEGIN sub camera windows -->
