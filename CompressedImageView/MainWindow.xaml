@@ -54,10 +54,8 @@
         <!-- END main camera windows -->
         
         <Canvas>
-            <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1620" Canvas.Top="749" />
-            <!-- uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5"  -->
-            <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="991" />
-            <!-- uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" -->
+            <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1632" Canvas.Top="727" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" />
+            <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="971" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
             <Grid Canvas.Left="1131" Canvas.Top="941">

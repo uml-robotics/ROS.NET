@@ -107,16 +107,6 @@ namespace WpfApplication1
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
-            _trans.Label = "Linear Max Vel";
-            _trans.Max = 2.0;
-            _trans.Min = 0.0;
-            _trans.Value = 0.5;
-
-            _rot.Label = "Angular Max Vel";
-            _rot.Max = 3.14;
-            _rot.Min = 0.0;
-            _rot.Value = 0.5;
-
             new Thread(() =>
             {
                 // ROS stuff
