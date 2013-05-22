@@ -129,6 +129,9 @@
     <Content Include="ROS_MESSAGES\rock_publisher\imgDataArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\sample_acquisition\ArmMovement.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\sensor_msgs\Imu.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

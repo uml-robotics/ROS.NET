@@ -20,74 +20,74 @@ namespace UberSlider
     public partial class VerticalUberSlider : UserControl
     {
         #region PROPERTIES
-        //public static readonly DependencyProperty MaxProperty = DependencyProperty.Register(
-        //   "Max",
-        //   typeof(double),
-        //   typeof(VerticalUberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is VerticalUberSlider)
-        //               {
-        //                   VerticalUberSlider target = obj as VerticalUberSlider;
-        //                   target.Max = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty MinProperty = DependencyProperty.Register(
-        //   "Min",
-        //   typeof(double),
-        //   typeof(VerticalUberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is VerticalUberSlider)
-        //               {
-        //                   VerticalUberSlider target = obj as VerticalUberSlider;
-        //                   target.Min = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
-        //   "Label",
-        //   typeof(string),
-        //   typeof(VerticalUberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is VerticalUberSlider)
-        //               {
-        //                   VerticalUberSlider target = obj as VerticalUberSlider;
-        //                   target.Label = (string)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-        //   "Value",
-        //   typeof(double),
-        //   typeof(VerticalUberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is VerticalUberSlider)
-        //               {
-        //                   VerticalUberSlider target = obj as VerticalUberSlider;
-        //                   target.Value = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
+        public static readonly DependencyProperty MaxProperty = DependencyProperty.Register(
+           "Max",
+           typeof(double),
+           typeof(VerticalUberSlider),
+           new FrameworkPropertyMetadata(100.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is VerticalUberSlider)
+                       {
+                           VerticalUberSlider target = obj as VerticalUberSlider;
+                           target.Max = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty MinProperty = DependencyProperty.Register(
+           "Min",
+           typeof(double),
+           typeof(VerticalUberSlider),
+           new FrameworkPropertyMetadata(0.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is VerticalUberSlider)
+                       {
+                           VerticalUberSlider target = obj as VerticalUberSlider;
+                           target.Min = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
+           "Label",
+           typeof(string),
+           typeof(VerticalUberSlider),
+           new FrameworkPropertyMetadata("Label",
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is VerticalUberSlider)
+                       {
+                           VerticalUberSlider target = obj as VerticalUberSlider;
+                           target.Label = (string)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
+           "Value",
+           typeof(double),
+           typeof(VerticalUberSlider),
+           new FrameworkPropertyMetadata(0.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is VerticalUberSlider)
+                       {
+                           VerticalUberSlider target = obj as VerticalUberSlider;
+                           target.Value = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
         #endregion
 
         public Slider slider { get { return _slider; } }
