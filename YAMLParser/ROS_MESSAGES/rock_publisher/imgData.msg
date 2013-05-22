@@ -3,4 +3,4 @@ int32 y
 int32 width
 int32 height
 ColorRGBA color
-string cameraID
+int32 cameraID

@@ -46,6 +46,11 @@ namespace ROS_ImageWPF
             ROI_Container.Children.Add(r);
         }
 
+        public void RemoveABox()
+        {
+
+        }
+
         public delegate void ImageReceivedHandler(CompressedImageControl sender);
         public event ImageReceivedHandler ImageReceivedEvent;
         private List<SlaveImage> _slaves = new List<SlaveImage>();

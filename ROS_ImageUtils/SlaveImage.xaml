@@ -15,5 +15,6 @@
                 <ImageBrush x:Name="image" />
             </Rectangle.Fill>
         </Rectangle>
+        <Canvas Name="ROI_Container" />
     </Grid>
 </UserControl>

@@ -21,6 +21,7 @@ using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
 using PixelFormat = System.Windows.Media.PixelFormat;
 using String = Messages.std_msgs.String;
+using Brushes = System.Windows.Media.Brushes;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -36,6 +37,20 @@ namespace ROS_ImageWPF
 
     public partial class SlaveImage : UserControl
     {
+        public void DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
+        {
+            System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
+            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
+            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.Yellow, StrokeThickness = 3, Opacity = 0.5 };
+            r.SetValue(Canvas.LeftProperty, (object)tl.X);
+            r.SetValue(Canvas.TopProperty, (object)tl.Y);
+            ROI_Container.Children.Add(r);
+        }
+
+        public void RemoveABox()
+        {
+
+        }
 
         #region variables and such
 

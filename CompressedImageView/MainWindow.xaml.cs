@@ -47,8 +47,6 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
 
-        private DetectionHelper[] detectors;
-
         //checks is rocks restored
         bool rocks_restored = false;
 
@@ -74,8 +72,8 @@ namespace WpfApplication1
         Publisher<gm.Twist> velPub;
 
         TabItem[] mainCameras, subCameras;
-        ROS_ImageWPF.CompressedImageControl[] mainImages;
-        ROS_ImageWPF.SlaveImage[] subImages;
+        public ROS_ImageWPF.CompressedImageControl[] mainImages;
+        public ROS_ImageWPF.SlaveImage[] subImages;
 
         DispatcherTimer controllerUpdater;
 
@@ -83,6 +81,9 @@ namespace WpfApplication1
         private const int front_cam = 0;
         //Stopwatch
         Stopwatch sw = new Stopwatch();
+
+        // 
+        private DetectionHelper[] detectors;
 
         private bool _adr;
 
@@ -174,6 +175,12 @@ namespace WpfApplication1
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        for (int i = 0; i < 4; ++i)
+                        {
+                            detectors[i].churnAndBurn();
+                        }
+
+                        //call churn and burn on all detectors
                         mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 10, 10, mainImages[0].ActualWidth, mainImages[0].ActualHeight);
                     }));
                     Thread.Sleep(100);
@@ -619,17 +626,51 @@ namespace WpfApplication1
         
     }
 
+    // we get one of these helpers for each camera
+    // what excellent service
     public class DetectionHelper {
+        SortedList<DateTime, System.Windows.Shapes.Rectangle> boxesOnScreen; // we need to read detections and add them to this in the callback
         int cameraNumber;
         Subscriber<imgDataArray> sub;
-        MainWindow theWindow;
+        ROS_ImageWPF.CompressedImageControl primary;
+        ROS_ImageWPF.SlaveImage secondary;
 
         public DetectionHelper(NodeHandle node, int cameraNumber, MainWindow w) {
             sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detect", 1000, detectCallback);
             this.cameraNumber = cameraNumber;
-            theWindow = w;
+            primary = w.mainImages[cameraNumber];
+            secondary = w.subImages[cameraNumber];
         }
 
-        void detectCallback(imgDataArray yes) { Console.WriteLine("dang"); }
+        public void churnAndBurn() {
+            while (DateTime.Now.Subtract(boxesOnScreen.Keys[0]).TotalMilliseconds > 1000)
+            {
+                if (boxesOnScreen[boxesOnScreen.Keys[0]].Parent == primary)
+                {
+                    primary.RemoveABox();
+                }
+                else if (boxesOnScreen[boxesOnScreen.Keys[0]].Parent == secondary)
+                {
+                    secondary.RemoveABox();
+                }
+                boxesOnScreen.RemoveAt(0);
+            }
+        }
+
+        void detectCallback(imgDataArray detections) 
+        {
+            foreach (imgData img in detections.rockData)
+            {
+                System.Windows.Point tl = new System.Windows.Point(img.x, img.y);
+                if (img.cameraID == cameraNumber) // && cameraNumber is selected as Primary
+                {
+                    primary.DrawABox(tl, img.width, img.height, 864, 480);
+                }
+                else if (img.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
+                {
+                    secondary.DrawABox(tl, img.width, img.height, 864, 480);
+                }
+            }
+        }
     }
 }
