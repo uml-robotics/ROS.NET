@@ -46,6 +46,9 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
+
+        private DetectionHelper[] detectors;
+
         //checks is rocks restored
         bool rocks_restored = false;
 
@@ -130,6 +133,13 @@ namespace WpfApplication1
                     EStop.startListening(nh);
                 }));
 
+                // instantiating some global helpers
+                detectors = new DetectionHelper[4];
+                for (int i = 0; i < 4; ++i)
+                {
+                    detectors[i] = new DetectionHelper(nh, i, this);
+                }
+
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
 
@@ -157,6 +167,17 @@ namespace WpfApplication1
                     subCameras[1].Focus();
                     adr(false);
                 }));
+
+                // drawing boxes, i hope this is the right place to do that
+                int x = 0, y = 0;
+                while (ROS.ok)
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 10, 10, mainImages[0].ActualWidth, mainImages[0].ActualHeight);
+                    }));
+                    Thread.Sleep(100);
+                }
             }).Start();
         }
 
@@ -596,5 +617,19 @@ namespace WpfApplication1
             rwriter.Close();
         }
         
+    }
+
+    public class DetectionHelper {
+        int cameraNumber;
+        Subscriber<imgDataArray> sub;
+        MainWindow theWindow;
+
+        public DetectionHelper(NodeHandle node, int cameraNumber, MainWindow w) {
+            sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detect", 1000, detectCallback);
+            this.cameraNumber = cameraNumber;
+            theWindow = w;
+        }
+
+        void detectCallback(imgDataArray yes) { Console.WriteLine("dang"); }
     }
 }

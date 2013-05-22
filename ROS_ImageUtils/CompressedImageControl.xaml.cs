@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+//using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -36,6 +36,16 @@ namespace ROS_ImageWPF
     
     public partial class CompressedImageControl : UserControl
     {
+        public void DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
+        {
+            System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
+            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
+            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.Yellow, StrokeThickness = 3, Opacity = 0.5 };
+            r.SetValue(Canvas.LeftProperty, (object)tl.X);
+            r.SetValue(Canvas.TopProperty, (object)tl.Y);
+            ROI_Container.Children.Add(r);
+        }
+
         public delegate void ImageReceivedHandler(CompressedImageControl sender);
         public event ImageReceivedHandler ImageReceivedEvent;
         private List<SlaveImage> _slaves = new List<SlaveImage>();
@@ -174,12 +184,12 @@ namespace ROS_ImageWPF
         /// </summary>
         /// <param name = "bmp">
         /// </param>
-        public void UpdateImage(Bitmap bmp)
+        public void UpdateImage(d.Bitmap bmp)
         {
             try
             {
                 // look up the image's dress
-                BitmapData bData = bmp.LockBits(new Rectangle(new Point(), bmp.Size),
+                BitmapData bData = bmp.LockBits(new d.Rectangle(new Point(), bmp.Size),
                                                 ImageLockMode.ReadOnly,
                                                 System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
@@ -210,7 +220,7 @@ namespace ROS_ImageWPF
         /// </param>
         /// <param name = "bpp">
         /// </param>
-        public void UpdateImage(Bitmap bmp, int bpp)
+        public void UpdateImage(d.Bitmap bmp, int bpp)
         {
             if (bpp == 4)
             {
@@ -222,7 +232,7 @@ namespace ROS_ImageWPF
                 try
                 {
                     // look up the image's dress
-                    BitmapData bData = bmp.LockBits(new Rectangle(new Point(), bmp.Size),
+                    BitmapData bData = bmp.LockBits(new d.Rectangle(new d.Point(), bmp.Size),
                                                     ImageLockMode.ReadOnly,
                                                     System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                     int byteCount = bData.Stride * bmp.Height;
