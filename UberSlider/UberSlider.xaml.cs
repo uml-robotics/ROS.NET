@@ -20,74 +20,74 @@ namespace UberSlider
     public partial class UberSlider : UserControl
     {
         #region PROPERTIES
-        //public static readonly DependencyProperty MaxProperty = DependencyProperty.Register(
-        //   "Max",
-        //   typeof(double),
-        //   typeof(UberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is UberSlider)
-        //               {
-        //                   UberSlider target = obj as UberSlider;
-        //                   target.Max = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty MinProperty = DependencyProperty.Register(
-        //   "Min",
-        //   typeof(double),
-        //   typeof(UberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is UberSlider)
-        //               {
-        //                   UberSlider target = obj as UberSlider;
-        //                   target.Min = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
-        //   "Label",
-        //   typeof(string),
-        //   typeof(UberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is UberSlider)
-        //               {
-        //                   UberSlider target = obj as UberSlider;
-        //                   target.Label = (string)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
-        //public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-        //   "Value",
-        //   typeof(double),
-        //   typeof(UberSlider),
-        //   new FrameworkPropertyMetadata(null,
-        //       FrameworkPropertyMetadataOptions.None, (obj, args) =>
-        //       {
-        //           try
-        //           {
-        //               if (obj is UberSlider)
-        //               {
-        //                   UberSlider target = obj as UberSlider;
-        //                   target.Value = (double)args.NewValue;
-        //               }
-        //           }
-        //           catch (Exception e) { Console.WriteLine(e); }
-        //       }));
+        public static readonly DependencyProperty MaxProperty = DependencyProperty.Register(
+           "Max",
+           typeof(double),
+           typeof(UberSlider),
+           new FrameworkPropertyMetadata(100.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is UberSlider)
+                       {
+                           UberSlider target = obj as UberSlider;
+                           target.Max = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty MinProperty = DependencyProperty.Register(
+           "Min",
+           typeof(double),
+           typeof(UberSlider),
+           new FrameworkPropertyMetadata(0.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is UberSlider)
+                       {
+                           UberSlider target = obj as UberSlider;
+                           target.Min = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
+           "Label",
+           typeof(string),
+           typeof(UberSlider),
+           new FrameworkPropertyMetadata("Label",
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is UberSlider)
+                       {
+                           UberSlider target = obj as UberSlider;
+                           target.Label = (string)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
+           "Value",
+           typeof(double),
+           typeof(UberSlider),
+           new FrameworkPropertyMetadata(0.0d,
+               FrameworkPropertyMetadataOptions.None, (obj, args) =>
+               {
+                   try
+                   {
+                       if (obj is UberSlider)
+                       {
+                           UberSlider target = obj as UberSlider;
+                           target.Value = (double)args.NewValue;
+                       }
+                   }
+                   catch (Exception e) { Console.WriteLine(e); }
+               }));
         #endregion
 
         public Slider slider { get { return _slider; } }

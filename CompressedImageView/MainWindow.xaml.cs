@@ -26,9 +26,9 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using Messages.arm_status_msgs;
 using Messages.rock_publisher;
 using System.IO;
+using am = Messages.sample_acquisition;
 
 // for threading
 using System.Windows.Threading;
@@ -70,6 +70,7 @@ namespace WpfApplication1
 
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
+        Publisher<am.ArmMovement> armPub;
 
         TabItem[] mainCameras, subCameras;
         public ROS_ImageWPF.CompressedImageControl[] mainImages;
@@ -111,16 +112,6 @@ namespace WpfApplication1
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
-            _trans.Label = "Linear Max Vel";
-            _trans.Max = 2.0;
-            _trans.Min = 0.0;
-            _trans.Value = 0.5;
-
-            _rot.Label = "Angular Max Vel";
-            _rot.Max = 3.14;
-            _rot.Min = 0.0;
-            _rot.Value = 0.5;
-
             new Thread(() =>
             {
                 // ROS stuff
@@ -143,6 +134,7 @@ namespace WpfApplication1
 
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
+                armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
 
                 new Thread(() =>
                 {
@@ -235,16 +227,35 @@ namespace WpfApplication1
                 {
                     Button(b);
                 }
-                double y = currentState.ThumbSticks.Left.Y;
-                double x = currentState.ThumbSticks.Left.X;
+                double left_y = currentState.ThumbSticks.Left.Y;
+                double left_x = currentState.ThumbSticks.Left.X;            
+                
                 if (_adr)
                 {
-                    x *= -1;
-                    y *= -1;
+                    left_x *= -1;
+                    left_y *= -1;
                 }
-                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = y * _trans.Value }, angular = new gm.Vector3 { z = x * _rot.Value } };
+                gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = left_y * _trans.Value }, angular = new gm.Vector3 { z = left_x * _rot.Value } };
                 if(velPub != null)
                     velPub.publish(vel);
+                
+                //arm controls via joystick are done here.
+                double right_y = currentState.ThumbSticks.Right.Y;
+                double right_x = currentState.ThumbSticks.Right.X;
+                double right_trigger = currentState.Triggers.Right;
+
+                am.ArmMovement armmove = new am.ArmMovement();
+
+                armmove.velocity = true;
+                armmove.position = false;
+
+                armmove.pan_motor_velocity = right_x;
+                armmove.tilt_motor_velocity = right_y;
+                armmove.cable_motor_velocity = right_trigger;
+
+                if (armPub != null)
+                    armPub.publish(armmove);
+
             }
             // unless if controller is not connected...
             else if (!currentState.IsConnected)

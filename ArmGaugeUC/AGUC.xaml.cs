@@ -25,7 +25,7 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using am = Messages.arm_status_msgs;
+using am = Messages.sample_acquisition;
 
 namespace ArmGaugeUC
 {
