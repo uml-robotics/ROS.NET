@@ -10,6 +10,7 @@
         xmlns:TimerStopwatchUC="clr-namespace:TimerStopwatchUC;assembly=TimerStopwatchUC"
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
         xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
+        xmlns:TiltSliderUC="clr-namespace:TiltSliderUC;assembly=TiltSliderUC"
         Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
@@ -124,7 +125,8 @@
                 <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
                 <Button Name="Rock_Restorer" Content="Restore" Height="30" HorizontalAlignment="Center" Width="73" Click="Rock_Restorer_Click" Grid.Row="3" Grid.ColumnSpan="6" />
             </Grid>
-            <CameraSlidersUC:CSUC Name="Sliders" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
+            <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
+            <TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />
         </Canvas>
         
         <!-- BEGIN sub camera windows -->

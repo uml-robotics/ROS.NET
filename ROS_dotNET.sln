@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimerStopwatchUC", "TimerSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraSlidersUC", "CameraSlidersUC\CameraSlidersUC.csproj", "{38EA6580-6652-4943-8F53-CAAC2ADE4231}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiltSliderUC", "TiltSliderUC\TiltSliderUC.csproj", "{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -370,6 +372,24 @@ Global
 		{38EA6580-6652-4943-8F53-CAAC2ADE4231}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{38EA6580-6652-4943-8F53-CAAC2ADE4231}.Release|Win32.ActiveCfg = Release|Any CPU
 		{38EA6580-6652-4943-8F53-CAAC2ADE4231}.Release|x86.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|Any CPU.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|Any CPU.Build.0 = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|Mixed Platforms.Build.0 = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|Win32.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.3M4|x86.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Win32.ActiveCfg = Release|Any CPU
+		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

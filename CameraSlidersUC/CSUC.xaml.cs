@@ -74,8 +74,6 @@ namespace CameraSlidersUC
     {
         NodeHandle node;
         SliderStuff[][] SUBS;
-        
-
         public CSUC()
         {
             InitializeComponent();
@@ -94,16 +92,16 @@ namespace CameraSlidersUC
 
                     //setup up temporary arrays to make setup clean
                     Slider[][] sliders = new[]
-                                         { new []{ MC1_Brigh_Sl, MC1_Cont_Sl, MC1_Exp_Sl, MC1_Sat_Sl, MC1_WBT_Sl }, 
-                    new []{ RC_Brigh_Sl, RC_Cont_Sl, RC_Exp_Sl, RC_Sat_Sl, RC_WBT_Sl }, 
-                    new []{ MC3_Brigh_Sl, MC3_Cont_Sl, MC3_Exp_Sl, MC3_Sat_Sl, MC3_WBT_Sl }, 
-                    new []{ MC4_Brigh_Sl, MC4_Cont_Sl, MC4_Exp_Sl, MC4_Sat_Sl, MC4_WBT_Sl }};
+                                         { new []{ MC1_Brigh_Sl, MC1_Cont_Sl, MC1_Exp_Sl, MC1_Gain_Sl, MC1_Sat_Sl, MC1_WBT_Sl, MC1_Foc_Sl}, 
+                    new []{ RC_Brigh_Sl, RC_Cont_Sl, RC_Exp_Sl, RC_Gain_Sl, RC_Sat_Sl, RC_WBT_Sl, RC_Foc_Sl }, 
+                    new []{ MC3_Brigh_Sl, MC3_Cont_Sl, MC3_Exp_Sl, MC3_Gain_Sl, MC3_Sat_Sl, MC3_WBT_Sl, MC3_Foc_Sl }, 
+                    new []{ MC4_Brigh_Sl, MC4_Cont_Sl, MC4_Exp_Sl, MC4_Gain_Sl, MC4_Sat_Sl, MC4_WBT_Sl, MC4_Foc_Sl }};
                     Label[][] labels = new[]
-                                       { new[]{ MC1_Brigh_Lvl, MC1_Cont_Lvl, MC1_Exp_Lvl, MC1_Sat_Lvl, MC1_WBT_Lvl }, 
-                    new[]{ RC_Brigh_Lvl, RC_Cont_Lvl, RC_Exp_Lvl, RC_Sat_Lvl, RC_WBT_Lvl }, 
-                    new[]{ MC3_Brigh_Lvl, MC3_Cont_Lvl, MC3_Exp_Lvl, MC3_Sat_Lvl, MC3_WBT_Lvl }, 
-                    new[]{ MC4_Brigh_Lvl, MC4_Cont_Lvl, MC4_Exp_Lvl, MC4_Sat_Lvl, MC4_WBT_Lvl }};
-                    string[] info = new[] { "brightness", "contrast", "exposure", "saturation", "wbt" }; // TODO -- "gain" doesn't have sliders yet!
+                                       { new[]{ MC1_Brigh_Lvl, MC1_Cont_Lvl, MC1_Exp_Lvl, MC1_Gain_Lvl, MC1_Sat_Lvl, MC1_WBT_Lvl, MC1_Foc_Lvl }, 
+                    new[]{ RC_Brigh_Lvl, RC_Cont_Lvl, RC_Exp_Lvl, RC_Gain_Lvl, RC_Sat_Lvl, RC_WBT_Lvl, RC_Foc_Lvl }, 
+                    new[]{ MC3_Brigh_Lvl, MC3_Cont_Lvl, MC3_Exp_Lvl, MC3_Gain_Lvl, MC3_Sat_Lvl, MC3_WBT_Lvl, MC3_Foc_Lvl }, 
+                    new[]{ MC4_Brigh_Lvl, MC4_Cont_Lvl, MC4_Exp_Lvl, MC4_Gain_Lvl, MC4_Sat_Lvl, MC4_WBT_Lvl, MC4_Foc_Lvl}};
+                    string[] info = new[] { "brightness", "contrast", "exposure", "gain", "saturation", "wbt", "focus" };
                     //end setup
 
                     //setup persistent array of slider stuff for storage
@@ -151,7 +149,7 @@ namespace CameraSlidersUC
             private void MC1_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
             {
                 int focus = (int)MC1_Foc_Sl.Value;
-                MC1_Foc_Lvl.Content = focus * 17;
+                MC1_Foc_Lvl.Content = focus;
             }
 
             private void MC1_Foc_CB_Checked(object sender, RoutedEventArgs e)
@@ -193,7 +191,7 @@ namespace CameraSlidersUC
             private void RC_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
             {
                 int focus = (int)RC_Foc_Sl.Value;
-                RC_Foc_Lvl.Content = focus * 17;
+                RC_Foc_Lvl.Content = focus;
             }
 
             private void RC_Foc_CB_Checked(object sender, RoutedEventArgs e)
@@ -235,7 +233,7 @@ namespace CameraSlidersUC
             private void MC3_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
             {
                 int focus = (int)MC3_Foc_Sl.Value;
-                MC3_Foc_Lvl.Content = focus * 17;
+                MC3_Foc_Lvl.Content = focus;
             }
 
             private void MC3_Foc_CB_Checked(object sender, RoutedEventArgs e)
@@ -277,7 +275,7 @@ namespace CameraSlidersUC
             private void MC4_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
             {
                 int focus = (int)MC4_Foc_Sl.Value;
-                MC4_Foc_Lvl.Content = focus * 17;
+                MC4_Foc_Lvl.Content = focus;
             }
 
             private void MC4_Foc_CB_Checked(object sender, RoutedEventArgs e)
@@ -289,6 +287,9 @@ namespace CameraSlidersUC
             {
                 MC4_Foc_Sl.IsEnabled = true;
             }
-            //End Maine 4 Slider Changes
+            //End Maine 4 Slider Changed
+            private void MainTab_SelectionChanged(object sender, RoutedEventArgs e)
+            {
+            }
         }
     }
