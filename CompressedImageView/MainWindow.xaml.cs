@@ -161,7 +161,7 @@ namespace WpfApplication1
                     }
                 }));
 
-                // drawing boxes, i hope this is the right place to do that
+                // drawing boxes ????
                 int x = 0, y = 0;
                 while (ROS.ok)
                 {
@@ -172,8 +172,10 @@ namespace WpfApplication1
                             detectors[i].churnAndBurn();
                         }
 
-                        //call churn and burn on all detectors
-                        detectors[0].boxesOnScreen.Add(DateTime.Now, mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 50, 50, mainImages[0].ActualWidth, mainImages[0].ActualHeight));
+                        DateTime dt = DateTime.Now;
+                       // if (!detectors[0].boxesOnScreen.ContainsKey(dt))
+                            //detectors[0].boxesOnScreen.Add(dt, mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 50, 50, mainImages[0].ActualWidth, mainImages[0].ActualHeight));
+
                     }));
                     Thread.Sleep(10);
                 }
@@ -641,13 +643,13 @@ namespace WpfApplication1
     // what excellent service
     public class DetectionHelper {
         public SortedList<DateTime, System.Windows.Shapes.Rectangle> boxesOnScreen = new SortedList<DateTime,System.Windows.Shapes.Rectangle>(); // we need to read detections and add them to this in the callback
-        int cameraNumber;
+        int cameraNumber; // 0, 1, 2, or 3
         Subscriber<imgDataArray> sub;
         ROS_ImageWPF.CompressedImageControl primary;
         ROS_ImageWPF.SlaveImage secondary;
 
         public DetectionHelper(NodeHandle node, int cameraNumber, MainWindow w) {
-            sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detect", 1000, detectCallback);
+            sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detects", 1000, detectCallback);
             this.cameraNumber = cameraNumber;
             primary = w.mainImages[cameraNumber];
             secondary = w.subImages[cameraNumber];
@@ -662,20 +664,31 @@ namespace WpfApplication1
             }
         }
 
-        void detectCallback(imgDataArray detections) 
+        // ugh this function is blocking right now
+        void detectCallback(imgDataArray detections)
         {
-            foreach (imgData img in detections.rockData)
+            foreach (imgData box in detections.rockData)
             {
-                System.Windows.Point tl = new System.Windows.Point(img.x, img.y);
-                if (img.cameraID == cameraNumber) // && cameraNumber is selected as Primary
+                System.Windows.Point tl = new System.Windows.Point(box.x, box.y);
+                // if it's on this helper's camera, add it to the list of boxes on screen, and draw the box on the correct window
+                if (box.cameraID == cameraNumber) // && cameraNumber is selected as Primary
                 {
-                    boxesOnScreen.Add(DateTime.Now, primary.DrawABox(tl, img.width, img.height, 864, 480));
+                    primary.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        boxesOnScreen.Add(DateTime.Now, primary.DrawABox(tl, box.width, box.height, 864, 480));
+                    }));
+                    Thread.Sleep(10);
                 }
-                else if (img.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
+                else if (box.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
                 {
-                    boxesOnScreen.Add(DateTime.Now, secondary.DrawABox(tl, img.width, img.height, 864, 480));
+                    secondary.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        boxesOnScreen.Add(DateTime.Now, secondary.DrawABox(tl, box.width, box.height, 864, 480));
+                    }));
+                    Thread.Sleep(10);
                 }
             }
+
         }
     }
 }
