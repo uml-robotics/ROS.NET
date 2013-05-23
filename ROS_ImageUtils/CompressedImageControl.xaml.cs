@@ -48,7 +48,7 @@ namespace ROS_ImageWPF
         }
         private Thread waitforinit;
         private static NodeHandle imagehandle;
-        private static Subscriber<sm.CompressedImage> imgsub;
+        private Subscriber<sm.CompressedImage> imgsub;
         private bool STOPIT;
         public void shutdown()
         {
@@ -108,6 +108,8 @@ namespace ROS_ImageWPF
             {
                 imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                               {
+                                                                                                                                  if (TopicName == "/camera/rgb/image_raw/compressed")
+                                                                                                                                      Console.WriteLine("WUT");
                                                                                                                                   UpdateImage(i.data);
                                                                                                                                   if (ImageReceivedEvent != null)
                                                                                                                                       ImageReceivedEvent(this);
