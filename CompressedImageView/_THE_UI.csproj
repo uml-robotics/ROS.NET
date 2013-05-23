@@ -123,6 +123,10 @@
       <Project>{F54D5582-9661-40E4-A635-ECB160C85A8B}</Project>
       <Name>EStopUC</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RockCounterUC\RockCounterUC.csproj">
+      <Project>{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}</Project>
+      <Name>RockCounterUC</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ROS_ImageUtils\ROS_ImageWPF.csproj">
       <Project>{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}</Project>
       <Name>ROS_ImageWPF</Name>

@@ -7,8 +7,9 @@
              d:DesignHeight="113" d:DesignWidth="301">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20*" />
-            <RowDefinition Height="50*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="50*" />
@@ -18,69 +19,61 @@
             <ColumnDefinition Width="50*" />
             <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
-
         <!-- Red counter -->
-        <Rectangle Height="50" Grid.Column="0" Grid.Row="1"  HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4"  Width="50" Fill="Red"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCountShadow" Text="0"   FontSize="35" Foreground="Black">
+        <Rectangle Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Stretch" Margin="0" Fill="Red" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="0" Grid.Row="1" Name="RedCountShadow" Text="0" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCount" Text="0"  FontSize="35" Foreground="White"/>
-
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="0" Grid.Row="1" Name="RedCount" Text="0" FontSize="35" Foreground="White" />
         <!-- Orange counter -->
-        <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeRock" Stroke="Black" VerticalAlignment="Bottom" Width="50"  Fill="Orange"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+        <Rectangle HorizontalAlignment="Stretch"  Grid.Column="1" Grid.Row="1" Name="OrangeRock" StrokeThickness="1" Stroke="Black" VerticalAlignment="Stretch" Fill="Orange" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="1" Grid.Row="1" Name="OrangeCountShadow" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-        
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="1" Grid.Row="1" Name="OrangeCount" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="White" />
         <!-- Yellow counter -->
-        <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Yellow"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+        <Rectangle HorizontalAlignment="Stretch"  Grid.Column="2" Grid.Row="1" Name="YellowRock" Stroke="Black" VerticalAlignment="Stretch" StrokeThickness="1"  Margin="0" Fill="Yellow" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="2" Grid.Row="1" Name="YellowCountShadow" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1"  Name="YellowCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
- 
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="2" Grid.Row="1" Name="YellowCount" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="White" />
         <!-- Green counter -->
-        <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Green"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+        <Rectangle HorizontalAlignment="Stretch"  Grid.Column="3" Grid.Row="1" Name="GreenRock" Stroke="Black" VerticalAlignment="Stretch" StrokeThickness="1" Margin="0" Fill="Green" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="3" Grid.Row="1" Name="GreenCountShadow" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch" Grid.Column="3" Grid.Row="1" Name="GreenCount" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="White" />
         <!-- Blue counter -->
-        <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Blue"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+        <Rectangle HorizontalAlignment="Stretch"  Grid.Column="4" Grid.Row="1" Name="BlueRock" Stroke="Black" StrokeThickness="1" VerticalAlignment="Stretch" Margin="0" Fill="Blue" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="4" Grid.Row="1" Name="BlueCountShadow" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="4" Grid.Row="1" Name="BlueCount" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="White" />
         <!-- Purple counter -->
-        <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Purple"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
+        <Rectangle HorizontalAlignment="Stretch"  Grid.Column="5" Grid.Row="1" Name="PurpleRock" Stroke="Black" StrokeThickness="1" VerticalAlignment="Stretch" Margin="0" Fill="Purple" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="5" Grid.Row="1" Name="PurpleCountShadow" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="Black">
             <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-
+            <BlurEffect Radius="2.0" KernelType="Box" />
+            </TextBlock.Effect></TextBlock>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Stretch"  Grid.Column="5" Grid.Row="1" Name="PurpleCount" Text="0" VerticalAlignment="Stretch" FontSize="35" Foreground="White" />
         <!-- First row labels -->
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="0" Name="RedTextBlock" Text="Red" VerticalAlignment="Bottom" FontWeight="UltraBold"/>
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="0" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="0" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="0" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="0" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="0" Name="RedTextBlock" Text="Red" VerticalAlignment="Stretch" FontWeight="UltraBold" />
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="0" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Stretch"/>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="0" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Stretch"/>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="0" Name="GreenTextBlock" Text="Green" VerticalAlignment="Stretch"/>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="0" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Stretch"/>
+        <TextBlock MinWidth="50" TextAlignment="Center" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Stretch"/>
+        <Button Name="Rock_Restorer" Content="Restore" Height="30" HorizontalAlignment="Center" Width="73" Click="Rock_Restorer_Click" Grid.Row="3" Grid.ColumnSpan="6" />
+        <Grid Name="region1" Grid.Column="0" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000" />
+        <Grid Name="region2" Grid.Column="1" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000"/>
+        <Grid Name="region3" Grid.Column="2" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000"/>
+        <Grid Name="region4" Grid.Column="3" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000"/>
+        <Grid Name="region5" Grid.Column="4" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000"/>
+        <Grid Name="region6" Grid.Column="5" Grid.RowSpan="2" MouseDown="UserControl_MouseDown" Background="#01000000"/>
     </Grid>
-
 </UserControl>

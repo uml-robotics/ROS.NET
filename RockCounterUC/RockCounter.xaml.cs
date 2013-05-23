@@ -24,25 +24,101 @@ namespace RockCounterUC
     /// </summary>
     public partial class RockCounter : UserControl
     {
-        // controller
-        GamePadState currentState;
+        string[] rocks = new string[] { "0", "0,", "0", "0", "0", "0" };
 
-        bool rock_restored = false;
-
-        // ring buffer for rocks, main camera index, sub camera index
-        int rockRing = 0, incrementValue;
+        public enum DPadDirection
+        {
+            Up,
+            Down,
+            Left,
+            Right
+        }
 
         // initialize rock count values to 0
         int red = 0, orange = 0, yellow = 0, green = 0, blue = 0, purple = 0;
 
-        private bool ringIsFree;
+        // ring buffer for rocks, main camera index, sub camera index
+        int rockRing = 0;
+
+        bool rocks_restored;
 
         public RockCounter()
         {
             InitializeComponent();
         }
 
-        // stuff that happens when to move arond the ring buffer
+        // dpad up functions
+        public void DPadButton(DPadDirection dir, bool state)
+        {
+            // if up is pressed
+            if (state)
+            {
+                switch(dir)
+                {
+                    case DPadDirection.Up:
+                    case DPadDirection.Down:
+                        {
+                            // call the function
+                            rockIncrement((dir == DPadDirection.Up ? 1 : -1));
+                        }
+                        break;
+                    case DPadDirection.Left:
+                    case DPadDirection.Right:
+                        {
+                            rockRing += (dir == DPadDirection.Right ? 1 : -1);
+
+                            rockRing = rockRing % 6;
+                            if (rockRing < 0)
+                                rockRing = 5;
+
+                            ringSwitch();
+                        }
+                        break;
+                }
+            }
+        }
+
+        private void Rock_Restorer_Click(object sender, RoutedEventArgs e)
+        {
+            string[] rocks;
+            rocks = rock_file_reader();
+            string rock;
+            for (int i = 0; i < 6; i++)
+            {
+                rock = rocks[i];
+                int aux = int.Parse(rock);
+                if (i == 0) { red = aux; RedCount.Text = red.ToString(); RedCountShadow.Text = red.ToString(); }
+                if (i == 1) { orange = aux; OrangeCount.Text = orange.ToString(); OrangeCountShadow.Text = orange.ToString(); }
+                if (i == 2) { yellow = aux; YellowCount.Text = yellow.ToString(); YellowCountShadow.Text = yellow.ToString(); }
+                if (i == 3) { green = aux; GreenCount.Text = green.ToString(); GreenCountShadow.Text = green.ToString(); }
+                if (i == 4) { blue = aux; BlueCount.Text = blue.ToString(); BlueCountShadow.Text = blue.ToString(); }
+                if (i == 5) { purple = aux; PurpleCount.Text = purple.ToString(); PurpleCountShadow.Text = purple.ToString(); }
+            }
+            Rock_Restorer.IsEnabled = false;
+            Rock_Restorer.Visibility = Visibility.Hidden;
+            rocks_restored = true;
+        }
+        private string[] rock_file_reader()
+        {
+            StreamReader rreader = new StreamReader(@"rocks.txt");
+            string[] rocks = rreader.ReadToEnd().Split(',');
+            rreader.Close();
+            return rocks;
+        }
+        private void rock_file_writer(string[] rocks)
+        {
+            StreamWriter rwriter = new StreamWriter(@"rocks.txt");
+            foreach (string rock in rocks)
+            {
+                rwriter.Write(rock + ",");
+            }
+            rwriter.Close();
+        }
+
+        //
+        //
+        //  I WANT SO BADLY to do this with a 5-liner... but it's probably better if I let SOME of this be recognizable.
+        //            -Eric
         void ringSwitch()
         {
             switch (rockRing)
@@ -135,8 +211,15 @@ namespace RockCounterUC
         }
 
         // the function that changes rock count
-        void rockIncrement()
+        void rockIncrement(int incrementValue)
         {
+            if (!File.Exists(@"rocks.txt") && !rocks_restored) rocks_restored = true;
+            if (rocks_restored == false)
+            {
+                rock_file_writer(rocks); 
+                rocks_restored = true;
+                Rock_Restorer.Visibility = Visibility.Collapsed;
+            }
             switch (rockRing)
             {
                 // change red count and display it
@@ -146,6 +229,8 @@ namespace RockCounterUC
                         red = 0;
                     RedCount.Text = red.ToString();
                     RedCountShadow.Text = red.ToString();
+                    rocks[0] = red.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 1:
@@ -154,6 +239,8 @@ namespace RockCounterUC
                         orange = 0;
                     OrangeCount.Text = orange.ToString();
                     OrangeCountShadow.Text = orange.ToString();
+                    rocks[1] = orange.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 2:
@@ -162,6 +249,8 @@ namespace RockCounterUC
                         yellow = 0;
                     YellowCount.Text = yellow.ToString();
                     YellowCountShadow.Text = yellow.ToString();
+                    rocks[2] = yellow.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 3:
@@ -170,6 +259,8 @@ namespace RockCounterUC
                         green = 0;
                     GreenCount.Text = green.ToString();
                     GreenCountShadow.Text = green.ToString();
+                    rocks[3] = green.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 4:
@@ -178,6 +269,8 @@ namespace RockCounterUC
                         blue = 0;
                     BlueCount.Text = blue.ToString();
                     BlueCountShadow.Text = blue.ToString();
+                    rocks[4] = blue.ToString();
+                    rock_file_writer(rocks);
                     return;
                 // change red count and display it
                 case 5:
@@ -186,110 +279,24 @@ namespace RockCounterUC
                         purple = 0;
                     PurpleCount.Text = purple.ToString();
                     PurpleCountShadow.Text = purple.ToString();
+                    rocks[5] = purple.ToString();
+                    rock_file_writer(rocks);
                     return;
             }
         }
 
-        // dpad up functions
-        public void DPadUpButton()
+        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // if up is pressed
-            if (currentState.DPad.Up == ButtonState.Pressed)
-            {
-                // run this ring stuff one time when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-
-                    // set the increment value to 1
-                    incrementValue = 1;
-                    // call the function
-                    rockIncrement();
-                }
-            }
-
-            // allow ring stuff to run again when pressed
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
-        }
-
-        // dpad left functions
-        public void DPadLeftButton()
-        {
-            // if dpad left is pressed
-            if (currentState.DPad.Left == ButtonState.Pressed)
-            {
-                // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-                    rockRing--;
-
-                    if (rockRing < 0)
-                        rockRing = 5;
-
-                    ringSwitch();
-                }
-            }
-
-            // allow ring stuff to run again 
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
-        }
-
-        // dpad right functions
-        public void DPadRightButton()
-        {
-            // if dpad right is pressed
-            if (currentState.DPad.Right == ButtonState.Pressed)
-            {
-                // run this ring stuff once when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-                    rockRing++;
-                    rockRing = rockRing % 6;
-                    ringSwitch();
-                }
-            }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
-        }
-
-        // dpad down functions
-        public void DPadDownButton()
-        {
-            // if dpad down is pressed
-            if (currentState.DPad.Down == ButtonState.Pressed)
-            {
-                // run this ring stuff when button is pressed
-                if (ringIsFree == true)
-                {
-                    ringIsFree = false;
-                    // set the increment value to -1
-                    incrementValue = -1;
-                    // call this function
-                    rockIncrement();
-                }
-            }
-
-            // allow ring stuff to run again when pressed again
-            if ((currentState.DPad.Left == ButtonState.Released) &&
-                (currentState.DPad.Right == ButtonState.Released) &&
-                (currentState.DPad.Up == ButtonState.Released) &&
-                (currentState.DPad.Down == ButtonState.Released))
-                ringIsFree = true;
+            Grid g = (sender as Grid);
+            if (g == null) return; //WOOPSIE
+            int index = Grid.GetColumn(g);
+            rockRing = index;
+            ringSwitch();
+            int dif=0;
+            if (e.ChangedButton == MouseButton.Left) dif=1;
+            else if (e.ChangedButton == MouseButton.Right) dif=-1;
+            if (dif != 0)
+                rockIncrement(dif);
         }
     }
 }

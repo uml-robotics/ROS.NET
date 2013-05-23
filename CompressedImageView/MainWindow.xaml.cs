@@ -63,12 +63,6 @@ namespace WpfApplication1
         // initialize timer values; 1 full hour
         int hours = 1, minutes = 0, seconds = 0;
 
-        // initialize rock count values to 0
-        int red = 0, orange = 0, yellow = 0, green = 0, blue = 0, purple = 0;
-        
-        // ring buffer for rocks, main camera index, sub camera index
-        int rockRing = 0, incrementValue;
-
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
         Publisher<am.ArmMovement> armPub;
@@ -162,7 +156,7 @@ namespace WpfApplication1
                     }
                 }));
 
-                // drawing boxes, i hope this is the right place to do that
+                // drawing boxes ????
                 int x = 0, y = 0;
                 while (ROS.ok)
                 {
@@ -172,8 +166,6 @@ namespace WpfApplication1
                         {
                             detectors[i].churnAndBurn();
                         }
-
-                        //call churn and burn on all detectors
                         DateTime dt = DateTime.Now;
                         if (!detectors[0].boxesOnScreen.ContainsKey(dt))
                             detectors[0].boxesOnScreen.Add(dt, mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 50, 50, mainImages[0].ActualWidth, mainImages[0].ActualHeight));
@@ -244,8 +236,19 @@ namespace WpfApplication1
                 
                 //arm controls via joystick are done here.
                 double right_y = currentState.ThumbSticks.Right.Y;
-                double right_x = currentState.ThumbSticks.Right.X;
+
+                // this is inverted to reflect mikes arm driver.  right requires a negative number, not the default positive value
+                double right_x = -1 * currentState.ThumbSticks.Right.X; 
                 double right_trigger = currentState.Triggers.Right;
+
+                //if trigger is not pressed, send close signal ( -1 ).  Th goal is to have the gripper
+                // going to a close state when the right trigger is not being pressed.
+                if (right_trigger == 0)
+                    right_trigger = -1;
+
+                Console.WriteLine( "joy_right_x: " + right_x.ToString());
+                Console.WriteLine( "joy_right_y: " + right_y.ToString());
+                Console.WriteLine( "right trigger: " + right_trigger.ToString());
 
                 am.ArmMovement armmove = new am.ArmMovement();
 
@@ -307,174 +310,6 @@ namespace WpfApplication1
             multiplexPub.publish(msg);
         }
 
-        // stuff that happens when to move arond the ring buffer
-        void ringSwitch()
-        {
-            switch (rockRing)
-            {
-                // bold text block for red rocks and normalizes neighboring text blocks
-                case 0:
-                    PurpleTextBlock.FontWeight = FontWeights.Normal;
-                    RedTextBlock.FontWeight = FontWeights.UltraBold;
-                    OrangeTextBlock.FontWeight = FontWeights.Normal;
-
-                    PurpleRock.Stroke = Brushes.Black;
-                    RedRock.Stroke = Brushes.White;
-                    OrangeRock.Stroke = Brushes.Black;
-
-                    PurpleRock.StrokeThickness = 1;
-                    RedRock.StrokeThickness = 4;
-                    OrangeRock.StrokeThickness = 1;
-                    return;
-                // bold text block for orange rocks and normalizes neighboring text blocks
-                case 1:
-                    RedTextBlock.FontWeight = FontWeights.Normal;
-                    OrangeTextBlock.FontWeight = FontWeights.UltraBold;
-                    YellowTextBlock.FontWeight = FontWeights.Normal;
-
-                    RedRock.Stroke = Brushes.Black;
-                    OrangeRock.Stroke = Brushes.White;
-                    YellowRock.Stroke = Brushes.Black;
-
-                    RedRock.StrokeThickness = 1;
-                    OrangeRock.StrokeThickness = 4;
-                    YellowRock.StrokeThickness = 1;
-                    return;
-                // bold text block for yellow rocks and normalizes neighboring text blocks
-                case 2:
-                    OrangeTextBlock.FontWeight = FontWeights.Normal;
-                    YellowTextBlock.FontWeight = FontWeights.UltraBold;
-                    GreenTextBlock.FontWeight = FontWeights.Normal;
-
-                    OrangeRock.Stroke = Brushes.Black;
-                    YellowRock.Stroke = Brushes.White;
-                    GreenRock.Stroke = Brushes.Black;
-
-                    OrangeRock.StrokeThickness = 1;
-                    YellowRock.StrokeThickness = 4;
-                    GreenRock.StrokeThickness = 1;
-                    return;
-                // bold text block for green rocks and normalizes neighboring text blocks
-                case 3:
-                    YellowTextBlock.FontWeight = FontWeights.Normal;
-                    GreenTextBlock.FontWeight = FontWeights.UltraBold;
-                    BlueTextBlock.FontWeight = FontWeights.Normal;
-
-                    YellowRock.Stroke = Brushes.Black;
-                    GreenRock.Stroke = Brushes.White;
-                    BlueRock.Stroke = Brushes.Black;
-
-                    YellowRock.StrokeThickness = 1;
-                    GreenRock.StrokeThickness = 4;
-                    BlueRock.StrokeThickness = 1;
-                    return;
-                // bold text block for blue rocks and normalizes neighboring text blocks
-                case 4:
-                    GreenTextBlock.FontWeight = FontWeights.Normal;
-                    BlueTextBlock.FontWeight = FontWeights.UltraBold;
-                    PurpleTextBlock.FontWeight = FontWeights.Normal;
-
-                    GreenRock.Stroke = Brushes.Black;
-                    BlueRock.Stroke = Brushes.White;
-                    PurpleRock.Stroke = Brushes.Black;
-
-                    GreenRock.StrokeThickness = 1;
-                    BlueRock.StrokeThickness = 4;
-                    PurpleRock.StrokeThickness = 1;
-                    return;
-                // bold text block for purple rocks and normalizes neighboring text blocks
-                case 5:
-                    BlueTextBlock.FontWeight = FontWeights.Normal;
-                    PurpleTextBlock.FontWeight = FontWeights.UltraBold;
-                    RedTextBlock.FontWeight = FontWeights.Normal;
-
-                    BlueRock.Stroke = Brushes.Black;
-                    PurpleRock.Stroke = Brushes.White;
-                    RedRock.Stroke = Brushes.Black;
-
-                    BlueRock.StrokeThickness = 1;
-                    PurpleRock.StrokeThickness = 4;
-                    RedRock.StrokeThickness = 1;
-                    return;
-            }
-        }
-
-        // the function that changes rock count
-        void rockIncrement()
-        {
-            string[] rocks;
-            if (rocks_restored == false) { rocks = new string[] { "0", "0,", "0", "0", "0", "0" }; rock_file_writer(rocks); rocks_restored = true; Rock_Restorer.Visibility = Visibility.Hidden; }
-            switch (rockRing)
-            {
-                // change red count and display it
-                case 0:
-                    red = red + incrementValue;
-                    if (red < 0)
-                        red = 0;
-                    RedCount.Text = red.ToString();
-                    RedCountShadow.Text = red.ToString();
-                    rocks = rock_file_reader();
-                    rocks[0] = red.ToString();
-                    rock_file_writer(rocks);
-                    return;
-                // change red count and display it
-                case 1:
-                    orange = orange + incrementValue;
-                    if (orange < 0)
-                        orange = 0;
-                    OrangeCount.Text = orange.ToString();
-                    OrangeCountShadow.Text = orange.ToString();
-                    rocks = rock_file_reader();
-                    rocks[1] = orange.ToString();
-                    rock_file_writer(rocks);
-                    return;
-                // change red count and display it
-                case 2:
-                    yellow = yellow + incrementValue;
-                    if (yellow < 0)
-                        yellow = 0;
-                    YellowCount.Text = yellow.ToString();
-                    YellowCountShadow.Text = yellow.ToString();
-                    rocks = rock_file_reader();
-                    rocks[2] = yellow.ToString();
-                    rock_file_writer(rocks);
-                    return;
-                // change red count and display it
-                case 3:
-                    green = green + incrementValue;
-                    if (green < 0)
-                        green = 0;
-                    GreenCount.Text = green.ToString();
-                    GreenCountShadow.Text = green.ToString();
-                    rocks = rock_file_reader();
-                    rocks[3] = green.ToString();
-                    rock_file_writer(rocks);
-                    return;
-                // change red count and display it
-                case 4:
-                    blue = blue + incrementValue;
-                    if (blue < 0)
-                        blue = 0;
-                    BlueCount.Text = blue.ToString();
-                    BlueCountShadow.Text = blue.ToString();
-                    rocks = rock_file_reader();
-                    rocks[4] = blue.ToString();
-                    rock_file_writer(rocks);
-                    return;
-                // change red count and display it
-                case 5:
-                    purple = purple + incrementValue;
-                    if (purple == -1)
-                        purple = 0;
-                    PurpleCount.Text = purple.ToString();
-                    PurpleCountShadow.Text = purple.ToString();
-                    rocks = rock_file_reader();
-                    rocks[5] = purple.ToString();
-                    rock_file_writer(rocks);
-                    return;
-            }
-        }
-
         private List<Buttons> knownToBeDown = new List<Buttons>();
         public void Button(Buttons b)
         {
@@ -508,10 +343,10 @@ namespace WpfApplication1
                             TimerStatusTextBlock.Foreground = Brushes.Yellow;
                         }
                         break;
-                    case Buttons.DPadDown: DPadDownButton(); break;
-                    case Buttons.DPadUp: DPadUpButton(); break;
-                    case Buttons.DPadLeft: DPadLeftButton(); break;
-                    case Buttons.DPadRight: DPadRightButton(); break;
+                    case Buttons.DPadDown: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Down, true); break;
+                    case Buttons.DPadUp: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Up, true); break;
+                    case Buttons.DPadLeft: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Left, true); break;
+                    case Buttons.DPadRight: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Right, true); break;
                     case Buttons.RightStick: RightStickButton(); break;
                 }
             }
@@ -548,111 +383,19 @@ namespace WpfApplication1
                 }
             }
         }
-        
-        // dpad up functions
-        public void DPadUpButton()
-        {
-            // if up is pressed
-            if (currentState.DPad.Up == ButtonState.Pressed)
-            {
-                    // set the increment value to 1
-                    incrementValue = 1;
-                    // call the function
-                    rockIncrement();
-            }
-        }
-
-        // dpad left functions
-        public void DPadLeftButton()
-        {
-            // if dpad left is pressed
-            if (currentState.DPad.Left == ButtonState.Pressed)
-            {
-                    rockRing--;
-
-                    if (rockRing < 0)
-                        rockRing = 5;
-
-                    ringSwitch();
-            }
-        }
-
-        // dpad right functions
-        public void DPadRightButton()
-        {
-            // if dpad right is pressed
-            if (currentState.DPad.Right == ButtonState.Pressed)
-            {
-                    rockRing++;
-                    rockRing = rockRing % 6;
-                    ringSwitch();
-             
-            }
-        }
-
-        // dpad down functions
-        public void DPadDownButton()
-        {
-            // if dpad down is pressed
-            if (currentState.DPad.Down == ButtonState.Pressed)
-            {
-                    // set the increment value to -1
-                    incrementValue = -1;
-                    // call this function
-                    rockIncrement();
-                
-            }
-        }
-        private void Rock_Restorer_Click(object sender, RoutedEventArgs e)
-        {
-            string[] rocks;
-            rocks = rock_file_reader();
-            string rock;
-            for (int i=0; i<6; i++)
-            {
-                rock = rocks[i];
-                int aux = int.Parse(rock);
-                if (i == 0) { red = aux; RedCount.Text = red.ToString(); RedCountShadow.Text = red.ToString(); }
-                if (i == 1) { orange = aux; OrangeCount.Text = orange.ToString(); OrangeCountShadow.Text = orange.ToString(); }
-                if (i == 2) { yellow = aux; YellowCount.Text = yellow.ToString(); YellowCountShadow.Text = yellow.ToString(); }
-                if (i == 3) { green = aux; GreenCount.Text = green.ToString(); GreenCountShadow.Text = green.ToString(); }
-                if (i == 4) { blue = aux; BlueCount.Text = blue.ToString(); BlueCountShadow.Text = blue.ToString(); }
-                if (i == 5) { purple = aux; PurpleCount.Text = purple.ToString(); PurpleCountShadow.Text = purple.ToString(); }
-            }
-            Rock_Restorer.IsEnabled = false;
-            Rock_Restorer.Visibility = Visibility.Hidden;
-            rocks_restored = true;
-        }
-        private string[] rock_file_reader()
-        {
-            StreamReader rreader = new StreamReader(@"rocks.txt");
-            string[] rocks = rreader.ReadToEnd().Split(',');
-            rreader.Close();            
-            return rocks;
-        }
-        private void rock_file_writer(string[] rocks)
-        {
-            StreamWriter rwriter = new StreamWriter(@"rocks.txt");
-            foreach (string rock in rocks)
-            {
-                rwriter.Write(rock + ",");
-            }
-            rwriter.Close();
-        }
-        
     }
 
     // we get one of these helpers for each camera
     // what excellent service
     public class DetectionHelper {
         public SortedList<DateTime, System.Windows.Shapes.Rectangle> boxesOnScreen = new SortedList<DateTime,System.Windows.Shapes.Rectangle>(); // we need to read detections and add them to this in the callback
-        int cameraNumber;
+        int cameraNumber; // 0, 1, 2, or 3
         Subscriber<imgDataArray> sub;
         ROS_ImageWPF.CompressedImageControl primary;
         ROS_ImageWPF.SlaveImage secondary;
 
         public DetectionHelper(NodeHandle node, int cameraNumber, MainWindow w) {
-            sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detect", 1000, detectCallback);
+            sub = node.subscribe<imgDataArray>("/camera" + cameraNumber + "/detects", 1000, detectCallback);
             this.cameraNumber = cameraNumber;
             primary = w.mainImages[cameraNumber];
             secondary = w.subImages[cameraNumber];
@@ -667,18 +410,32 @@ namespace WpfApplication1
             }
         }
 
-        void detectCallback(imgDataArray detections) 
+        // ugh this function is blocking right now
+        void detectCallback(imgDataArray detections)
         {
-            foreach (imgData img in detections.rockData)
+            foreach (imgData box in detections.rockData)
             {
-                System.Windows.Point tl = new System.Windows.Point(img.x, img.y);
-                if (img.cameraID == cameraNumber) // && cameraNumber is selected as Primary
+                System.Windows.Point tl = new System.Windows.Point(box.x, box.y);
+                DateTime dt = DateTime.Now;
+                // if it's on this helper's camera, add it to the list of boxes on screen, and draw the box on the correct window
+                if (box.cameraID == cameraNumber) // && cameraNumber is selected as Primary
                 {
-                    boxesOnScreen.Add(DateTime.Now, primary.DrawABox(tl, img.width, img.height, 864, 480));
+			 primary.Dispatcher.BeginInvoke(new Action(() =>
+                         {
+                              if (!boxesOnScreen.ContainsKey(dt))	                      
+                                  boxesOnScreen.Add(dt, primary.DrawABox(tl, box.width, box.height, 864, 480));
+        	         }));
+
                 }
-                else if (img.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
+                else if (box.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
                 {
-                    boxesOnScreen.Add(DateTime.Now, secondary.DrawABox(tl, img.width, img.height, 864, 480));
+                         secondary.Dispatcher.BeginInvoke(new Action(() =>
+                         {
+                              if (!boxesOnScreen.ContainsKey(dt))	                      
+                                  boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480));
+        	         }));
+
+
                 }
             }
         }
