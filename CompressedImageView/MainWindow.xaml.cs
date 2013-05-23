@@ -232,8 +232,19 @@ namespace WpfApplication1
                 
                 //arm controls via joystick are done here.
                 double right_y = currentState.ThumbSticks.Right.Y;
-                double right_x = currentState.ThumbSticks.Right.X;
+
+                // this is inverted to reflect mikes arm driver.  right requires a negative number, not the default positive value
+                double right_x = -1 * currentState.ThumbSticks.Right.X; 
                 double right_trigger = currentState.Triggers.Right;
+
+                //if trigger is not pressed, send close signal ( -1 ).  Th goal is to have the gripper
+                // going to a close state when the right trigger is not being pressed.
+                if (right_trigger == 0)
+                    right_trigger = -1;
+
+                Console.WriteLine( "joy_right_x: " + right_x.ToString());
+                Console.WriteLine( "joy_right_y: " + right_y.ToString());
+                Console.WriteLine( "right trigger: " + right_trigger.ToString());
 
                 am.ArmMovement armmove = new am.ArmMovement();
 

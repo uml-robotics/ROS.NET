@@ -100,7 +100,7 @@
 
         <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="106,63,19,84">
             <Rectangle.RenderTransform>
-                <RotateTransform  CenterX="2" CenterY="2" Angle="-60"/>
+                <RotateTransform  CenterX="2" CenterY="2" Angle="30"/>
             </Rectangle.RenderTransform>
             <Rectangle.Triggers>
                 <EventTrigger RoutedEvent="Loaded">

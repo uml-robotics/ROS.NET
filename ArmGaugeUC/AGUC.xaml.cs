@@ -86,7 +86,7 @@ namespace ArmGaugeUC
                 ArmPanAngle = (pan * -90 + 180);
 
                 PanAnim.To = ArmPanAngle;
-                TiltAnim.To = (tilt * -50);
+                TiltAnim.To = (tilt * -30);
                 GripStatus.Value = grip;
                 PanStory.Begin();
                 TiltStory.Begin();
