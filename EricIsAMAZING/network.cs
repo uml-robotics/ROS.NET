@@ -1,4 +1,4 @@
-﻿#region Using
+﻿#region USINGZ
 
 using System;
 using System.Collections;
@@ -21,11 +21,12 @@ namespace Ros_CSharp
                 host = uri.Substring(7);
             else if (uri.Substring(0, 9) == "rosrpc://")
                 host = uri.Substring(9);
-            if (!host.Contains(':')) return false;
-            string port_str = host.Split(':')[1];
+            string[] split = host.Split(':');
+            if (split.Length < 2) return false;
+            string port_str = split[1];
             port_str = port_str.Trim('/');
             port = int.Parse(port_str);
-            host = host.Split(':')[0];
+            host = split[0];
             return true;
         }
 
