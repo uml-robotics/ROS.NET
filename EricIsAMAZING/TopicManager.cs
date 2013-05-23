@@ -630,6 +630,7 @@ namespace Ros_CSharp
         public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue parm = XmlRpcValue.Create(ref parms);
+            Console.WriteLine(parm);
             List<string> pubs = new List<string>();
             for (int idx = 0; idx < parm[2].Size; idx++)
                 pubs.Add(parm[2][idx].Get<string>());
