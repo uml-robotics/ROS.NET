@@ -8,6 +8,7 @@
         xmlns:IMU="clr-namespace:ROS_IMUUtil;assembly=ROS_IMUUtils"
         xmlns:EStopUC="clr-namespace:EStopUC;assembly=EStopUC"
         xmlns:TimerStopwatchUC="clr-namespace:TimerStopwatchUC;assembly=TimerStopwatchUC"
+        xmlns:rock="clr-namespace:RockCounterUC;assembly=RockCounterUC"
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
         xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
         Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
@@ -59,71 +60,7 @@
             <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="971" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
-            <Grid Canvas.Left="1131" Canvas.Top="941">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="20*" />
-                    <RowDefinition Height="50*" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50" />
-                    <ColumnDefinition Width="50*" />
-                    <ColumnDefinition Width="50*" />
-                    <ColumnDefinition Width="50*" />
-                    <ColumnDefinition Width="50*" />
-                    <ColumnDefinition Width="50*" />
-                </Grid.ColumnDefinitions>
-                <!-- Red counter -->
-                <Rectangle Height="50" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" Width="50" Fill="Red" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCountShadow" Text="0" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" Name="RedCount" Text="0" FontSize="35" Foreground="White" />
-                <!-- Orange counter -->
-                <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Orange" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1" Name="OrangeCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
-                <!-- Yellow counter -->
-                <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Yellow" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="1" Name="YellowCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
-                <!-- Green counter -->
-                <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Green" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="1" Name="GreenCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
-                <!-- Blue counter -->
-                <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Blue" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="1" Name="BlueCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
-                <!-- Purple counter -->
-                <Rectangle Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Fill="Purple" />
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCountShadow" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box" />
-            </TextBlock.Effect></TextBlock>
-                <TextBlock Height="50" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="1" Name="PurpleCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White" />
-                <!-- First row labels -->
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="0" Name="RedTextBlock" Text="Red" VerticalAlignment="Bottom" FontWeight="UltraBold" />
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="0" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Bottom" />
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="2" Grid.Row="0" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Bottom" />
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="3" Grid.Row="0" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="4" Grid.Row="0" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
-                <TextBlock Height="20" HorizontalAlignment="Center" Grid.Column="5" Grid.Row="0" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-                <Button Name="Rock_Restorer" Content="Restore" Height="30" HorizontalAlignment="Center" Width="73" Click="Rock_Restorer_Click" Grid.Row="3" Grid.ColumnSpan="6" />
-            </Grid>
+            <rock:RockCounter Name="rockCounter" Canvas.Left="1132" Canvas.Top="933" />
             <CameraSlidersUC:CSUC Name="Sliders" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
         </Canvas>
         
