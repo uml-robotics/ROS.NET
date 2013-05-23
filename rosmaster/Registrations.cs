@@ -309,7 +309,9 @@ namespace rosmaster
 
         public NodeRef get_node(String caller_id)
         {
-            return nodes[caller_id];
+            if(nodes.ContainsKey(caller_id))
+                return nodes[caller_id];
+            else return null;
         }
 
         public void _register(Registrations r, String key, String caller_id, String caller_api, String service_api = null)

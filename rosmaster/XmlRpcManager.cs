@@ -300,6 +300,9 @@ namespace rosmaster
             bind("get_rostime", getTime);
 
             bind("get_time", getTime);
+            bind("lookupNode", lookupNode);
+
+            bind("getTopicTypes", getTopicTypes);
             
             
             //SERVICE??
@@ -366,6 +369,47 @@ namespace rosmaster
         #endregion
 
 
+        public void getTopicTypes([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String topic = parm[0].GetString();
+
+            String caller_id = parm[1].GetString();
+            Dictionary<String, String> types = handler.getTopicTypes(topic);
+
+            XmlRpcValue value = new XmlRpcValue();
+            int index = 0;
+            foreach (KeyValuePair<String, String> pair in types)
+            {
+                XmlRpcValue payload = new XmlRpcValue();
+                payload.Set(0, pair.Key);
+                payload.Set(1, pair.Value);
+                value.Set(index, payload);
+            }
+
+            res.Set(0, 1);
+            res.Set(1, "getTopicTypes");
+            res.Set(2, value);
+        }
+
+
+        public void lookupNode([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String topic = parm[0].GetString();
+            String caller_id = parm[1].GetString();
+            String api = handler.lookupNode(caller_id, topic);
+
+           // if(api == "")
+         //       res.Set(0, 0);
+           // else
+            res.Set(0, 1);
+            res.Set(1, "lookupNode");
+            res.Set(2, api);
+        }
+        
 
         /// <summary>
         /// Returns list of all publications
@@ -529,7 +573,7 @@ namespace rosmaster
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
             List<List<String>> publishedtopics = handler.getPublishedTopics("","");
             res.Set(0, 1);
-            res.Set(1, "getPublishesTopics");
+            res.Set(1, "current system state");
 
             XmlRpcValue listofvalues = new XmlRpcValue();
             int index = 0;
@@ -580,15 +624,11 @@ namespace rosmaster
             String caller_id = parm[0].GetString();
             String topic = parm[1].GetString();
             String caller_api = parm[2].GetString();
-            String hostname = parm[3].GetString(); //hostname
             Console.WriteLine("UNPUBLISHING: " + caller_id + " : " + caller_api);
 
             int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
             res.Set(0, ret);
             res.Set(1, "unregistered " + caller_id+ "as provder of "+ topic);
-
-
-
         }
 
         /// <summary>
@@ -603,9 +643,9 @@ namespace rosmaster
             String caller_id = parm[0].GetString();
             String topic = parm[1].GetString();
             String type = parm[2].GetString();
-            String hostname = parm[3].GetString(); //hostname
+            String caller_api = parm[3].GetString(); //hostname
 
-            handler.registerSubscriber(caller_id, topic, type, hostname);
+            handler.registerSubscriber(caller_id, topic, type, caller_api);
             res.Set(0, 1);
             res.Set(1, "GOOD JOB!");
             res.Set(2, new XmlRpcValue(""));
@@ -657,8 +697,19 @@ namespace rosmaster
         /// <param name="result"></param>
         public void unregisterSubscriber([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
 
-            throw new Exception("NOT IMPLEMENTED YET!");
+            String caller_id = parm[0].GetString();
+            String topic = parm[1].GetString();
+            String caller_api = parm[2].GetString();
+
+            Console.WriteLine("UNSUBSCRIBING: " + caller_id + " : " + caller_api);
+
+            int ret = handler.unregisterSubscriber(caller_id, topic, caller_api);
+            res.Set(0, ret);
+            res.Set(1, "unregistered " + caller_id + "as provder of " + topic);
+
+            //throw new Exception("NOT IMPLEMENTED YET!");
             //XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
             //            result = new XmlRpcValue(),
             //            payload = new XmlRpcValue();
@@ -698,10 +749,10 @@ namespace rosmaster
             res.Set(0, 1);
             res.Set(1,"setParam");
 
-            String caller_id = parm[0].GetString();
+            String caller_api = parm[0].GetString();
             String topic = parm[1].GetString();
             XmlRpcValue value = parm[2];
-            handler.setParam(caller_id, topic,value);
+            handler.setParam(caller_api, topic,value);
             res.Set(2, "parameter " + topic + " set");
         }
 

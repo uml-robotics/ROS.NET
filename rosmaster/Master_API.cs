@@ -37,8 +37,9 @@ namespace rosmaster
             public void mloginfo() { }
             public void mlogwarn() { }
             public void apivalidate() { }
-            public void publisher_update_task(String topic, String pub_uri) 
+            public void publisher_update_task(String api, String topic, List<String> pub_uris) 
             {
+
                 //XmlRpcManager manager = new XmlRpcManager();
             }
             public void service_update_task() { }
@@ -162,7 +163,14 @@ namespace rosmaster
 
 
             #region NOTIFICATION ROUTINES
-            public void _notify() { }
+            public void _notify(Registrations r, Func<String, String, List<String>> task, String key, List<String> value, List<String> node_uris) 
+            {
+                foreach(String s in node_uris)
+                {
+
+                }
+
+            }
             public int _notify_param_subscribers(Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>> updates) 
             { 
                 return 1; 
@@ -173,9 +181,9 @@ namespace rosmaster
 
             }
 
-            public void _notify_topic_subscribers(String topic, List<String> pub_uris) 
-            { 
-                //TODO: THIS
+            public void _notify_topic_subscribers(String topic, List<String> pub_uris, List<String> sub_uris ) 
+            {
+                _notify(subscribers, publisher_update_task, topic, pub_uris, sub_uris);
             }
 
             public void _notify_service_update(String service, String service_api) 
@@ -220,7 +228,7 @@ namespace rosmaster
                 if (!topic_types.ContainsValue(topic_type))
                     topic_types.Add(topic, topic_type);
                 List<String> puburis = publishers.get_apis(topic);
-                _notify_topic_subscribers(topic, puburis);
+                _notify_topic_subscribers(topic, puburis, sub_uris);
                 List<String> sub_uris =  subscribers.get_apis(topic);
 
                 return 1;
@@ -237,7 +245,15 @@ namespace rosmaster
 
 
             #region GRAPH STATE API
-            public void lookupNode() { }
+            public String lookupNode(String caller_id, String node_name) 
+            {
+                NodeRef node = reg_manager.get_node(caller_id);
+                if (node == null)
+                    return "";
+                return node.api;
+
+
+            }
             /// <summary>
             /// 
             /// </summary>
@@ -258,7 +274,7 @@ namespace rosmaster
                         {
                             List<String> value = new List<string>();
                             value.Add(pair.Key);
-                            value.Add(s);
+                            value.Add(topic_types[pair.Key]);
                             rtn.Add(value);
                         }
                 }
