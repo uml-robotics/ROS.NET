@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using Point = System.Drawing.Point;
 using Size = System.Windows.Size;
 using d = System.Drawing;
@@ -36,7 +37,7 @@ namespace ROS_ImageWPF
     
     public partial class CompressedImageControl : UserControl
     {
-        public void DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
+        public Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
         {
             System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
             System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
@@ -44,11 +45,17 @@ namespace ROS_ImageWPF
             r.SetValue(Canvas.LeftProperty, (object)tl.X);
             r.SetValue(Canvas.TopProperty, (object)tl.Y);
             ROI_Container.Children.Add(r);
+            return r;
         }
 
-        public void RemoveABox()
+        public bool EraseABox(System.Windows.Shapes.Rectangle r)
         {
-
+            if (ROI_Container.Children.Contains(r))
+            {
+                ROI_Container.Children.Remove(r);
+                return true;
+            }
+            return false;
         }
 
         public delegate void ImageReceivedHandler(CompressedImageControl sender);

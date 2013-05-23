@@ -37,7 +37,7 @@ namespace ROS_ImageWPF
 
     public partial class SlaveImage : UserControl
     {
-        public void DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
+        public System.Windows.Shapes.Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight)
         {
             System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
             System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
@@ -45,11 +45,17 @@ namespace ROS_ImageWPF
             r.SetValue(Canvas.LeftProperty, (object)tl.X);
             r.SetValue(Canvas.TopProperty, (object)tl.Y);
             ROI_Container.Children.Add(r);
+            return r;
         }
 
-        public void RemoveABox()
+        public bool EraseABox(System.Windows.Shapes.Rectangle r)
         {
-
+            if (ROI_Container.Children.Contains(r))
+            {
+                ROI_Container.Children.Remove(r);
+                return true;
+            }
+            return false;
         }
 
         #region variables and such

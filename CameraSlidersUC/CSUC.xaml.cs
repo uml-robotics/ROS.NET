@@ -84,35 +84,38 @@ namespace CameraSlidersUC
             //ROS
             private void UserControl_Loaded(object sender, RoutedEventArgs e)
             {
-                node = new NodeHandle();
+                new Thread(() =>
+                {
+                    while (!ROS.initialized)
+                    {
+                        Thread.Sleep(200);
+                    }
+                    node = new NodeHandle();
 
-                //setup up temporary arrays to make setup clean
-                Slider[][] sliders = new[]
+                    //setup up temporary arrays to make setup clean
+                    Slider[][] sliders = new[]
                                          { new []{ MC1_Brigh_Sl, MC1_Cont_Sl, MC1_Exp_Sl, MC1_Sat_Sl, MC1_WBT_Sl }, 
                     new []{ RC_Brigh_Sl, RC_Cont_Sl, RC_Exp_Sl, RC_Sat_Sl, RC_WBT_Sl }, 
                     new []{ MC3_Brigh_Sl, MC3_Cont_Sl, MC3_Exp_Sl, MC3_Sat_Sl, MC3_WBT_Sl }, 
                     new []{ MC4_Brigh_Sl, MC4_Cont_Sl, MC4_Exp_Sl, MC4_Sat_Sl, MC4_WBT_Sl }};
-                Label[][] labels = new[]
+                    Label[][] labels = new[]
                                        { new[]{ MC1_Brigh_Lvl, MC1_Cont_Lvl, MC1_Exp_Lvl, MC1_Sat_Lvl, MC1_WBT_Lvl }, 
                     new[]{ RC_Brigh_Lvl, RC_Cont_Lvl, RC_Exp_Lvl, RC_Sat_Lvl, RC_WBT_Lvl }, 
                     new[]{ MC3_Brigh_Lvl, MC3_Cont_Lvl, MC3_Exp_Lvl, MC3_Sat_Lvl, MC3_WBT_Lvl }, 
                     new[]{ MC4_Brigh_Lvl, MC4_Cont_Lvl, MC4_Exp_Lvl, MC4_Sat_Lvl, MC4_WBT_Lvl }};
-                string[] info = new [] { "brightness", "contrast", "exposure", "gain", "saturation", "wbt" };
-                //end setup
+                    string[] info = new[] { "brightness", "contrast", "exposure", "saturation", "wbt" }; // TODO -- "gain" doesn't have sliders yet!
+                    //end setup
 
-                //setup persistent array of slider stuff for storage
-                SUBS = new[] { new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length] };
-                
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 6; j++)
+                    //setup persistent array of slider stuff for storage
+                    SUBS = new[] { new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length] };
+
+                    for (int i = 0; i < sliders.Length; i++)
                     {
-                        SUBS[i][j] = new SliderStuff(node, i, sliders[i][j], labels[i][j]);
+                        for (int j = 0; j < sliders[i].Length; j++)
+                        {
+                            SUBS[i][j] = new SliderStuff(node, i, sliders[i][j], labels[i][j]);
+                        }
                     }
-                }
-
-                new Thread(() =>
-                {
                     while (!ROS.shutting_down)
                     {
                         ROS.spinOnce(node);

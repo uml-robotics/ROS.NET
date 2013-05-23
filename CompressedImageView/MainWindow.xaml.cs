@@ -125,13 +125,6 @@ namespace WpfApplication1
                     EStop.startListening(nh);
                 }));
 
-                // instantiating some global helpers
-                detectors = new DetectionHelper[4];
-                for (int i = 0; i < 4; ++i)
-                {
-                    detectors[i] = new DetectionHelper(nh, i, this);
-                }
-
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
                 armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
@@ -159,6 +152,13 @@ namespace WpfApplication1
                     }
                     subCameras[1].Focus();
                     adr(false);
+
+                    // instantiating some global helpers
+                    detectors = new DetectionHelper[4];
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        detectors[i] = new DetectionHelper(nh, i, this);
+                    }
                 }));
 
                 // drawing boxes, i hope this is the right place to do that
@@ -173,9 +173,9 @@ namespace WpfApplication1
                         }
 
                         //call churn and burn on all detectors
-                        mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 10, 10, mainImages[0].ActualWidth, mainImages[0].ActualHeight);
+                        detectors[0].boxesOnScreen.Add(DateTime.Now, mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 50, 50, mainImages[0].ActualWidth, mainImages[0].ActualHeight));
                     }));
-                    Thread.Sleep(100);
+                    Thread.Sleep(10);
                 }
             }).Start();
         }
@@ -640,7 +640,7 @@ namespace WpfApplication1
     // we get one of these helpers for each camera
     // what excellent service
     public class DetectionHelper {
-        SortedList<DateTime, System.Windows.Shapes.Rectangle> boxesOnScreen; // we need to read detections and add them to this in the callback
+        public SortedList<DateTime, System.Windows.Shapes.Rectangle> boxesOnScreen = new SortedList<DateTime,System.Windows.Shapes.Rectangle>(); // we need to read detections and add them to this in the callback
         int cameraNumber;
         Subscriber<imgDataArray> sub;
         ROS_ImageWPF.CompressedImageControl primary;
@@ -654,16 +654,10 @@ namespace WpfApplication1
         }
 
         public void churnAndBurn() {
-            while (DateTime.Now.Subtract(boxesOnScreen.Keys[0]).TotalMilliseconds > 1000)
+            while (boxesOnScreen.Count > 0 && DateTime.Now.Subtract(boxesOnScreen.Keys[0]).TotalMilliseconds > 1000)
             {
-                if (boxesOnScreen[boxesOnScreen.Keys[0]].Parent == primary)
-                {
-                    primary.RemoveABox();
-                }
-                else if (boxesOnScreen[boxesOnScreen.Keys[0]].Parent == secondary)
-                {
-                    secondary.RemoveABox();
-                }
+                if (!primary.EraseABox(boxesOnScreen[boxesOnScreen.Keys[0]]))
+                    secondary.EraseABox(boxesOnScreen[boxesOnScreen.Keys[0]]);
                 boxesOnScreen.RemoveAt(0);
             }
         }
@@ -675,11 +669,11 @@ namespace WpfApplication1
                 System.Windows.Point tl = new System.Windows.Point(img.x, img.y);
                 if (img.cameraID == cameraNumber) // && cameraNumber is selected as Primary
                 {
-                    primary.DrawABox(tl, img.width, img.height, 864, 480);
+                    boxesOnScreen.Add(DateTime.Now, primary.DrawABox(tl, img.width, img.height, 864, 480));
                 }
                 else if (img.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
                 {
-                    secondary.DrawABox(tl, img.width, img.height, 864, 480);
+                    boxesOnScreen.Add(DateTime.Now, secondary.DrawABox(tl, img.width, img.height, 864, 480));
                 }
             }
         }
