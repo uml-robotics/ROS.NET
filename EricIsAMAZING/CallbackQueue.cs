@@ -1,4 +1,4 @@
-﻿#region Using
+﻿#region USINGZ
 
 using System;
 using System.Collections;
@@ -165,8 +165,9 @@ namespace Ros_CSharp
 
         public CallOneResult callOneCB(TLS tls)
         {
-            if (tls.Count == 0) return CallOneResult.Empty;
             ICallbackInfo info = tls.head;
+            if (info == null) 
+                return CallOneResult.Empty;
             IDInfo idinfo = null;
             if (info != null)
                 idinfo = getIDInfo(info.removal_id);
@@ -296,14 +297,14 @@ namespace Ros_CSharp
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         private Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
         private object mut = new object();
-        public int Count { get { return _queue.Count; } }
+        public int Count { get { lock (mut) return _queue.Count; } }
         public CallbackQueueInterface.ICallbackInfo head
         {
-            get { return _queue.Peek(); }
+            get { lock (mut) return (_queue.Count == 0 ? null : _queue.Peek()); }
         }
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { return _queue.Last(); }
+            get { lock (mut) return (_queue.Count == 0 ? null : _queue.Last()); }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
