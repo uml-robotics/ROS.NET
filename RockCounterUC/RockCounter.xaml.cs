@@ -24,6 +24,8 @@ namespace RockCounterUC
     /// </summary>
     public partial class RockCounter : UserControl
     {
+        string[] rocks = new string[] { "0", "0,", "0", "0", "0", "0" };
+
         public enum DPadDirection
         {
             Up,
@@ -211,8 +213,13 @@ namespace RockCounterUC
         // the function that changes rock count
         void rockIncrement(int incrementValue)
         {
-            string[] rocks;
-            if (rocks_restored == false) { rocks = new string[] { "0", "0,", "0", "0", "0", "0" }; rock_file_writer(rocks); rocks_restored = true; Rock_Restorer.Visibility = Visibility.Hidden; }
+            if (!File.Exists(@"rocks.txt") && !rocks_restored) rocks_restored = true;
+            if (rocks_restored == false)
+            {
+                rock_file_writer(rocks); 
+                rocks_restored = true;
+                Rock_Restorer.Visibility = Visibility.Collapsed;
+            }
             switch (rockRing)
             {
                 // change red count and display it
@@ -222,7 +229,6 @@ namespace RockCounterUC
                         red = 0;
                     RedCount.Text = red.ToString();
                     RedCountShadow.Text = red.ToString();
-                    rocks = rock_file_reader();
                     rocks[0] = red.ToString();
                     rock_file_writer(rocks);
                     return;
@@ -233,7 +239,6 @@ namespace RockCounterUC
                         orange = 0;
                     OrangeCount.Text = orange.ToString();
                     OrangeCountShadow.Text = orange.ToString();
-                    rocks = rock_file_reader();
                     rocks[1] = orange.ToString();
                     rock_file_writer(rocks);
                     return;
@@ -244,7 +249,6 @@ namespace RockCounterUC
                         yellow = 0;
                     YellowCount.Text = yellow.ToString();
                     YellowCountShadow.Text = yellow.ToString();
-                    rocks = rock_file_reader();
                     rocks[2] = yellow.ToString();
                     rock_file_writer(rocks);
                     return;
@@ -255,7 +259,6 @@ namespace RockCounterUC
                         green = 0;
                     GreenCount.Text = green.ToString();
                     GreenCountShadow.Text = green.ToString();
-                    rocks = rock_file_reader();
                     rocks[3] = green.ToString();
                     rock_file_writer(rocks);
                     return;
@@ -266,7 +269,6 @@ namespace RockCounterUC
                         blue = 0;
                     BlueCount.Text = blue.ToString();
                     BlueCountShadow.Text = blue.ToString();
-                    rocks = rock_file_reader();
                     rocks[4] = blue.ToString();
                     rock_file_writer(rocks);
                     return;
@@ -277,11 +279,24 @@ namespace RockCounterUC
                         purple = 0;
                     PurpleCount.Text = purple.ToString();
                     PurpleCountShadow.Text = purple.ToString();
-                    rocks = rock_file_reader();
                     rocks[5] = purple.ToString();
                     rock_file_writer(rocks);
                     return;
             }
+        }
+
+        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Grid g = (sender as Grid);
+            if (g == null) return; //WOOPSIE
+            int index = Grid.GetColumn(g);
+            rockRing = index;
+            ringSwitch();
+            int dif=0;
+            if (e.ChangedButton == MouseButton.Left) dif=1;
+            else if (e.ChangedButton == MouseButton.Right) dif=-1;
+            if (dif != 0)
+                rockIncrement(dif);
         }
     }
 }
