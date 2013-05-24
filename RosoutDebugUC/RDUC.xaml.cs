@@ -23,7 +23,6 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using System.Text;
 using System.Collections.ObjectModel;
 
 namespace RosoutDebugUC
@@ -50,12 +49,15 @@ namespace RosoutDebugUC
             rosoutdata = new ObservableCollection<rosoutString>();
             dataGrid1.ItemsSource = rosoutdata;
 
-            NodeHandle node = new NodeHandle();
-
-            node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
+            
 
             new Thread(() =>
             {
+                while (!ROS.initialized)
+                    Thread.Sleep(200);
+                NodeHandle node = new NodeHandle();
+
+                node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
                 while (!ROS.shutting_down)
                 {   
                     ROS.spinOnce(node);
