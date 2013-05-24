@@ -137,12 +137,10 @@ namespace WpfApplication1
                 {
                     mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
                     subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
-                    mainImages = new ROS_ImageWPF.CompressedImageControl[mainCameras.Length];
-                    subImages = new ROS_ImageWPF.SlaveImage[subCameras.Length];
+                    mainImages = new ROS_ImageWPF.CompressedImageControl[] { camImage0, camImage1, camImage2, camImage3 };
+                    subImages = new ROS_ImageWPF.SlaveImage[] { camImageSlave0, camImageSlave1, camImageSlave2, camImageSlave3 };
                     for (int i = 0; i < mainCameras.Length; i++)
                     {
-                        mainImages[i] = (mainCameras[i].Content as ROS_ImageWPF.CompressedImageControl);
-                        subImages[i] = (subCameras[i].Content as ROS_ImageWPF.SlaveImage);
                         mainImages[i].AddSlave(subImages[i]);
                     }
                     subCameras[1].Focus();
@@ -385,9 +383,10 @@ namespace WpfApplication1
         }
 
         System.Windows.Point mouseDownPoint;
-        System.Windows.Point mouseUpPoint;
+        System.Windows.Point mousePos;
         System.Windows.Shapes.Rectangle mouseBox;
         bool leftButtonDown;
+        bool leftButtonDownInBounds;
 
         private int whichIsIt(object sender)
         {
@@ -405,33 +404,71 @@ namespace WpfApplication1
             if (cam >= 0)
             {
                 leftButtonDown = true;
-                mainImages[cam].CaptureMouse();
-                mouseDownPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+                System.Windows.Point mouse_pos = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+                if (mouse_pos.X > 0 && mouse_pos.X < 874 && mouse_pos.Y > 0 && mouse_pos.Y < 518)
+                {
+                    leftButtonDownInBounds = true;
+                    mouseDownPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+                    mainImages[cam].CaptureMouse();
+                }
+                else leftButtonDownInBounds = false;
             }
         }
+
+        private System.Windows.Point ForceMousePositionToBeInBounds(System.Windows.Point mouse_pos)
+        {
+            if (mouse_pos.X < 0) mouse_pos.X = 0;
+            if (mouse_pos.X > 874) mouse_pos.X = 873;
+            if (mouse_pos.Y < 0) mouse_pos.Y = 0;
+            if (mouse_pos.Y > 518) mouse_pos.Y = 517;
+            return mouse_pos;
+        }
+
         private void UserControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            mouseUpPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
-            mouseBox = new System.Windows.Shapes.Rectangle()
+            leftButtonDown = false;
+            if (leftButtonDownInBounds)
             {
-                Width = Math.Abs(mouseUpPoint.X - mouseDownPoint.X),
-                Height = Math.Abs(mouseUpPoint.Y - mouseDownPoint.Y),
-                Stroke = Brushes.Yellow,
-                StrokeThickness = 3,
-                Opacity = 0.5
-            };
-            mouseBox.SetValue(Canvas.LeftProperty, (mouseUpPoint.X < mouseDownPoint.X)? mouseUpPoint.X : mouseDownPoint.X);
-            mouseBox.SetValue(Canvas.TopProperty, (mouseUpPoint.Y > mouseDownPoint.Y) ? mouseUpPoint.X : mouseDownPoint.X);
-            camRect1.Children.Clear();
-            camRect1.Children.Add(mouseBox);
+                leftButtonDownInBounds = false;
+                mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
+                mouseBox = new System.Windows.Shapes.Rectangle()
+                {
+                    Width = Math.Abs(mousePos.X - mouseDownPoint.X),
+                    Height = Math.Abs(mousePos.Y - mouseDownPoint.Y),
+                    Stroke = Brushes.Yellow,
+                    StrokeThickness = 3,
+                    Opacity = 0.5
+                };
+                mouseBox.SetValue(Canvas.LeftProperty, (mousePos.X < mouseDownPoint.X) ? mousePos.X : mouseDownPoint.X);
+                mouseBox.SetValue(Canvas.TopProperty, (mousePos.Y < mouseDownPoint.Y) ? mousePos.Y : mouseDownPoint.Y);
+                camRect1.Children.Clear();
+                camRect1.Children.Add(mouseBox);
+            }
         }
 
         private void UserControl_MouseMove(object sender, MouseEventArgs e)
         {
-            // draw the box i guess
-            // maybe it will be white
-            // yes, good
+            if (leftButtonDown && leftButtonDownInBounds)
+            {
+                mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
+                mouseBox = new System.Windows.Shapes.Rectangle()
+                {
+                    Width = Math.Abs(mousePos.X - mouseDownPoint.X),
+                    Height = Math.Abs(mousePos.Y - mouseDownPoint.Y),
+                    Stroke = Brushes.Yellow,
+                    StrokeThickness = 3,
+                    Opacity = 0.5
+                };
+                mouseBox.SetValue(Canvas.LeftProperty, (mousePos.X < mouseDownPoint.X) ? mousePos.X : mouseDownPoint.X);
+                mouseBox.SetValue(Canvas.TopProperty, (mousePos.Y < mouseDownPoint.Y) ? mousePos.Y : mouseDownPoint.Y);
+                camRect1.Children.Clear();
+                camRect1.Children.Add(mouseBox);
+            }
+        }
 
+        private void UserControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            camRect1.Children.Clear();
         }
         
     }
