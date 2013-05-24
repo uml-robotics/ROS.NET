@@ -23,6 +23,7 @@ using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Threading;
 
+
 namespace TiltSliderUC
 {
     /// <summary>
@@ -30,17 +31,34 @@ namespace TiltSliderUC
     /// </summary>
     public partial class TSUC : UserControl
     {
-        Publisher<m.Int32> pub;
-
+        private Publisher<m.Int32> pub;
         public TSUC()
         {
             InitializeComponent();
+        }
+
+        public void startListening(NodeHandle node)
+        {
+            pub = node.advertise<m.Int32>("/tilt", 1000);
+
+            new Thread(() =>
+            {
+                while (!ROS.shutting_down)
+                {
+                    ROS.spinOnce(node);
+                    Thread.Sleep(100);
+                }
+            }).Start();
+
         }
 
         private void Tilt_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int tilt = (int)Tilt_Slider.Value;
             Tilt_Lvl.Content = tilt.ToString();
+
+            pub.publish(new Int32() { data = tilt });
+
         }
     }
 }

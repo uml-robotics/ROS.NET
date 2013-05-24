@@ -146,12 +146,6 @@ namespace CameraSlidersUC
                 //0
             }
 
-            private void MC1_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-            {
-                int focus = (int)MC1_Foc_Sl.Value;
-                MC1_Foc_Lvl.Content = focus;
-            }
-
             private void MC1_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC1_Foc_Sl.IsEnabled = false;
@@ -186,12 +180,6 @@ namespace CameraSlidersUC
             {
                 RC_WBT_Sl.IsEnabled = true;
                 //0
-            }
-
-            private void RC_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-            {
-                int focus = (int)RC_Foc_Sl.Value;
-                RC_Foc_Lvl.Content = focus;
             }
 
             private void RC_Foc_CB_Checked(object sender, RoutedEventArgs e)
@@ -230,12 +218,6 @@ namespace CameraSlidersUC
                 //0
             }
 
-            private void MC3_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-            {
-                int focus = (int)MC3_Foc_Sl.Value;
-                MC3_Foc_Lvl.Content = focus;
-            }
-
             private void MC3_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC3_Foc_Sl.IsEnabled = false;
@@ -272,11 +254,6 @@ namespace CameraSlidersUC
                 //0
             }
 
-            private void MC4_Foc_Sl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-            {
-                int focus = (int)MC4_Foc_Sl.Value;
-                MC4_Foc_Lvl.Content = focus;
-            }
 
             private void MC4_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
