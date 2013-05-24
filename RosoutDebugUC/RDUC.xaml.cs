@@ -47,20 +47,18 @@ namespace RosoutDebugUC
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
 
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
-            ROS.Init(new string[0], "Image_Test");
-
             rosoutdata = new ObservableCollection<rosoutString>();
             dataGrid1.ItemsSource = rosoutdata;
 
             NodeHandle node = new NodeHandle();
 
+            node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
+
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
-                {
-                    node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
-                    ROS.spin();
+                {   
+                    ROS.spinOnce();
                     Thread.Sleep(10);
                 }
             }).Start();
