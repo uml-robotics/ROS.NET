@@ -58,7 +58,7 @@ namespace RosoutDebugUC
             {
                 while (!ROS.shutting_down)
                 {   
-                    ROS.spinOnce();
+                    ROS.spinOnce(node);
                     Thread.Sleep(10);
                 }
             }).Start();

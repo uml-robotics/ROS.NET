@@ -383,6 +383,57 @@ namespace WpfApplication1
                 }
             }
         }
+
+        System.Windows.Point mouseDownPoint;
+        System.Windows.Point mouseUpPoint;
+        System.Windows.Shapes.Rectangle mouseBox;
+        bool leftButtonDown;
+
+        private int whichIsIt(object sender)
+        {
+            ROS_ImageWPF.CompressedImageControl c = (sender as ROS_ImageWPF.CompressedImageControl);
+            if (c == null) return -1;
+            for (int i = 0; i < mainImages.Length; i++)
+                if (mainImages[i] == c)
+                    return i;
+            return -1;
+        }
+
+        private void UserControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            int cam = whichIsIt(sender);
+            if (cam >= 0)
+            {
+                leftButtonDown = true;
+                mainImages[cam].CaptureMouse();
+                mouseDownPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+            }
+        }
+        private void UserControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            mouseUpPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+            mouseBox = new System.Windows.Shapes.Rectangle()
+            {
+                Width = Math.Abs(mouseUpPoint.X - mouseDownPoint.X),
+                Height = Math.Abs(mouseUpPoint.Y - mouseDownPoint.Y),
+                Stroke = Brushes.Yellow,
+                StrokeThickness = 3,
+                Opacity = 0.5
+            };
+            mouseBox.SetValue(Canvas.LeftProperty, (mouseUpPoint.X < mouseDownPoint.X)? mouseUpPoint.X : mouseDownPoint.X);
+            mouseBox.SetValue(Canvas.TopProperty, (mouseUpPoint.Y > mouseDownPoint.Y) ? mouseUpPoint.X : mouseDownPoint.X);
+            camRect1.Children.Clear();
+            camRect1.Children.Add(mouseBox);
+        }
+
+        private void UserControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            // draw the box i guess
+            // maybe it will be white
+            // yes, good
+
+        }
+        
     }
 
     // we get one of these helpers for each camera
