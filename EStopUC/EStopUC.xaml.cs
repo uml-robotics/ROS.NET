@@ -81,7 +81,6 @@ namespace EStopUC
         {
 
             pub.publish(new m.Bool() { data = !state });
-
         }
 
     }

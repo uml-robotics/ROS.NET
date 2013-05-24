@@ -124,6 +124,7 @@ namespace WpfApplication1
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
                 armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
 
+
                 new Thread(() =>
                 {
                     while (!ROS.shutting_down)

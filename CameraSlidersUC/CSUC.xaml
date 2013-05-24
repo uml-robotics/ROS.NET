@@ -51,7 +51,7 @@
                         <CheckBox Name="MC1_WBT_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="5" Grid.RowSpan="1" Checked="MC1_WBT_CB_Checked" Unchecked="MC1_WBT_CB_Unchecked"/>
                         <!--Focus-->
                         <Label Content="Focus" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
-                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC1_Foc_Sl" Maximum="255" Minimum="0" Height="30" Width="250" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" ValueChanged="MC1_Foc_Sl_ValueChanged"/>
+                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC1_Foc_Sl" Maximum="255" Minimum="0" Height="30" Width="250" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
                         <Label Name="MC1_Foc_Lvl" Content="Level" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" />
                         <CheckBox Name="MC1_Foc_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="6" Grid.RowSpan="1" Unchecked="MC1_Foc_CB_Unchecked" Checked="MC1_Foc_CB_Checked"/>
                     </Grid>
@@ -101,7 +101,7 @@
                         <CheckBox Name="RC_WBT_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="5" Grid.RowSpan="1" Checked="RC_WBT_CB_Checked" Unchecked="RC_WBT_CB_Unchecked"/>
                         <!--Focus-->
                         <Label Content="Focus" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
-                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="RC_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" ValueChanged="RC_Foc_Sl_ValueChanged"/>
+                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="RC_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
                         <Label Name="RC_Foc_Lvl" Content="Level" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" />
                         <CheckBox Name="RC_Foc_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="6" Grid.RowSpan="1" Checked="RC_Foc_CB_Checked" Unchecked="RC_Foc_CB_Unchecked"/>
                     </Grid>
@@ -151,7 +151,7 @@
                         <CheckBox Name="MC3_WBT_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="5" Grid.RowSpan="1" Checked="MC3_WBT_CB_Checked" Unchecked="MC3_WBT_CB_Unchecked"/>
                         <!--Focus-->
                         <Label Content="Focus" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
-                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC3_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" ValueChanged="MC3_Foc_Sl_ValueChanged"/>
+                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC3_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
                         <Label Name="MC3_Foc_Lvl" Content="Level" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" />
                         <CheckBox Name="MC3_Foc_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="6" Grid.RowSpan="1" Checked="MC3_Foc_CB_Checked" Unchecked="MC3_Foc_CB_Unchecked"/>
                     </Grid>
@@ -201,7 +201,7 @@
                         <CheckBox Name="MC4_WBT_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="5" Grid.RowSpan="1" Checked="MC4_WBT_CB_Checked" Unchecked="MC4_WBT_CB_Unchecked"/>
                         <!--Focus-->
                         <Label Content="Focus" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
-                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC4_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" ValueChanged="MC4_Foc_Sl_ValueChanged"/>
+                        <Slider TickFrequency="17" IsSnapToTickEnabled="True" Name="MC4_Foc_Sl" Height="30" Width="250" Minimum="0" Maximum="255" VerticalAlignment="Bottom" HorizontalAlignment="Left" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1"/>
                         <Label Name="MC4_Foc_Lvl" Content="Level" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" Grid.Row="6" Grid.RowSpan="1" />
                         <CheckBox Name="MC4_Foc_CB" Content="Auto" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="1" Grid.Row="6" Grid.RowSpan="1" Checked="MC4_Foc_CB_Checked" Unchecked="MC4_Foc_CB_Unchecked"/>
                     </Grid>
