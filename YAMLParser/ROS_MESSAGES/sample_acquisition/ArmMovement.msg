@@ -1,12 +1,9 @@
-bool position
-bool velocity
-float64 pan_motor_position
-float64 tilt_motor_position
-float64 cable_motor_position
+# ArmMovement.msg
+# [ml] Message type for controlling the arm and reporting arm status.
+
+bool gripper_open
+
+# Each of the following has a range of [-1,1]
 float64 pan_motor_velocity
 float64 tilt_motor_velocity
-float64 cable_motor_velocity
-bool pan_at_max
-bool tilt_at_max
-bool cable_at_max
 

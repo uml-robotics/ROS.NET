@@ -115,7 +115,7 @@ namespace WpfApplication1
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    armGauge.startListening(nh);
+                    //armGauge.startListening(nh);
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
                 }));
@@ -253,12 +253,9 @@ namespace WpfApplication1
 
                 am.ArmMovement armmove = new am.ArmMovement();
 
-                armmove.velocity = true;
-                armmove.position = false;
-
                 armmove.pan_motor_velocity = right_x;
                 armmove.tilt_motor_velocity = right_y;
-                armmove.cable_motor_velocity = right_trigger;
+                armmove.gripper_open = (right_trigger >= 0.5);
 
                 if (armPub != null)
                     armPub.publish(armmove);
