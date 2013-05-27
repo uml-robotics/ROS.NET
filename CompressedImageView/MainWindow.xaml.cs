@@ -29,7 +29,6 @@ using sm = Messages.sensor_msgs;
 using Messages.rock_publisher;
 using System.IO;
 using am = Messages.sample_acquisition;
-using CameraSlidersUC;
 
 // for threading
 using System.Windows.Threading;
@@ -47,10 +46,9 @@ namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
-        CameraSlidersUC.CSUC obj = new CameraSlidersUC.CSUC();
-        //checks is rocks restored
-        bool rocks_restored = false;
+        TiltSliderUC.TSUC tilt = new TiltSliderUC.TSUC();
 
+        private Publisher<m.Int32> tilt_pub;
         // controller
         GamePadState currentState;
 
@@ -122,7 +120,8 @@ namespace WpfApplication1
 
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
-                armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
+                armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);        
+                tilt_pub = nh.advertise<m.Int32>("/camera1/tilt", 1);
 
 
                 new Thread(() =>
@@ -275,9 +274,8 @@ namespace WpfApplication1
         // when MainCameraControl tabs are selected
         private void MainCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            obj.MainCameraSliderTabControl.SetValue(TabControl.SelectedIndexProperty, MainCameraTabControl.SelectedIndex);
-
             maincameramask = (byte)Math.Round(Math.Pow(2.0, MainCameraTabControl.SelectedIndex));
+
 
             //enter ADR?
             if (MainCameraTabControl.SelectedIndex == back_cam)
@@ -342,16 +340,25 @@ namespace WpfApplication1
                         }
                         break;
                     case Buttons.DPadDown: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Down, true); break;
+
                     case Buttons.DPadUp: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Up, true); break;
+
                     case Buttons.DPadLeft: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Left, true); break;
                     case Buttons.DPadRight: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Right, true); break;
                     case Buttons.RightStick: RightStickButton(); break;
+                    case Buttons.RightShoulder: tilt_change(1); break;
+                    case Buttons.LeftShoulder: tilt_change(0); break;
                 }
             }
             else
                 knownToBeDown.Remove(b);
         }
 
+        public void tilt_change(int i)
+        {
+            if (i == 1 && Tilt_Slider.Value < 36000) Tilt_Slider.Value += 3600;
+            if (i == 0 && Tilt_Slider.Value > -36000) Tilt_Slider.Value += -3600;
+        }
         // right stick function; reset timer
         public void RightStickButton()
         {
@@ -380,6 +387,13 @@ namespace WpfApplication1
                     TimerTextBlock.Foreground = Brushes.Black;
                 }
             }
+        }
+
+        private void Tilt_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int tilt = (int)Tilt_Slider.Value;
+            Tilt_Lvl.Content = tilt.ToString();
+            if (tilt_pub != null) tilt_pub.publish(new Int32 { data = tilt });
         }
     }
 

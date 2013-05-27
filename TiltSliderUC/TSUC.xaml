@@ -8,8 +8,8 @@
     <Border BorderBrush="Black" BorderThickness="1">
         <Grid Height="300">
             <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
-            <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />
-            <Label  FontSize="16" Content="Level" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+            <Slider x:FieldModifier="public" Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />
+            <Label x:FieldModifier="public" FontSize="16" Content="Level" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
         </Grid>
     </Border>
 </UserControl>

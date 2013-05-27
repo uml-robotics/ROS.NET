@@ -30,7 +30,7 @@
                     c:CompressedImageControl.TopicName="/camera0/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage0">                
                 </c:CompressedImageControl>
-            </TabItem>            
+            </TabItem>
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
                 <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
                 <c:CompressedImageControl 
@@ -62,7 +62,7 @@
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
             <rock:RockCounter Name="rockCounter" Canvas.Left="1132" Canvas.Top="933" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
-            <TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />
+            <!--<TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />-->
         </Canvas>
         
         <!-- BEGIN sub camera windows -->
@@ -91,71 +91,13 @@
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
         <!-- END user control interfaces -->
-         <!--BEGIN rock counter 
-        <Canvas VerticalAlignment="Bottom">
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="RedRock" Stroke="White" StrokeThickness="4" VerticalAlignment="Bottom" Width="50" Margin="826,0,1022,0" Fill="Red"/>
 
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="842,0,1038,0" Name="RedCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="842,0,1038,0" Name="RedCount" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="White"/>
-        
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="OrangeRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="876,0,972,0" Fill="Orange"/>
-
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="892,0,988,0" Name="OrangeCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="892,0,988,0" Name="OrangeCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-        
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="YellowRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="926,0,922,0" Fill="Yellow"/>
-
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="942,0,938,0" Name="YellowCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="942,0,938,0" Name="YellowCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-        
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="GreenRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="976,0,872,0" Fill="Green"/>
-
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="992,0,888,0" Name="GreenCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="992,0,888,0" Name="GreenCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-        
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="BlueRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="1026,0,822,0" Fill="Blue"/>
-
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="1042,0,838,0" Name="BlueCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="1042,0,838,0" Name="BlueCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-        
-        <Rectangle Height="50" HorizontalAlignment="Center" Name="PurpleRock" Stroke="Black" VerticalAlignment="Bottom" Width="50" Margin="1076,0,772,0" Fill="Purple"/>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="1092,0,788,0" Name="PurpleCountShadow" Text="0" VerticalAlignment="Bottom"  FontSize="35" Foreground="Black">
-            <TextBlock.Effect>
-            <BlurEffect Radius="2.0" KernelType="Box"/>
-            </TextBlock.Effect>
-        </TextBlock>
-        <TextBlock Height="50" HorizontalAlignment="Center" Margin="1092,0,788,0" Name="PurpleCount" Text="0" VerticalAlignment="Bottom" FontSize="35" Foreground="White"/>
-
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="840,0,1036,50" Name="RedTextBlock" Text="Red" VerticalAlignment="Bottom" FontWeight="UltraBold"/>
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="881,0,977,50" Name="OrangeTextBlock" Text="Orange" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="934,0,930,50" Name="YellowTextBlock" Text="Yellow" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="985,0,881,50" Name="GreenTextBlock" Text="Green" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="1040,0,836,50" Name="BlueTextBlock" Text="Blue" VerticalAlignment="Bottom" />
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="1084,0,780,50" Name="PurpleTextBlock" Text="Purple" VerticalAlignment="Bottom" />
-        </Canvas>
-         BEGIN rock counter -->
-
-
-
+        <Border BorderBrush="Black" BorderThickness="1">
+            <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
+                <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+                <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged"/>
+                <Label FontSize="16" Content="Level" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
