@@ -35,9 +35,10 @@ namespace CameraSlidersUC
         public string topicIn, topicOut;
         private int slider_default = -1;
         private bool inited;
-        public SliderStuff(NodeHandle nh, int cameraNumber, Slider s, Label l)
+        public SliderStuff(NodeHandle nh, int cameraNumber, string param, Slider s, Label l)
         {
-            topicOut="/camera"+cameraNumber+"/";
+            topicOut="/camera"+cameraNumber+"/"+param;
+            Console.WriteLine("Trying to make a slider for: " + topicOut);
             topicIn=topicOut+"_info";
             sub = nh.subscribe<m.Int32>(topicIn, 1, callback);
             pub = nh.advertise<m.Int32>(topicOut, 1);
@@ -111,7 +112,7 @@ namespace CameraSlidersUC
                     {
                         for (int j = 0; j < sliders[i].Length; j++)
                         {
-                            SUBS[i][j] = new SliderStuff(node, i, sliders[i][j], labels[i][j]);
+                            SUBS[i][j] = new SliderStuff(node, i, info[j],sliders[i][j], labels[i][j]);
                         }
                     }
                     while (!ROS.shutting_down)
