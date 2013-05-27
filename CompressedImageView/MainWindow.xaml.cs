@@ -382,11 +382,28 @@ namespace WpfApplication1
             }
         }
 
+        //
+        // User recalibration box-drawing starts here
+        //
         System.Windows.Point mouseDownPoint;
         System.Windows.Point mousePos;
         System.Windows.Shapes.Rectangle mouseBox;
-        bool leftButtonDown;
-        bool leftButtonDownInBounds;
+        bool leftButtonDown = false;
+        bool leftButtonDownInBounds = false;
+
+        private void PublishRecalibration(object sender)
+        {
+            // what do
+            Publisher<Messages.rock_publisher.recalibrateMsg> recalPub = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/recalibration", 1);
+            recalibrateMsg theMsg = new recalibrateMsg();
+            theMsg.data.cameraID = whichIsIt(sender);
+            theMsg.data.width = (int) mouseBox.Width;
+            theMsg.data.height = (int) mouseBox.Height;
+            theMsg.data.x = (int) mouseBox.GetValue(Canvas.LeftProperty);
+            theMsg.data.y = (int) mouseBox.GetValue(Canvas.TopProperty);
+            // theMsg.data.color = what;
+            theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
+        }
 
         private int whichIsIt(object sender)
         {
@@ -396,6 +413,41 @@ namespace WpfApplication1
                 if (mainImages[i] == c)
                     return i;
             return -1;
+        }
+
+        private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
+        {
+                mouseBox = new System.Windows.Shapes.Rectangle()
+                {
+                    Width = Math.Abs(mousePosition.X - mouseDownPoint.X),
+                    Height = Math.Abs(mousePosition.Y - mouseDownPoint.Y),
+                    Stroke = Brushes.DarkBlue,
+                    StrokeThickness = 3,
+                    Opacity = 0.5
+                };
+                mouseBox.SetValue(Canvas.LeftProperty, (mousePosition.X < mouseDownPoint.X) ? mousePosition.X : mouseDownPoint.X);
+                mouseBox.SetValue(Canvas.TopProperty, (mousePosition.Y < mouseDownPoint.Y) ? mousePosition.Y : mouseDownPoint.Y);
+
+                // keep refeshing the image of the box
+                switch (whichImage)
+                {
+                    case 0:
+                        camRect0.Children.Clear();
+                        camRect0.Children.Add(mouseBox);
+                        break;
+                    case 1:
+                        camRect1.Children.Clear();
+                        camRect1.Children.Add(mouseBox);
+                        break;
+                    case 2:
+                        camRect2.Children.Clear();
+                        camRect2.Children.Add(mouseBox);
+                        break;
+                    case 3:
+                        camRect3.Children.Clear();
+                        camRect3.Children.Add(mouseBox);
+                        break;
+                }
         }
 
         private void UserControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -418,9 +470,9 @@ namespace WpfApplication1
         private System.Windows.Point ForceMousePositionToBeInBounds(System.Windows.Point mouse_pos)
         {
             if (mouse_pos.X < 0) mouse_pos.X = 0;
-            if (mouse_pos.X > 874) mouse_pos.X = 873;
+            if (mouse_pos.X > 874) mouse_pos.X = 864; // so the box won't clip with the border
             if (mouse_pos.Y < 0) mouse_pos.Y = 0;
-            if (mouse_pos.Y > 518) mouse_pos.Y = 517;
+            if (mouse_pos.Y > 518) mouse_pos.Y = 488; // same as above
             return mouse_pos;
         }
 
@@ -431,19 +483,11 @@ namespace WpfApplication1
             {
                 leftButtonDownInBounds = false;
                 mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
-                mouseBox = new System.Windows.Shapes.Rectangle()
-                {
-                    Width = Math.Abs(mousePos.X - mouseDownPoint.X),
-                    Height = Math.Abs(mousePos.Y - mouseDownPoint.Y),
-                    Stroke = Brushes.Yellow,
-                    StrokeThickness = 3,
-                    Opacity = 0.5
-                };
-                mouseBox.SetValue(Canvas.LeftProperty, (mousePos.X < mouseDownPoint.X) ? mousePos.X : mouseDownPoint.X);
-                mouseBox.SetValue(Canvas.TopProperty, (mousePos.Y < mouseDownPoint.Y) ? mousePos.Y : mouseDownPoint.Y);
-                camRect1.Children.Clear();
-                camRect1.Children.Add(mouseBox);
+                DrawUserDrawnBox(whichIsIt(sender), mousePos);
+                // create/send the message
+                // PublishRecalibration(sender);
             }
+            mainImages[whichIsIt(sender)].ReleaseMouseCapture();
         }
 
         private void UserControl_MouseMove(object sender, MouseEventArgs e)
@@ -451,25 +495,30 @@ namespace WpfApplication1
             if (leftButtonDown && leftButtonDownInBounds)
             {
                 mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
-                mouseBox = new System.Windows.Shapes.Rectangle()
-                {
-                    Width = Math.Abs(mousePos.X - mouseDownPoint.X),
-                    Height = Math.Abs(mousePos.Y - mouseDownPoint.Y),
-                    Stroke = Brushes.Yellow,
-                    StrokeThickness = 3,
-                    Opacity = 0.5
-                };
-                mouseBox.SetValue(Canvas.LeftProperty, (mousePos.X < mouseDownPoint.X) ? mousePos.X : mouseDownPoint.X);
-                mouseBox.SetValue(Canvas.TopProperty, (mousePos.Y < mouseDownPoint.Y) ? mousePos.Y : mouseDownPoint.Y);
-                camRect1.Children.Clear();
-                camRect1.Children.Add(mouseBox);
+                DrawUserDrawnBox(whichIsIt(sender), mousePos);
             }
         }
 
         private void UserControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            camRect1.Children.Clear();
+            switch (whichIsIt(sender))
+            {
+                case 0:
+                    camRect0.Children.Clear();
+                    break;
+                case 1:
+                    camRect1.Children.Clear();
+                    break;
+                case 2:
+                    camRect2.Children.Clear();
+                    break;
+                case 3:
+                    camRect3.Children.Clear();
+                    break;
+            }
         }
+
+
         
     }
 
