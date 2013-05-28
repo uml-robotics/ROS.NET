@@ -42,24 +42,23 @@ using System.Timers;
 
 #endregion
 
+
 namespace WpfApplication1
 {
     public partial class MainWindow : Window
     {
         TiltSliderUC.TSUC tilt = new TiltSliderUC.TSUC();
 
-        private Publisher<m.Int32> tilt_pub;
+        int[] tilt_prev = new int[4] {0,0,0,0};
+        Publisher<m.Bool> mast_pub;
+        Publisher<m.Int32>[] tilt_pub;
+
+        Publisher<m.Bool> ArmON;
+
         // controller
         GamePadState currentState;
-
         // nodes
         NodeHandle nh;
-
-        // timer near end, timer ended
-        bool end, near;
-
-        // initialize timer values; 1 full hour
-        int hours = 1, minutes = 0, seconds = 0;
 
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
@@ -117,11 +116,18 @@ namespace WpfApplication1
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
                 }));
-
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
-                armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);        
-                tilt_pub = nh.advertise<m.Int32>("/camera1/tilt", 1);
+                armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
+                ArmON = nh.advertise<m.Bool>("arm/on", 1);
+                mast_pub = nh.advertise<m.Bool>("raise_camera_mast", 1);
+
+                tilt_pub = new Publisher<m.Int32>[4];
+
+                for (int i = 0; i < 4; i++)
+                {
+                    tilt_pub[i] = nh.advertise<m.Int32>("camera" + i + "/tilt", 1);
+                }
 
 
                 new Thread(() =>
@@ -182,29 +188,6 @@ namespace WpfApplication1
             base.OnClosed(e);
         }
 
-        // timer delegate
-        public void Timer(object dontcare, EventArgs alsodontcare)
-        {
-            // display timer
-            TimerTextBlock.Text = "Elapsed: " + hours.ToString("D2") + ':' + minutes.ToString("D2") + ':' + seconds.ToString("D2");
-
-            // change timer textblock to yellow when near = true;
-            if (near == true)
-                TimerTextBlock.Foreground = Brushes.Yellow;
-
-            // change timer textblock to red when end = true
-            if (end == true)
-            {
-                TimerTextBlock.Foreground = Brushes.Red;
-
-                // display end of time in timer textblock
-                TimerStatusTextBlock.Text = "END OF TIME";
-                // display this in timer status textblock when end is true
-                TimerTextBlock.Text = "Press Right Stick to restart";
-                TimerStatusTextBlock.Foreground = Brushes.Red;
-            }
-        }
-
         // controller link dispatcher
         public void Link(object sender, EventArgs dontcare)
         {
@@ -241,6 +224,12 @@ namespace WpfApplication1
                 double right_x = -1 * currentState.ThumbSticks.Right.X; 
                 double right_trigger = currentState.Triggers.Right;
 
+                if (Math.Abs(right_y) > .1 || Math.Abs(right_x) > .1)
+                {
+                    ArmON.publish(new m.Bool() { data = true });
+                    Arm_Engaged.Content = "Arm Engaged";
+                }
+
                 //if trigger is not pressed, send close signal ( -1 ).  Th goal is to have the gripper
                 // going to a close state when the right trigger is not being pressed.
                 if (right_trigger == 0)
@@ -275,7 +264,9 @@ namespace WpfApplication1
         private void MainCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             maincameramask = (byte)Math.Round(Math.Pow(2.0, MainCameraTabControl.SelectedIndex));
+            Console.WriteLine("************************Camera Selected: " + MainCameraTabControl.SelectedIndex.ToString() + "********************************");
 
+            Tilt_Slider.Value = tilt_prev[MainCameraTabControl.SelectedIndex];
 
             //enter ADR?
             if (MainCameraTabControl.SelectedIndex == back_cam)
@@ -319,26 +310,8 @@ namespace WpfApplication1
 
                 switch (b)
                 {
-                    case Buttons.Start:
-                        if (end == false)
-                        {
-                            Console.WriteLine("Start timer");
-                            // display that timer is ticking
-                            TimerStatusTextBlock.Text = "Ticking...";
-                            // display in blue
-                            TimerStatusTextBlock.Foreground = Brushes.Blue;
-                        }
-                        break;
-                    case Buttons.Back:
-                        if (end == false)
-                        {
-                            Console.WriteLine("Pause timer");
-                            // display that timer is paused
-                            TimerStatusTextBlock.Text = "Paused";
-                            // display in yellow
-                            TimerStatusTextBlock.Foreground = Brushes.Yellow;
-                        }
-                        break;
+                    case Buttons.Start: break;
+                    case Buttons.Back:  break;
                     case Buttons.DPadDown: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Down, true); break;
 
                     case Buttons.DPadUp: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Up, true); break;
@@ -359,41 +332,31 @@ namespace WpfApplication1
             if (i == 1 && Tilt_Slider.Value < 36000) Tilt_Slider.Value += 3600;
             if (i == 0 && Tilt_Slider.Value > -36000) Tilt_Slider.Value += -3600;
         }
+
         // right stick function; reset timer
         public void RightStickButton()
         {
             // if right stick is clicked/pressed
             if (currentState.Buttons.RightStick == ButtonState.Pressed)
             {
-                // if timer is at the end
-                if (end == true)
-                {
-                    Console.WriteLine("Right stick pressed");
-                    // reset hours to one
-                    hours = 1;
-                    // reset minutes to 0
-                    minutes = 0;
-                    // reset seconds to 0
-                    seconds = 0;
-                    // reset near to false
-                    near = false;
-                    // reset end to false
-                    end = false;
-                    // display timer info in green 
-                    TimerStatusTextBlock.Foreground = Brushes.Green;
-                    // display timer info as ready
-                    TimerStatusTextBlock.Text = "Ready";
-                    // display timer in black
-                    TimerTextBlock.Foreground = Brushes.Black;
-                }
+                ArmON.publish(new m.Bool { data = false });
+                Arm_Engaged.Content = "Arm NOT Engaged";
+                Thread.SpinWait(10);
             }
         }
 
         private void Tilt_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int tilt = (int)Tilt_Slider.Value;
+            tilt_prev[MainCameraTabControl.SelectedIndex] = tilt;
             Tilt_Lvl.Content = tilt.ToString();
-            if (tilt_pub != null) tilt_pub.publish(new Int32 { data = tilt });
+            if (tilt_pub != null) tilt_pub[MainCameraTabControl.SelectedIndex].publish(new Int32 { data = tilt });
+        }
+
+        private void Raise_Mast_Click(object sender, RoutedEventArgs e)
+        {
+            mast_pub.publish(new m.Bool() { data = true });
+            Raise_mast.Visibility = Visibility.Hidden;
         }
     }
 

@@ -17,8 +17,7 @@
         
         <!-- BEGIN status blocks -->
         <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,20,0,0" Name="TimerStatusTextBlock" Text="Timer Status Text Block"  Foreground="Green" VerticalAlignment="Top"/>
-        <TextBlock Height="30" HorizontalAlignment="Center" Margin="0,40,0,0" Name="TimerTextBlock" Text="Timer Text Block" VerticalAlignment="Top" FontSize="20" />
+        <Label Name="Arm_Engaged" Content="Arm NOT Engaged" Foreground="Red" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0" Height="auto" Width="auto"/>
         <!-- END status blocks -->
 
 
@@ -92,12 +91,11 @@
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
         <!-- END user control interfaces -->
 
-        <Border BorderBrush="Black" BorderThickness="1">
-            <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
-                <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
-                <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged"/>
-                <Label FontSize="16" Content="Level" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
-            </Grid>
-        </Border>
+        <Button Name="Raise_mast" Width="100" Content="Raise Mast" Height="30" VerticalAlignment="Top" Margin="1550,350,0,0" Click="Raise_Mast_Click"/>
+        <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
+            <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+            <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged"/>
+            <Label FontSize="16" Content="0" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
     </Grid>
 </Window>
