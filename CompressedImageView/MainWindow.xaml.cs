@@ -66,6 +66,10 @@ namespace WpfApplication1
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
         Publisher<am.ArmMovement> armPub;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub0;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub1;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub2;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub3;
 
         TabItem[] mainCameras, subCameras;
         public ROS_ImageWPF.CompressedImageControl[] mainImages;
@@ -123,6 +127,10 @@ namespace WpfApplication1
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
                 armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
+                recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 1);
+                recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 1);
+                recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 1);
+                recalPub3 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera3/recalibrate", 1);
 
                 new Thread(() =>
                 {
@@ -391,20 +399,6 @@ namespace WpfApplication1
         bool leftButtonDown = false;
         bool leftButtonDownInBounds = false;
 
-        private void PublishRecalibration(object sender)
-        {
-            // what do
-            Publisher<Messages.rock_publisher.recalibrateMsg> recalPub = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/recalibration", 1);
-            recalibrateMsg theMsg = new recalibrateMsg();
-            theMsg.data.cameraID = whichIsIt(sender);
-            theMsg.data.width = (int) mouseBox.Width;
-            theMsg.data.height = (int) mouseBox.Height;
-            theMsg.data.x = (int) mouseBox.GetValue(Canvas.LeftProperty);
-            theMsg.data.y = (int) mouseBox.GetValue(Canvas.TopProperty);
-            // theMsg.data.color = what;
-            theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
-        }
-
         private int whichIsIt(object sender)
         {
             ROS_ImageWPF.CompressedImageControl c = (sender as ROS_ImageWPF.CompressedImageControl);
@@ -413,6 +407,41 @@ namespace WpfApplication1
                 if (mainImages[i] == c)
                     return i;
             return -1;
+        }
+
+        private void PublishRecalibration(object sender)
+        {
+            // Publisher<Messages.rock_publisher.recalibrateMsg> recalPub = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/recalibration", 1);
+            recalibrateMsg theMsg = new recalibrateMsg();
+            theMsg.data = new imgData();
+            theMsg.img = new sm.CompressedImage();
+            theMsg.data.cameraID = whichIsIt(sender);
+            theMsg.data.width = (int)mouseBox.Width;
+            theMsg.data.height = (int)mouseBox.Height;
+            // theMsg.data.x = mouseBox.GetValue(Canvas.GetLeft(camImage0));
+            // theMsg.data.y = (int) mouseBox.GetValue(Canvas.TopProperty);
+            theMsg.data.color = new m.ColorRGBA();
+            theMsg.data.color.r = 1;
+            theMsg.data.color.g = 1;
+            theMsg.data.color.b = 1;
+            theMsg.data.color.a = 1;
+            //theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
+            switch (whichIsIt(sender))
+            {
+                case 0:
+                    recalPub0.publish(theMsg);
+                    break;
+                case 1:
+                    recalPub1.publish(theMsg);
+                    break;
+                case 2:
+                    recalPub2.publish(theMsg);
+                    break;
+                case 3:
+                    recalPub3.publish(theMsg);
+                    break;
+            }
+            ROS.spinOnce(nh);
         }
 
         private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
@@ -485,7 +514,7 @@ namespace WpfApplication1
                 mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
                 DrawUserDrawnBox(whichIsIt(sender), mousePos);
                 // create/send the message
-                // PublishRecalibration(sender);
+                PublishRecalibration(sender);
             }
             mainImages[whichIsIt(sender)].ReleaseMouseCapture();
         }
