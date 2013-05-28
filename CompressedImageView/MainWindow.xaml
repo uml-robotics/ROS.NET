@@ -25,28 +25,28 @@
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
                 <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera0/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera0_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage0">                
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
                 <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
                 <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera1/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera1_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage1">
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
                 <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
                 <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera2/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera2_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage2" >
                 </c:CompressedImageControl>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
                 <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
                 <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera3/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera3_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
                 </c:CompressedImageControl>
             </TabItem>
