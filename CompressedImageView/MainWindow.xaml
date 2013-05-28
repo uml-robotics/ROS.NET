@@ -23,32 +23,44 @@
         <!-- BEGIN main camera windows -->
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
-                <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
                     c:CompressedImageControl.TopicName="/camera0_stream/republish/image_raw/compressed"
-                    x:FieldModifier="public" x:Name="camImage0">                
-                </c:CompressedImageControl>
+                    x:FieldModifier="public" x:Name="camImage0">
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect0" />
+                </Grid>
             </TabItem>
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
-                <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
                     c:CompressedImageControl.TopicName="/camera1_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage1">
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect1" />
+                </Grid>
             </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
-                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
                     c:CompressedImageControl.TopicName="/camera2_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage2" >
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect2" />
+                </Grid>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
-                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
                     c:CompressedImageControl.TopicName="/camera3_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect3" />
+                </Grid>
             </TabItem>
         </TabControl>
         <!-- END main camera windows -->

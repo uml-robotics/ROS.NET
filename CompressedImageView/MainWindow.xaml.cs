@@ -63,6 +63,10 @@ namespace WpfApplication1
         Publisher<m.Byte> multiplexPub;
         Publisher<gm.Twist> velPub;
         Publisher<am.ArmMovement> armPub;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub0;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub1;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub2;
+        Publisher<Messages.rock_publisher.recalibrateMsg> recalPub3;
 
         TabItem[] mainCameras, subCameras;
         public ROS_ImageWPF.CompressedImageControl[] mainImages;
@@ -123,6 +127,10 @@ namespace WpfApplication1
                 mast_pub = nh.advertise<m.Bool>("raise_camera_mast", 1);
 
                 tilt_pub = new Publisher<m.Int32>[4];
+                recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 1);
+                recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 1);
+                recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 1);
+                recalPub3 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera3/recalibrate", 1);
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -143,12 +151,10 @@ namespace WpfApplication1
                 {
                     mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
                     subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
-                    mainImages = new ROS_ImageWPF.CompressedImageControl[mainCameras.Length];
-                    subImages = new ROS_ImageWPF.SlaveImage[subCameras.Length];
+                    mainImages = new ROS_ImageWPF.CompressedImageControl[] { camImage0, camImage1, camImage2, camImage3 };
+                    subImages = new ROS_ImageWPF.SlaveImage[] { camImageSlave0, camImageSlave1, camImageSlave2, camImageSlave3 };
                     for (int i = 0; i < mainCameras.Length; i++)
                     {
-                        mainImages[i] = (mainCameras[i].Content as ROS_ImageWPF.CompressedImageControl);
-                        subImages[i] = (subCameras[i].Content as ROS_ImageWPF.SlaveImage);
                         mainImages[i].AddSlave(subImages[i]);
                     }
                     subCameras[1].Focus();
@@ -358,6 +364,166 @@ namespace WpfApplication1
             mast_pub.publish(new m.Bool() { data = true });
             Raise_mast.Visibility = Visibility.Hidden;
         }
+
+        //
+        // User recalibration box-drawing starts here
+        //
+        System.Windows.Point mouseDownPoint;
+        System.Windows.Point mousePos;
+        System.Windows.Shapes.Rectangle mouseBox;
+        bool leftButtonDown = false;
+        bool leftButtonDownInBounds = false;
+
+        private int whichIsIt(object sender)
+        {
+            ROS_ImageWPF.CompressedImageControl c = (sender as ROS_ImageWPF.CompressedImageControl);
+            if (c == null) return -1;
+            for (int i = 0; i < mainImages.Length; i++)
+                if (mainImages[i] == c)
+                    return i;
+            return -1;
+        }
+
+        private void PublishRecalibration(object sender)
+        {
+            // Publisher<Messages.rock_publisher.recalibrateMsg> recalPub = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/recalibration", 1);
+            recalibrateMsg theMsg = new recalibrateMsg();
+            theMsg.data = new imgData();
+            theMsg.img = new sm.CompressedImage();
+            theMsg.data.cameraID = whichIsIt(sender);
+            theMsg.data.width = (int)mouseBox.Width;
+            theMsg.data.height = (int)mouseBox.Height;
+            // theMsg.data.x = mouseBox.GetValue(Canvas.GetLeft(camImage0));
+            // theMsg.data.y = (int) mouseBox.GetValue(Canvas.TopProperty);
+            theMsg.data.color = new m.ColorRGBA();
+            theMsg.data.color.r = 1;
+            theMsg.data.color.g = 1;
+            theMsg.data.color.b = 1;
+            theMsg.data.color.a = 1;
+            //theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
+            switch (whichIsIt(sender))
+            {
+                case 0:
+                    recalPub0.publish(theMsg);
+                    break;
+                case 1:
+                    recalPub1.publish(theMsg);
+                    break;
+                case 2:
+                    recalPub2.publish(theMsg);
+                    break;
+                case 3:
+                    recalPub3.publish(theMsg);
+                    break;
+            }
+            ROS.spinOnce(nh);
+        }
+
+        private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
+        {
+                mouseBox = new System.Windows.Shapes.Rectangle()
+                {
+                    Width = Math.Abs(mousePosition.X - mouseDownPoint.X),
+                    Height = Math.Abs(mousePosition.Y - mouseDownPoint.Y),
+                    Stroke = Brushes.DarkBlue,
+                    StrokeThickness = 3,
+                    Opacity = 0.5
+                };
+                mouseBox.SetValue(Canvas.LeftProperty, (mousePosition.X < mouseDownPoint.X) ? mousePosition.X : mouseDownPoint.X);
+                mouseBox.SetValue(Canvas.TopProperty, (mousePosition.Y < mouseDownPoint.Y) ? mousePosition.Y : mouseDownPoint.Y);
+
+                // keep refeshing the image of the box
+                switch (whichImage)
+                {
+                    case 0:
+                        camRect0.Children.Clear();
+                        camRect0.Children.Add(mouseBox);
+                        break;
+                    case 1:
+                        camRect1.Children.Clear();
+                        camRect1.Children.Add(mouseBox);
+                        break;
+                    case 2:
+                        camRect2.Children.Clear();
+                        camRect2.Children.Add(mouseBox);
+                        break;
+                    case 3:
+                        camRect3.Children.Clear();
+                        camRect3.Children.Add(mouseBox);
+                        break;
+                }
+        }
+
+        private void UserControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            int cam = whichIsIt(sender);
+            if (cam >= 0)
+            {
+                leftButtonDown = true;
+                System.Windows.Point mouse_pos = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+                if (mouse_pos.X > 0 && mouse_pos.X < 874 && mouse_pos.Y > 0 && mouse_pos.Y < 518)
+                {
+                    leftButtonDownInBounds = true;
+                    mouseDownPoint = e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl);
+                    mainImages[cam].CaptureMouse();
+                }
+                else leftButtonDownInBounds = false;
+            }
+        }
+
+        private System.Windows.Point ForceMousePositionToBeInBounds(System.Windows.Point mouse_pos)
+        {
+            if (mouse_pos.X < 0) mouse_pos.X = 0;
+            if (mouse_pos.X > 874) mouse_pos.X = 864; // so the box won't clip with the border
+            if (mouse_pos.Y < 0) mouse_pos.Y = 0;
+            if (mouse_pos.Y > 518) mouse_pos.Y = 488; // same as above
+            return mouse_pos;
+        }
+
+        private void UserControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            leftButtonDown = false;
+            if (leftButtonDownInBounds)
+            {
+                leftButtonDownInBounds = false;
+                mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
+                DrawUserDrawnBox(whichIsIt(sender), mousePos);
+                // create/send the message
+                PublishRecalibration(sender);
+            }
+            mainImages[whichIsIt(sender)].ReleaseMouseCapture();
+        }
+
+        private void UserControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (leftButtonDown && leftButtonDownInBounds)
+            {
+                mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
+                DrawUserDrawnBox(whichIsIt(sender), mousePos);
+            }
+        }
+
+        private void UserControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            switch (whichIsIt(sender))
+            {
+                case 0:
+                    camRect0.Children.Clear();
+                    break;
+                case 1:
+                    camRect1.Children.Clear();
+                    break;
+                case 2:
+                    camRect2.Children.Clear();
+                    break;
+                case 3:
+                    camRect3.Children.Clear();
+                    break;
+            }
+        }
+
+
+        
     }
 
     // we get one of these helpers for each camera

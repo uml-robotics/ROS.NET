@@ -75,6 +75,7 @@ namespace ROS_ImageWPF
         private Thread waitforinit;
         private NodeHandle imagehandle;
         private Subscriber<sm.CompressedImage> imgsub;
+        public sm.CompressedImage latestFrame;
         private bool STOPIT;
         public void shutdown()
         {
@@ -156,6 +157,7 @@ namespace ROS_ImageWPF
                 imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                               {
                                                                                                                                   UpdateImage(i.data);
+                                                                                                                                  latestFrame = i;
                                                                                                                                   foreach (SlaveImage si in _slaves)
                                                                                                                                       si.UpdateImage(i.data);
                                                                                                                                   if (ImageReceivedEvent != null)
@@ -164,7 +166,7 @@ namespace ROS_ImageWPF
             }
         }
 
-        #region variables and such
+         #region variables and such
 
         /// <summary>
         ///   54 byte bitmap file header to be stuck on the front of every byte array from the blimp
