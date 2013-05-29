@@ -162,8 +162,6 @@ namespace WpfApplication1
                     }
                 }));
 
-                // drawing boxes ????
-                int x = 0, y = 0;
                 while (ROS.ok)
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
@@ -172,9 +170,6 @@ namespace WpfApplication1
                         {
                             detectors[i].churnAndBurn();
                         }
-                        DateTime dt = DateTime.Now;
-                        if (!detectors[0].boxesOnScreen.ContainsKey(dt))
-                            detectors[0].boxesOnScreen.Add(dt, mainImages[0].DrawABox(new System.Windows.Point((x++) % (int)Math.Round(mainImages[0].ActualWidth), (y++) % (int)Math.Round(mainImages[0].ActualHeight)), 50, 50, mainImages[0].ActualWidth, mainImages[0].ActualHeight));
                     }));
                     Thread.Sleep(10);
                 }
