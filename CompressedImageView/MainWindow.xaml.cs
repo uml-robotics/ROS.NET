@@ -556,22 +556,20 @@ namespace WpfApplication1
                 // if it's on this helper's camera, add it to the list of boxes on screen, and draw the box on the correct window
                 if (box.cameraID == cameraNumber) // && cameraNumber is selected as Primary
                 {
-			 primary.Dispatcher.BeginInvoke(new Action(() =>
-                         {
+			        primary.Dispatcher.Invoke(new Action(() =>
+                    {
                               if (!boxesOnScreen.ContainsKey(dt))	                      
                                   boxesOnScreen.Add(dt, primary.DrawABox(tl, box.width, box.height, 864, 480));
-        	         }));
-
+        	        }));
+                    secondary.Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (!boxesOnScreen.ContainsKey(dt))
+                            boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480));
+                    }));
                 }
-                else if (box.cameraID == cameraNumber) // && cameraNumber is selected as Secondary
+                else
                 {
-                         secondary.Dispatcher.BeginInvoke(new Action(() =>
-                         {
-                              if (!boxesOnScreen.ContainsKey(dt))	                      
-                                  boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480));
-        	         }));
-
-
+                    Console.WriteLine("OFFSCREEN DETECTION ON CAMERA " + cameraNumber);
                 }
             }
         }
