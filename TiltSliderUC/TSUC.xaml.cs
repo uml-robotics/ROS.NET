@@ -18,10 +18,11 @@ using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
 using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
-using gm = Messages.geometry_msgs;
-using nm = Messages.nav_msgs;
-using sm = Messages.sensor_msgs;
+using System.Windows.Threading;
 using System.Threading;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 
 namespace TiltSliderUC
@@ -31,34 +32,67 @@ namespace TiltSliderUC
     /// </summary>
     public partial class TSUC : UserControl
     {
+        GamePadState state = GamePad.GetState(PlayerIndex.One);
+        DispatcherTimer updater;
+        public bool rs_pressed = false;
+        private Subscriber<m.Int32> sub;
         private Publisher<m.Int32> pub;
+        NodeHandle node;
         public TSUC()
         {
             InitializeComponent();
         }
 
-        public void startListening(NodeHandle node)
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            pub = node.advertise<m.Int32>("/tilt", 1000);
+            updater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            updater.Tick += Link;
+            updater.Start();
 
             new Thread(() =>
             {
+                while (!ROS.initialized)
+                {
+                    Thread.Sleep(200);
+                }
+                node = new NodeHandle();
+
+                sub = node.subscribe<m.Int32>("/camera1/tilt", 1, callback);
+                pub = node.advertise<m.Int32>("/camera1/tilt", 1);
+
                 while (!ROS.shutting_down)
                 {
                     ROS.spinOnce(node);
                     Thread.Sleep(100);
                 }
             }).Start();
-
         }
 
-        private void Tilt_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        public void Link(object sender, EventArgs dontcare)
+        {
+            if (state.Buttons.RightShoulder == ButtonState.Pressed)
+            {
+                Tilt_Slider.Value += 3600;
+            }
+            if (state.Buttons.LeftShoulder == ButtonState.Pressed)
+            {
+                Tilt_Slider.Value -= 3600;
+            }
+        }
+        private void callback(m.Int32 msg)
+        {
+
+            Console.WriteLine("Tilt: " + msg.data.ToString());
+        }
+
+
+       public void Tilt_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int tilt = (int)Tilt_Slider.Value;
             Tilt_Lvl.Content = tilt.ToString();
-
-            pub.publish(new Int32() { data = tilt });
+            if (pub != null) pub.publish(new Int32 { data = tilt });
 
         }
+
     }
 }
