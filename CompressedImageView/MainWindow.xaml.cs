@@ -420,7 +420,6 @@ namespace WpfApplication1
                 }
                 //ROS.spinOnce(nh);
             }));
-            Thread.Sleep(10);
         }
 
         #region drawing boxes with mouse
@@ -595,7 +594,6 @@ namespace WpfApplication1
             {
                 recalPub0.publish(MakeBogusRestoreMessage());
             }));
-            Thread.Sleep(10);
         }
 
         private void Button_Click_Restore1(object sender, RoutedEventArgs e)
@@ -604,7 +602,6 @@ namespace WpfApplication1
             {
                 recalPub1.publish(MakeBogusRestoreMessage());
             }));
-            Thread.Sleep(10);
         }
 
         private void Button_Click_Restore2(object sender, RoutedEventArgs e)
@@ -613,7 +610,6 @@ namespace WpfApplication1
             {
                 recalPub2.publish(MakeBogusRestoreMessage());
             }));
-            Thread.Sleep(10);
         }
 
         private void Button_Click_Restore3(object sender, RoutedEventArgs e)
@@ -622,7 +618,6 @@ namespace WpfApplication1
             {
                 recalPub3.publish(MakeBogusRestoreMessage());
             }));
-            Thread.Sleep(10);
         }
         #endregion
     }
