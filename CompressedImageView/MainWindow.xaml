@@ -16,45 +16,57 @@
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
         
         <!-- BEGIN status blocks -->
-        <TextBlock Height="20" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
-        <Label Name="Arm_Engaged" Content="Arm NOT Engaged" Foreground="Red" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0" Height="auto" Width="auto"/>
+        <TextBlock Height="auto" Width="auto" FontSize="16" HorizontalAlignment="Center" Margin="0,0,0,0" Name="LinkTextBlock" Text="Controller Link Status Text Block"  TextAlignment="Center" VerticalAlignment="Top"/>
+        <Label Name="Arm_Engaged" Content="Arm NOT Engaged" Foreground="Red" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0" Height="auto" Width="auto"/>
         <!-- END status blocks -->
-
 
         <!-- BEGIN main camera windows -->
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
-                <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera0/image_raw/compressed"
-                    x:FieldModifier="public" x:Name="camImage0">                
-                </c:CompressedImageControl>
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    c:CompressedImageControl.TopicName="/camera0_stream/republish/image_raw/compressed"
+                    x:FieldModifier="public" x:Name="camImage0">
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect0" />
+                </Grid>
             </TabItem>
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
-                <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera1/image_raw/compressed"
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    c:CompressedImageControl.TopicName="/camera1_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage1">
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect1" />
+                </Grid>
             </TabItem>
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
-                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera2/image_raw/compressed"
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    c:CompressedImageControl.TopicName="/camera2_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage2" >
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect2" />
+                </Grid>
             </TabItem>
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
-                <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                <c:CompressedImageControl 
-                    c:CompressedImageControl.TopicName="/camera3/image_raw/compressed"
+                <Grid>
+                    <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    c:CompressedImageControl.TopicName="/camera3_stream/republish/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
-                </c:CompressedImageControl>
+                    </c:CompressedImageControl>
+                    <Canvas Name="camRect3" />
+                </Grid>
             </TabItem>
         </TabControl>
         <!-- END main camera windows -->
         
         <Canvas>
+            <Button Width="500" Height="300" Name="Raise_mast" FontSize="32" Content="Raise Mast" Click="Raise_Mast_Click" Canvas.Left="695" Canvas.Top="196"></Button>
             <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1632" Canvas.Top="727" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" />
             <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="971" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
@@ -90,8 +102,7 @@
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
         <!-- END user control interfaces -->
-
-        <Button Name="Raise_mast" Width="100" Content="Raise Mast" Height="30" VerticalAlignment="Top" Margin="1550,350,0,0" Click="Raise_Mast_Click"/>
+        
         <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
             <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
             <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged"/>
