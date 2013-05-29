@@ -127,10 +127,10 @@ namespace WpfApplication1
                 mast_pub = nh.advertise<m.Bool>("raise_camera_mast", 1);
 
                 tilt_pub = new Publisher<m.Int32>[4];
-                recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 1);
-                recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 1);
-                recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 1);
-                recalPub3 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera3/recalibrate", 1);
+                recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 4);
+                recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 4);
+                recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 4);
+                recalPub3 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera3/recalibrate", 4);
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -361,13 +361,15 @@ namespace WpfApplication1
         }
 
         //
-        // User recalibration box-drawing starts here
+        // User recalibration starts here
         //
         System.Windows.Point mouseDownPoint;
         System.Windows.Point mousePos;
         System.Windows.Shapes.Rectangle mouseBox;
         bool leftButtonDown = false;
         bool leftButtonDownInBounds = false;
+        int boxColor = 0;
+        Brush brushColor = Brushes.Blue;
 
         private int whichIsIt(object sender)
         {
@@ -379,48 +381,56 @@ namespace WpfApplication1
             return -1;
         }
 
-        private void PublishRecalibration(object sender)
+        private void PublishRecalibration(int tab_index)
         {
-            // Publisher<Messages.rock_publisher.recalibrateMsg> recalPub = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/recalibration", 1);
-            recalibrateMsg theMsg = new recalibrateMsg();
-            theMsg.data = new imgData();
-            theMsg.img = new sm.CompressedImage();
-            theMsg.data.cameraID = whichIsIt(sender);
-            theMsg.data.width = (int)mouseBox.Width;
-            theMsg.data.height = (int)mouseBox.Height;
-            // theMsg.data.x = mouseBox.GetValue(Canvas.GetLeft(camImage0));
-            // theMsg.data.y = (int) mouseBox.GetValue(Canvas.TopProperty);
-            theMsg.data.color = new m.ColorRGBA();
-            theMsg.data.color.r = 1;
-            theMsg.data.color.g = 1;
-            theMsg.data.color.b = 1;
-            theMsg.data.color.a = 1;
-            //theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
-            switch (whichIsIt(sender))
+            Dispatcher.Invoke(new Action(() =>
             {
-                case 0:
-                    recalPub0.publish(theMsg);
-                    break;
-                case 1:
-                    recalPub1.publish(theMsg);
-                    break;
-                case 2:
-                    recalPub2.publish(theMsg);
-                    break;
-                case 3:
-                    recalPub3.publish(theMsg);
-                    break;
-            }
-            ROS.spinOnce(nh);
+                recalibrateMsg theMsg = new recalibrateMsg();
+                theMsg.data = new imgData();
+                theMsg.img = new sm.CompressedImage();
+                theMsg.data.cameraID = tab_index;
+                theMsg.data.width = (int)mouseBox.Width;
+                theMsg.data.height = (int)mouseBox.Height;
+                theMsg.data.x = (int)(double)mouseBox.GetValue(Canvas.LeftProperty); // ew gross
+                theMsg.data.y = (int)(double)mouseBox.GetValue(Canvas.TopProperty);
+                theMsg.data.color = new m.ColorRGBA();
+                theMsg.data.color.r = boxColor;
+                theMsg.data.color.g = boxColor;
+                theMsg.data.color.b = boxColor;
+                theMsg.data.color.a = boxColor;
+                //theMsg.img = (sender as ROS_ImageWPF.CompressedImageControl).latestFrame;
+                switch (tab_index)
+                {
+                    case 0:
+                        theMsg.img = camImage0.latestFrame;
+                        recalPub0.publish(theMsg);
+                        break;
+                    case 1:
+                        theMsg.img = camImage1.latestFrame;
+                        recalPub1.publish(theMsg);
+                        break;
+                    case 2:
+                        theMsg.img = camImage2.latestFrame;
+                        recalPub2.publish(theMsg);
+                        break;
+                    case 3:
+                        theMsg.img = camImage3.latestFrame;
+                        recalPub3.publish(theMsg);
+                        break;
+                }
+                //ROS.spinOnce(nh);
+            }));
+            Thread.Sleep(10);
         }
 
+        #region drawing boxes with mouse
         private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
         {
                 mouseBox = new System.Windows.Shapes.Rectangle()
                 {
                     Width = Math.Abs(mousePosition.X - mouseDownPoint.X),
                     Height = Math.Abs(mousePosition.Y - mouseDownPoint.Y),
-                    Stroke = Brushes.DarkBlue,
+                    Stroke = brushColor,
                     StrokeThickness = 3,
                     Opacity = 0.5
                 };
@@ -484,7 +494,7 @@ namespace WpfApplication1
                 mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
                 DrawUserDrawnBox(whichIsIt(sender), mousePos);
                 // create/send the message
-                PublishRecalibration(sender);
+                //PublishRecalibration(sender);
             }
             mainImages[whichIsIt(sender)].ReleaseMouseCapture();
         }
@@ -497,29 +507,126 @@ namespace WpfApplication1
                 DrawUserDrawnBox(whichIsIt(sender), mousePos);
             }
         }
+        #endregion
 
-        private void UserControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        #region radio buttons
+        private void RadioButton_Checked_B(object sender, RoutedEventArgs e)
         {
-            switch (whichIsIt(sender))
-            {
-                case 0:
-                    camRect0.Children.Clear();
-                    break;
-                case 1:
-                    camRect1.Children.Clear();
-                    break;
-                case 2:
-                    camRect2.Children.Clear();
-                    break;
-                case 3:
-                    camRect3.Children.Clear();
-                    break;
-            }
+            boxColor = 0;
+            brushColor = Brushes.Blue;
         }
 
+        private void RadioButton_Checked_G(object sender, RoutedEventArgs e)
+        {
+            boxColor = 1;
+            brushColor = Brushes.Green;
+        }
 
-        
+        private void RadioButton_Checked_R(object sender, RoutedEventArgs e)
+        {
+            boxColor = 2;
+            brushColor = Brushes.Red;
+        }
+
+        private void RadioButton_Checked_O(object sender, RoutedEventArgs e)
+        {
+            boxColor = 3;
+            brushColor = Brushes.Orange;
+        }
+
+        private void RadioButton_Checked_P(object sender, RoutedEventArgs e)
+        {
+            boxColor = 4;
+            brushColor = Brushes.Purple;
+        }
+
+        private void RadioButton_Checked_Y(object sender, RoutedEventArgs e)
+        {
+            boxColor = 5;
+            brushColor = Brushes.Yellow;
+        }
+
+        #endregion
+
+        #region send & clear
+        private void Button_Click_Send(object sender, RoutedEventArgs e)
+        {
+            // hopefully not broken
+            PublishRecalibration(MainCameraTabControl.SelectedIndex);
+            camRect0.Children.Clear();
+            camRect1.Children.Clear();
+            camRect2.Children.Clear();
+            camRect3.Children.Clear();
+        }
+
+        private void Button_Click_Clear(object sender, RoutedEventArgs e)
+        {
+            camRect0.Children.Clear();
+            camRect1.Children.Clear();
+            camRect2.Children.Clear();
+            camRect3.Children.Clear();
+        }
+
+        #endregion
+
+        #region restore default calibrations
+
+        recalibrateMsg MakeBogusRestoreMessage()
+        {
+            recalibrateMsg theMsg = new recalibrateMsg();
+            theMsg.data = new imgData();
+            theMsg.img = new sm.CompressedImage();
+            theMsg.data.cameraID = -1;
+            theMsg.data.width = -1;
+            theMsg.data.height = -1;
+            theMsg.data.x = -1;
+            theMsg.data.y = -1;
+            theMsg.data.color = new m.ColorRGBA();
+            theMsg.data.color.r = -1;
+            theMsg.data.color.g = -1;
+            theMsg.data.color.b = -1;
+            theMsg.data.color.a = -1;
+            return theMsg;
+        }
+
+        private void Button_Click_Restore0(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                recalPub0.publish(MakeBogusRestoreMessage());
+            }));
+            Thread.Sleep(10);
+        }
+
+        private void Button_Click_Restore1(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                recalPub1.publish(MakeBogusRestoreMessage());
+            }));
+            Thread.Sleep(10);
+        }
+
+        private void Button_Click_Restore2(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                recalPub2.publish(MakeBogusRestoreMessage());
+            }));
+            Thread.Sleep(10);
+        }
+
+        private void Button_Click_Restore3(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                recalPub3.publish(MakeBogusRestoreMessage());
+            }));
+            Thread.Sleep(10);
+        }
+        #endregion
     }
+
 
     // we get one of these helpers for each camera
     // what excellent service
