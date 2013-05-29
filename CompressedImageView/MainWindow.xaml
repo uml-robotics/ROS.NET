@@ -26,7 +26,7 @@
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
                     <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
-                    c:CompressedImageControl.TopicName="/camera0_stream/republish/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage0">
                     </c:CompressedImageControl>
                     <Canvas Name="camRect0" />
@@ -36,7 +36,7 @@
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
                     <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
-                    c:CompressedImageControl.TopicName="/camera1_stream/republish/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage1">
                     </c:CompressedImageControl>
                     <Canvas Name="camRect1" />
@@ -46,7 +46,7 @@
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
                     <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
-                    c:CompressedImageControl.TopicName="/camera2_stream/republish/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera2_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage2" >
                     </c:CompressedImageControl>
                     <Canvas Name="camRect2" />
@@ -56,7 +56,7 @@
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
                     <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
-                    c:CompressedImageControl.TopicName="/camera3_stream/republish/image_raw/compressed"
+                    c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
                     </c:CompressedImageControl>
                     <Canvas Name="camRect3" />

@@ -111,7 +111,7 @@ namespace WpfApplication1
             new Thread(() =>
             {
                 // ROS stuff
-                ROS.ROS_MASTER_URI = "http://10.0.3.5:11311";
+                ROS.ROS_MASTER_URI = "http://10.0.3.13:11311";
                 ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
@@ -554,8 +554,8 @@ namespace WpfApplication1
                 System.Windows.Point tl = new System.Windows.Point(box.x, box.y);
                 DateTime dt = DateTime.Now;
                 // if it's on this helper's camera, add it to the list of boxes on screen, and draw the box on the correct window
-                if (box.cameraID == cameraNumber) // && cameraNumber is selected as Primary
-                {
+               /* if (box.cameraID == cameraNumber) // && cameraNumber is selected as Primary
+                {*/
 			        primary.Dispatcher.Invoke(new Action(() =>
                     {
                               if (!boxesOnScreen.ContainsKey(dt))	                      
@@ -566,11 +566,11 @@ namespace WpfApplication1
                         if (!boxesOnScreen.ContainsKey(dt))
                             boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480));
                     }));
-                }
+                /*}
                 else
                 {
                     Console.WriteLine("OFFSCREEN DETECTION ON CAMERA " + cameraNumber);
-                }
+                }*/
             }
         }
     }
