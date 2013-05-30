@@ -15,6 +15,10 @@
                 <ImageBrush x:Name="image" />
             </Rectangle.Fill>
         </Rectangle>
-        <Canvas Name="ROI_Container" />
+        <Canvas Name="ROI_Container" RenderTransformOrigin="0.5,0.5" >
+            <Canvas.RenderTransform>
+                <ScaleTransform ScaleX="-1"></ScaleTransform>
+            </Canvas.RenderTransform>
+        </Canvas>
     </Grid>
 </UserControl>
