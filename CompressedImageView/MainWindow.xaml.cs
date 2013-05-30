@@ -111,7 +111,7 @@ namespace WpfApplication1
             new Thread(() =>
             {
                 // ROS stuff
-                ROS.ROS_MASTER_URI = "http://10.0.3.5:11311";
+                ROS.ROS_MASTER_URI = "http://10.0.3.13:11311";
                 ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
@@ -170,14 +170,14 @@ namespace WpfApplication1
 
                 while (ROS.ok)
                 {
-                    Dispatcher.BeginInvoke(new Action(() =>
+                    Dispatcher.Invoke(new Action(() =>
                     {
                         for (int i = 0; i < 4; ++i)
                         {
                             detectors[i].churnAndBurn();
                         }
                     }));
-                    Thread.Sleep(10);
+                    Thread.Sleep(100);
                 }
             }).Start();
         }
@@ -207,7 +207,7 @@ namespace WpfApplication1
                     Button(b);
                 }
                 double left_y = currentState.ThumbSticks.Left.Y;
-                double left_x = currentState.ThumbSticks.Left.X;            
+                double left_x = -currentState.ThumbSticks.Left.X;            
                 
                 if (_adr)
                 {
@@ -236,9 +236,9 @@ namespace WpfApplication1
                 if (right_trigger == 0)
                     right_trigger = -1;
 
-                Console.WriteLine( "joy_right_x: " + right_x.ToString());
+                /*Console.WriteLine( "joy_right_x: " + right_x.ToString());
                 Console.WriteLine( "joy_right_y: " + right_y.ToString());
-                Console.WriteLine( "right trigger: " + right_trigger.ToString());
+                Console.WriteLine( "right trigger: " + right_trigger.ToString());*/
 
                 am.ArmMovement armmove = new am.ArmMovement();
 
@@ -265,7 +265,7 @@ namespace WpfApplication1
         private void MainCameraTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             maincameramask = (byte)Math.Round(Math.Pow(2.0, MainCameraTabControl.SelectedIndex));
-            Console.WriteLine("************************Camera Selected: " + MainCameraTabControl.SelectedIndex.ToString() + "********************************");
+            //Console.WriteLine("************************Camera Selected: " + MainCameraTabControl.SelectedIndex.ToString() + "********************************");
 
             Tilt_Slider.Value = tilt_prev[MainCameraTabControl.SelectedIndex];
 
@@ -307,7 +307,7 @@ namespace WpfApplication1
                 if (knownToBeDown.Contains(b))
                     return;
                 knownToBeDown.Add(b);
-                Console.WriteLine("" + b.ToString() + " pressed");
+                //Console.WriteLine("" + b.ToString() + " pressed");
 
                 switch (b)
                 {
