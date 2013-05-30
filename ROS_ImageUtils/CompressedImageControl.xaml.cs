@@ -154,7 +154,7 @@ namespace ROS_ImageWPF
             }
             if (imgsub == null || imgsub.topic != TopicName)
             {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
                                                                                                                               {
                                                                                                                                   UpdateImage(i.data);
                                                                                                                                   latestFrame = i;
