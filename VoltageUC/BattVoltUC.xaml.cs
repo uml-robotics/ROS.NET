@@ -50,7 +50,7 @@ namespace BattVoltUC
                 while (!ROS.shutting_down)
                 {
                     ROS.spinOnce(node);
-                    Thread.Sleep(1);
+                    Thread.Sleep(100);
                 }
             }).Start();
 

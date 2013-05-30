@@ -33,7 +33,7 @@ namespace TimerStopwatchUC
         {
             InitializeComponent();
             dtimer.Tick += new EventHandler(dtimer_tick);
-            dtimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
+            dtimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
         }
 
         private void StartSW_Click(object sender, RoutedEventArgs e)
