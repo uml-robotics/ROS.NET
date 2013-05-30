@@ -25,7 +25,7 @@
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
-                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage0">
                     </c:CompressedImageControl>
@@ -35,7 +35,7 @@
             <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
-                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage1">
                     </c:CompressedImageControl>
@@ -45,7 +45,7 @@
             <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     c:CompressedImageControl.TopicName="/camera2_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage2" >
                     </c:CompressedImageControl>
@@ -55,7 +55,7 @@
             <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
                 <Grid>
                     <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
-                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" MouseDoubleClick="UserControl_MouseDoubleClick"
+                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
                     </c:CompressedImageControl>
@@ -101,6 +101,23 @@
         <!--<ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />-->
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
+        <StackPanel Visibility="Visible" Background="WhiteSmoke"  VerticalAlignment="Top" HorizontalAlignment="Left">
+            <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
+            <RadioButton GroupName="Colors" Content="Blue"   Checked="RadioButton_Checked_B"/>
+            <RadioButton GroupName="Colors" Content="Green"  Checked="RadioButton_Checked_G"/>
+            <RadioButton GroupName="Colors" Content="Red"    Checked="RadioButton_Checked_R"/>
+            <RadioButton GroupName="Colors" Content="Orange" Checked="RadioButton_Checked_O"/>
+            <RadioButton GroupName="Colors" Content="Purple" Checked="RadioButton_Checked_P"/>
+            <RadioButton GroupName="Colors" Content="Yellow" Checked="RadioButton_Checked_Y"/>
+            <Button Click="Button_Click_Send">Send Selection</Button>
+            <Button Click="Button_Click_Clear">Clear Selections</Button>
+            <Border Padding="10"></Border>
+            <TextBlock Padding="4" Background="Gainsboro"> Restore Default Calibrations </TextBlock>
+            <Button Click="Button_Click_Restore0">Main Cam</Button>
+            <Button Click="Button_Click_Restore1">Rear Cam</Button>
+            <Button Click="Button_Click_Restore2">Cam 3</Button>
+            <Button Click="Button_Click_Restore3">Cam 4</Button>
+        </StackPanel>
         <!-- END user control interfaces -->
         
         <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
