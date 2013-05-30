@@ -27,15 +27,19 @@ namespace Messages
         [DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
-            //gross, but it gets the job done            
-            if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
-                GetMessageTypeMemo.Add(typeof(Single), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Float32")); //ERIC
-            if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
-                GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
-            if (GetMessageTypeMemo.ContainsKey(t))
-                return GetMessageTypeMemo[t];
-            MsgTypes mt = GetMessageType(t.FullName);
-            GetMessageTypeMemo.Add(t, mt);
+            MsgTypes mt;
+            //gross, but it gets the job done   
+            lock (GetMessageTypeMemo)
+            {
+                if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
+                    GetMessageTypeMemo.Add(typeof(Single), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Float32")); //ERIC
+                if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
+                    GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
+                if (GetMessageTypeMemo.ContainsKey(t))
+                    return GetMessageTypeMemo[t];
+                mt = GetMessageType(t.FullName);
+                GetMessageTypeMemo.Add(t, mt);
+            }
             return mt;
         }
 
@@ -54,7 +58,7 @@ namespace Messages
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static MsgTypes GetMessageType(string s)
         {
             //Console.WriteLine("LOOKING FOR: " + s + "'s type");
