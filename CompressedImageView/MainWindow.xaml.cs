@@ -104,7 +104,7 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
@@ -211,7 +211,7 @@ namespace WpfApplication1
                 
                 if (_adr)
                 {
-                    left_x *= -1;
+                    //left_x *= -1;
                     left_y *= -1;
                 }
                 gm.Twist vel = new gm.Twist { linear = new gm.Vector3 { x = left_y * _trans.Value }, angular = new gm.Vector3 { z = left_x * _rot.Value } };
@@ -342,7 +342,6 @@ namespace WpfApplication1
             {
                 ArmON.publish(new m.Bool { data = false });
                 Arm_Engaged.Content = "Arm NOT Engaged";
-                Thread.SpinWait(10);
             }
         }
 
