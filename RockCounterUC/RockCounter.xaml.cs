@@ -100,9 +100,13 @@ namespace RockCounterUC
         }
         private string[] rock_file_reader()
         {
-            StreamReader rreader = new StreamReader(@"rocks.txt");
-            string[] rocks = rreader.ReadToEnd().Split(',');
-            rreader.Close();
+            string[] rocks = new string[] { "0", "0", "0", "0", "0", "0" };
+            if (File.Exists(@"rocks.txt"))
+            {
+                StreamReader rreader = new StreamReader(@"rocks.txt");
+                rocks = rreader.ReadToEnd().Split(',');
+                rreader.Close();
+            }
             return rocks;
         }
         private void rock_file_writer(string[] rocks)
