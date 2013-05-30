@@ -266,10 +266,13 @@ namespace Ros_CSharp
             lock (mutex)
             {
                 if (!enabled) return;
-                if (callbacks.Count == 0 && timeout != 0)
-                {
-                    sem.WaitOne(timeout);
-                }
+            }
+            if (callbacks.Count == 0 && timeout != 0)
+            {
+                sem.WaitOne(timeout);
+            }
+            lock(mutex)
+            {
                 if (callbacks.Count == 0 || !enabled)
                     return;
                 bool wasempty = tls.Count == 0;
