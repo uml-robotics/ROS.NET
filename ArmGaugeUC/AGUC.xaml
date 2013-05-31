@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="510" d:DesignWidth="160" Loaded="UserControl_Loaded">
+             d:DesignHeight="340" d:DesignWidth="170" Loaded="UserControl_Loaded">
     <Grid Name="grid1">
 
         <!-- BEGIN Grid definitions and naming -->
@@ -12,24 +12,21 @@
             <RowDefinition Height="20" />
             <RowDefinition Height="150" />
             <RowDefinition Height="20" />
-            <RowDefinition Height="150" />
-            <RowDefinition Height="20" />
-            <RowDefinition Height="150" />
+            <RowDefinition Height="150" /> 
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Pan" Grid.Column="0" Grid.Row="0" Margin="0" HorizontalAlignment="Center"/>
-        <TextBlock Text="Tilt" Grid.Column="0" Grid.Row="2" Margin="0" HorizontalAlignment="Center"/>
-        <TextBlock Text="Gripper" Grid.Column="0" Grid.Row="4" Margin="0" HorizontalAlignment="Center"/>
+        <TextBlock Text="Pan Position" Grid.Column="0" Grid.Row="0" Margin="0" HorizontalAlignment="Center"/>
+        <TextBlock Text="Tilt Position" Grid.Column="0" Grid.Row="2" Margin="0" HorizontalAlignment="Center"/>     
         <!-- END Grid definitions and naming-->
 
 
         <!-- BEGIN pan arm monitor -->
         <Image Source="Resources/robotop.png" Visibility="Visible" Grid.Row="1" Margin="40,31,38,20" />
        
-            <Rectangle Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Margin="81,51,29,96" Grid.Row="1" Canvas.Top="69" Canvas.Left="-45">
+            <Rectangle Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Margin="92,49,28,98" Grid.Row="1" Canvas.Top="69" Canvas.Left="-45">
                 <Rectangle.RenderTransform>
                     <RotateTransform CenterX="2" CenterY="2" Angle="110" />
                 </Rectangle.RenderTransform>
@@ -66,9 +63,9 @@
         <!-- END tilt arm monitor -->
 
         
-        <!-- BEGIN gripper monitor
-        <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Vertical"/>
-        END gripper monitor -->
+        <!-- BEGIN gripper monitor -->
+        
+        <!-- END gripper monitor -->
 
     </Grid>
 </UserControl>
