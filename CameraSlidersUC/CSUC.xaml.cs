@@ -46,7 +46,9 @@ namespace CameraSlidersUC
         void sliderChanged(object Sender, RoutedPropertyChangedEventArgs<double> dub)
         {
             Value = (int)Math.Round(dub.NewValue);
+            
         }
+
         private static int g0(cm c) { return c.brightness; }
         private static int g1(cm c) { return c.contrast; }
         private static int g2(cm c) { return c.exposure; }

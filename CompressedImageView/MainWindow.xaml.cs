@@ -357,7 +357,11 @@ namespace WpfApplication1
         private void Raise_Mast_Click(object sender, RoutedEventArgs e)
         {
             mast_pub.publish(new m.Bool() { data = true });
-            Raise_mast.Visibility = Visibility.Hidden;
+            //Raise_mast.Visibility = Visibility.Hidden;
+            Raise_mast.Width = 164;
+            Raise_mast.Height = 50;
+            Canvas.SetLeft(Raise_mast, 1217);
+            Canvas.SetTop(Raise_mast, 41);
         }
 
         //

@@ -104,7 +104,7 @@ namespace ROS_IMUUtil
             //double pixelsto90 = AngleMeter.Height / 2.0;
             trans.Y = (degrees * 260);
                 //*pixelsto90 / 90.0;
-            Console.WriteLine(trans.Y);
+            //Console.WriteLine(trans.Y);
         }
 
         private void rotate(double degrees)
