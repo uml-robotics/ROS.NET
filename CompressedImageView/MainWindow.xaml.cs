@@ -127,6 +127,7 @@ namespace WpfApplication1
                 mast_pub = nh.advertise<m.Bool>("raise_camera_mast", 1);
 
                 tilt_pub = new Publisher<m.Int32>[4];
+
                 recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 4);
                 recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 4);
                 recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 4);

@@ -95,16 +95,16 @@ namespace ROS_IMUUtil
             Dispatcher.BeginInvoke(new Action(() =>
                 {
                     rotate(euler.pitch);
-                    translate(euler.roll * -1);
+                    translate(euler.roll);
                 }));
         }
 
         private void translate(double degrees)
         {
-            double pixelsto90 = AngleMeter.Height / 2.0;
-            trans.Y = (degrees * 190) + 20;
+            //double pixelsto90 = AngleMeter.Height / 2.0;
+            trans.Y = (degrees * 260);
                 //*pixelsto90 / 90.0;
-            //Console.WriteLine(trans.Y);
+            Console.WriteLine(trans.Y);
         }
 
         private void rotate(double degrees)
