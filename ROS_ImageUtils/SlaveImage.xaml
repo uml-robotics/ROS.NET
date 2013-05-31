@@ -20,5 +20,6 @@
                 <ScaleTransform ScaleX="-1"></ScaleTransform>
             </Canvas.RenderTransform>
         </Canvas>
+        <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold">FPS</Label>
     </Grid>
 </UserControl>

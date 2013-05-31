@@ -27,6 +27,7 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
+using System.Linq;
 #endregion
 
 namespace ROS_ImageWPF
@@ -38,6 +39,10 @@ namespace ROS_ImageWPF
 
     public partial class SlaveImage : UserControl
     {
+        public void setFps(object s)
+        {
+            fps.Content = s;
+        }
         public SolidColorBrush ColorConverter(Messages.std_msgs.ColorRGBA c)
         {
             return new SolidColorBrush(Color.FromArgb((byte)Math.Floor((double)c.a), (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
@@ -277,7 +282,7 @@ namespace ROS_ImageWPF
                     UpdateImage(lastgood);
                 }
                 else if (img.DecodePixelWidth != -1)
-                    UpdateImage(img);
+                    UpdateImage(img);                
             }
             catch (Exception e)
             {
@@ -494,7 +499,7 @@ namespace ROS_ImageWPF
         {
             _scalex = scalex;
             _scaley = scaley;
-            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);
+            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);            
         }
     }
 }
