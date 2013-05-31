@@ -116,7 +116,7 @@ namespace WpfApplication1
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    //armGauge.startListening(nh);
+                    armGauge.startListening(nh);
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
                 }));
