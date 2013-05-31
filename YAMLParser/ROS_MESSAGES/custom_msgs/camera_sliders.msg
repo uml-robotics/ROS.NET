@@ -1,0 +1,9 @@
+int32 brightness
+int32 contrast
+int32 exposure
+int32 gain
+int32 saturation
+int32 wbt
+int32 focus
+int32 focus_auto
+int32 exposure_auto

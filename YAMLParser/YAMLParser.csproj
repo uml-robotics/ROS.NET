@@ -129,6 +129,9 @@
     <Content Include="ROS_MESSAGES\rock_publisher\recalibrateMsg.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\camera_sliders.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\sample_acquisition\ArmMovement.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

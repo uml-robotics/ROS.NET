@@ -22,49 +22,110 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Threading;
-
+using cm = Messages.custom_msgs.camera_sliders;
 namespace CameraSlidersUC
 {
     public class SliderStuff
     {
-        private Publisher<m.Int32> pub;
-        private Subscriber<m.Int32> sub;
+        int index;
         private Slider _slider;
         private Label _label;
         public int cameraNumber;
         public string topicIn, topicOut;
         private int slider_default = -1;
-        private bool inited;
-        public SliderStuff(NodeHandle nh, int cameraNumber, string param, Slider s, Label l)
+        private bool inited = false;
+        private Action<int> fireMessage;
+        public SliderStuff(NodeHandle nh, int i, string param, Slider s, Label l, Action<int> fireMessage)
         {
-            topicOut="/camera"+cameraNumber+"/"+param;
+            topicOut= param + "/sliders";
             topicIn = topicOut + "_info";
-            Console.WriteLine("Trying to make a slider for: " + topicOut);
-            sub = nh.subscribe<m.Int32>(topicIn, 1, callback);
-            pub = nh.advertise<m.Int32>(topicOut, 1);
-            this.cameraNumber = cameraNumber;
+            Console.WriteLine("Trying to make a slider for: " + topicOut + "Index: " + i);
             _slider = s;
             _label = l;
+            index = i;
             s.ValueChanged += sliderChanged;
         }
         void sliderChanged(object Sender, RoutedPropertyChangedEventArgs<double> dub)
         {
             Value = (int)Math.Round(dub.NewValue);
         }
-        void callback(m.Int32 msg)
+        public void callback(int i, cm msg)
         {
-            if (!inited)
+            if (index == i)
+            switch (index)
             {
-                slider_default = msg.data;
-                return;
+                case 0:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.brightness;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.brightness; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.brightness; }));
+                    } break;
+
+                case 1:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.contrast;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.contrast; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.contrast; }));
+                    } break;
+
+                case 2:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.exposure;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.exposure; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.exposure; }));
+                    }break;
+
+                case 3:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.gain;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.gain; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.gain; }));
+                    }break;
+                case 4:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.saturation;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.saturation; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.saturation; }));
+                    }break;
+                case 5:
+                    {
+                        if (!inited)
+                        {
+                            slider_default = msg.wbt;
+                            return;
+                        }
+                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.wbt; }));
+                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.wbt; }));
+
+                        if (_slider.Name == "MC4_Foc_S") inited = true;
+                    }break;
             }
-            _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.data; }));
-            _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.data; }));
+                    
         }
         public int Value
         {
             get { return (int)Math.Round(_slider.Value); }
-            set { if (pub != null) pub.publish(new Int32() { data = value }); }
+            set { if (fireMessage != null) fireMessage(cameraNumber); }
         }
     }
 
@@ -73,11 +134,23 @@ namespace CameraSlidersUC
     /// </summary>
     public partial class CSUC : UserControl
     {
+        public int exp, foc;
         NodeHandle node;
         SliderStuff[][] SUBS;
         Publisher<m.Int32>[] pub_exposureauto;
-        Publisher<m.Int32>[] pub_wbtauto;
+        //Publisher<m.Int32>[] pub_wbtauto;
         Publisher<m.Int32>[] pub_focusauto;
+        private Publisher<cm>[] pub = new Publisher<cm>[4];
+        private Subscriber<cm>[] sub = new Subscriber<cm>[4];
+        private void cb0(cm msg) { cb(0, msg); }
+        private void cb1(cm msg) { cb(1, msg); }
+        private void cb2(cm msg) { cb(2, msg); }
+        private void cb3(cm msg) { cb(3, msg); }
+        private void cb(int c, cm msg)
+        {
+            for(int i=0; i<SUBS[c].Length;i++)
+                SUBS[c][i].callback(i, msg);
+        }
         public CSUC()
         {
             InitializeComponent();
@@ -105,27 +178,33 @@ namespace CameraSlidersUC
                     new[]{ RC_Brigh_Lvl, RC_Cont_Lvl, RC_Exp_Lvl, RC_Gain_Lvl, RC_Sat_Lvl, RC_WBT_Lvl, RC_Foc_Lvl }, 
                     new[]{ MC3_Brigh_Lvl, MC3_Cont_Lvl, MC3_Exp_Lvl, MC3_Gain_Lvl, MC3_Sat_Lvl, MC3_WBT_Lvl, MC3_Foc_Lvl }, 
                     new[]{ MC4_Brigh_Lvl, MC4_Cont_Lvl, MC4_Exp_Lvl, MC4_Gain_Lvl, MC4_Sat_Lvl, MC4_WBT_Lvl, MC4_Foc_Lvl}};
-                    string[] info = new[] { "brightness", "contrast", "exposure", "gain", "saturation", "wbt", "focus" };
+                    string[] info = new[] { "camera0", "camera1", "camera2", "camera3" };
                     //end setup
 
                     //setup persistent array of slider stuff for storage
-                    SUBS = new[] { new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length], new SliderStuff[info.Length] };
+                    SUBS = new[] { new SliderStuff[6], new SliderStuff[6], new SliderStuff[6], new SliderStuff[6] };
                     
                     pub_exposureauto = new Publisher<m.Int32>[4];
-                    pub_wbtauto = new Publisher<m.Int32>[4];
+                    //pub_wbtauto = new Publisher<m.Int32>[4];
                     pub_focusauto = new Publisher<m.Int32>[4];
 
-                    for (int i = 0; i < sliders.Length; i++)
-                    {
-                        pub_exposureauto[i] = node.advertise<m.Int32>("camera" + i + "/exposureauto", 1);
-                        pub_wbtauto[i] = node.advertise<m.Int32>("camera" + i + "/wbtauto", 1);
-                        pub_focusauto[i] = node.advertise<m.Int32>("camera" + i + "/focusauto", 1);
+                    ////// INITIALIZE THIS CAMS PUB AND SUB
+                    pub = new Publisher<cm>[4];
+                    sub = new Subscriber<cm>[4];
 
-                        for (int j = 0; j < sliders[i].Length; j++)
+                    for (int i = 0; i < info.Length; i++)
+                    {
+                        //pub_exposureauto[i] = node.advertise<m.Int32>("camera" + i + "/exposureauto", 1);
+                        //pub_wbtauto[i] = node.advertise<m.Int32>("camera" + i + "/wbtauto", 1);
+                        //pub_focusauto[i] = node.advertise<m.Int32>("camera" + i + "/focusauto", 1);
+                        
+
+                        for (int j = 0; j < 6; j++)
                         {
-                            SUBS[i][j] = new SliderStuff(node, i, info[j],sliders[i][j], labels[i][j]);
+                            SUBS[i][j] = new SliderStuff(node, j, info[i],sliders[i][j], labels[i][j], new Action<int>(fire));
                         }
                     }
+                    
                     while (!ROS.shutting_down)
                     {
                         ROS.spinOnce(node);
@@ -134,44 +213,41 @@ namespace CameraSlidersUC
                 }).Start();
             }
 
+        private void fire(int cam)
+        {
+            cm msg = new cm{ brightness = SUBS[cam][0].Value, contrast = SUBS[cam][1].Value, exposure = SUBS[cam][2].Value, gain = SUBS[cam][3].Value, saturation = SUBS[cam][4].Value, wbt = SUBS[cam][5].Value, exposure_auto = exp, focus_auto = foc };
+            pub[cam].publish(msg);
+        }
+
             private void MC1_Exp_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC1_Exp_Sl.IsEnabled = false;
                 //3
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 3 });
+                exp = 3;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC1_Exp_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC1_Exp_Sl.IsEnabled = true;
                 //1
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                exp = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
-            private void MC1_WBT_CB_Checked(object sender, RoutedEventArgs e)
-            {
-                MC1_WBT_Sl.IsEnabled = false;
-                //1
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void MC1_WBT_CB_Unchecked(object sender, RoutedEventArgs e)
-            {
-                MC1_WBT_Sl.IsEnabled = true;
-                //0
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
-            }
 
             private void MC1_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC1_Foc_Sl.IsEnabled = false;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                foc = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC1_Foc_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC1_Foc_Sl.IsEnabled = true;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                foc = 0;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
             //END Main Camera 1 Sliders Changes
 
@@ -180,40 +256,30 @@ namespace CameraSlidersUC
             {
                 RC_Exp_Sl.IsEnabled = false;
                 //3
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 3 });
+                exp = 3;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void RC_Exp_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 RC_Exp_Sl.IsEnabled = true;
                 //1
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void RC_WBT_CB_Checked(object sender, RoutedEventArgs e)
-            {
-                RC_WBT_Sl.IsEnabled = false;
-                //1
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void RC_WBT_CB_Unchecked(object sender, RoutedEventArgs e)
-            {
-                RC_WBT_Sl.IsEnabled = true;
-                //0
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                exp = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void RC_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 RC_Foc_Sl.IsEnabled = false;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                foc = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void RC_Foc_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 RC_Foc_Sl.IsEnabled = true;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                foc = 0;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
             //END Rear Camera Slider Changes
 
@@ -222,40 +288,30 @@ namespace CameraSlidersUC
             {
                 MC3_Exp_Sl.IsEnabled = false;
                 //3
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 3 });
+                exp = 3;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC3_Exp_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC3_Exp_Sl.IsEnabled = true;
                 //1
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void MC3_WBT_CB_Checked(object sender, RoutedEventArgs e)
-            {
-                MC3_WBT_Sl.IsEnabled = false;
-                //1
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void MC3_WBT_CB_Unchecked(object sender, RoutedEventArgs e)
-            {
-                MC3_WBT_Sl.IsEnabled = true;
-                //0
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                exp = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC3_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC3_Foc_Sl.IsEnabled = false;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                foc = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC3_Foc_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC3_Foc_Sl.IsEnabled = true;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                foc = 0;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
             //END Main Camera 3 Slider Changes
 
@@ -264,41 +320,30 @@ namespace CameraSlidersUC
             {
                 MC4_Exp_Sl.IsEnabled = false;
                 //3
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 3 });
+                exp = 3;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC4_Exp_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC4_Exp_Sl.IsEnabled = true;
                 //1
-                pub_exposureauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                exp = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
-
-            private void MC4_WBT_CB_Checked(object sender, RoutedEventArgs e)
-            {
-                MC4_WBT_Sl.IsEnabled = false;
-                //1
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
-            }
-
-            private void MC4_WBT_CB_Unchecked(object sender, RoutedEventArgs e)
-            {
-                MC4_WBT_Sl.IsEnabled = true;
-                //0
-                pub_wbtauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
-            }
-
 
             private void MC4_Foc_CB_Checked(object sender, RoutedEventArgs e)
             {
                 MC4_Foc_Sl.IsEnabled = false;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 1 });
+                foc = 1;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
 
             private void MC4_Foc_CB_Unchecked(object sender, RoutedEventArgs e)
             {
                 MC4_Foc_Sl.IsEnabled = true;
-                pub_focusauto[MainCameraSliderTabControl.SelectedIndex].publish(new Int32() { data = 0 });
+                foc = 0;
+                fire(MainCameraSliderTabControl.SelectedIndex);
             }
             //End Maine 4 Slider Changed
             private void MainTab_SelectionChanged(object sender, RoutedEventArgs e)

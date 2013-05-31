@@ -112,7 +112,7 @@ namespace ROS_IMUUtil
             Point transd = TransformToDescendant(AngleMeter).Transform(new Point(Width / 2.0, Height / 2.0));
             rot.CenterX = transd.X;
             rot.CenterY = transd.Y;
-            rot.Angle = degrees * 180;
+            rot.Angle = degrees * 60;
                 //* Math.PI / 180.0;
         }
         private void SetupTopic()
