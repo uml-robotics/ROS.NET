@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraSlidersUC", "CameraSl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiltSliderUC", "TiltSliderUC\TiltSliderUC.csproj", "{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmGaugeUC", "ArmGaugeUC\ArmGaugeUC.csproj", "{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -370,6 +372,24 @@ Global
 		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|Win32.ActiveCfg = Release|Any CPU
 		{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}.Release|x86.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|Any CPU.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|Any CPU.Build.0 = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|Mixed Platforms.Build.0 = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|Win32.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.3M4|x86.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|Win32.ActiveCfg = Release|Any CPU
+		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -661,12 +661,12 @@ namespace WpfApplication1
 			        primary.Dispatcher.Invoke(new Action(() =>
                     {
                               if (!boxesOnScreen.ContainsKey(dt))	                      
-                                  boxesOnScreen.Add(dt, primary.DrawABox(tl, box.width, box.height, 864, 480));
+                                  boxesOnScreen.Add(dt, primary.DrawABox(tl, box.width, box.height, 864, 480, box.color));
         	        }));
                     secondary.Dispatcher.Invoke(new Action(() =>
                     {
                         if (!boxesOnScreen.ContainsKey(dt))
-                            boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480));
+                            boxesOnScreen.Add(dt, secondary.DrawABox(tl, box.width, box.height, 864, 480, box.color));
                     }));
                 /*}
                 else

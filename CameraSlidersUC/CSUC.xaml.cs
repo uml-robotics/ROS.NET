@@ -38,8 +38,8 @@ namespace CameraSlidersUC
         public SliderStuff(NodeHandle nh, int cameraNumber, string param, Slider s, Label l)
         {
             topicOut="/camera"+cameraNumber+"/"+param;
+            topicIn = topicOut + "_info";
             Console.WriteLine("Trying to make a slider for: " + topicOut);
-            topicIn=topicOut+"_info";
             sub = nh.subscribe<m.Int32>(topicIn, 1, callback);
             pub = nh.advertise<m.Int32>(topicOut, 1);
             this.cameraNumber = cameraNumber;

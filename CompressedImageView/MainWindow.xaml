@@ -11,6 +11,7 @@
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
         xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
         xmlns:TiltSliderUC="clr-namespace:TiltSliderUC;assembly=TiltSliderUC"
+        xmlns:ArmGaugeUC="clr-namespace:ArmGaugeUC;assembly=ArmGaugeUC"
         Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
@@ -115,7 +116,7 @@
         <!-- END sub camera windows -->
 
         <!-- BEGIN user control interfaces -->
-        <!--<ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />-->
+        <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />
         <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
         <!-- END user control interfaces -->

@@ -35,13 +35,17 @@ namespace ArmGaugeUC
     public partial class ArmGauge : UserControl
     {
        
-        double ClickPanAngle, pan, tilt;
-        double ArmPanAngle;
-        Publisher<am.ArmMovement> pub;
-        Subscriber<am.ArmMovement> sub;
-        NodeHandle nodecopy;
-        DestinationMarker destMark;
-        am.ArmMovement movecommand;
+        //double ClickPanAngle;
+        
+        //Publisher<am.ArmMovement> pub;
+        
+        //NodeHandle nodecopy;
+        //DestinationMarker destMark;
+        //am.ArmMovement movecommand;
+
+        double ArmPanAngle, ArmTiltAngle;
+        long tilt, pan, tilt_max, pan_max, tilt_min, pan_min;
+        Subscriber<am.ArmStatus> sub;
 
         public ArmGauge()
         {
@@ -57,12 +61,16 @@ namespace ArmGaugeUC
 
         public void startListening(NodeHandle node)
         {
-            this.nodecopy = node;
-            this.destMark = new DestinationMarker();
-            this.movecommand = new am.ArmMovement();
 
-            sub = node.subscribe<am.ArmMovement>("/arm/status", 1000, callbackMonitor);
-            pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
+            //this.nodecopy = node;
+            //this.destMark = new DestinationMarker();
+            //this.movecommand = new am.ArmMovement();
+
+            tilt_min = tilt_max = 0;
+            pan_min = pan_max = 0;
+
+            sub = node.subscribe<am.ArmStatus>("/arm/status", 1000, callbackMonitor);
+            //pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
             new Thread(() =>
             {
                 while (!ROS.shutting_down)
@@ -73,27 +81,41 @@ namespace ArmGaugeUC
             }).Start();
         }
 
-        private void callbackMonitor(am.ArmMovement msg)
+        private void callbackMonitor(am.ArmStatus msg)
         {
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
 
-                tilt = msg.tilt_motor_position;
-                pan = msg.pan_motor_position;
-                double grip = msg.cable_motor_position;
+                if (msg.tilt_position > tilt_max) { tilt_max = -msg.tilt_position; tilt_min = msg.tilt_position;  }
+                if (msg.pan_position > pan_max) pan_max = msg.pan_position;
+                //if (msg.tilt_position < tilt_min) tilt_min = msg.tilt_position;
+                if (msg.pan_position < pan_min) pan_min = msg.pan_position;
+
+                ArmPanAngle = ( (-1*msg.pan_position) / pan_max) * 250;
+
+                ArmTiltAngle = ( msg.tilt_position / tilt_max) * 40 ;
+
+                PanAnim.To = ArmPanAngle;
+                TiltAnim.To = ArmTiltAngle;
+
+
+
+                /*tilt = msg.tilt_motor_position;
+                //pan = msg.pan_motor_position;
+                //double grip = msg.cable_motor_position;
 
                 ArmPanAngle = (pan * -90 + 180);
 
                 PanAnim.To = ArmPanAngle;
                 TiltAnim.To = (tilt * -30);
-                GripStatus.Value = grip;
+                //GripStatus.Value = grip;
                 PanStory.Begin();
                 TiltStory.Begin();
 
                 //checks to see if the destination marker is set, and moves to that location.  one publish at a time.
                 //this action is asynchronous.  If another click happens before gets to the destination, 
-                //the destMark will be moved without issue
+                /*the destMark will be moved without issue
                 if (destMark.isActive == true)
                     if (!(ArmPanAngle < (destMark.PanAngle + 5) && ArmPanAngle > (destMark.PanAngle - 5)))
                     {
@@ -105,13 +127,13 @@ namespace ArmGaugeUC
                         pub.publish(movecommand);
                     }
                     else destMark.isActive = false;
-                        
+                 */
 
             }));
 
         }
 
-
+        /*
         //registers the click, converts the click location into an angle, and saves it in the destination marker
         private void PanCirle_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -139,15 +161,15 @@ namespace ArmGaugeUC
             else
                 movecommand.pan_motor_velocity = -1;
 
-            pub.publish(movecommand);
+            //pub.publish(movecommand);
 
-        }
+        }*/
 
         
         
     }
 
-
+    /*
     public class DestinationMarker
     {
 
@@ -160,6 +182,6 @@ namespace ArmGaugeUC
             isActive = false;
         }
 
-    }
+    }*/
 
 }

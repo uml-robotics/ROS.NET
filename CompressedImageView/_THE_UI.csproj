@@ -107,6 +107,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ArmGaugeUC\ArmGaugeUC.csproj">
+      <Project>{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}</Project>
+      <Name>ArmGaugeUC</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CameraSlidersUC\CameraSlidersUC.csproj">
       <Project>{38EA6580-6652-4943-8F53-CAAC2ADE4231}</Project>
       <Name>CameraSlidersUC</Name>

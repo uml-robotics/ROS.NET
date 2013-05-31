@@ -28,89 +28,36 @@
 
         <!-- BEGIN pan arm monitor -->
         <Image Source="Resources/robotop.png" Visibility="Visible" Grid.Row="1" Margin="40,31,38,20" />
-        <Canvas VerticalAlignment="Center" Margin="133,2,-74,46" Grid.Row="1" Height="100" Name="PanCanvas">
-            <Ellipse
-                Mouse.MouseDown="PanCirle_MouseDown"
-              Name="PanCirle"
-              Width="100"
-              Height="100"
-              Canvas.Left="0"
-              Canvas.Top="0"
-              Stretch="Fill" 
-              Stroke="Black"
-              Opacity=".0"
-              Fill="Yellow">
-                <Ellipse.Clip>
-                    <RectangleGeometry Rect="0,50,100,100"/>
-                </Ellipse.Clip>
-                <Ellipse.Triggers>
-
-                </Ellipse.Triggers>
-            </Ellipse>
-            <Canvas.RenderTransform>
-                <RotateTransform Angle="90" />
-            </Canvas.RenderTransform>
-        </Canvas>
-        <Rectangle  Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="80,50,29,95">
-            <Rectangle.RenderTransform>
-                <RotateTransform  CenterX="2" CenterY="2" Angle="270"/>
-            </Rectangle.RenderTransform>
-            <Rectangle.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard Name="PanStory">
-                            <DoubleAnimation 
-                                Name="PanAnim"
-                                Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
-                                Duration="0:0:0.01"
-                                Storyboard.TargetName="PanRec" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Rectangle.Triggers>
-        </Rectangle>
+       
+            <Rectangle Name="PanRec" Width="50" Height="3" Fill="Red" Opacity="1" Margin="81,51,29,96" Grid.Row="1" Canvas.Top="69" Canvas.Left="-45">
+                <Rectangle.RenderTransform>
+                    <RotateTransform CenterX="2" CenterY="2" Angle="110" />
+                </Rectangle.RenderTransform>
+                <Rectangle.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard Name="PanStory">
+                                <DoubleAnimation Name="PanAnim" Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)" Duration="0:0:0.01" Storyboard.TargetName="PanRec" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Rectangle.Triggers>
+            </Rectangle>
+       
         <!-- END pan arm monitor -->
 
 
         <!-- BEGIN tilt arm monitor -->
         <Image Source="Resources/roboside.png" Visibility="Visible" Grid.Row="3" Margin="40,34,38,20" />
-        <!--<Canvas VerticalAlignment="Center" Margin="63,105,-4,115" Grid.Row="3" Height="100" Name="TiltCanvas" Grid.RowSpan="3">
-            <Ellipse
-                Mouse.MouseDown="TiltCirle_MouseDown"
-              Name="TiltCirle"
-              Width="80"
-              Height="80"
-              Canvas.Left="0"
-              Canvas.Top="0"
-              Stretch="Fill" 
-              Stroke="Black"
-              Opacity=".4"
-              Fill="Yellow">
-                <Ellipse.Clip>
-                    <RectangleGeometry Rect="0,50,100,100"/>
-                </Ellipse.Clip>
-                <Ellipse.Triggers>
-
-                </Ellipse.Triggers>
-            </Ellipse>
-            <Canvas.RenderTransform>
-                <RotateTransform Angle="-90" />
-            </Canvas.RenderTransform>
-        </Canvas>-->
-
-        <Rectangle  Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="106,63,19,84">
+        <Rectangle Name="TiltRec" Width="35" Height="3" Fill="Red" Opacity="1" Grid.Row="3" Margin="103,64,22,83">
             <Rectangle.RenderTransform>
-                <RotateTransform  CenterX="2" CenterY="2" Angle="30"/>
+                <RotateTransform CenterX="2" CenterY="2" Angle="0" />
             </Rectangle.RenderTransform>
             <Rectangle.Triggers>
                 <EventTrigger RoutedEvent="Loaded">
                     <BeginStoryboard>
                         <Storyboard Name="TiltStory">
-                            <DoubleAnimation 
-                                Name="TiltAnim"
-                                Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
-                                Duration="0:0:0.01"
-                                Storyboard.TargetName="TiltRec" />
+                            <DoubleAnimation Name="TiltAnim" Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)" Duration="0:0:0.01" Storyboard.TargetName="TiltRec" />
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>
@@ -119,9 +66,9 @@
         <!-- END tilt arm monitor -->
 
         
-        <!-- BEGIN gripper monitor -->
+        <!-- BEGIN gripper monitor
         <ProgressBar Height="100" HorizontalAlignment="Center" Maximum="1" Minimum="0" Name="GripStatus" Width="50" Grid.Row="5" Orientation="Vertical"/>
-        <!-- END gripper monitor -->
+        END gripper monitor -->
 
     </Grid>
 </UserControl>
