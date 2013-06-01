@@ -186,10 +186,10 @@ namespace CameraSlidersUC
 
                     ////// INITIALIZE THIS CAMS PUB AND SUB
                     pub = new Publisher<cm>[4];
-                    sub = new Subscriber<cm>[]{node.subscribe<cm>("/camera0/sliders", 1, cb0),
-                    node.subscribe<cm>("/camera1/sliders", 1, cb1),
-                    node.subscribe<cm>("/camera2/sliders", 1, cb2),
-                    node.subscribe<cm>("/camera3/sliders", 1, cb3)};
+                    sub = new Subscriber<cm>[]{node.subscribe<cm>("/camera0/sliders_info", 1, cb0),
+                    node.subscribe<cm>("/camera1/sliders_info", 1, cb1),
+                    node.subscribe<cm>("/camera2/sliders_info", 1, cb2),
+                    node.subscribe<cm>("/camera3/sliders_info", 1, cb3)};
 
                     for (int i = 0; i < info.Length; i++)
                     {
