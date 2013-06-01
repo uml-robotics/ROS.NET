@@ -103,7 +103,7 @@ namespace CameraSlidersUC
         private void cb3(cm msg) { cb(3, msg); }
         private void cb(int c, cm msg)
         {
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.Invoke(new Action(() =>
                 {
                     for (int i = 0; i < SUBS[c].Length; i++)
                         SUBS[c][i].callback(msg);

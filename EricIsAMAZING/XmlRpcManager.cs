@@ -1,5 +1,7 @@
 ﻿#region USINGZ
-
+#if DEBUG
+//#define XMLRPC_DEBUG
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -129,7 +131,7 @@ namespace Ros_CSharp
 
         private bool validateFailed(string method, string errorfmat, params object[] info)
         {
-#if DEBUG
+#if XMLRPC_DEBUG
             EDB.WriteLine("XML-RPC Call [{0}] {1} failed validation", method, string.Format(errorfmat, info));
 #endif
             return false;
