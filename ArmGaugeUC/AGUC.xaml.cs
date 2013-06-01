@@ -62,12 +62,10 @@ namespace ArmGaugeUC
         public void startListening(NodeHandle node)
         {
 
-            //this.nodecopy = node;
-            //this.destMark = new DestinationMarker();
-            //this.movecommand = new am.ArmMovement();
-
-            tilt_min = tilt_max = 0;
-            pan_min = pan_max = 0;
+            tilt_min = -600;
+            tilt_max = 600;
+            pan_min = 0;
+            pan_max = 5100;
 
             sub = node.subscribe<am.ArmStatus>("/arm/status", 1000, callbackMonitor);
             //pub = node.advertise<am.ArmMovement>("/arm/movement", 1000);
@@ -87,19 +85,19 @@ namespace ArmGaugeUC
             Dispatcher.BeginInvoke(new Action(() =>
             {
 
-                if (msg.tilt_position > tilt_max) { tilt_max = -msg.tilt_position; tilt_min = msg.tilt_position;  }
+                //tilt lowest = 600, tilt highest = ???
+                if (msg.tilt_position > tilt_max) tilt_max = msg.tilt_position; 
+                if (msg.tilt_position > tilt_min) tilt_min = -msg.tilt_position;
+                //pan lowest = assuming 0, pan max = ~5100
                 if (msg.pan_position > pan_max) pan_max = msg.pan_position;
-                //if (msg.tilt_position < tilt_min) tilt_min = msg.tilt_position;
                 if (msg.pan_position < pan_min) pan_min = msg.pan_position;
 
                 ArmPanAngle = ( (-1*msg.pan_position) / pan_max) * 250;
 
-                ArmTiltAngle = ( msg.tilt_position / tilt_max) * 40 ;
+                ArmTiltAngle = ( msg.tilt_position / tilt_max) * 40;
 
                 PanAnim.To = ArmPanAngle;
                 TiltAnim.To = ArmTiltAngle;
-
-
 
                 /*tilt = msg.tilt_motor_position;
                 //pan = msg.pan_motor_position;
