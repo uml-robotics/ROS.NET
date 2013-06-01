@@ -26,6 +26,7 @@ using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
+using System.Linq;
 #endregion
 
 namespace ROS_ImageWPF
@@ -369,6 +370,9 @@ namespace ROS_ImageWPF
                 }
             }
         }
+                
+        DateTime lastFrame = DateTime.Now;
+        int frames = 0;
 
         /// <summary>
         ///   Uses a memory stream to turn a byte array into a BitmapImage via helper method, BytesToImage, then passes the image to UpdateImage(BitmapImage)
@@ -386,6 +390,17 @@ namespace ROS_ImageWPF
                 }
                 else if (img.DecodePixelWidth != -1)
                     UpdateImage(img);
+                
+                frames = (frames + 1) % 10;
+                if (frames == 0)
+                {
+                    fps.Content = "" + Math.Round(10.0 / DateTime.Now.Subtract(lastFrame).TotalMilliseconds * 1000.0,2);
+                    foreach (SlaveImage s in _slaves)
+                    {
+                        s.setFps(fps.Content);
+                    }
+                    lastFrame = DateTime.Now;
+                }
             }
             catch (Exception e)
             {
