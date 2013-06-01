@@ -22,7 +22,7 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Threading;
-using cm = Messages.custom_msgs.camera_sliders;
+using cm = Messages.uvc_camera.camera_sliders;
 namespace CameraSlidersUC
 {
     public class SliderStuff
@@ -37,13 +37,11 @@ namespace CameraSlidersUC
         private Action<int> fireMessage;
         public SliderStuff(NodeHandle nh, int i, string param, Slider s, Label l, Action<int> fireMessage)
         {
-            topicOut= param + "/sliders";
-            topicIn = topicOut + "_info";
-            Console.WriteLine("Trying to make a slider for: " + topicOut + "Index: " + i);
             _slider = s;
             _label = l;
             index = i;
             s.ValueChanged += sliderChanged;
+            this.fireMessage = fireMessage;
         }
         void sliderChanged(object Sender, RoutedPropertyChangedEventArgs<double> dub)
         {
@@ -116,8 +114,6 @@ namespace CameraSlidersUC
                         }
                         _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.wbt; }));
                         _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.wbt; }));
-
-                        if (_slider.Name == "MC4_Foc_S") inited = true;
                     }break;
             }
                     
@@ -190,18 +186,25 @@ namespace CameraSlidersUC
 
                     ////// INITIALIZE THIS CAMS PUB AND SUB
                     pub = new Publisher<cm>[4];
-                    sub = new Subscriber<cm>[4];
+                    sub = new Subscriber<cm>[]{node.subscribe<cm>("/camera0/sliders", 1, cb0),
+                    node.subscribe<cm>("/camera1/sliders", 1, cb1),
+                    node.subscribe<cm>("/camera2/sliders", 1, cb2),
+                    node.subscribe<cm>("/camera3/sliders", 1, cb3)};
 
                     for (int i = 0; i < info.Length; i++)
                     {
                         //pub_exposureauto[i] = node.advertise<m.Int32>("camera" + i + "/exposureauto", 1);
                         //pub_wbtauto[i] = node.advertise<m.Int32>("camera" + i + "/wbtauto", 1);
                         //pub_focusauto[i] = node.advertise<m.Int32>("camera" + i + "/focusauto", 1);
-                        
+
+                        pub[i] = node.advertise<cm>(info[i] + "/sliders", 1);
 
                         for (int j = 0; j < 6; j++)
                         {
-                            SUBS[i][j] = new SliderStuff(node, j, info[i],sliders[i][j], labels[i][j], new Action<int>(fire));
+                            Dispatcher.Invoke(new Action(() =>
+                            {
+                                SUBS[i][j] = new SliderStuff(node, j, info[i], sliders[i][j], labels[i][j], new Action<int>(fire));
+                            }));
                         }
                     }
                     
