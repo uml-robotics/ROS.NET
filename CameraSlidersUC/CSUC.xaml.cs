@@ -47,81 +47,38 @@ namespace CameraSlidersUC
         {
             Value = (int)Math.Round(dub.NewValue);
         }
-        public void callback(int i, cm msg)
-        {
-            if (index == i)
-            switch (index)
+        private static int g0(cm c) { return c.brightness; }
+        private static int g1(cm c) { return c.contrast; }
+        private static int g2(cm c) { return c.exposure; }
+        private static int g3(cm c) { return c.gain; }
+        private static int g4(cm c) { return c.saturation; }
+        private static int g5(cm c){ return c.wbt; }
+        private static Func<cm, int>[] Gimme = new Func<cm, int>[]{
+            new Func<cm, int>(g0),
+            new Func<cm, int>(g1),
+            new Func<cm, int>(g2),
+            new Func<cm, int>(g3),
+            new Func<cm, int>(g4),
+            new Func<cm, int>(g5)
+        };
+        public void callback(cm msg)
+        {            
+            int mydata = Gimme[index](msg);
+            if (!inited)
             {
-                case 0:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.brightness;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.brightness; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.brightness; }));
-                    } break;
-
-                case 1:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.contrast;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.contrast; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.contrast; }));
-                    } break;
-
-                case 2:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.exposure;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.exposure; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.exposure; }));
-                    }break;
-
-                case 3:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.gain;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.gain; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.gain; }));
-                    }break;
-                case 4:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.saturation;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.saturation; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.saturation; }));
-                    }break;
-                case 5:
-                    {
-                        if (!inited)
-                        {
-                            slider_default = msg.wbt;
-                            return;
-                        }
-                        _slider.Dispatcher.BeginInvoke(new Action(() => { _slider.Value = msg.wbt; }));
-                        _label.Dispatcher.BeginInvoke(new Action(() => { _label.Content = "" + msg.wbt; }));
-                    }break;
+                slider_default = mydata;
+                inited = true;
             }
-                    
+            _slider.Dispatcher.BeginInvoke(new Action(()=> {
+                _slider.Value = mydata;
+                _label.Content = "" + mydata;
+            }));                    
         }
         public int Value
         {
             get { return (int)Math.Round(_slider.Value); }
-            set { if (fireMessage != null) fireMessage(cameraNumber); }
+            set { if (fireMessage != null) 
+                fireMessage(cameraNumber); }
         }
     }
 
@@ -144,8 +101,11 @@ namespace CameraSlidersUC
         private void cb3(cm msg) { cb(3, msg); }
         private void cb(int c, cm msg)
         {
-            for(int i=0; i<SUBS[c].Length;i++)
-                SUBS[c][i].callback(i, msg);
+            Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    for (int i = 0; i < SUBS[c].Length; i++)
+                        SUBS[c][i].callback(msg);
+                }));
         }
         public CSUC()
         {
