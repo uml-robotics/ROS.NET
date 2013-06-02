@@ -115,7 +115,10 @@ namespace CameraSlidersUC
             Dispatcher.Invoke(new Action(() =>
                 {
                     for (int i = 0; i < SUBS[c].Length; i++)
-                        SUBS[c][i].callback(msg);
+                    {
+                        if (SUBS[c][i] != null)
+                            SUBS[c][i].callback(msg);
+                    }
                 }));
         }
         public CSUC()
