@@ -230,6 +230,8 @@ namespace WpfApplication1
                 {
                     ArmON.publish(new m.Bool() { data = true });
                     Arm_Engaged.Content = "Arm Engaged";
+                    Arm_Engaged.Background = Brushes.White;
+                    Arm_Engaged.Foreground = Brushes.Green;
                 }
 
                 //if trigger is not pressed, send close signal ( -1 ).  Th goal is to have the gripper
@@ -343,6 +345,8 @@ namespace WpfApplication1
             {
                 ArmON.publish(new m.Bool { data = false });
                 Arm_Engaged.Content = "Arm NOT Engaged";
+                Arm_Engaged.Background = Brushes.Black;
+                Arm_Engaged.Foreground = Brushes.Red;
             }
         }
 
