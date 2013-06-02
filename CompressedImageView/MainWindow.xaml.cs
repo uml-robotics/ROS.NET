@@ -362,6 +362,7 @@ namespace WpfApplication1
             Raise_mast.Height = 50;
             Canvas.SetLeft(Raise_mast, 1217);
             Canvas.SetTop(Raise_mast, 41);
+            Raise_mast.FontSize = 16;
         }
 
         //

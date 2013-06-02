@@ -67,11 +67,11 @@
         
         <Canvas>
             <Button Width="500" Height="300" Name="Raise_mast" FontSize="32" Content="Raise Mast" Click="Raise_Mast_Click" Canvas.Left="695" Canvas.Top="196"></Button>
-            <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1632" Canvas.Top="727" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" />
-            <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1450" Canvas.Top="971" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
+            <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1539" Canvas.Top="465" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" Width="48" />
+            <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1440" Canvas.Top="714" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
-            <rock:RockCounter Name="rockCounter" Canvas.Left="1132" Canvas.Top="933" />
+            <rock:RockCounter Name="rockCounter" Canvas.Left="1404" Canvas.Top="791" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
             <StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="333" Canvas.Top="75">
                 <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
@@ -90,40 +90,35 @@
                 <Button Click="Button_Click_Restore2">Cam 3</Button>
                 <Button Click="Button_Click_Restore3">Cam 4</Button>
             </StackPanel>
+            <Grid Height="300" Width="100" Background="White" Canvas.Left="1399" Canvas.Top="190">
+                <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center" />
+                <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />
+                <Label FontSize="16" Content="0" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+            </Grid>
+            <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" Height="152" Canvas.Left="1404" Canvas.Top="889" Width="278" />
+            <TabControl Background="WhiteSmoke" Height="441" Name="SubCameraTabControl" Width="784" SelectionChanged="SubCameraTabControl_SelectionChanged" Canvas.Left="556" Canvas.Top="594">
+                <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave0"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Red" Header="Rear Camera" Name="SubCamera2">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave1"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave2"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3"></c:SlaveImage>
+                </TabItem>
+            </TabControl>
+            <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="343" Canvas.Left="1698" Canvas.Top="70" />
             <!--<TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />-->
         </Canvas>
         
         <!-- BEGIN sub camera windows -->
-        <TabControl Background="WhiteSmoke" HorizontalAlignment="Center" Height="284" Margin="0,590,0,0" Name="SubCameraTabControl" VerticalAlignment="Top" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged">
-            <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">
-                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave0">
-                </c:SlaveImage>
-            </TabItem>
-            <TabItem Background="Red" Header="Rear Camera" Name="SubCamera2">
-                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave1">
-                </c:SlaveImage>
-            </TabItem>
-            <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
-                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave2" >
-                </c:SlaveImage>
-            </TabItem>
-            <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
-                <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3">
-                </c:SlaveImage>
-            </TabItem>
-        </TabControl>
         <!-- END sub camera windows -->
 
         <!-- BEGIN user control interfaces -->
-        <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="510" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,70,50,0" />
-        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-            <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="161" Margin="818,0,782,-3" />
+        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="450" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
         <!-- END user control interfaces -->
-        
-        <Grid Height="300" Width="100" Background="White" Margin="1100,0,0,350">
-            <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center"/>
-            <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged"/>
-            <Label FontSize="16" Content="0" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
-        </Grid>
     </Grid>
 </Window>
