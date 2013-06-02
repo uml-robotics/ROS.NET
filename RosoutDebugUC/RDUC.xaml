@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="250" d:DesignWidth="480" Loaded="UserControl_Loaded">
     
-       <DataGrid AutoGenerateColumns="False"  Height="auto" Name="dataGrid1" Width="auto">
+       <DataGrid AutoGenerateColumns="False"  Height="auto" Name="dataGrid1" Width="auto" FontSize="10" Padding="1">
           <DataGrid.Columns>
               <DataGridTextColumn Header="Time Stamp" Binding="{Binding timestamp}"/>
               <DataGridTextColumn Header="Level" Binding="{Binding level}"/>
