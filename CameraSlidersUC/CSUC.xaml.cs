@@ -148,6 +148,9 @@ namespace CameraSlidersUC
                     new[]{ RC_Brigh_Lvl, RC_Cont_Lvl, RC_Exp_Lvl, RC_Gain_Lvl, RC_Sat_Lvl, RC_WBT_Lvl, RC_Foc_Lvl }, 
                     new[]{ MC3_Brigh_Lvl, MC3_Cont_Lvl, MC3_Exp_Lvl, MC3_Gain_Lvl, MC3_Sat_Lvl, MC3_WBT_Lvl, MC3_Foc_Lvl }, 
                     new[]{ MC4_Brigh_Lvl, MC4_Cont_Lvl, MC4_Exp_Lvl, MC4_Gain_Lvl, MC4_Sat_Lvl, MC4_WBT_Lvl, MC4_Foc_Lvl}};
+
+                    int[] defaults = new int[] {128, 33, 100, 64, 32, 5315, 16};
+
                     string[] info = new[] { "camera0", "camera1", "camera2", "camera3" };
                     //end setup
 
@@ -178,6 +181,7 @@ namespace CameraSlidersUC
                             Dispatcher.Invoke(new Action(() =>
                             {
                                 SUBS[i][j] = new SliderStuff(node, j, info[i], sliders[i][j], labels[i][j], new Action<int>(fire));
+                                SUBS[i][j].Value = defaults[j];
                             }));
                         }
                     }
