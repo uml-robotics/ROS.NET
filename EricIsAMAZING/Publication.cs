@@ -266,10 +266,11 @@ namespace Ros_CSharp
             }
             msg.connection_header = connection_header.Values;
 
-            foreach (SubscriberLink sub_link in subscriber_links)
-            {
-                sub_link.enqueueMessage(msg, true, false);
-            }
+            lock(subscriber_links_mutex)
+                foreach (SubscriberLink sub_link in subscriber_links)
+                {
+                    sub_link.enqueueMessage(msg, true, false);
+                }
 
             if (Latch)
                 last_message = msg;
