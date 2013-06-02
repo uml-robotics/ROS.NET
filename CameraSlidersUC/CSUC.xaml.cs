@@ -40,21 +40,22 @@ namespace CameraSlidersUC
             _slider = s;
             _label = l;
             index = i;
-            s.MouseLeftButtonUp += new MouseButtonEventHandler(s_MouseLeftButtonUp);
+            s.PreviewMouseLeftButtonUp += s_MouseLeftButtonUp;
             s.ValueChanged += sliderChanged;
             this.fireMessage = fireMessage; 
         }
         void s_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            Value = (int)Math.Round(_slider.Value);
             if (fireMessage != null)
                 fireMessage(cameraNumber); 
-            Value = (int)Math.Round(_slider.Value);
         }
         void sliderChanged(object Sender, RoutedPropertyChangedEventArgs<double> dub)
         {
-            Value = (int)Math.Round(dub.NewValue);
 
+            _label.Content = "" + (int)Math.Round(dub.NewValue);            
         }
+
         private static int g0(cm c) { return c.brightness; }
         private static int g1(cm c) { return c.contrast; }
         private static int g2(cm c) { return c.exposure; }
@@ -77,7 +78,7 @@ namespace CameraSlidersUC
                 slider_default = mydata;
                 inited = true;
             }
-            Value = mydata;   
+            Value = mydata;
         }
         public int Value
         {
@@ -87,7 +88,6 @@ namespace CameraSlidersUC
                 _slider.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     _slider.Value = value;
-                    _label.Content = "" + value;
                 }));
             }
         }
