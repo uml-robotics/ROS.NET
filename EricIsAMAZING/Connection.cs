@@ -179,7 +179,7 @@ namespace Ros_CSharp
             drop(DropReason.TransportDisconnect);
         }
 
-        private void onHeaderRead(Connection conn, byte[] data, uint size, bool success)
+        private void onHeaderRead(Connection conn, ref byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (!success)
@@ -232,7 +232,7 @@ namespace Ros_CSharp
                 read(4, onHeaderLengthRead);
         }
 
-        private void onHeaderLengthRead(Connection conn, byte[] data, uint size, bool success)
+        private void onHeaderLengthRead(Connection conn, ref byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (size != 4) throw new Exception("THAT SIZE ISN'T 4! SDKJSDLKJHSDLKJSHD");
@@ -277,7 +277,7 @@ namespace Ros_CSharp
                             size = read_size;
                             read_size = 0;
                             read_filled = 0;
-                            callback(this, read_buffer, size, false);
+                            callback(this, ref read_buffer, size, false);
                             break;
                         }
                         read_filled += (uint)bytes_read;
@@ -293,7 +293,7 @@ namespace Ros_CSharp
                         read_buffer = null;
                         read_callback = null;
                         read_size = 0;
-                        callback(this, buffer, size, true);
+                        callback(this, ref buffer, size, true);
                     }
                     else 
                         break;
@@ -350,5 +350,5 @@ namespace Ros_CSharp
 
     public delegate void WriteFinishedFunc(Connection connection);
 
-    public delegate void ReadFinishedFunc(Connection connection, byte[] data, uint size, bool success);
+    public delegate void ReadFinishedFunc(Connection connection, ref byte[] data, uint size, bool success);
 }
