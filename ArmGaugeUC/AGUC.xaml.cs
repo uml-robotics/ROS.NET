@@ -92,9 +92,9 @@ namespace ArmGaugeUC
                 if (msg.pan_position > pan_max) pan_max = msg.pan_position;
                 if (msg.pan_position < pan_min) pan_min = msg.pan_position;
 
-                ArmPanAngle = ( (-1*msg.pan_position) / pan_max) * 250;
+                ArmPanAngle = ( (-1.0*msg.pan_position) / (double)pan_max) * 250.0;
 
-                ArmTiltAngle = ( msg.tilt_position / tilt_max) * 40;
+                ArmTiltAngle = ( (double)msg.tilt_position / (double)tilt_max) * 40.0;
 
                 PanAnim.To = ArmPanAngle;
                 TiltAnim.To = ArmTiltAngle;
