@@ -25,6 +25,7 @@ namespace Ros_CSharp
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         public string datatype = "";
+        public MsgTypes msgtype;
         public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
         public string md5sum = "";
         public object md5sum_mutex = new object();
@@ -41,6 +42,7 @@ namespace Ros_CSharp
             name = n;
             md5sum = md5s;
             datatype = dt;
+            msgtype = (MsgTypes)Enum.Parse(typeof(MsgTypes), dt.Replace("/","__"));
         }
 
         public bool IsDropped
