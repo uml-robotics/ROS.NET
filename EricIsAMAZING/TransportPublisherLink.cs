@@ -136,7 +136,7 @@ namespace Ros_CSharp
             //do nothing
         }
 
-        private void onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
+        private void onMessageLength(Connection conn, ref byte[] buffer, uint size, bool success)
         {
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
@@ -157,13 +157,12 @@ namespace Ros_CSharp
             connection.read(len, onMessage);
         }
 
-        private void onMessage(Connection conn, byte[] buffer, uint size, bool success)
+        private void onMessage(Connection conn, ref byte[] buffer, uint size, bool success)
         {
             if (!success || conn == null || conn != connection) return;
             if (success)
             {
-                string ty = parent.datatype.Replace("/", "__");
-                IRosMessage msg = IRosMessage.generate((MsgTypes)(Enum.Parse(typeof(MsgTypes), ty)));
+                IRosMessage msg = IRosMessage.generate(parent.msgtype);
                 msg.Serialized = new byte[buffer.Length];
                 msg.connection_header = getHeader().Values;
                 Array.Copy(buffer, msg.Serialized, buffer.Length);
