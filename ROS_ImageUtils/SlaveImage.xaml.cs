@@ -45,13 +45,13 @@ namespace ROS_ImageWPF
         }
         public SolidColorBrush ColorConverter(Messages.std_msgs.ColorRGBA c)
         {
-            return new SolidColorBrush(Color.FromArgb((byte)Math.Floor((double)c.a), (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
+            return new SolidColorBrush(Color.FromArgb(255, (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
         }
         public System.Windows.Shapes.Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight, Messages.std_msgs.ColorRGBA color)
         {
             System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
             System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
-            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = ColorConverter(color), StrokeThickness = 3, Opacity = 0.5 };
+            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = ColorConverter(color), StrokeThickness = 3, Opacity = 1.0 };
             r.SetValue(Canvas.LeftProperty, (object)tl.X);
             r.SetValue(Canvas.TopProperty, (object)tl.Y);
             ROI_Container.Children.Add(r);
