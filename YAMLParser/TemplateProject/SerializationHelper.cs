@@ -378,7 +378,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         if (TT == typeof(string) || TT.FullName.Contains("Message."))
                             throw new Exception("NOT YET, YOUNG PATAWAN");
                         MsgTypes mt = GetMessageType(TT);
-                        if (mt == MsgTypes.std_msgs__Byte)
+                        if (mt == MsgTypes.std_msgs__Byte || mt == MsgTypes.std_msgs__UInt8 || mt == MsgTypes.std_msgs__Int8)
                         {
                             int num = val.Length;
                             byte[] PWNED = new byte[num];
