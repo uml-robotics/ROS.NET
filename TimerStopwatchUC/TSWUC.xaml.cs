@@ -22,7 +22,7 @@ namespace TimerStopwatchUC
     /// </summary>
     public partial class TSWUC : UserControl
     {
-        DispatcherTimer dtimer = new DispatcherTimer();
+        DispatcherTimer dtimer = new DispatcherTimer(), flusher = new DispatcherTimer();
         Stopwatch sw = new Stopwatch();
         TimeSpan ts = new TimeSpan();
         TimeSpan res = new TimeSpan();
@@ -33,7 +33,9 @@ namespace TimerStopwatchUC
         {
             InitializeComponent();
             dtimer.Tick += new EventHandler(dtimer_tick);
-            dtimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+            dtimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            flusher.Tick += new EventHandler(flusher_tick);
+            flusher.Interval = new TimeSpan(0, 0, 0, 0, 1000);
         }
 
         private void StartSW_Click(object sender, RoutedEventArgs e)
@@ -89,10 +91,12 @@ namespace TimerStopwatchUC
         }
 
         private void dtimer_tick(object sender, EventArgs e)
-        {
-            
+        {           
             ts = sw.Elapsed + res;
-            StopwatchTB.Text = ts.ToString();
+            StopwatchTB.Text = ts.ToString();            
+        }
+        private void flusher_tick(object sender, EventArgs e)
+        {            
             StreamWriter swriter = new StreamWriter(@"stopwatch.txt");
             swriter.WriteLine(ts.Hours);
             swriter.WriteLine(ts.Minutes);
@@ -100,6 +104,5 @@ namespace TimerStopwatchUC
             swriter.WriteLine(ts.Milliseconds);
             swriter.Close();
         }
-
     }
 }
