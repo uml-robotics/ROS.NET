@@ -172,7 +172,6 @@ namespace Ros_CSharp
             {
                 if (ufds[i].revents == 0)
                 {
-                    EDB.WriteLine("NOTHING TO DO FOR SOCKET " + Socket.Get(ufds[i].sock).FD);
                     continue;
                 }
 

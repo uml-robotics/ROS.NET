@@ -12,7 +12,7 @@
         
         <Canvas>            
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="25" Width="414" />
-            <StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="36" Canvas.Top="433">
+            <!--<StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="36" Canvas.Top="433">
                 <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
                 <RadioButton GroupName="Colors" Content="Blue" Checked="RadioButton_Checked_B" />
                 <RadioButton GroupName="Colors" Content="Green" Checked="RadioButton_Checked_G" />
@@ -28,7 +28,7 @@
                 <Button Click="Button_Click_Restore1">Rear Cam</Button>
                 <Button Click="Button_Click_Restore2">Cam 3</Button>
                 <Button Click="Button_Click_Restore3">Cam 4</Button>
-            </StackPanel>
+            </StackPanel>-->
             <TabControl Background="Honeydew" Height="427" Name="MainCameraTabControl" Width="720" SelectionChanged="MainCameraTabControl_SelectionChanged" Canvas.Left="480" Canvas.Top="23">
                 <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                     <Grid>

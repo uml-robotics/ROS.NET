@@ -72,7 +72,7 @@
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
             <rock:RockCounter Name="rockCounter" Canvas.Left="1404" Canvas.Top="791" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
-            <StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="333" Canvas.Top="75">
+            <!--<StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="333" Canvas.Top="75">
                 <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
                 <RadioButton GroupName="Colors" Content="Blue" Checked="RadioButton_Checked_B" />
                 <RadioButton GroupName="Colors" Content="Green" Checked="RadioButton_Checked_G" />
@@ -88,7 +88,7 @@
                 <Button Click="Button_Click_Restore1">Rear Cam</Button>
                 <Button Click="Button_Click_Restore2">Cam 3</Button>
                 <Button Click="Button_Click_Restore3">Cam 4</Button>
-            </StackPanel>
+            </StackPanel>-->
             <Grid Height="300" Width="100" Background="White" Canvas.Left="1399" Canvas.Top="190">
                 <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center" />
                 <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />

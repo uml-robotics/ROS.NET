@@ -105,7 +105,7 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
+            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
@@ -192,6 +192,8 @@ namespace WpfApplication1
             base.OnClosed(e);
         }
 
+        bool engaged = false;
+
         // controller link dispatcher
         public void Link(object sender, EventArgs dontcare)
         {
@@ -228,8 +230,9 @@ namespace WpfApplication1
                 double right_x = -1 * currentState.ThumbSticks.Right.X; 
                 double right_trigger = currentState.Triggers.Right;
 
-                if (Math.Abs(right_y) > .1 || Math.Abs(right_x) > .1)
+                if (!engaged && (Math.Abs(right_y) > .1 || Math.Abs(right_x) > .1 ))
                 {
+                    engaged = true;
                     ArmON.publish(new m.Bool() { data = true });
                     Arm_Engaged.Content = "Arm Engaged";
                     Arm_Engaged.Background = Brushes.White;
@@ -343,8 +346,9 @@ namespace WpfApplication1
         public void RightStickButton()
         {
             // if right stick is clicked/pressed
-            if (currentState.Buttons.RightStick == ButtonState.Pressed)
+            if (currentState.Buttons.RightStick == ButtonState.Pressed && engaged)
             {
+                engaged = false;
                 ArmON.publish(new m.Bool { data = false });
                 Arm_Engaged.Content = "Arm NOT Engaged";
                 Arm_Engaged.Background = Brushes.Black;
@@ -432,9 +436,9 @@ namespace WpfApplication1
                 //ROS.spinOnce(nh);
             }));
         }
-
+                
         #region drawing boxes with mouse
-        private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
+        /*private void DrawUserDrawnBox(int whichImage, System.Windows.Point mousePosition)
         {
                 mouseBox = new System.Windows.Shapes.Rectangle()
                 {
@@ -467,11 +471,11 @@ namespace WpfApplication1
                         camRect3.Children.Add(mouseBox);
                         break;
                 }
-        }
+        }*/
 
         private void UserControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            int cam = whichIsIt(sender);
+            /*int cam = whichIsIt(sender);
             if (cam >= 0)
             {
                 leftButtonDown = true;
@@ -483,21 +487,21 @@ namespace WpfApplication1
                     mainImages[cam].CaptureMouse();
                 }
                 else leftButtonDownInBounds = false;
-            }
+            }*/
         }
 
-        private System.Windows.Point ForceMousePositionToBeInBounds(System.Windows.Point mouse_pos)
+        /*private System.Windows.Point ForceMousePositionToBeInBounds(System.Windows.Point mouse_pos)
         {
             if (mouse_pos.X < 0) mouse_pos.X = 0;
             if (mouse_pos.X > 874) mouse_pos.X = 864; // so the box won't clip with the border
             if (mouse_pos.Y < 0) mouse_pos.Y = 0;
             if (mouse_pos.Y > 518) mouse_pos.Y = 488; // same as above
             return mouse_pos;
-        }
+        }*/
 
         private void UserControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            leftButtonDown = false;
+           /* leftButtonDown = false;
             if (leftButtonDownInBounds)
             {
                 leftButtonDownInBounds = false;
@@ -506,21 +510,21 @@ namespace WpfApplication1
                 // create/send the message
                 //PublishRecalibration(sender);
             }
-            mainImages[whichIsIt(sender)].ReleaseMouseCapture();
+            mainImages[whichIsIt(sender)].ReleaseMouseCapture();*/
         }
 
         private void UserControl_MouseMove(object sender, MouseEventArgs e)
         {
-            if (leftButtonDown && leftButtonDownInBounds)
+            /*if (leftButtonDown && leftButtonDownInBounds)
             {
                 mousePos = ForceMousePositionToBeInBounds(e.GetPosition(sender as ROS_ImageWPF.CompressedImageControl));
                 DrawUserDrawnBox(whichIsIt(sender), mousePos);
-            }
+            }*/
         }
         #endregion
 
         #region radio buttons
-        private void RadioButton_Checked_B(object sender, RoutedEventArgs e)
+        /*private void RadioButton_Checked_B(object sender, RoutedEventArgs e)
         {
             boxColor = 0;
             brushColor = Brushes.Blue;
@@ -629,7 +633,7 @@ namespace WpfApplication1
             {
                 recalPub3.publish(MakeBogusRestoreMessage());
             }));
-        }
+        }*/
         #endregion
     }
 

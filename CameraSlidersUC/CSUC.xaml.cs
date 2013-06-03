@@ -101,6 +101,7 @@ namespace CameraSlidersUC
         public int exp, foc;
         NodeHandle node;
         SliderStuff[][] SUBS;
+        cm[][] initials;
         Publisher<m.Int32>[] pub_exposureauto;
         //Publisher<m.Int32>[] pub_wbtauto;
         Publisher<m.Int32>[] pub_focusauto;
@@ -118,6 +119,8 @@ namespace CameraSlidersUC
                     {
                         if (SUBS[c][i] != null)
                             SUBS[c][i].callback(msg);
+                        else
+                            initials[c][i] = msg;
                     }
                 }));
         }
@@ -156,6 +159,7 @@ namespace CameraSlidersUC
 
                     //setup persistent array of slider stuff for storage
                     SUBS = new[] { new SliderStuff[6], new SliderStuff[6], new SliderStuff[6], new SliderStuff[6] };
+                    initials = new[] { new cm[6], new cm[6], new cm[6], new cm[6] };
                     
                     pub_exposureauto = new Publisher<m.Int32>[4];
                     //pub_wbtauto = new Publisher<m.Int32>[4];
@@ -182,6 +186,8 @@ namespace CameraSlidersUC
                             {
                                 SUBS[i][j] = new SliderStuff(node, j, info[i], sliders[i][j], labels[i][j], new Action<int>(fire));
                                 SUBS[i][j].Value = defaults[j];
+                                if (initials[i][j] != null)
+                                    SUBS[i][j].callback(initials[i][j]);
                             }));
                         }
                     }
