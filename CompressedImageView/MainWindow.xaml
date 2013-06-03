@@ -11,7 +11,6 @@
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
         xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
         xmlns:TiltSliderUC="clr-namespace:TiltSliderUC;assembly=TiltSliderUC"
-        xmlns:ArmGaugeUC="clr-namespace:ArmGaugeUC;assembly=ArmGaugeUC"
         Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
@@ -24,9 +23,9 @@
         <TabControl Background="Honeydew" Height="518" HorizontalAlignment="Center" Margin="0,70,0,0" Name="MainCameraTabControl" VerticalAlignment="Top" Width="874" SelectionChanged="MainCameraTabControl_SelectionChanged">
             <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
                 <Grid>
-                    <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
-                    <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
-                    c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"
+                    <!--<c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0/image_detect/compressed"-->
+                    <c:CompressedImageControl c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"
+                    MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     x:FieldModifier="public" x:Name="camImage0">
                     </c:CompressedImageControl>
                     <Canvas Name="camRect0" />
@@ -110,7 +109,7 @@
                     <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3"></c:SlaveImage>
                 </TabItem>
             </TabControl>
-            <ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="343" Canvas.Left="1698" Canvas.Top="70" />
+            <!--<ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="343" Canvas.Left="1698" Canvas.Top="70" />-->
             <!--<TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />-->
         </Canvas>
         

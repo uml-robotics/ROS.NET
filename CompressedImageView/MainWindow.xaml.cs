@@ -1,4 +1,5 @@
 ﻿#region Imports
+#define INSTANT_DETECTION_DEATH
 
 using System.Collections.Generic;
 using System.Linq;
@@ -116,7 +117,6 @@ namespace WpfApplication1
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    armGauge.startListening(nh);
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
                 }));
@@ -169,6 +169,7 @@ namespace WpfApplication1
                     }
                 }));
 
+#if !INSTANT_DETECTION_DEATH
                 while (ROS.ok)
                 {
                     Dispatcher.Invoke(new Action(() =>
@@ -180,6 +181,7 @@ namespace WpfApplication1
                     }));
                     Thread.Sleep(100);
                 }
+#endif
             }).Start();
         }
 
@@ -660,8 +662,19 @@ namespace WpfApplication1
         // ugh this function is blocking right now
         void detectCallback(imgDataArray detections)
         {
+#if INSTANT_DETECTION_DEATH
+			primary.Dispatcher.Invoke(new Action(() => {
+                foreach(System.Windows.Shapes.Rectangle r in boxesOnScreen.Values)
+                {    
+                        if (!primary.EraseABox(r))
+                            secondary.EraseABox(r);
+                }
+                boxesOnScreen.Clear();
+        	}));
+#endif
             foreach (imgData box in detections.rockData)
             {
+
                 System.Windows.Point tl = new System.Windows.Point(box.x, box.y);
                 DateTime dt = DateTime.Now;
                 // if it's on this helper's camera, add it to the list of boxes on screen, and draw the box on the correct window

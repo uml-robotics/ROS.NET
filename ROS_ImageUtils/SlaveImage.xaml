@@ -17,7 +17,7 @@
         </Rectangle>
         <Canvas Name="ROI_Container" RenderTransformOrigin="0.5,0.5" >
             <Canvas.RenderTransform>
-                <ScaleTransform ScaleX="-1"></ScaleTransform>
+                <ScaleTransform ScaleY="-1"></ScaleTransform>
             </Canvas.RenderTransform>
         </Canvas>
         <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold">FPS</Label>
