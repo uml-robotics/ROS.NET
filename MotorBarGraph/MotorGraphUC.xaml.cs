@@ -25,12 +25,12 @@ namespace MotorBarGraph
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class UserControl1 : UserControl
+    public partial class MotorGraph : UserControl
     {
 
         //Subscriber<> something something something
 
-        public UserControl1()
+        public MotorGraph()
         {
             InitializeComponent();
         }
@@ -55,16 +55,16 @@ namespace MotorBarGraph
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 rectangle1.Height = 280;//place msg.value here.  duh
-                Textblock1.Text = 280;
+                textBlock1.Text = 280 + "v";
 
                 rectangle2.Height = 50;
-                Textblock2.Text = 50;
+                textBlock2.Text = 50 + "v";
 
                 rectangle3.Height = 100;
-                Textblock3.Text = 100;
+                textBlock3.Text = 100 + "v";
 
                 rectangle4.Height = 30;
-                Textblock4.Text = 30;
+                textBlock4.Text = 30 + "v";
             }));
 
         }

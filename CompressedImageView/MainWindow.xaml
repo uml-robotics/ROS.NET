@@ -11,6 +11,7 @@
         xmlns:uber="clr-namespace:UberSlider;assembly=UberSlider"
         xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
         xmlns:TiltSliderUC="clr-namespace:TiltSliderUC;assembly=TiltSliderUC"
+        xmlns:MotorGraph="clr-namespace:MotorBarGraph;assembly=MotorBarGraph"
         Background="DarkGray" Height="1080" Icon="Icon.png" Left="0" Loaded="Window_Loaded" Name="Window1" Title="MainWindow" Top="0" Width="1920" WindowState="Maximized" WindowStyle="SingleBorderWindow" >
     <Grid>
         <IMU:Gimbal Name="spinningstuff" IMU:Gimbal.TopicName="/imu/data" Width="200" Height="200" Margin="83,70,1615,772" />
@@ -72,7 +73,8 @@
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
             <rock:RockCounter Name="rockCounter" Canvas.Left="1404" Canvas.Top="791" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
-            <!--<StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="333" Canvas.Top="75">
+            <MotorGraph:MotorGraph Name="MotorGraph" Visibility="Visible" Canvas.Left="1551" Canvas.Top="109" Width="283" />
+           <!-- <StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="333" Canvas.Top="75">
                 <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
                 <RadioButton GroupName="Colors" Content="Blue" Checked="RadioButton_Checked_B" />
                 <RadioButton GroupName="Colors" Content="Green" Checked="RadioButton_Checked_G" />
@@ -94,6 +96,9 @@
                 <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />
                 <Label FontSize="16" Content="0" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
             </Grid>
+            
+            
+            
             <TimerStopwatchUC:TSWUC x:Name="TimerStopwatch" Visibility="Visible" Height="152" Canvas.Left="1404" Canvas.Top="889" Width="278" />
             <TabControl Background="WhiteSmoke" Height="441" Name="SubCameraTabControl" Width="784" SelectionChanged="SubCameraTabControl_SelectionChanged" Canvas.Left="556" Canvas.Top="594">
                 <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">

@@ -105,7 +105,7 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 100) };
+            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
@@ -119,6 +119,8 @@ namespace WpfApplication1
                 {
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
+                    MotorGraph.startListening(nh);
+                    
                 }));
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
@@ -522,6 +524,11 @@ namespace WpfApplication1
             }*/
         }
         #endregion
+
+        private void progressBar1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
+        }
 
         #region radio buttons
         /*private void RadioButton_Checked_B(object sender, RoutedEventArgs e)
