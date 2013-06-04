@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="MotorBarGraph.UserControl1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="320" d:DesignWidth="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20*" />
+            <RowDefinition Height="280" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="250" />     
+        </Grid.ColumnDefinitions>
+        <Rectangle Fill="LightBlue" Grid.Column="1" Grid.Row="1" Height="0" HorizontalAlignment="Left" Name="rectangle1" Stroke="Black" VerticalAlignment="Bottom" Width="62" />
+        <Rectangle Fill="LightBlue" Grid.Column="1" Grid.Row="1" Height="0" HorizontalAlignment="Left" Name="rectangle2" Stroke="Black" VerticalAlignment="Bottom" Width="62" Margin="62,0,0,0" />
+        <Rectangle Fill="LightBlue" Grid.Column="1" Grid.Row="1" Height="0" HorizontalAlignment="Left" Name="rectangle3" Stroke="Black" VerticalAlignment="Bottom" Width="62" Margin="124,0,0,0" />
+        <Rectangle Fill="LightBlue" Grid.Column="1" Grid.Row="1" Height="0" HorizontalAlignment="Left" Name="rectangle4" Stroke="Black" VerticalAlignment="Bottom" Width="62" Margin="186,0,0,0" />
+        
+        
+        
+        <TextBlock Grid.Column="1" Height="22" HorizontalAlignment="Left" Margin="58,10,0,0" Name="tb" Text="Motor Info" VerticalAlignment="Top" Width="118" TextAlignment="Center" />
+        <TextBlock Grid.Column="1" Grid.Row="1" Height="21" HorizontalAlignment="Left" Margin="6,132,0,0" Name="Textblock1" Text="0" VerticalAlignment="Top" Width="50" FontWeight="Bold" TextAlignment="Center" />
+        <TextBlock Height="21" HorizontalAlignment="Left" Margin="68,132,0,0" Name="textBlock2" Text="0" VerticalAlignment="Top" Width="50" Grid.Column="1" Grid.Row="1" TextAlignment="Center" FontWeight="Bold" />
+        <TextBlock Height="21" HorizontalAlignment="Left" Margin="129,131,0,0" Name="textBlock3" Text="0" VerticalAlignment="Top" Width="50" Grid.Column="1" Grid.Row="1" TextAlignment="Center" FontWeight="Bold" />
+        <TextBlock Height="21" HorizontalAlignment="Left" Margin="193,132,0,0" Name="textBlock4" Text="0" VerticalAlignment="Top" Width="50" Grid.Column="1" Grid.Row="1" TextAlignment="Center" FontWeight="Bold" />
+    </Grid>
+</UserControl>
