@@ -326,12 +326,12 @@ namespace WpfApplication1
                 {
                     case Buttons.Start: break;
                     case Buttons.Back:  break;
-                    case Buttons.DPadDown: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Down, true); break;
+                    case Buttons.DPadDown: _trans.DPadButton( UberSlider.VerticalUberSlider.DPadDirection.Down, true);  break; //rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Down, true);
 
-                    case Buttons.DPadUp: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Up, true); break;
+                    case Buttons.DPadUp: _trans.DPadButton(UberSlider.VerticalUberSlider.DPadDirection.Up, true); break; //rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Up, true); break;
 
-                    case Buttons.DPadLeft: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Left, true); break;
-                    case Buttons.DPadRight: rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Right, true); break;
+                    case Buttons.DPadLeft: _rot.DPadButton( UberSlider.UberSlider.DPadDirection.Left, true); break;  // rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Left, true); break;
+                    case Buttons.DPadRight: _rot.DPadButton( UberSlider.UberSlider.DPadDirection.Right, true); break;//rockCounter.DPadButton(RockCounterUC.RockCounter.DPadDirection.Right, true); break;
                     case Buttons.RightStick: RightStickButton(); break;
                     case Buttons.RightShoulder: tilt_change(1); break;
                     case Buttons.LeftShoulder: tilt_change(0); break;

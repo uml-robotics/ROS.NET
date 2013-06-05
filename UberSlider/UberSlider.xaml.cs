@@ -94,6 +94,14 @@ namespace UberSlider
 
         private double __min, __max, __current;
 
+        public enum DPadDirection
+        {
+            Up,
+            Down,
+            Left,
+            Right
+        }
+
         public double Value
         {
             get
@@ -135,6 +143,34 @@ namespace UberSlider
         {
             __current = Math.Round(e.NewValue, 3);
             _current.Content = "" + __current;
+        }
+
+        // dpad up functions
+        public void DPadButton(DPadDirection dir, bool state)
+        {
+            // if up is pressed
+            if (state)
+            {
+                switch (dir)
+                {
+                    case DPadDirection.Left:
+                        {
+                            if (slider.Value - .1 > Min)
+                                slider.Value -= .1;
+                            else
+                                slider.Value = Min;
+                        }
+                        break;
+                    case DPadDirection.Right:
+                        {
+                            if (slider.Value + .1 < Max)
+                                slider.Value += .1;
+                            else
+                                slider.Value = Max;
+                        }
+                        break;
+                }
+            }
         }
     }
 }
