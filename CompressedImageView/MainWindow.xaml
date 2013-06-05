@@ -69,7 +69,8 @@
             <Button Width="500" Height="300" Name="Raise_mast" FontSize="32" Content="Raise Mast" Click="Raise_Mast_Click" Canvas.Left="695" Canvas.Top="196"></Button>
             <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1539" Canvas.Top="465" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="2.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" Width="48" />
             <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1440" Canvas.Top="714" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="3.14" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
-            <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
+            <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1688" Canvas.Top="749" />
+            <EStopUC:UserControl1 Name="EStop2" Visibility="Visible" Width="150" Height="150" Canvas.Left="1788" Canvas.Top="749" />
             <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
             <rock:RockCounter Name="rockCounter" Canvas.Left="1404" Canvas.Top="791" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
