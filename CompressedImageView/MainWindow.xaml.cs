@@ -112,7 +112,8 @@ namespace WpfApplication1
             new Thread(() =>
             {
                 // ROS stuff
-                ROS.ROS_MASTER_URI = "http://10.0.3.5:11311";
+                ROS.ROS_MASTER_URI = "http://192.168.43.14:11311";
+                ROS.ROS_HOSTNAME_FORCE("192.168.43.61");
                 ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
@@ -121,7 +122,7 @@ namespace WpfApplication1
                     EStop.startListening(nh);
                     EStop.setMode(false);
                     EStop.setMode(true);
-                    EStop2.startListening(nh);
+                    //EStop2.startListening(nh);
                     //MotorGraph.startListening(nh);
                     
                 }));
