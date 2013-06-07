@@ -122,7 +122,7 @@ namespace WpfApplication1
                     EStop.setMode(false);
                     EStop.setMode(true);
                     EStop2.startListening(nh);
-                    MotorGraph.startListening(nh);
+                    //MotorGraph.startListening(nh);
                     
                 }));
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
