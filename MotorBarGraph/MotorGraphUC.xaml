@@ -64,6 +64,6 @@
             <TextBlock Grid.Column="3" HorizontalAlignment="Center" Name="textBlock4" Text="0" VerticalAlignment="Center" FontWeight="Bold" TextAlignment="Center" />
         </Grid>
 
-        <TextBlock Grid.Column="1" Name="tb" Text="Juice-o-meter" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" Padding="0"/>
+        <TextBlock Grid.Column="1" Name="tb" Text="Battery Current (A)" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" Padding="0"/>
     </Grid>
 </UserControl>
