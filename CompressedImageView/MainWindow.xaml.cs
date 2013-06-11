@@ -1,4 +1,4 @@
-﻿#region Imports
+#region Imports
 #define INSTANT_DETECTION_DEATH
 
 using System.Collections.Generic;
