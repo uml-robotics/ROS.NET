@@ -119,10 +119,7 @@ namespace WpfApplication1
                 {
                     battvolt.startListening(nh);
                     EStop.startListening(nh);
-                    EStop.setMode(false);
-                    EStop.setMode(true);
-                    EStop2.startListening(nh);
-                    //MotorGraph.startListening(nh);
+                    MotorGraph.startListening(nh);
                     
                 }));
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);

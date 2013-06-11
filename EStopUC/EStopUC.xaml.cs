@@ -41,7 +41,7 @@ namespace EStopUC
         public void startListening(NodeHandle node)
         {
 
-            //sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
+            sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
             pub = node.advertise<m.Bool>("/setEstop", 1000);
 
             new Thread(() =>
@@ -94,6 +94,7 @@ namespace EStopUC
 
         private void EStopCircle_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            setMode(!state);
             pub.publish(new m.Bool() { data = state });
         }
 

@@ -45,9 +45,6 @@
       <HintPath>..\Messages\Messages.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="MotorBarGraph">
-      <HintPath>..\MotorBarGraph\bin\Debug\MotorBarGraph.dll</HintPath>
-    </Reference>
     <Reference Include="RosoutDebugUC">
       <HintPath>..\RosoutDebugUC\bin\Debug\RosoutDebugUC.dll</HintPath>
     </Reference>
@@ -121,6 +118,10 @@
     <ProjectReference Include="..\EStopUC\EStopUC.csproj">
       <Project>{F54D5582-9661-40E4-A635-ECB160C85A8B}</Project>
       <Name>EStopUC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MotorBarGraph\MotorBarGraphUC.csproj">
+      <Project>{63959F15-7F39-4068-B2E4-8B147AC157E2}</Project>
+      <Name>MotorBarGraphUC</Name>
     </ProjectReference>
     <ProjectReference Include="..\RockCounterUC\RockCounterUC.csproj">
       <Project>{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}</Project>
