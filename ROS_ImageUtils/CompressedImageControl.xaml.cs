@@ -133,6 +133,18 @@ namespace ROS_ImageWPF
                 })); 
                 spinnin.Start();
             }
+            if (imgsub == null || imgsub.topic != TopicName)
+            {
+                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+                                                                                                                              {
+                                                                                                                                  UpdateImage(i.data);
+                                                                                                                                  latestFrame = i;
+                                                                                                                                  foreach (SlaveImage si in _slaves)
+                                                                                                                                      si.UpdateImage(i.data);
+                                                                                                                                  if (ImageReceivedEvent != null)
+                                                                                                                                      ImageReceivedEvent(this);
+                                                                                                                              }))){allow_concurrent_callbacks=true});
+            }
         }
 
         #region variables and such
