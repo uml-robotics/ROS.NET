@@ -101,19 +101,17 @@ namespace ROS_IMUUtil
 
         private void translate(double degrees)
         {
-            //double pixelsto90 = AngleMeter.Height / 2.0;
-            trans.Y = (degrees * 260);
-                //*pixelsto90 / 90.0;
+            double pixelsto90 = AngleMeter.ActualHeight / 2.0;
+            trans.Y = pixelsto90 / 90.0;
             //Console.WriteLine(trans.Y);
         }
 
         private void rotate(double degrees)
         {
-            Point transd = TransformToDescendant(AngleMeter).Transform(new Point(Width / 2.0, Height / 2.0));
+            Point transd = TransformToDescendant(AngleMeter).Transform(new Point(ActualWidth / 2.0, ActualHeight / 2.0));
             rot.CenterX = transd.X;
             rot.CenterY = transd.Y;
-            rot.Angle = degrees * 60;
-                //* Math.PI / 180.0;
+            rot.Angle = degrees * Math.PI / 180.0;
         }
         private void SetupTopic()
         {
@@ -126,7 +124,7 @@ namespace ROS_IMUUtil
             imusub = imagehandle.subscribe<sm.Imu>(TopicName, 1, imu_callback);
             if (spinnin == null)
             {
-                spinnin = new Thread(new ThreadStart(() => {ROS.spinOnce(imagehandle); Thread.Sleep(100); })); spinnin.Start();
+                spinnin = new Thread(new ThreadStart(() => { while (!ROS.shutting_down) { ROS.spinOnce(imagehandle); Thread.Sleep(100); } })); spinnin.Start();
             }
         }
 
