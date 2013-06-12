@@ -606,6 +606,11 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         knownlength = false;
                     }
                 }
+                else if (val is bool || T == typeof(bool))
+                {
+                    thischunk = new byte[1];
+                    thischunk[0] = (byte)((bool)val ? 1 : 0);
+                }
                 else
                 {
                     byte[] temp = new byte[Marshal.SizeOf(T)];
