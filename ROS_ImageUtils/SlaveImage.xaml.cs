@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-//using System.Drawing;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Point = System.Drawing.Point;
 using Size = System.Windows.Size;
 using d = System.Drawing;
@@ -22,6 +21,8 @@ using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
 using PixelFormat = System.Windows.Media.PixelFormat;
 using String = Messages.std_msgs.String;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -36,18 +37,20 @@ namespace ROS_ImageWPF
     /// </summary>
     /// 
 
-    public partial class CompressedImageControl : UserControl
+    public partial class SlaveImage : UserControl
     {
+        public void setFps(object s)
+        {
+            fps.Content = s;
+        }
         public SolidColorBrush ColorConverter(Messages.std_msgs.ColorRGBA c)
         {
             return new SolidColorBrush(Color.FromArgb(128, (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
         }
-
-        public Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight, Messages.std_msgs.ColorRGBA color)
+        public System.Windows.Shapes.Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight, Messages.std_msgs.ColorRGBA color)
         {
-            if (ActualWidth < 1 || ActualHeight < 1) return null;
-            System.Windows.Point tl = new System.Windows.Point(topleft.X * imgwidth / ActualWidth, topleft.Y * imgheight / ActualHeight);
-            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * imgwidth / ActualWidth, (topleft.Y + height) * imgheight / ActualHeight); ;
+            System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
+            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
             System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.White, Fill = ColorConverter(color), StrokeThickness = 1, Opacity = 1.0 };
             r.SetValue(Canvas.LeftProperty, (object)tl.X);
             r.SetValue(Canvas.TopProperty, (object)tl.Y);
@@ -63,114 +66,6 @@ namespace ROS_ImageWPF
                 return true;
             }
             return false;
-        }
-
-        public delegate void ImageReceivedHandler(CompressedImageControl sender);
-        public event ImageReceivedHandler ImageReceivedEvent;
-        private List<SlaveImage> _slaves = new List<SlaveImage>();
-        public void AddSlave(SlaveImage s)
-        {
-            _slaves.Add(s);
-        }
-        public static string newTopicName;
-        DateTime wtf;
-        public string TopicName
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
-        }
-        private Thread waitforinit;
-        private NodeHandle imagehandle;
-        private Subscriber<sm.CompressedImage> imgsub;
-        public sm.CompressedImage latestFrame;
-        private bool STOPIT;
-        public void shutdown()
-        {
-            STOPIT = true;
-        }
-
-        public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
-            "Topic",
-            typeof(string),
-            typeof(CompressedImageControl),
-            new FrameworkPropertyMetadata(null,
-                FrameworkPropertyMetadataOptions.None, (obj, args) =>
-                {
-                    try
-                    {
-                        if (obj is CompressedImageControl)
-                        {
-                            CompressedImageControl target = obj as CompressedImageControl;
-                            target.TopicName = (string)args.NewValue;
-                            if (newTopicName != null)
-                                target.TopicName = newTopicName;
-                            if (!ROS.isStarted())
-                            {
-                                if (target.waitforinit == null)
-                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
-                                if (!target.waitforinit.IsAlive)
-                                {
-                                    target.waitforinit.Start();
-                                }
-                            }
-                            else
-                                target.SetupTopic();
-                        }
-                    }
-                    catch (Exception e) { Console.WriteLine(e); }
-                }));
-
-        private void waitfunc()
-        {
-            while (!ROS.initialized)
-            {
-                Thread.Sleep(100);
-            }
-            Dispatcher.Invoke(new Action(SetupTopic));
-        }
-        private Thread spinnin;
-        private void SetupTopic()
-        {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
-                return;
-            if (imagehandle == null)
-                imagehandle = new NodeHandle();
-            if (imgsub != null)
-            {
-                imgsub.shutdown();
-                imgsub = null;
-            }
-            wtf = DateTime.Now;
-            Console.WriteLine("IMG TOPIC " + TopicName);
-            STOPIT = false;
-            if (spinnin == null)
-            {
-                Console.WriteLine(TopicName);
-                spinnin = new Thread(new ThreadStart(() =>
-                {
-                    while (ROS.ok && !STOPIT)
-                    {
-                        if (STOPIT)
-                            break;
-                        ROS.spinOnce(imagehandle);
-                        Thread.Sleep(10);
-                    }
-                    spinnin = null;
-                }));
-                spinnin.Start();
-            }
-            if (imgsub == null || imgsub.topic != TopicName)
-            {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    UpdateImage(i.data);
-                    latestFrame = i;
-                    foreach (SlaveImage si in _slaves)
-                        si.UpdateImage(i.data);
-                    if (ImageReceivedEvent != null)
-                        ImageReceivedEvent(this);
-                }))) { allow_concurrent_callbacks = true });
-            }
         }
 
         #region variables and such
@@ -205,12 +100,12 @@ namespace ROS_ImageWPF
         /// </summary>
         /// <param name = "bmp">
         /// </param>
-        public void UpdateImage(d.Bitmap bmp)
+        public void UpdateImage(Bitmap bmp)
         {
             try
             {
                 // look up the image's dress
-                BitmapData bData = bmp.LockBits(new d.Rectangle(new Point(), bmp.Size),
+                BitmapData bData = bmp.LockBits(new Rectangle(new Point(), bmp.Size),
                                                 ImageLockMode.ReadOnly,
                                                 System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
@@ -241,7 +136,7 @@ namespace ROS_ImageWPF
         /// </param>
         /// <param name = "bpp">
         /// </param>
-        public void UpdateImage(d.Bitmap bmp, int bpp)
+        public void UpdateImage(Bitmap bmp, int bpp)
         {
             if (bpp == 4)
             {
@@ -253,7 +148,7 @@ namespace ROS_ImageWPF
                 try
                 {
                     // look up the image's dress
-                    BitmapData bData = bmp.LockBits(new d.Rectangle(new d.Point(), bmp.Size),
+                    BitmapData bData = bmp.LockBits(new Rectangle(new Point(), bmp.Size),
                                                     ImageLockMode.ReadOnly,
                                                     System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                     int byteCount = bData.Stride * bmp.Height;
@@ -372,9 +267,6 @@ namespace ROS_ImageWPF
             }
         }
 
-        DateTime lastFrame = DateTime.Now;
-        int frames = 0;
-
         /// <summary>
         ///   Uses a memory stream to turn a byte array into a BitmapImage via helper method, BytesToImage, then passes the image to UpdateImage(BitmapImage)
         /// </summary>
@@ -391,17 +283,6 @@ namespace ROS_ImageWPF
                 }
                 else if (img.DecodePixelWidth != -1)
                     UpdateImage(img);
-
-                frames = (frames + 1) % 10;
-                if (frames == 0)
-                {
-                    fps.Content = "" + Math.Round(10.0 / DateTime.Now.Subtract(lastFrame).TotalMilliseconds * 1000.0, 2);
-                    foreach (SlaveImage s in _slaves)
-                    {
-                        s.setFps(fps.Content);
-                    }
-                    lastFrame = DateTime.Now;
-                }
             }
             catch (Exception e)
             {
@@ -582,13 +463,14 @@ namespace ROS_ImageWPF
         ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
         ///   constructor... nothing fancy
         /// </summary>
-        public CompressedImageControl()
+        public SlaveImage()
         {
             InitializeComponent();
         }
 
-        #region Events
 
+
+        #region Events
         double _scalex = -1, _scaley = 1;
 
         /// <summary>
