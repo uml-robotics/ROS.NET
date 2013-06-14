@@ -100,6 +100,25 @@ namespace Ros_CSharp
             }
         }
 
+        public static XmlRpcValue getParam(String key)
+        {
+            string mapped_key = names.resolve(key);
+            XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            parm.Set(1, mapped_key);
+            lock (parms_mutex)
+            {
+                if ( ! master.execute("getParam", parm, ref response, ref payload, false))
+                {
+                    string s = response[1].GetString();
+
+                    throw new Exception(s);
+                }
+            }
+
+            return payload;
+        }
+
         public static bool had(string key)
         {
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
