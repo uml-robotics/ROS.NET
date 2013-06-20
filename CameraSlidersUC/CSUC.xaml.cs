@@ -35,7 +35,11 @@ namespace CameraSlidersUC
         private int slider_default = -1;
         private bool inited = false;
         private Action<int> fireMessage;
-        public SliderStuff(NodeHandle nh, int i, string param, Slider s, Label l, Action<int> fireMessage)
+        public void setFire(Action<int> fireMessage)
+        {
+            this.fireMessage = fireMessage;
+        }
+        public SliderStuff(NodeHandle nh, int i, string param, Slider s, Label l)
         {
             _slider = s;
             _label = l;
@@ -184,7 +188,8 @@ namespace CameraSlidersUC
                         {
                             Dispatcher.Invoke(new Action(() =>
                             {
-                                SUBS[i][j] = new SliderStuff(node, j, info[i], sliders[i][j], labels[i][j], new Action<int>(fire));
+                                SUBS[i][j] = new SliderStuff(node, j, info[i], sliders[i][j], labels[i][j]);
+                                SUBS[i][j].setFire(fire);
                                 SUBS[i][j].Value = defaults[j];
                                 if (initials[i][j] != null)
                                     SUBS[i][j].callback(initials[i][j]);
@@ -202,6 +207,7 @@ namespace CameraSlidersUC
 
         private void fire(int cam)
         {
+            ROS.Info("Trying to set params for cam: " + cam);
             cm msg = new cm{ brightness = SUBS[cam][0].Value, contrast = SUBS[cam][1].Value, exposure = SUBS[cam][2].Value, gain = SUBS[cam][3].Value, saturation = SUBS[cam][4].Value, wbt = SUBS[cam][5].Value, exposure_auto = exp, focus_auto = foc };
             pub[cam].publish(msg);
         }

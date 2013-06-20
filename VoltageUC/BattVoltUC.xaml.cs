@@ -43,7 +43,6 @@ namespace BattVoltUC
 
         public void startListening(NodeHandle node)
         {
-
             sub = node.subscribe<m.Float32>("/Voltage", 1000, callbackVoltMonitor);
             new Thread(() =>
             {
@@ -60,8 +59,9 @@ namespace BattVoltUC
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (abraCadabra.Visibility != Visibility.Visible)
+                    abraCadabra.Visibility = Visibility.Visible;
                 textBlock1.Text = msg.data + "v";
-
             }));
 
         }

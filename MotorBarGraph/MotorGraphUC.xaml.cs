@@ -51,6 +51,7 @@ namespace MotorBarGraph
 
         private void cb(int i, m.String msg)
         {
+            Dispatcher.BeginInvoke(new Action(() => { if (abraCadabra.Visibility == System.Windows.Visibility.Hidden) abraCadabra.Visibility = Visibility.Visible; }));
             string[] split = msg.data.Split('=');
             if (split.Length != 2)
             {

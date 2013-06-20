@@ -94,6 +94,8 @@ namespace ROS_IMUUtil
 
             Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    if (abraCadabra.Visibility != Visibility.Visible)
+                        abraCadabra.Visibility = Visibility.Visible;
                     rotate(euler.pitch);
                     translate(euler.roll);
                 }));

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="125" d:DesignWidth="200" Loaded="UserControl_Loaded">
-    <Grid>
+    <Grid Name="abraCadabra" Visibility="Hidden">
         <Label Content="Battery Voltage" Height="28" HorizontalAlignment="Left" Margin="51,9,0,0" VerticalAlignment="Top" Width="110" FontSize="14" FontWeight="Normal" />
         
         <Rectangle Height="49" Margin="32,0,26,32" Name="rectangle1" Stroke="Gray" VerticalAlignment="Bottom" Fill="LawnGreen"/>

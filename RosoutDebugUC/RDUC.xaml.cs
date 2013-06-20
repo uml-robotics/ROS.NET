@@ -34,6 +34,8 @@ namespace RosoutDebugUC
     {
 
         ObservableCollection<rosoutString> rosoutdata;
+        NodeHandle node;
+        Subscriber<Messages.rosgraph_msgs.Log> sub;
 
         public RosoutDebug()
         {
@@ -47,7 +49,7 @@ namespace RosoutDebugUC
                 return;
 
             rosoutdata = new ObservableCollection<rosoutString>();
-            dataGrid1.ItemsSource = rosoutdata;
+            abraCadabra.ItemsSource = rosoutdata;
 
             
 
@@ -55,13 +57,12 @@ namespace RosoutDebugUC
             {
                 while (!ROS.initialized)
                     Thread.Sleep(200);
-                NodeHandle node = new NodeHandle();
-
-                node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
+                node = new NodeHandle();
+                sub = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
                 while (!ROS.shutting_down)
                 {   
                     ROS.spinOnce(node);
-                    Thread.Sleep(10);
+                    Thread.Sleep(100);
                 }
             }).Start();
 
@@ -72,19 +73,24 @@ namespace RosoutDebugUC
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-
+                if (abraCadabra.Visibility != System.Windows.Visibility.Visible)
+                    abraCadabra.Visibility = System.Windows.Visibility.Visible;                
                 string timestamp = DateTime.Now.ToShortTimeString() + "\n";
                 string level= ConvertVerbosityLevel(msg.level) + "\n";
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
 
-                //slower than hell itself.  Should have used add().  Will regret it in the morning.
-                if (!(msgname == "/uirepublisher\n"))
-                    rosoutdata.Insert(0, new rosoutString(timestamp, level, msgdata, msgname));
+                lock (rosoutdata)
+                {
+                    //slower than hell itself.  Should have used add().  Will regret it in the morning.
+                    rosoutString rss = new rosoutString(timestamp, level, msgdata, msgname);
+                    //if (!(msgname == "/uirepublisher\n"))
+                    rosoutdata.Add(rss);
+                    abraCadabra.ScrollIntoView(rss);
 
-               //To prevent the list from getting too big, this cuts off old 
-               cleanList();
-
+                    //To prevent the list from getting too big, this cuts off old 
+                    cleanList();
+                }
             }));
 
         }
@@ -118,7 +124,7 @@ namespace RosoutDebugUC
         {
 
             if (rosoutdata.Count > 200)
-                rosoutdata.RemoveAt(rosoutdata.Count - 1);
+                rosoutdata.RemoveAt(0);
 
         }
     }
