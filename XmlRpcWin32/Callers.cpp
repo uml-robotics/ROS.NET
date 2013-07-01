@@ -366,17 +366,6 @@ extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create6(XmlRpcValue *rhs)
 	}
 	return NULL;
 }
-extern "C" XMLRPC_API void XmlRpcValue_Clear(XmlRpcValue* instance)
-{	
-	try
-	{		
-		(*instance).clear();
-	}
-	catch (std::exception& ex)
-	{
-		XmlRpcUtil::error(ex.what());
-	}
-}
 extern "C" XMLRPC_API bool XmlRpcValue_Valid(XmlRpcValue* instance)
 {
 	try
