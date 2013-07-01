@@ -37,10 +37,11 @@ namespace rosmaster
             public void mloginfo() { }
             public void mlogwarn() { }
             public void apivalidate() { }
-            public void publisher_update_task(String api, String topic, List<String> pub_uris) 
+            public List<String> publisher_update_task(String api, String topic) 
             {
 
                 //XmlRpcManager manager = new XmlRpcManager();
+                return new List<string>(new []{"http://ERIC:1337"});
             }
             public void service_update_task() { }
 
@@ -228,8 +229,8 @@ namespace rosmaster
                 if (!topic_types.ContainsValue(topic_type))
                     topic_types.Add(topic, topic_type);
                 List<String> puburis = publishers.get_apis(topic);
+                List<String> sub_uris = subscribers.get_apis(topic);
                 _notify_topic_subscribers(topic, puburis, sub_uris);
-                List<String> sub_uris =  subscribers.get_apis(topic);
 
                 return 1;
             }
