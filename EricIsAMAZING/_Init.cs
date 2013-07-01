@@ -247,21 +247,6 @@ namespace Ros_CSharp
             }
         }
 
-        public static void spinOnce(NodeHandle nh)
-        {
-            Console.WriteLine("** spinOnce is DEPRECATED **... callbackqueues spin themselves now");
-        }
-
-        public static void spin()
-        {
-            Console.WriteLine("** spin is DEPRECATED **... callbackqueues spin themselves now");
-        }
-
-        public static void spin(Spinner spinner)
-        {
-            Console.WriteLine("** spin is DEPRECATED **... callbackqueues spin themselves now");
-        }
-
         public static void checkForShutdown()
         {
             lock (shutting_down_mutex)

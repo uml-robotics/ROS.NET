@@ -83,10 +83,10 @@ namespace ROS_ImageWPF
         private NodeHandle imagehandle;
         private Subscriber<sm.CompressedImage> imgsub;
         public sm.CompressedImage latestFrame;
-        private bool STOPIT;
         public void shutdown()
         {
-            STOPIT = true;
+            if (imagehandle != null)
+                imagehandle.shutdown();
         }
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -142,23 +142,6 @@ namespace ROS_ImageWPF
             }
             wtf = DateTime.Now;
             Console.WriteLine("IMG TOPIC " + TopicName);
-            STOPIT = false;
-            if (spinnin == null)
-            {
-                Console.WriteLine(TopicName);
-                spinnin = new Thread(new ThreadStart(() =>
-                {
-                    while (ROS.ok && !STOPIT)
-                    {
-                        if (STOPIT)
-                            break;
-                        ROS.spinOnce(imagehandle);
-                        Thread.Sleep(10);
-                    }
-                    spinnin = null;
-                }));
-                spinnin.Start();
-            }
             if (imgsub == null || imgsub.topic != TopicName)
             {
                 imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>

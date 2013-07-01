@@ -47,14 +47,6 @@ namespace WpfApplication1
             ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";
             ROS.ROS_HOSTNAME = "YOURIP";
             ROS.Init(new string[0], "Image_Test");
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    ROS.spinOnce(ROS.GlobalNodeHandle);
-                    Thread.Sleep(10);
-                }
-            }).Start();
         }
 
         protected override void OnClosed(EventArgs e)
