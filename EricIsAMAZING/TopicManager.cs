@@ -325,8 +325,6 @@ namespace Ros_CSharp
                 p.connection_header.Values["latching"] = p.Latch;
 
                 if (p == null) return;
-                if (p.HasSubscribers)
-                    Console.WriteLine("WEEE");
                 if (p.HasSubscribers || p.Latch)
                 {
                     bool nocopy = false;
