@@ -21,6 +21,10 @@ namespace videoView
 {
     public class Program
     {
+        private static void chatterCallback(m.String s)
+        {
+            Console.WriteLine("RECEIVED: " + s.data);
+        }
         private static void Main(string[] args)
         {
             ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";  
@@ -28,6 +32,7 @@ namespace videoView
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);
+            Subscriber<m.String> Subscriber = node.subscribe<m.String>("/Chatter", 1, chatterCallback);
             int count = 0;
             Console.WriteLine("PRESS ENTER TO QUIT!");
             new Thread(() =>

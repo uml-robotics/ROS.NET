@@ -252,9 +252,7 @@ namespace Ros_CSharp
                     }
                     else
                     {
-#if DEBUG
                         EDB.WriteLine("NOT DISCONNECTING FROM MYSELF FOR TOPIC " + name);
-#endif
                     }
                 }
 
@@ -408,7 +406,7 @@ namespace Ros_CSharp
         }
 
         internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header,
-                                     TransportPublisherLink link)
+                                     PublisherLink link)
         {
             lock (callbacks_mutex)
             {
@@ -560,6 +558,20 @@ namespace Ros_CSharp
 
         public void addLocalConnection(Publication pub)
         {
+            lock (publisher_links_mutex)
+            {
+                if (_dropped) return;
+
+                EDB.WriteLine("Creating intraprocess link for topic [{0}]", name);
+
+                LocalPublisherLink pub_link = new LocalPublisherLink(this, XmlRpcManager.Instance.uri);
+                LocalSubscriberLink sub_link = new LocalSubscriberLink(pub);
+                pub_link.setPublisher(sub_link);
+                sub_link.setSubscriber(pub_link);
+
+                addPublisherLink(pub_link);
+                pub.addSubscriberLink(sub_link);
+            }
         }
 
         public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)

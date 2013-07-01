@@ -142,6 +142,8 @@
     <Compile Include="CallbackQueue.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionManager.cs" />
+    <Compile Include="LocalSubscriberLink.cs" />
+    <Compile Include="LocalPublisherLink.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Master.cs" />
     <Compile Include="MessageDeserializer.cs" />
