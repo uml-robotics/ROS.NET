@@ -86,7 +86,6 @@ namespace Ros_CSharp
 
         public static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
-        public static Timer internal_queue_thread;
         public static object shutting_down_mutex = new object();
         private static bool dictinit;
 
@@ -179,10 +178,10 @@ namespace Ros_CSharp
             Error((object)string.Format(format, args));
         }
 
-         public static void Init(string[] args, string name)
+        public static void Init(string[] args, string name)
         {
                Init(args, name, 0);
-       }
+        }
 
         public static void Init(string[] args, string name, int options)
         {
@@ -249,18 +248,18 @@ namespace Ros_CSharp
         }
 
         public static void spinOnce(NodeHandle nh)
-        {            
-            nh.Callback.callAvailable(WallDuration);
+        {
+            Console.WriteLine("** spinOnce is DEPRECATED **... callbackqueues spin themselves now");
         }
 
         public static void spin()
         {
-            spin(new SingleThreadSpinner());
+            Console.WriteLine("** spin is DEPRECATED **... callbackqueues spin themselves now");
         }
 
         public static void spin(Spinner spinner)
         {
-            spinner.spin();
+            Console.WriteLine("** spin is DEPRECATED **... callbackqueues spin themselves now");
         }
 
         public static void checkForShutdown()
@@ -331,20 +330,8 @@ namespace Ros_CSharp
                 rosoutappender = new RosOutAppender();
 
                 //Time.Init();
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
-                                         Timeout.Infinite);
                 GlobalCallbackQueue.Enable();
             }
-        }
-
-        public static void internalCallbackQueueThreadFunc(object nothing)
-        {
-            GlobalCallbackQueue.callAvailable(100);
-            if (!ok)
-                timer_manager.RemoveTimer(ref internal_queue_thread);
-            else
-                timer_manager.StartTimer(ref internal_queue_thread, internalCallbackQueueThreadFunc, 100,
-                                         Timeout.Infinite);
         }
 
         public static bool isStarted()
@@ -366,11 +353,6 @@ namespace Ros_CSharp
 
                 GlobalCallbackQueue.Disable();
                 GlobalCallbackQueue.Clear();
-                if (internal_queue_thread != null)
-                {
-                    internal_queue_thread.Dispose();
-                    internal_queue_thread = null;
-                }
 
                 if (started)
                 {

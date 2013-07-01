@@ -17,6 +17,7 @@ namespace Ros_CSharp
 {
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
+        private Thread cbthread = null;
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public int calling;
         private bool enabled;
@@ -137,12 +138,25 @@ namespace Ros_CSharp
             }
         }
 
+        private void threadFunc()
+        {
+            while (ROS.ok && !ROS.shutting_down && enabled)
+            {
+                callAvailable();
+            }
+        }
+
         public void Enable()
         {
             lock (mutex)
             {
                 enabled = true;
                 notify_all();
+            }
+            if (cbthread == null)
+            {
+                cbthread = new Thread(threadFunc);
+                cbthread.Start();
             }
         }
 
@@ -152,6 +166,11 @@ namespace Ros_CSharp
             {
                 enabled = false;
                 notify_all();
+            }
+            if (cbthread != null)
+            {
+                cbthread.Join();
+                cbthread = null;
             }
         }
 

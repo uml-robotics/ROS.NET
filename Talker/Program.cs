@@ -23,21 +23,26 @@ namespace videoView
     {
         private static void Main(string[] args)
         {
-            ROS.ROS_MASTER_URI = "http://10.0.3.88:11311";  
-            ROS.ROS_HOSTNAME = "10.0.3.10";
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";  
+            ROS.ROS_HOSTNAME = "10.0.2.152";
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);
             int count = 0;
-            while (ROS.ok)
+            Console.WriteLine("PRESS ENTER TO QUIT!");
+            new Thread(() =>
             {
-                ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
-                String pow = new String("Blah blah blah "+(count++));
-                
-                Talker.publish(pow);
-                ROS.spinOnce(node);
-                Thread.Sleep(100);
-            }
+                while (ROS.ok)
+                {
+                    ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
+                    String pow = new String("Blah blah blah " + (count++));
+
+                    Talker.publish(pow);
+                    Thread.Sleep(1000);
+                }
+            }).Start();
+            Console.ReadLine();
+            ROS.shutdown();
         }
     }
 }

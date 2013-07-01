@@ -35,32 +35,12 @@ namespace ServiceTest
     public partial class MainWindow : Window
     {
         private NodeHandle nodeHandle;
+        Publisher<Messages.sensor_msgs.CompressedImage> fuckYouNoob;
         private string NODE_NAME = "ServiceTest";
 
         public MainWindow()
         {
             InitializeComponent();
-
-            ROS.ROS_MASTER_URI = "http://10.0.2.206:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.82";
-            ROS.Init(new string[0], NODE_NAME);
-
-            nodeHandle = new NodeHandle();
-
-
-
-            Publisher<Messages.sensor_msgs.CompressedImage> fuckYouNoob;
-            fuckYouNoob = nodeHandle.advertise<Messages.sensor_msgs.CompressedImage>("/testing", 1);
-            while (!ROS.shutting_down)
-            {
-                Messages.sensor_msgs.CompressedImage pow = new sm.CompressedImage();
-
-                fuckYouNoob.publish(pow);
-                ROS.spinOnce(nodeHandle);
-                Thread.Sleep(100);
-            }
-
-
         }
          private void Window_Loaded(object sender, RoutedEventArgs e) 
          {
@@ -69,31 +49,18 @@ namespace ServiceTest
             ROS.Init(new string[0], NODE_NAME);
 
             nodeHandle = new NodeHandle();
-
-
-
-       /*     new Thread(() =>
+            
+            fuckYouNoob = nodeHandle.advertise<Messages.sensor_msgs.CompressedImage>("/testing", 1);
+            new Thread(() =>
             {
                 while (!ROS.shutting_down)
                 {
-                    ROS.spinOnce(ROS.GlobalNodeHandle);
-                    Thread.Sleep(10);
+                    Messages.sensor_msgs.CompressedImage pow = new sm.CompressedImage();
+
+                    fuckYouNoob.publish(pow);
+                    Thread.Sleep(100);
                 }
             }).Start();
-
-             */
-
-
-            Publisher<Messages.sensor_msgs.CompressedImage> fuckYouNoob;
-            fuckYouNoob = nodeHandle.advertise<Messages.sensor_msgs.CompressedImage>("/testing", 1);
-            while (!ROS.shutting_down)
-            {
-                Messages.sensor_msgs.CompressedImage pow = new sm.CompressedImage();
-
-                fuckYouNoob.publish(pow);
-                ROS.spinOnce(nodeHandle);
-                Thread.Sleep(100);
-            }
         }
 
         protected override void OnClosed(EventArgs e)

@@ -324,8 +324,9 @@ namespace Ros_CSharp
             {
                 --nh_refcount;
             }
-            /*if (nh_refcount == 0 && node_started_by_nh)
-                ROS.shutdown();*/
+            _callback = null;
+            if (nh_refcount == 0 && node_started_by_nh)
+                ROS.shutdown();
         }
         [DebuggerStepThrough]
         public void initRemappings(IDictionary rms)
