@@ -55,7 +55,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Shutdown a subscriber
+        /// Shutdown a subscriber gracefully.
         /// </summary>
         public override void shutdown()
         {

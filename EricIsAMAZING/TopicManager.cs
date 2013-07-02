@@ -43,6 +43,9 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Binds the XmlRpc requests to callback functions, signal to start
+        /// </summary>
         public void Start()
         {
             lock (shutting_down_mutex)
@@ -60,6 +63,9 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        ///  unbinds the XmlRpc requests to callback functions, signal to shutdown
+        /// </summary>
         public void shutdown()
         {
             lock (shutting_down_mutex)
@@ -99,6 +105,10 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Updates the list of advertised topics.
+        /// </summary>
+        /// <param name="topics">List of topics to update</param>
         public void getAdvertisedTopics(ref List<string> topics)
         {
             lock (advertised_topics_names_mutex)
@@ -107,6 +117,10 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Updates the list of subscribed topics
+        /// </summary>
+        /// <param name="topics"></param>
         public void getSubscribedTopics(ref List<string> topics)
         {
             lock (subs_mutex)
@@ -116,6 +130,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Looks up all current publishers on a given topic
+        /// </summary>
+        /// <param name="topic">Topic name to look up</param>
+        /// <returns></returns>
         public Publication lookupPublication(string topic)
         {
             lock (advertised_topics_mutex)
@@ -124,6 +143,12 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Checks if the given topic is valid.
+        /// </summary>
+        /// <typeparam name="T">Advertise Options </typeparam>
+        /// <param name="ops"></param>
+        /// <returns></returns>
         private bool isValid<T>(AdvertiseOptions<T> ops) where T : IRosMessage, new()
         {
             if (ops.datatype == "*")
@@ -141,6 +166,13 @@ namespace Ros_CSharp
             return true;
         }
 
+        /// <summary>
+        /// Register as a publisher on a topic.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="ops"></param>
+        /// <param name="callbacks"></param>
+        /// <returns></returns>
         public bool advertise<T>(AdvertiseOptions<T> ops, SubscriberCallbacks callbacks) where T : IRosMessage, new()
         {
             if (!isValid(ops)) return false;

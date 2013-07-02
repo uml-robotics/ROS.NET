@@ -15,6 +15,11 @@ namespace Ros_CSharp
         public static object parms_mutex = new object();
         public static List<string> subscribed_params = new List<string>();
 
+        /// <summary>
+        /// Sets the paramater on the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <param name="val">Value of the paramter</param>
         public static void set(string key, XmlRpcValue val)
         {
             string mapped_key = names.resolve(key);
@@ -32,6 +37,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Sets the paramater on the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <param name="val">Value of the paramter</param>
         public static void set(string key, string val)
         {
             string mapped_key = names.resolve(key);
@@ -49,6 +59,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Sets the paramater on the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <param name="val">Value of the paramter</param>
         public static void set(string key, double val)
         {
             string mapped_key = names.resolve(key);
@@ -66,6 +81,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Sets the paramater on the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <param name="val">Value of the paramter</param>
         public static void set(string key, int val)
         {
             string mapped_key = names.resolve(key);
@@ -83,6 +103,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Sets the paramater on the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <param name="val">Value of the paramter</param>
         public static void set(string key, bool val)
         {
             string mapped_key = names.resolve(key);
@@ -100,6 +125,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the parameter from the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <returns></returns>
         public static XmlRpcValue getParam(String key)
         {
             string mapped_key = names.resolve(key);
@@ -119,6 +149,11 @@ namespace Ros_CSharp
             return payload;
         }
 
+        /// <summary>
+        /// Checks if the paramter exists.
+        /// </summary>
+        /// <param name="key">Name of the paramerer</param>
+        /// <returns></returns>
         public static bool had(string key)
         {
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
@@ -129,6 +164,11 @@ namespace Ros_CSharp
             return payload.Get<bool>();
         }
 
+        /// <summary>
+        /// Deletes a parameter from the parameter server.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public static bool del(string key)
         {
             string mapped_key = names.resolve(key);
@@ -187,6 +227,11 @@ namespace Ros_CSharp
             XmlRpcManager.Instance.bind("paramUpdate", paramUpdateCallback);
         }
 
+        /// <summary>
+        /// Manually update the value of a parameter
+        /// </summary>
+        /// <param name="key">Name of parameter</param>
+        /// <param name="v">Value to update param to</param>
         public static void update(string key, XmlRpcValue v)
         {
             string clean_key = names.clean(key);
@@ -199,6 +244,11 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Fired when a parameter gets updated
+        /// </summary>
+        /// <param name="parm">Name of parameter</param>
+        /// <param name="result">New value of parameter</param>
         public static void paramUpdateCallback(IntPtr parm, IntPtr result)
         {
             XmlRpcValue val = XmlRpcValue.LookUp(parm);
