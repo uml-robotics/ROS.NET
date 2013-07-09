@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -106,15 +106,14 @@ namespace FauxMessages
                 requestfronthalf = "";
                 requestbackhalf = "";
                 string[] lines = File.ReadAllLines("TemplateProject\\SrvPlaceHolder._cs");
-                bool requesthitvariablehole = false;
-                bool responsehitvariablehole = false;
+                int section = 0;
                 for (int i = 0; i < lines.Length; i++)
                 {
                     //read until you find public class request... do everything once.
                     //then, do it again response
                     if (lines[i].Contains("$$REQUESTDOLLADOLLABILLS"))
                     {
-                        requesthitvariablehole = true;
+                        section++;
                         continue;
                     }
                     if (lines[i].Contains("namespace"))
@@ -126,15 +125,15 @@ namespace FauxMessages
                     }
                     if (lines[i].Contains("$$RESPONSEDOLLADOLLABILLS"))
                     {
-                        responsehitvariablehole = true;
+                        section++;
                         continue;
                     }
-                    if (!requesthitvariablehole)
-                        requestfronthalf += lines[i] + "\n";
-                    else if (!responsehitvariablehole)
-                        requestbackhalf += lines[i] + "\n";
-                    else
-                        responsebackhalf += lines[i] + "\n";
+                    switch (section)
+                    {
+                        case 0: requestfronthalf += lines[i] + "\n"; break;
+                        case 1: requestbackhalf += lines[i] + "\n"; break;
+                        case 2: responsebackhalf += lines[i] + "\n"; break;
+                    }
                 }
             }
 
@@ -208,7 +207,7 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
             GUTS = GUTS.Replace("$RESPONSEMYMESSAGEDEFINITION", "@\"" + ResponseDefinition + "\"");
             GUTS = GUTS.Replace("$RESPONSEMYHASHEADER", Response.HasHeader.ToString().ToLower());
-            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", RequestDict.Length > 5 ? "{{" + RequestDict + "}}" : "()");
+            GUTS = GUTS.Replace("$RESPONSEMYFIELDS", ResponseDict.Length > 5 ? "{{" + ResponseDict + "}}" : "()");
             GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
             GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
             #endregion 
@@ -332,7 +331,7 @@ namespace FauxMessages
 
         public string GetSrvHalf()
         {
-            string wholename = classname.Replace("Request", ".Request").Replace("Response", ".Response"); ;
+            string wholename = classname.Replace("Request", ".Request").Replace("Response", ".Response");
             classname = classname.Contains("Request") ? "Request" : "Response";
             if (memoizedcontent == null)
             {

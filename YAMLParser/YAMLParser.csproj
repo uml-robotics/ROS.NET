@@ -120,18 +120,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
-    <Content Include="ROS_MESSAGES\rock_publisher\imgData.msg">
+    <None Include="ROS_MESSAGES\rock_publisher\imgData.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ROS_MESSAGES\rock_publisher\imgDataArray.msg">
+    </None>
+    <None Include="ROS_MESSAGES\rock_publisher\imgDataArray.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ROS_MESSAGES\rock_publisher\recalibrateMsg.msg">
+    </None>
+    <None Include="ROS_MESSAGES\rock_publisher\recalibrateMsg.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ROS_MESSAGES\uvc_camera\camera_sliders.msg">
+    </None>
+    <None Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <None Include="ROS_MESSAGES\sample_acquisition\ArmMovement.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -139,6 +139,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ROS_MESSAGES\sensor_msgs\Imu.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\sensor_msgs\Joy.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\ServiceTest\AddTwoInts.srv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\std_srvs\Empty.srv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\uvc_camera\camera_sliders.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TemplateProject\PubSubTest._cs" />
@@ -434,12 +446,6 @@
     <None Include="ROS_MESSAGES\whosonfirst\Dibs.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="testmsgs\std_srvs\Empty.srv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="testmsgs\ServiceTest\AddTwoInts.srv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="TemplateProject\SrvPlaceHolder._cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

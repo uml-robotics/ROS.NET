@@ -44,14 +44,6 @@ namespace BattVoltUC
         public void startListening(NodeHandle node)
         {
             sub = node.subscribe<m.Float32>("/Voltage", 1000, callbackVoltMonitor);
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    ROS.spinOnce(node);
-                    Thread.Sleep(100);
-                }
-            }).Start();
 
         }
 

@@ -25,6 +25,11 @@ namespace Ros_CSharp
         public bool node_started_by_nh;
         public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
+        /// <summary>
+        /// Creates a new node
+        /// </summary>
+        /// <param name="ns">Namespace of node</param>
+        /// <param name="remappings">any remappings</param>
         public NodeHandle(string ns, IDictionary remappings)
         {            
             if (ns != "" && ns[0] == '~')
@@ -42,6 +47,11 @@ namespace Ros_CSharp
             UnresolvedNamespace = rhs.UnresolvedNamespace;
         }
 
+        /// <summary>
+        /// Creates a new child node
+        /// </summary>
+        /// <param name="parent">Parent node to attach</param>
+        /// <param name="ns">Namespace of new node</param>
         public NodeHandle(NodeHandle parent, string ns)
         {
             Console.WriteLine("NEW NODEHANDLE!");
@@ -52,6 +62,12 @@ namespace Ros_CSharp
             construct(ns, false);
         }
 
+        /// <summary>
+        /// Creates a new child node with remappings
+        /// </summary>
+        /// <param name="parent">Parent node to attach</param>
+        /// <param name="ns">Namespace of new node</param>
+        /// <param name="remappings">Remappings</param>
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
             Console.WriteLine("NEW NODEHANDLE!");
@@ -61,10 +77,16 @@ namespace Ros_CSharp
             construct(ns, false);
         }
 
+        /// <summary>
+        /// Creates a new node
+        /// </summary>
         public NodeHandle() : this(this_node.Namespace, null)
         {
         }
 
+        /// <summary>
+        /// Current callbacks in callback queue
+        /// </summary>
         public CallbackQueue Callback
         {
             get
@@ -80,6 +102,9 @@ namespace Ros_CSharp
             set { _callback = value; }
         }
 
+        /// <summary>
+        /// Management boolean, if ros is still running
+        /// </summary>
         public bool ok
         {
             get { return ROS.ok && _ok; }
@@ -100,6 +125,9 @@ namespace Ros_CSharp
             Dispose();
         }
 
+        /// <summary>
+        /// Unregister every subscriber and publisher in this node
+        /// </summary>
         public void shutdown()
         {
             lock (collection.mutex)
@@ -117,16 +145,40 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Creates a publisher
+        /// </summary>
+        /// <typeparam name="M">Type of topic</typeparam>
+        /// <param name="topic">Name of topic</param>
+        /// <param name="q_size">How many messages to qeueue if asynchrinous</param>
+        /// <returns>A publisher with the specified topic type, name and options</returns>
          public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
         {
             return advertise<M>(topic, q_size, false);
         }
 
+        /// <summary>
+        /// Creates a publisher, specify latching
+        /// </summary>
+        /// <typeparam name="M">Type of topic</typeparam>
+        /// <param name="topic">Name of topic</param>
+        /// <param name="q_size">How many messages to enqueue if asynchrinous</param>
+        /// <param name="l">Boolean determines whether the given publisher will latch or not</param>
+         /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int q_size, bool l) where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
+        /// <summary>
+        /// Creates a publisher with connect and disconnect callbacks
+        /// </summary>
+        /// <typeparam name="M">Type of topic</typeparam>
+        /// <param name="topic">Name of topic</param>
+        /// <param name="queue_size">How many messages to enqueue if asynchrinous</param>
+        /// <param name="connectcallback">Callback to fire when this node connects</param>
+        /// <param name="disconnectcallback">Callback to fire when this node disconnects</param>
+        /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
                                          SubscriberStatusCallback disconnectcallback)
             where M : IRosMessage, new()
@@ -134,6 +186,16 @@ namespace Ros_CSharp
             return advertise<M>(topic, queue_size, connectcallback, disconnectcallback, false);
         }
 
+        /// <summary>
+        /// Creates a publisher with connect and disconnect callbacks, specify latching.
+        /// </summary>
+        /// <typeparam name="M">Type of topic</typeparam>
+        /// <param name="topic">Name of topic</param>
+        /// <param name="queue_size">How many messages to enqueue if asynchrinous</param>
+        /// <param name="connectcallback">Callback to fire when this node connects</param>
+        /// <param name="disconnectcallback">Callback to fire when this node disconnects</param>
+        /// <param name="l">Boolean determines whether the given publisher will latch or not</param>
+        /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
                                          SubscriberStatusCallback disconnectcallback, bool l)
             where M : IRosMessage, new()
@@ -141,6 +203,12 @@ namespace Ros_CSharp
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
+        /// <summary>
+        /// Creates a publisher with the given advertise options
+        /// </summary>
+        /// <typeparam name="M">Type of topic</typeparam>
+        /// <param name="ops">Advertise options</param>
+        /// <returns>A publisher with the specified options</returns>
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
             ops.topic = resolveName(ops.topic);
@@ -164,11 +232,28 @@ namespace Ros_CSharp
             return null;
         }
 
+        /// <summary>
+        /// Creates a subscriber with the given topic name.
+        /// </summary>
+        /// <typeparam name="M">Type of the subscriber message</typeparam>
+        /// <param name="topic">Topic name</param>
+        /// <param name="queue_size">How many messages to qeueue</param>
+        /// <param name="cb">Callback to fire when a message is receieved</param>
+        /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, int queue_size,CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), new M().MD5Sum);
         }
 
+        /// <summary>
+        /// Creates a subscriber with the given topic name.
+        /// </summary>
+        /// <typeparam name="M">Topic type</typeparam>
+        /// <param name="topic">Topic name</param>
+        /// <param name="queue_size">How many messages to qeueue</param>
+        /// <param name="cb">Function to fire when a message is recieved , delegate</param>
+        /// <param name="thisisveryverybad">internal use</param>
+        /// <returns></returns>
         public Subscriber<M> subscribe<M>(string topic, int queue_size,
                                                         CallbackDelegate<M> cb, string thisisveryverybad ) where M : IRosMessage, new()
         {
@@ -176,13 +261,29 @@ namespace Ros_CSharp
 
         }
          
+        /// <summary>
+        /// Creates a subscriber
+        /// </summary>
+        /// <typeparam name="M">Topic type</typeparam>
+        /// <param name="topic">Topic name</param>
+        /// <param name="queue_size">How many messages to qeueue</param>
+        /// <param name="cb">Function to fire when a message is recieved</param>
+        /// <returns>A subscriber</returns>
          public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
             where M : IRosMessage, new()
         {
               return subscribe<M>( topic, queue_size, cb, null);
        }
 
-
+        /// <summary>
+        /// Creates a subscriber
+        /// </summary>
+        /// <typeparam name="M">Topic type</typeparam>
+        /// <param name="topic">Topic name</param>
+         /// <param name="queue_size">How many messages to qeueue</param>
+         /// <param name="cb">Function to fire when a message is recieved</param>
+        /// <param name="thisisveryverybad">internal use</param>
+        /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad)
             where M : IRosMessage, new()
         {
@@ -198,6 +299,12 @@ namespace Ros_CSharp
             return subscribe(ops);
         }
 
+        /// <summary>
+        /// Creates a subscriber with given subscriber options
+        /// </summary>
+        /// <typeparam name="M">Topic type</typeparam>
+        /// <param name="ops">Subscriber options</param>
+        /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
             
@@ -280,6 +387,7 @@ namespace Ros_CSharp
             where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
+            ops.md5sum = new MReq().MD5Sum; //IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), new MReq().msgtype.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
             ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent,
                                                                              ops.header_values, ops.md5sum);
             if (client != null)
@@ -324,8 +432,9 @@ namespace Ros_CSharp
             {
                 --nh_refcount;
             }
-            /*if (nh_refcount == 0 && node_started_by_nh)
-                ROS.shutdown();*/
+            _callback = null;
+            if (nh_refcount == 0 && node_started_by_nh)
+                ROS.shutdown();
         }
         [DebuggerStepThrough]
         public void initRemappings(IDictionary rms)

@@ -63,15 +63,6 @@ namespace WpfApplication1
                 ROS.ROS_MASTER_URI = "http://10.0.3.5:11311";
                 ROS.Init(new string[0], "The_IMU_Tester_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
-
-                new Thread(() =>
-                {
-                    while (!ROS.shutting_down)
-                    {
-                        ROS.spinOnce(ROS.GlobalNodeHandle);
-                        Thread.Sleep(10);
-                    }
-                }).Start();
             }).Start();
         }
 

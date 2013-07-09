@@ -91,15 +91,6 @@ namespace MotorBarGraph
         {
             telemsub[0] = node.subscribe<m.String>("/mc1/telemetry", 1, cb0);
             telemsub[1] = node.subscribe<m.String>("/mc2/telemetry", 1, cb1);
-
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    ROS.spinOnce(node);
-                    Thread.Sleep(100);
-                }
-            }).Start();
         }
 
         private float highestever = 5.0f;

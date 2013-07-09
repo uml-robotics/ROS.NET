@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 //#define REFDEBUG
 using System;
@@ -123,24 +123,17 @@ namespace XmlRpc_Wrapper
                     Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
 #endif
                     _refs[ptr]--;
-                    if (_refs[ptr] <= 0)
+                    if (_refs[ptr] == 0)
                     {
 #if REFDEBUG
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S DEAD!");
 #endif
                         _refs.Remove(ptr);
-                        try
-                        {
-                            clear(ptr);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
                         ptr = IntPtr.Zero;
                     }
                     return;
                 }
+                ptr = IntPtr.Zero;
             }
         }
 
@@ -266,9 +259,6 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create6", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create(IntPtr rhs);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Clear", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void clear(IntPtr Target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Valid", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool valid(IntPtr target);
@@ -548,18 +538,15 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public void Clear()
         {
-            if (Clear(__instance)) Dispose();
+            SegFault();
+            Clear(__instance);
         }
 
         [DebuggerStepThrough]
         public static bool Clear(IntPtr ptr)
         {
-            if (ptr != IntPtr.Zero)
-            {
-                RmRef(ref ptr);
-                return (ptr == IntPtr.Zero);
-            }
-            return true;
+            RmRef(ref ptr);
+            return (ptr == IntPtr.Zero);
         }
 
         [DebuggerStepThrough]

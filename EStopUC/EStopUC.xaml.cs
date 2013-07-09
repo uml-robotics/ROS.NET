@@ -44,15 +44,6 @@ namespace EStopUC
             sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
             pub = node.advertise<m.Bool>("/setEstop", 1000);
 
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    ROS.spinOnce(node);
-                    Thread.Sleep(100);
-                }
-            }).Start();
-
         }
 
         public void setMode(Boolean b)

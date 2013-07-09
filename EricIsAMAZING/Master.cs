@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -33,6 +33,10 @@ namespace Ros_CSharp
             }
         }
 
+        /// <summary>
+        /// Checks if master is running? I think.
+        /// </summary>
+        /// <returns></returns>
         public static bool check()
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
@@ -40,6 +44,11 @@ namespace Ros_CSharp
             return execute("getPid", args, ref result, ref payload, false);
         }
 
+        /// <summary>
+        /// Gets all currently published and subscribed topics and adds them to the topic list
+        /// </summary>
+        /// <param name="topics"> List to store topics</param>
+        /// <returns></returns>
         public static bool getTopics(ref TopicInfo[] topics)
         {
             List<TopicInfo> topicss = new List<TopicInfo>();
@@ -55,6 +64,11 @@ namespace Ros_CSharp
             return true;
         }
 
+        /// <summary>
+        /// Gets all currently existing nodes and adds them to the nodes list
+        /// </summary>
+        /// <param name="nodes">List to store nodes</param>
+        /// <returns></returns>
         public static bool getNodes(ref string[] nodes)
         {
             List<string> names = new List<string>();
@@ -81,7 +95,15 @@ namespace Ros_CSharp
             return true;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="request">Full request to send to the master </param>
+        /// <param name="response">Full response including status code and status message. Initially empty.</param>
+        /// <param name="payload">Location to store the actual data requested, if any.</param>
+        /// <param name="wait_for_master">If you recieve an unseccessful status code, keep retrying.</param>
+        /// <returns></returns>
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
                                    bool wait_for_master)
         {

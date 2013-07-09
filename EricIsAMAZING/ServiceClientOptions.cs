@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace Ros_CSharp
 {
-#if SERVICE
+#if SERVICES
     public class ServiceClientOptions
     {
         public IDictionary header_values;

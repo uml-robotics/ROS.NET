@@ -59,12 +59,6 @@ namespace TiltSliderUC
 
                 sub = node.subscribe<m.Int32>("/camera1/tilt_info", 1, callback);
                 pub = node.advertise<m.Int32>("/camera1/tilt", 1);
-
-                while (!ROS.shutting_down)
-                {
-                    ROS.spinOnce(node);
-                    Thread.Sleep(100);
-                }
             }).Start();
         }
 

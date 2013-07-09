@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using Messages;
@@ -17,9 +17,10 @@ namespace Ros_CSharp
         public string datatype;
         public string req_datatype;
         public string res_datatype;
+        public SrvTypes srvtype;
         public ServiceCallbackHelper<MReq,MRes> helper;
         public object tracked_object;
-        public AdvertiseServiceOptions(string service, ServiceFunction<MReq, MRes> srv_func)
+        public AdvertiseServiceOptions(string service, ServiceFunction<MReq, MRes> srv_func) 
         {
             // TODO: Complete member initialization
             init(service, srv_func);
@@ -28,9 +29,12 @@ namespace Ros_CSharp
         {
             this.service = service;
             this.srv_func = callback;
-            IRosMessage irm = new MReq();
-            IRosMessage irs = new MRes();
-            md5sum = "MAKE THIS WORK!!!";// MD5.Sum(MD5.Sum(irm.msgtype) + MD5.Sum(irs.msgtype));
+            helper = new ServiceCallbackHelper<MReq, MRes>(callback);
+            this.req_datatype = new MReq().msgtype.ToString().Replace("__", "/").Replace("/Request","__Request");
+            this.res_datatype = new MRes().msgtype.ToString().Replace("__", "/").Replace("/Response", "__Response");
+            srvtype = (SrvTypes)Enum.Parse(typeof(SrvTypes),this.req_datatype.Replace("__Request", "").Replace("/","__"));
+            this.datatype = srvtype.ToString().Replace("__","/");
+            md5sum = IRosService.generate(this.srvtype).MD5Sum;
         }
     }
 }

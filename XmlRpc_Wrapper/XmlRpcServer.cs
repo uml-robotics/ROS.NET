@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 //#define REFDEBUG
 using System;
@@ -103,7 +103,7 @@ namespace XmlRpc_Wrapper
                     if (_refs[ptr] <= 0)
                     {
 #if REFDEBUG
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A BITCH!");
+                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A NOT VERY NICE!");
 #endif
                         _refs.Remove(ptr);
                         shutdown(ptr);

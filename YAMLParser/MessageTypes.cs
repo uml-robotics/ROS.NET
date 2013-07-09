@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,7 @@ namespace FauxMessages
         std_msgs__Header,
         std_msgs__Time,
         std_msgs__Duration,
-        std_msgs__Byte,
-        std_msgs__Bool
+        std_msgs__Byte
     }
 
     public enum SrvTypes

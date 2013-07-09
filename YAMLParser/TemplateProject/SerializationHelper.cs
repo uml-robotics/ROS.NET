@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -191,9 +191,9 @@ namespace Messages
 
         private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown)
         {
-            if (bytes.Length == 0 && !WHAT_IS_HAPPENING)
+            if (bytes == null && !WHAT_IS_HAPPENING || bytes.Length == 0 && !WHAT_IS_HAPPENING)
             {
-                Console.WriteLine("Deserializing empty array?");
+//                Console.WriteLine("Deserializing empty array?");
                 amountread = 0;
                 return null;
             }
@@ -234,19 +234,12 @@ Console.WriteLine("//deserialize: " + T.FullName);
             int currinfo = 0;
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
-                //Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
+               // Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
                 Type type = GetType(infos[currinfo].FieldType.FullName);
                 //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
-                //Console.WriteLine("Real type = " + realtype.FullName);
                 MsgTypes msgtype = GetMessageType(type);
-                //Console.WriteLine("Msg type = " + msgtype);
-                if (msgtype == MsgTypes.std_msgs__Bool)
-                {
-                    infos[currinfo].SetValue(thestructure, (bool)(bytes[currpos] == 1));
-                    currpos += 1;
-                    continue;
-                }
+
                 bool knownpiecelength = IsSizeKnown(realtype, true) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
                 if (knownpiecelength)
                 {

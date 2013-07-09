@@ -1,7 +1,7 @@
-﻿#define NO_SRVS_RIGHT_NOW
+﻿//#define NO_SRVS_RIGHT_NOW
 //#define SINGLE_PASS
-#define ON_TOP_OF_ITSELF
-#region USINGZ
+//#define NOT_ON_TOP_OF_ITSELF
+#region Using
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace YAMLParser
         public static string outputdir = "..\\..\\..\\Messages";
         public static string name = "Messages";
         public static string outputdir_secondpass = "..\\..\\..\\SecondPass";
-#if ON_TOP_OF_ITSELF
+#if !NOT_ON_TOP_OF_ITSELF
         public static string outputdir_firstpass = outputdir;
         public static string name_firstpass = name;
 #else
@@ -196,7 +196,7 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
-                #if !ON_TOP_OF_ITSELF
+                #if !!NOT_ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
 #endif
                 Thread.Sleep(10);
@@ -204,12 +204,12 @@ namespace YAMLParser
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
-                #if !ON_TOP_OF_ITSELF
+                #if !!NOT_ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
 #endif
                 Thread.Sleep(10);
             }
-            #if !ON_TOP_OF_ITSELF
+            #if !!NOT_ON_TOP_OF_ITSELF
             File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString().Replace("FauxMessages",""));
 #endif
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages","Messages"));
@@ -342,7 +342,7 @@ namespace YAMLParser
                 proc2.StartInfo.RedirectStandardError = true;
                 proc2.StartInfo.UseShellExecute = false;
                 proc2.StartInfo.CreateNoWindow = true;
-#if !ON_TOP_OF_ITSELF
+#if !!NOT_ON_TOP_OF_ITSELF
                 proc2.StartInfo.Arguments = "..\\..\\..\\TempMessages\\";
 #endif
                 proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";

@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -14,6 +14,14 @@ namespace Ros_CSharp
 {
     public class Publisher<M> : IPublisher where M : IRosMessage, new()
     {
+        /// <summary>
+        /// Creates a ros publisher
+        /// </summary>
+        /// <param name="topic">Topic name to publish to</param>
+        /// <param name="md5sum">md5sum for topic and type</param>
+        /// <param name="datatype">Datatype to publish</param>
+        /// <param name="nodeHandle">nodehandle</param>
+        /// <param name="callbacks">Any callbacks to attach</param>
         public Publisher(string topic, string md5sum, string datatype, NodeHandle nodeHandle,
                          SubscriberCallbacks callbacks)
         {

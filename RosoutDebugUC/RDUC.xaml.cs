@@ -59,11 +59,6 @@ namespace RosoutDebugUC
                     Thread.Sleep(200);
                 node = new NodeHandle();
                 sub = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
-                while (!ROS.shutting_down)
-                {   
-                    ROS.spinOnce(node);
-                    Thread.Sleep(100);
-                }
             }).Start();
 
         }

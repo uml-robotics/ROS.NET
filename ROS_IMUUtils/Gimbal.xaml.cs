@@ -83,8 +83,6 @@ namespace ROS_IMUUtil
             Dispatcher.BeginInvoke(new Action(SetupTopic));
         }
 
-        private Thread spinnin;
-
         private void imu_callback(sm.Imu i)
         {
             emQuaternion q = new emQuaternion(i.orientation);
@@ -124,10 +122,6 @@ namespace ROS_IMUUtil
             wtf = DateTime.Now;
 
             imusub = imagehandle.subscribe<sm.Imu>(TopicName, 1, imu_callback);
-            if (spinnin == null)
-            {
-                spinnin = new Thread(new ThreadStart(() => { while (!ROS.shutting_down) { ROS.spinOnce(imagehandle); Thread.Sleep(100); } })); spinnin.Start();
-            }
         }
 
         /// <summary>

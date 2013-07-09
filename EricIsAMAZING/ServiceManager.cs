@@ -1,4 +1,4 @@
-﻿#region USINGZ
+﻿#region Using
 
 using System;
 using System.Collections;
@@ -57,8 +57,29 @@ namespace Ros_CSharp
             where M : IRosMessage, new()
             where T : IRosMessage, new()
         {
-            ServiceServerLink<M, T> hardtyped = (createServiceServerLink(service, persistent, request_md5sum, response_md5sum, header_values) as ServiceServerLink<M,T>);
-            return hardtyped;
+            lock (shutting_down_mutex)
+            {
+                if (shutting_down)
+                    return null;
+            }
+
+            int serv_port = -1;
+            string serv_host = "";
+            if (!lookupService(service, ref serv_host, ref serv_port))
+                return null;
+            TcpTransport transport = new TcpTransport(poll_manager.poll_set);
+            if (transport.connect(serv_host, serv_port))
+            {
+                Connection connection = new Connection();
+                connection_manager.addConnection(connection);
+                ServiceServerLink<M,T> client = new ServiceServerLink<M,T>(service, persistent, request_md5sum, response_md5sum, header_values);
+                lock (service_server_links_mutex)
+                    service_server_links.Add(client);
+                connection.initialize(transport, false, null);
+                client.initialize(connection);
+                return client;
+            }
+            return null;
         }
 
         internal void removeServiceServerLink<M, T>(ServiceServerLink<M, T> issl)
@@ -88,7 +109,8 @@ namespace Ros_CSharp
                     EDB.WriteLine("Tried to advertise  a service that is already advertised in this node [{0}]", ops.service);
                     return false;
                 }
-
+                if (ops.helper == null)
+                    ops.helper = new ServiceCallbackHelper<MReq, MRes>(ops.srv_func);
                 ServicePublication<MReq, MRes> pub = new ServicePublication<MReq, MRes>(ops.service, ops.md5sum, ops.datatype, ops.req_datatype, ops.res_datatype, ops.helper, ops.callback_queue, ops.tracked_object);
                 service_publications.Add((IServicePublication)pub);
             }
@@ -131,7 +153,7 @@ namespace Ros_CSharp
             return false;
         }
 
-        internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
+      /*  internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
                                                             IDictionary header_values)
         {
             lock (shutting_down_mutex)
@@ -157,7 +179,7 @@ namespace Ros_CSharp
                 return client;
             }
             return null;
-        }
+        }*/
 
         internal void shutdown()
         {
@@ -212,7 +234,7 @@ namespace Ros_CSharp
             return master.execute("unregisterService", args, ref result, ref payload, false);
         }
 
-        private bool lookupService(string name, ref string serv_host, ref int serv_port)
+        internal bool lookupService(string name, ref string serv_host, ref int serv_port)
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
@@ -231,6 +253,16 @@ namespace Ros_CSharp
                 return false;
             }
             return true;
+        }
+
+        internal bool lookUpService(string mapped_name, string host, int port)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool lookUpService(string mapped_name, ref string host, ref int port)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -38,7 +38,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SERVICES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -58,7 +58,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -126,8 +126,7 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Messages">
       <HintPath>..\Messages\Messages.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -143,6 +142,9 @@
     <Compile Include="CallbackQueue.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionManager.cs" />
+    <Compile Include="ServiceClientLink.cs" />
+    <Compile Include="LocalSubscriberLink.cs" />
+    <Compile Include="LocalPublisherLink.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Master.cs" />
     <Compile Include="MessageDeserializer.cs" />
@@ -158,6 +160,7 @@
     <Compile Include="Publisher.cs" />
     <Compile Include="PublisherLink.cs" />
     <Compile Include="RosOutAppender.cs" />
+    <Compile Include="Service.cs" />
     <Compile Include="ServiceCallbackHelper.cs" />
     <Compile Include="ServiceClient.cs" />
     <Compile Include="ServiceClientOptions.cs" />

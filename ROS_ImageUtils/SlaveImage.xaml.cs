@@ -282,7 +282,7 @@ namespace ROS_ImageWPF
                     UpdateImage(lastgood);
                 }
                 else if (img.DecodePixelWidth != -1)
-                    UpdateImage(img);                
+                    UpdateImage(img);
             }
             catch (Exception e)
             {
@@ -499,7 +499,7 @@ namespace ROS_ImageWPF
         {
             _scalex = scalex;
             _scaley = scaley;
-            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);            
+            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);
         }
     }
 }

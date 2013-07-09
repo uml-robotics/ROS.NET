@@ -6,7 +6,7 @@
                      mc:Ignorable="d" 
                      d:DesignHeight="300" d:DesignWidth="300"
                       Loaded="UserControl_Loaded" SnapsToDevicePixels="True" SizeChanged="UserControl_SizeChanged" >
-    <Grid SnapsToDevicePixels="True">        
+    <Grid SnapsToDevicePixels="True">
         <Rectangle SnapsToDevicePixels="True" Stretch="Fill" RenderTransformOrigin="0.5,0.5">
             <Rectangle.RenderTransform>
                 <ScaleTransform ScaleX="-1"></ScaleTransform>

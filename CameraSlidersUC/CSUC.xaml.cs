@@ -196,12 +196,6 @@ namespace CameraSlidersUC
                             }));
                         }
                     }
-                    
-                    while (!ROS.shutting_down)
-                    {
-                        ROS.spinOnce(node);
-                        Thread.Sleep(100);
-                    }
                 }).Start();
             }
 

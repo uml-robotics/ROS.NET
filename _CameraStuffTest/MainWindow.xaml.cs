@@ -121,16 +121,6 @@ namespace WpfApplication1
                     tilt_pub[i] = nh.advertise<m.Int32>("camera" + i + "/tilt", 1);
                 }
 
-
-                new Thread(() =>
-                {
-                    while (!ROS.shutting_down)
-                    {
-                        ROS.spinOnce(ROS.GlobalNodeHandle);
-                        Thread.Sleep(10);
-                    }
-                }).Start();
-
                 Dispatcher.Invoke(new Action(() =>
                 {
                     mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
