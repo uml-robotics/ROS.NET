@@ -223,6 +223,7 @@ namespace rosmaster
                 reg_manager.unregister_subscriber(topic, caller_id, caller_api, ref msg, ref variable);
                 return 1;
             }
+
             public int registerPublisher(String caller_id, String topic, String topic_type, String caller_api) 
             {
                 reg_manager.register_publisher(topic, caller_id, caller_api);
