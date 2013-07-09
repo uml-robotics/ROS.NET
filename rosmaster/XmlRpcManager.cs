@@ -263,23 +263,25 @@ namespace rosmaster
             int what = int.Parse( hostname.Split(':')[2].TrimEnd('/'));
             shutting_down = false;
             port = 0;
-
-            bind("getPublications", getPublications);
-            bind("getSubscriptions", getSubscriptions);
-
-            bind("publisherUpdate", pubUpdate);
-
-            bind("requestTopic", requestTopic);
-            bind("getSystemState", getSystemState);
-
-
-            bind("getPublishedTopics",getPublishedTopics);
-
             bind("registerPublisher", registerPublisher);
             bind("unregisterPublisher", unregisterPublisher);
+            bind("registerSubscriber", registerSubscriber);
+            bind("unregisterSubscriber", unregisterSubscriber);
+            bind("getPublications", getPublications);
+            bind("getSubscriptions", getSubscriptions);
+            bind("getPublishedTopics", getPublishedTopics);
+            bind("publisherUpdate", pubUpdate);
+            bind("requestTopic", requestTopic);
+            bind("getTopicTypes", getTopicTypes);
+            bind("getSystemState", getSystemState);
 
-            bind("registerSubscriber",registerSubscriber);
-            bind("unregisterSubscriber",unregisterSubscriber);
+            bind("lookupService", lookupService);
+            bind("unregisterService", unregisterService);
+            bind("registerService", registerService);
+
+
+
+
 
             bind("hasParam", hasParam);
             bind("setParam", setParam);
@@ -289,23 +291,18 @@ namespace rosmaster
             bind("subscribeParam", subscribeParam);
             bind("getParamNames", getParamNames);
 
+            bind("lookupNode", lookupNode);
             bind("getPid", getPid);
             bind("getBusStats", getBusStatus);
             bind("getBusInfo", getBusInfo);
 
             bind("Time", getTime);
-
             bind("Duration", getTime);
-
             bind("get_rostime", getTime);
-
             bind("get_time", getTime);
-            bind("lookupNode", lookupNode);
 
-            bind("getTopicTypes", getTopicTypes);
-            
-            
-            //SERVICE??
+
+            //bind("shutdown", shutdown);
 
             bool bound = server.BindAndListen(what); //use any port available
             if (!bound)
@@ -368,6 +365,34 @@ namespace rosmaster
 
         #endregion
 
+        #region services
+        public void lookupService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String topic = parm[0].GetString();
+        }
+
+        public void registerService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            //Node Name
+            //Full service 
+            //api->rpc
+            //otherapi?
+            String topic = parm[0].GetString();
+        }
+
+        public void unregisterService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String topic = parm[0].GetString();
+        }
+#endregion
+
+        #region Topic Subscription/Publication
 
         public void getTopicTypes([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
@@ -393,24 +418,6 @@ namespace rosmaster
             res.Set(2, value);
         }
 
-
-        public void lookupNode([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
-        {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            String topic = parm[0].GetString();
-            String caller_id = parm[1].GetString();
-            String api = handler.lookupNode(caller_id, topic);
-
-           // if(api == "")
-         //       res.Set(0, 0);
-           // else
-            res.Set(0, 1);
-            res.Set(1, "lookupNode");
-            res.Set(2, api);
-        }
-        
-
         /// <summary>
         /// Returns list of all publications
         /// </summary>
@@ -424,8 +431,8 @@ namespace rosmaster
             XmlRpcValue response = new XmlRpcValue(); //guts, new value here
 
             //response.Size = 0;
-            List<List<String>> current = handler.getPublishedTopics("","");
-            
+            List<List<String>> current = handler.getPublishedTopics("", "");
+
             for (int i = 0; i < current.Count; i += 2)
             {
                 XmlRpcValue pub = new XmlRpcValue();
@@ -438,20 +445,17 @@ namespace rosmaster
             res.Set(2, response);
         }
 
-        public void getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
-        {
-            throw new Exception("NOT IMPLEMENTED YET!");
-        }
+
         /// <summary>
-        /// Get a list of all subscriptions
+        /// No clue.
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public void requestTopic([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
         }
-
 
         /// <summary>
         /// Notify subscribers of an update??
@@ -498,17 +502,6 @@ namespace rosmaster
 
 
         /// <summary>
-        /// No clue.
-        /// </summary>
-        /// <param name="parms"></param>
-        /// <param name="result"></param>
-        public void requestTopic([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
-        {
-            throw new Exception("NOT IMPLEMENTED YET!");
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-        }
-
-        /// <summary>
         /// Returns list of all, publishers, subscribers, and services
         /// </summary>
         /// <param name="parms"></param>
@@ -525,7 +518,7 @@ namespace rosmaster
             XmlRpcValue listofvalues = new XmlRpcValue();
 
             int index = 0;
-            
+
             foreach (List<List<String>> types in systemstatelist) //publisher, subscriber, services
             {
                 int bullshitindex = 0;
@@ -557,10 +550,10 @@ namespace rosmaster
                 }
 
 
-                listoftypes.Set(index++,bullshit);
+                listoftypes.Set(index++, bullshit);
             }
 
-            res.Set(2,listoftypes);
+            res.Set(2, listoftypes);
         }
 
         /// <summary>
@@ -571,7 +564,7 @@ namespace rosmaster
         public void getPublishedTopics([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            List<List<String>> publishedtopics = handler.getPublishedTopics("","");
+            List<List<String>> publishedtopics = handler.getPublishedTopics("", "");
             res.Set(0, 1);
             res.Set(1, "current system state");
 
@@ -605,8 +598,8 @@ namespace rosmaster
             Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api);
 
             handler.registerPublisher(caller_id, topic, type, caller_api);
-            res.Set(0,1);
-            res.Set(1,"GOOD JOB!");
+            res.Set(0, 1);
+            res.Set(1, "GOOD JOB!");
             res.Set(2, new XmlRpcValue(""));
 
 
@@ -628,7 +621,7 @@ namespace rosmaster
 
             int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
             res.Set(0, ret);
-            res.Set(1, "unregistered " + caller_id+ "as provder of "+ topic);
+            res.Set(1, "unregistered " + caller_id + "as provder of " + topic);
         }
 
         /// <summary>
@@ -649,45 +642,6 @@ namespace rosmaster
             res.Set(0, 1);
             res.Set(1, "GOOD JOB!");
             res.Set(2, new XmlRpcValue(""));
-
-            //string uri = XmlRpcManager.Instance.uri;
-
-            //XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
-            //XmlRpcValue result = new XmlRpcValue();
-            //XmlRpcValue payload = new XmlRpcValue();
-            //if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
-            //    return false;
-            //List<string> pub_uris = new List<string>();
-            //for (int i = 0; i < payload.Size; i++)
-            //{
-            //    XmlRpcValue asshole = payload[i];
-            //    string pubed = asshole.Get<string>();
-            //    if (pubed != uri && !pub_uris.Contains(pubed))
-            //    {
-            //        pub_uris.Add(pubed);
-            //    }
-            //}
-            //bool self_subscribed = false;
-            //Publication pub = null;
-            //string sub_md5sum = s.md5sum;
-            //lock (advertised_topics_mutex)
-            //{
-            //    foreach (Publication p in advertised_topics)
-            //    {
-            //        pub = p;
-            //        string pub_md5sum = pub.Md5sum;
-            //        if (pub.Name == s.name && md5sumsMatch(pub_md5sum, sub_md5sum) && !pub.Dropped)
-            //        {
-            //            self_subscribed = true;
-            //            break;
-            //        }
-            //    }
-            //}
-
-            //s.pubUpdate(pub_uris);
-            //if (self_subscribed)
-            //    s.addLocalConnection(pub);
-            //return true;
         }
 
         /// <summary>
@@ -708,19 +662,71 @@ namespace rosmaster
             int ret = handler.unregisterSubscriber(caller_id, topic, caller_api);
             res.Set(0, ret);
             res.Set(1, "unregistered " + caller_id + "as provder of " + topic);
-
-            //throw new Exception("NOT IMPLEMENTED YET!");
-            //XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
-            //            result = new XmlRpcValue(),
-            //            payload = new XmlRpcValue();
-            //master.execute("unregisterSubscriber", args, ref result, ref payload, false);
-            //return true;
         }
 
-        
+
+        #endregion
+
+        #region Misc
+        public void lookupNode([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+
+            String topic = parm[0].GetString();
+            String caller_id = parm[1].GetString();
+            String api = handler.lookupNode(caller_id, topic);
+
+           // if(api == "")
+         //       res.Set(0, 0);
+           // else
+            res.Set(0, 1);
+            res.Set(1, "lookupNode");
+            res.Set(2, api);
+        }
 
 
 
+        /// <summary>
+        /// Get BUS status??? WUT
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getBusStatus([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            throw new Exception("NOT IMPLEMENTED YET!");
+        }
+
+        /// <summary>
+        /// Get BUS info??? WUT
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getBusInfo([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            throw new Exception("NOT IMPLEMENTED YET!");
+        }
+
+        #endregion
+
+        #region Time
+        public void getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            throw new Exception("NOT IMPLEMENTED YET!");
+        }
+        /// <summary>
+        /// Get a list of all subscriptions
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <param name="result"></param>
+        public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        {
+            throw new Exception("NOT IMPLEMENTED YET!");
+        }
+        #endregion
+
+
+
+        #region Parameter
         /// <summary>
         /// Check whether a parameter exists
         /// </summary>
@@ -783,13 +789,6 @@ namespace rosmaster
                  value = new XmlRpcValue("");
              }
             res.Set(2,value);
-            
-            //XmlRpcValue parm2 = new XmlRpcValue(), result2 = new XmlRpcValue();
-            //parm2.Set(0, this_node.Name);
-            //parm2.Set(1, mapped_key);
-
-            //bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
-            
         }
 
         /// <summary>
@@ -825,15 +824,6 @@ namespace rosmaster
             }
 
             res.Set(2, response);
-
-
-            //throw new Exception("NOT IMPLEMENTED YET!");
-            //XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
-            //parm.Set(0, this_node.Name);
-            //parm.Set(1, mapped_key);
-            //if (!master.execute("deleteParam", parm, ref result, ref payload, false))
-            //    return false;
-            //return true;
         }
 
 
@@ -861,27 +851,9 @@ namespace rosmaster
         {
             throw new Exception("NOT IMPLEMENTED YET!");
         }
-        
 
-        /// <summary>
-        /// Get BUS status??? WUT
-        /// </summary>
-        /// <param name="parms"></param>
-        /// <param name="result"></param>
-        public void getBusStatus([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
-        {
-            throw new Exception("NOT IMPLEMENTED YET!");
-        }
+        #endregion
 
-        /// <summary>
-        /// Get BUS info??? WUT
-        /// </summary>
-        /// <param name="parms"></param>
-        /// <param name="result"></param>
-        public void getBusInfo([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
-        {
-            throw new Exception("NOT IMPLEMENTED YET!");
-        }
 
     }
 
