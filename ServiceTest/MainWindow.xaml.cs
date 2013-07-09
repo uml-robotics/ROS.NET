@@ -15,6 +15,7 @@ using System.Threading;
 
 using Messages;
 using Messages.custom_msgs;
+using Messages.roscpp_tutorials;
 using Ros_CSharp;
 using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
@@ -36,7 +37,8 @@ namespace ServiceTest
     {
         private NodeHandle nodeHandle;
         private string NODE_NAME = "ServiceTest";
-        private ServiceServer<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> server;
+        //private ServiceServer<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> server;
+        private ServiceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> client;
 
         private bool addition(Messages.roscpp_tutorials.TwoInts.Request req, ref Messages.roscpp_tutorials.TwoInts.Response resp)
         {
@@ -56,7 +58,24 @@ namespace ServiceTest
 
             nodeHandle = new NodeHandle();
 
-            server = nodeHandle.advertiseService<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints", addition);
+            //server = nodeHandle.advertiseService<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints", addition);
+            client = nodeHandle.serviceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints");
+
+            new Thread(new ThreadStart(() =>
+                {
+                    Random r = new Random();
+                    while (!ROS.shutting_down)
+                    {
+                        TwoInts.Request req = new TwoInts.Request() { a = r.Next(100), b = r.Next(100) };
+                        TwoInts.Response resp = new TwoInts.Response();
+                        if (client.call(req, ref resp))
+                            Dispatcher.Invoke(new Action(() =>
+                                {
+                                    math.Content = "" + req.a + " + " + req.b + " = " + resp.sum;
+                                }));
+                        Thread.Sleep(500);
+                    }
+                })).Start();
         }
 
         protected override void OnClosed(EventArgs e)

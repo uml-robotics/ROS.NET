@@ -280,6 +280,7 @@ namespace Ros_CSharp
             where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
+            ops.md5sum = new MReq().MD5Sum; //IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), new MReq().msgtype.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
             ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent,
                                                                              ops.header_values, ops.md5sum);
             if (client != null)

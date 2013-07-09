@@ -160,7 +160,10 @@ namespace Ros_CSharp
             }
             else if (header.Values.Contains("service"))
             {
-                throw new Exception("IMPLEMENT SERVICECLIENT LINKS!");
+                val = (string)header.Values["service"];
+                IServiceClientLink iscl = new IServiceClientLink();
+                iscl.initialize(conn);
+                ret = iscl.handleHeader(header);
             }
             else
             {

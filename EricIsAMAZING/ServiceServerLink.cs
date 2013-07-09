@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
 using Messages;
 
 #endregion
@@ -13,25 +15,40 @@ namespace Ros_CSharp
         public bool IsValid;
         public Connection connection;
         private IDictionary header_values;
-        private string md5sum;
-        private string md5sum_2;
-        private string name;
-        private bool persistent;
+        public string RequestMd5Sum;
+        public string ResponseMd5Sum;
+        public string name;
+        public MsgTypes RequestType, ResponseType;
+        public bool persistent;
+        public bool header_written;
+        public bool header_read;
 
-        public IServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
+        private bool dropped;
+
+        private CallInfo current_call;
+
+        Queue<CallInfo> call_queue = new Queue<CallInfo>();
+        private object call_queue_mutex = new object();
+
+        public void initialize<MReq, MRes>() where MReq : IRosMessage,new() where MRes : IRosMessage,new()
+        {
+            MReq req = new MReq();
+            MRes res = new MRes();
+            RequestMd5Sum = req.MD5Sum;
+            ResponseMd5Sum = res.MD5Sum;
+            RequestType = req.msgtype;
+            ResponseType = res.msgtype;
+        }
+
+        public IServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
                                   IDictionary header_values)
         {
             // TODO: Complete member initialization
             this.name = name;
             this.persistent = persistent;
-            this.md5sum = md5sum;
-            this.md5sum_2 = md5sum_2;
+            this.RequestMd5Sum = requestMd5Sum;
+            this.ResponseMd5Sum = responseMd5Sum;
             this.header_values = header_values;
-        }
-
-        public IServiceServerLink()
-        {
-            throw new NotImplementedException();
         }
 
         public static object create(string request, string response)
@@ -44,6 +61,229 @@ namespace Ros_CSharp
         internal void initialize(Connection connection)
         {
             this.connection = connection;
+            connection.DroppedEvent += onConnectionDropped;
+            connection.setHeaderReceivedCallback(onHeaderReceived);
+
+            IDictionary dict = new Hashtable();
+            dict["service"] = name;
+            dict["md5sum"] = IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), RequestType.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
+            dict["callerid"] = this_node.Name;
+            dict["persistent"] = persistent ? "1" : "0";
+            if (header_values != null)
+                foreach (object o in header_values.Keys)
+                    dict[o] = header_values[o];
+            connection.writeHeader(dict, onHeaderWritten);
+        }
+
+        private void onConnectionDropped(Connection connection, Connection.DropReason dr)
+        {
+            if (connection != this.connection) throw new Exception("WRONG CONNECTION ZOMG!");
+
+            ROS.Debug("Service client from [{0}] for [{1}] dropped", connection.RemoteString, name);
+
+            dropped = true;
+            clearCalls();
+
+            ServiceManager.Instance.removeServiceServerLink(this);
+        }
+        private bool onHeaderReceived(Connection conn, Header header)
+        {
+            string md5sum, type;
+            if (header.Values.Contains("md5sum"))
+                md5sum = (string)header.Values["md5sum"];
+            else
+            {
+                ROS.Error("TCPROS header from service server did not have required element: md5sum");
+                return false;
+            }
+
+            bool empty = false;
+            lock (call_queue_mutex)
+            {
+                empty = call_queue.Count == 0;
+                if (empty)
+                    header_read = true;
+            }
+
+            if (!empty)
+            {
+                processNextCall();
+                header_read = true;
+            }
+
+            return true;
+        }
+
+        private void callFinished()
+        {
+            CallInfo saved_call;
+            IServiceServerLink self;
+            lock (call_queue_mutex)
+            {
+                lock (current_call.finished_mutex)
+                {
+                    current_call.finished = true;
+                    current_call.notify_all();
+
+                    saved_call = current_call;
+                    current_call = null;
+
+                    self = this;
+                }
+            }
+            saved_call = new CallInfo();
+            processNextCall();
+        }
+
+        private void processNextCall()
+        {
+            bool empty = false;
+            lock (call_queue_mutex)
+            {
+                if (current_call != null)
+                    return;
+                if (call_queue.Count > 0)
+                {
+                    current_call = call_queue.Dequeue();
+                }
+                else
+                    empty = true;
+            }
+            if (empty)
+            {
+                if (persistent)
+                    connection.drop(Connection.DropReason.Destructing);
+            }
+            else
+            {
+                IRosMessage request;
+                lock (call_queue_mutex)
+                {
+                    request = current_call.req;
+                }
+                request.Serialize();
+                connection.write(request.Serialized, (uint)request.Serialized.Length, onRequestWritten);
+            }
+        }
+
+        private void clearCalls()
+        {
+            CallInfo local_current;
+            lock (call_queue_mutex)
+                local_current = current_call;
+            if (local_current != null)
+                cancelCall(local_current);
+            lock (call_queue_mutex)
+            {
+                while (call_queue.Count > 0)
+                    cancelCall(call_queue.Dequeue());
+            }
+        }
+
+        private void cancelCall(CallInfo info)
+        {
+            CallInfo local = info;
+            lock (local.finished_mutex)
+            {
+                local.finished = true;
+                local.notify_all();
+            }
+            //yield
+        }
+        private void onHeaderWritten(Connection conn)
+        {
+            header_written = true;
+        }
+        private void onRequestWritten(Connection conn)
+        {
+            connection.read(5, onResponseOkAndLength);
+        }
+        private void onResponseOkAndLength(Connection conn, ref byte[] buf, uint size, bool success)
+        {
+            if (conn != connection || size != 5)
+                throw new Exception("response or length NOT OK!");
+            if (!success) return;
+            byte ok = buf[0];
+            uint len = BitConverter.ToUInt32(buf, 1);
+            if (len > 1000000000)
+            {
+                ROS.Error("GIGABYTE IS TOO BIIIIG");
+                connection.drop(Connection.DropReason.Destructing);
+                return;
+            }
+            lock (call_queue_mutex)
+            {
+                if (ok != 0)
+                    current_call.success = true;
+                else
+                    current_call.success = false;
+            }
+            if (len > 0)
+                connection.read(len, onResponse);
+            else
+            {
+                byte[] f = new byte[0];
+                onResponse(conn, ref f, 0, true);
+            }
+        }
+        void onResponse(Connection conn, ref byte[] buf, uint size, bool success)
+        {
+            if (conn != connection) throw new Exception("WRONG CONNECTION");
+
+            if (!success) return;
+            lock (call_queue_mutex)
+            {
+                if (current_call.success)
+                {
+                    current_call.resp.Serialized = buf;
+                }
+                else
+                    current_call.exception = new Messages.std_msgs.String(buf).data;
+            }
+
+            callFinished();
+        }
+        public bool call(IRosMessage req, ref IRosMessage resp)
+        {
+            CallInfo info = new CallInfo();
+            info.req = req;
+            info.resp = resp;
+            info.success = false;
+            info.finished = false;
+            info.call_finished = false;
+            info.caller_thread_id = ROS.getPID();
+
+            bool immediate = false;
+            lock (call_queue_mutex)
+            {
+                if (connection.dropped)
+                {
+                    info.call_finished = true;
+                    return false;
+                }
+                if (call_queue.Count == 0 && header_written && header_read)
+                    immediate = true;
+                call_queue.Enqueue(info);
+            }
+
+            if (immediate)
+                processNextCall();
+
+            while (!info.finished)
+            {
+                info.finished_condition.WaitOne();
+            }
+            
+            lock (info.finished_mutex)
+            {
+                info.call_finished = true;
+            }
+
+            if (info.exception.Length > 0)
+            {
+                ROS.Error("Service call failes: service [{0}] responded with an error: {1}", name, info.exception);
+            }
+            return info.success;
         }
     }
 
@@ -51,23 +291,34 @@ namespace Ros_CSharp
         where MReq : IRosMessage, new()
         where MRes : IRosMessage, new()
     {
-        internal bool call<MReq, MRes>(MReq request, ref MRes response)
+        public ServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
+                                  IDictionary header_values)
+            : base(name, persistent, requestMd5Sum, responseMd5Sum, header_values)
         {
-            //THIS IS WRONG!!!
-            /*TransportSubscriberLink bisexual = new TransportSubscriberLink(connection);
-            bisexual.initialize(connection);
-            bisexual.enqueueMessage(request as IRosMessage, true, true);*/
-            Console.WriteLine("FINISH ME!");
-            return true;
+            initialize<MReq, MRes>();
         }
 
-        internal void reset()
+        public bool call(MReq req, ref MRes resp)
         {
-            
+            IRosMessage iresp = resp;
+            bool r = base.call(req, ref iresp);
+            resp = (MRes)resp.Deserialize(iresp.Serialized);
+            return r;
         }
     }
 
-    internal struct CallInfo<MReq, MRes>
+    internal class CallInfo
     {
+        internal IRosMessage req, resp;
+        internal bool finished,call_finished;
+        internal object finished_mutex = new object();
+        internal UInt64 caller_thread_id;
+        internal bool success;
+        internal string exception="";
+        internal Semaphore finished_condition = new Semaphore(0,int.MaxValue);
+        internal void notify_all()
+        {
+            finished_condition.Release();
+        }
     }
 }
