@@ -31,6 +31,10 @@ namespace rosmaster
                 _ROS_MASTER_URI = System.Environment.GetEnvironmentVariable("ROS_MASTER_URI", EnvironmentVariableTarget.Machine);
                
             }
+
+            if (_ROS_MASTER_URI == null)
+                _ROS_MASTER_URI = "http://"+System.Environment.MachineName+":11311";
+
             Console.WriteLine("Connecting to " + _ROS_MASTER_URI);
 
             Master master = new Master(_ROS_MASTER_URI);
