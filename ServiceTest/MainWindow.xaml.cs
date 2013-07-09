@@ -15,6 +15,7 @@ using System.Threading;
 
 using Messages;
 using Messages.custom_msgs;
+using Messages.roscpp_tutorials;
 using Ros_CSharp;
 using XmlRpc_Wrapper;
 using Int32 = Messages.std_msgs.Int32;
@@ -35,8 +36,15 @@ namespace ServiceTest
     public partial class MainWindow : Window
     {
         private NodeHandle nodeHandle;
-        Publisher<Messages.sensor_msgs.CompressedImage> fuckYouNoob;
         private string NODE_NAME = "ServiceTest";
+        //private ServiceServer<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> server;
+        private ServiceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> client;
+
+        private bool addition(Messages.roscpp_tutorials.TwoInts.Request req, ref Messages.roscpp_tutorials.TwoInts.Response resp)
+        {
+            resp.sum = req.a + req.b;
+            return true;
+        }
 
         public MainWindow()
         {
@@ -44,23 +52,30 @@ namespace ServiceTest
         }
          private void Window_Loaded(object sender, RoutedEventArgs e) 
          {
-            ROS.ROS_MASTER_URI = "http://10.0.2.206:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.82";
+            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_HOSTNAME = "10.0.2.152";
             ROS.Init(new string[0], NODE_NAME);
 
             nodeHandle = new NodeHandle();
-            
-            fuckYouNoob = nodeHandle.advertise<Messages.sensor_msgs.CompressedImage>("/testing", 1);
-            new Thread(() =>
-            {
-                while (!ROS.shutting_down)
-                {
-                    Messages.sensor_msgs.CompressedImage pow = new sm.CompressedImage();
 
-                    fuckYouNoob.publish(pow);
-                    Thread.Sleep(100);
-                }
-            }).Start();
+            //server = nodeHandle.advertiseService<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints", addition);
+            client = nodeHandle.serviceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints");
+
+            new Thread(new ThreadStart(() =>
+                {
+                    Random r = new Random();
+                    while (!ROS.shutting_down)
+                    {
+                        TwoInts.Request req = new TwoInts.Request() { a = r.Next(100), b = r.Next(100) };
+                        TwoInts.Response resp = new TwoInts.Response();
+                        if (client.call(req, ref resp))
+                            Dispatcher.Invoke(new Action(() =>
+                                {
+                                    math.Content = "" + req.a + " + " + req.b + " = " + resp.sum;
+                                }));
+                        Thread.Sleep(500);
+                    }
+                })).Start();
         }
 
         protected override void OnClosed(EventArgs e)

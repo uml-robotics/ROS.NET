@@ -19,11 +19,26 @@ namespace Ros_CSharp
         {
             throw new NotImplementedException();
         }
+
+        public void shutdown()
+        {
+            if (impl != null)
+                impl.unadvertise();
+        }
+
+        public string getService()
+        {
+            if (impl != null && impl.IsValid)
+            {
+                return impl.service;
+            }
+            return "";
+        }
     }
 
     public class IServiceServer
     {
-        public Impl impl;
+        public Impl impl = new Impl();
 
         #region Nested type: Impl
 

@@ -25,9 +25,13 @@ namespace Ros_CSharp
                                                                                    impl.md5sum, impl.md5sum,
                                                                                    impl.header_values);
             }
-            Console.WriteLine("FINISH SERVICECLIENT!");
         }
 
+        public bool call(MReq request, ref MRes response)
+        {
+            string md5 = request.MD5Sum; //IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), new MReq().msgtype.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
+            return call(request, ref response, md5);
+        }
         public bool call(MReq request, ref MRes response, string service_md5sum) 
         {
             if (service_md5sum != impl.md5sum)
@@ -50,9 +54,9 @@ namespace Ros_CSharp
             {
                 link =  ServiceManager.Instance.createServiceServerLink<MReq, MRes>(impl.service, impl.persistent, service_md5sum, service_md5sum, impl.header_values);
             }
-            if (link == null) return false;
+            if (link == null) 
+                return false;
             bool ret = link.call(request, ref response);
-            link.reset();
             while (ROS.shutting_down && ROS.ok)
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));

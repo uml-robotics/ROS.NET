@@ -10,13 +10,18 @@ namespace SecondPass
 {
     class Program
     {
-        static void Main(string[] args)
+        static void doMessages(string[] args)
         {
             string output = "<MD5>\n";
             string source = args.Length > 0 ? args[0] : "..\\..\\..\\Messages\\";
             foreach (MsgTypes mt in Enum.GetValues(typeof(MsgTypes)))
             {
                 if (mt == MsgTypes.Unknown) continue;
+                output += mt + "\t" + MD5.Sum(mt) + "\n";
+            }
+            foreach (SrvTypes mt in Enum.GetValues(typeof(SrvTypes)))
+            {
+                if (mt == SrvTypes.Unknown) continue;
                 output += mt + "\t" + MD5.Sum(mt) + "\n";
             }
             output += ("</MD5>\n");
@@ -28,24 +33,37 @@ namespace SecondPass
             {
                 string md5 = kvp.Value;
                 path = source + (kvp.Key.Replace("__", "\\") + ".cs");
-                           
-              
+                bool isreq=false,isresp=false;
+                if (kvp.Key.Contains("__Request"))
+                    isreq = true;
+                else if (kvp.Key.Contains("__Response"))
+                    isresp = true;
+                if (isreq || isresp)
+                {
+                    path = path.Replace("\\Request", "").Replace("\\Response", "");
+                }
+                lines = File.ReadAllText(path);
+                if (!isreq && !isresp)
+                    lines = lines.Replace("$MYMD5SUM", md5).Replace("$MYSRVMD5SUM", md5);
+                else if (isreq) lines = lines.Replace("$REQUESTMYMD5SUM", md5);
+                else if (isresp) lines = lines.Replace("$RESPONSEMYMD5SUM", md5);
                 try
                 {
-                    lines = File.ReadAllText(path);
-                    lines = lines.Replace("$MYMD5SUM", md5);
-                    if (lines.Contains("Request"))
-                        lines = lines.Replace("$REQUESTMYMD5SUM", md5);
-                    if (lines.Contains("Response"))
-                        lines = lines.Replace("$RESPONSEMYMD5SUM", md5);
-                    File.WriteAllText(path, lines);
-                    Thread.Sleep(10);
+                    StreamWriter sw = new StreamWriter(File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite));
+                    sw.Write(lines);
+                    sw.Flush();
+                    sw.Close();
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
             }   
+        }
+
+        static void Main(string[] args)
+        {
+            doMessages(args);
             Console.WriteLine("Done");
         }
 

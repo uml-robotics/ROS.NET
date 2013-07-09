@@ -5,5 +5,4 @@ using System.Text;
 
 namespace Ros_CSharp
 {
-    public delegate bool ServiceFunction<MReq,MRes>(MReq req, ref MRes res);
 }

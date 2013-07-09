@@ -191,7 +191,7 @@ namespace Messages
 
         private static object _deserialize(Type T, Type container, byte[] bytes, out int amountread, bool sizeknown)
         {
-            if (bytes.Length == 0 && !WHAT_IS_HAPPENING)
+            if (bytes == null && !WHAT_IS_HAPPENING || bytes.Length == 0 && !WHAT_IS_HAPPENING)
             {
 //                Console.WriteLine("Deserializing empty array?");
                 amountread = 0;

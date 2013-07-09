@@ -113,7 +113,7 @@ namespace Ros_CSharp
                 string master_host = host;
                 int master_port = port;
 
-                EDB.WriteLine("Trying to connect to master @ " + master_host + ":" + master_port);
+                //EDB.WriteLine("Trying to connect to master @ " + master_host + ":" + master_port);
                 XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 bool printed = false;
                 bool slept = false;
