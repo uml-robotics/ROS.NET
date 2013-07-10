@@ -170,16 +170,17 @@ namespace rosmaster
 
         }
 
-        public int unregister(String key, String caller_id, String caller_api, ref String msg, ref int val, String service_api = null)
+        public ReturnStruct unregister(String key, String caller_id, String caller_api, String service_api = null)
         {
-
+            String msg;
+            int val;
             if (service_api != null)
             {
                 if (service_api_map == null)
                 {
                     msg = String.Format("[{0}] is not a provider of [{1}]",caller_id,key);
                     val = 0;
-                    return 1;
+                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
                 }
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
@@ -188,7 +189,7 @@ namespace rosmaster
                 {
                     msg = String.Format("[{0}] is no longer the current service api handle for [{1}]", service_api, key);
                     val = 0;
-                    return 1;
+                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
                 }
                 else
                 {
@@ -197,7 +198,7 @@ namespace rosmaster
                 }
                 msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
                 val = 1;
-                return 1;
+                return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
             }else if(type == Registrations.SERVICE)
             {
                 throw new Exception();
@@ -216,11 +217,11 @@ namespace rosmaster
 
                     msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
                     val = 1;
-                    return 1;
+                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
                 }
                 msg = String.Format("[{0}] is not a known provider of [{1}]", caller_id, key);
                 val = 0;
-                return 1;
+                return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
             }
 
         }
@@ -330,15 +331,15 @@ namespace rosmaster
             r.register(key, caller_id, caller_api, service_api);
         }
 
-        public int _unregister(Registrations r, String key, String caller_id, String caller_api, ref String msg, ref int ret, String service_api = null)
+        public ReturnStruct _unregister(Registrations r, String key, String caller_id, String caller_api, String service_api = null)
         {
-            int code = 0;
+            ReturnStruct ret;
 
             if (nodes.ContainsKey(caller_id))
             {
                 NodeRef node_ref = nodes[caller_id];
-                ret = r.unregister(key, caller_id, caller_api, ref msg, ref code, service_api);
-                if (code == 1)
+                ret = r.unregister(key, caller_id, caller_api, service_api);
+                if (ret.statusCode == 1)
                 {
                     node_ref.remove(r.type, key);
                 }
@@ -349,9 +350,9 @@ namespace rosmaster
             }
             else
             {
-                ret = 1; code = 0; msg = String.Format("[{0}] is not a registered node",caller_id);
+                ret = new ReturnStruct(0, String.Format("[{0}] is not a registered node",caller_id), new XmlRpc_Wrapper.XmlRpcValue(1));
             }
-            return code;
+            return ret; // new ReturnStruct(code, msg, new XmlRpc_Wrapper.XmlRpcValue(ret));
         }
 
         public void register_service(String service, String caller_id, String caller_api, String service_api)
@@ -374,25 +375,28 @@ namespace rosmaster
             _register(param_subscribers, param, caller_id, caller_api);
         }
 
-        public int unregister_service(String service, String caller_id, String service_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_service(String service, String caller_id, String service_api)
         {
+
             //caller_api = null;
-            return _unregister(services, service, caller_id, service_api, ref msg, ref ret);
+            return _unregister(services, service, caller_id, service_api);
+            //return new ReturnStruct(ret, msg);
+
         }
 
-        public int unregister_subscriber(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_subscriber(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
         {
-            return _unregister(subscribers, topic, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(subscribers, topic, caller_id, caller_api);
         }
 
-        public int unregister_publisher(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_publisher(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
         {
-            return _unregister(publishers, topic, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(publishers, topic, caller_id, caller_api);
         }
 
-        public int unregister_param_subscriber(String param, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_param_subscriber(String param, String caller_id, String caller_api, ref String msg, ref int ret)
         {
-            return _unregister(param_subscribers, param, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(param_subscribers, param, caller_id, caller_api);
         }
 
         public NodeRef _register_node_api(String caller_id, String caller_api, ref bool rtn)

@@ -196,9 +196,27 @@ namespace rosmaster
 
 
             #region SERVICE PROVIDER
-            public void registerServvice() { }
-            public void lookupService() { }
-            public void unregisterService() { }
+            public ReturnStruct registerService(String caller_id, String service, String service_api, String caller_api) 
+            {
+                reg_manager.register_service(service, caller_id, caller_api, service_api);
+                return new ReturnStruct(1, "Registered [" + caller_id + "] as provider of [" + service +"]", new XmlRpcValue(1));
+            }
+
+            public ReturnStruct lookupService(String caller_id, String service) 
+            {
+                String service_url = services.get_service_api(service);
+
+                if(service_url != null || service_url.Length > 0)
+                    return new ReturnStruct(1, "rosrpc URI: [" + service_url + "]", new XmlRpcValue(service_url)); 
+                else
+                    return new ReturnStruct(-1, "No provider");
+            }
+
+            public ReturnStruct unregisterService(String caller_id, String service, String service_api) 
+            {
+                return reg_manager.unregister_service(service, caller_id, service_api);
+                //return new ReturnStruct(1, "Registered [" + caller_id + "] as provider of [" + service + "]", new XmlRpcValue(1));
+            }
 
             #endregion
 

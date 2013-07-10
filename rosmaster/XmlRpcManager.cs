@@ -370,7 +370,10 @@ namespace rosmaster
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
 
-            String topic = parm[0].GetString();
+            String caller_id = parm[0].GetString();
+            String service = parm[1].GetString();
+
+            handler.lookupService(caller_id, service);
         }
 
         public void registerService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
@@ -381,14 +384,24 @@ namespace rosmaster
             //Full service 
             //api->rpc
             //otherapi?
-            String topic = parm[0].GetString();
+            String caller_id = parm[0].GetString();
+            String service = parm[1].GetString();
+            String service_api  = parm[2].GetString();
+            String caller_api = parm[3].GetString();
+
+            //String topic = parm[0].GetString();
+            handler.registerService(caller_id, service, service_api, caller_api);
         }
 
         public void unregisterService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
 
-            String topic = parm[0].GetString();
+            String caller_id = parm[0].GetString();
+            String service = parm[1].GetString();
+            String service_api = parm[2].GetString();
+
+            handler.unregisterService(caller_id, service, service_api);
         }
 #endregion
 
