@@ -334,7 +334,6 @@ namespace rosmaster
         public ReturnStruct _unregister(Registrations r, String key, String caller_id, String caller_api, String service_api = null)
         {
             ReturnStruct ret;
-
             if (nodes.ContainsKey(caller_id))
             {
                 NodeRef node_ref = nodes[caller_id];
@@ -384,17 +383,17 @@ namespace rosmaster
 
         }
 
-        public ReturnStruct unregister_subscriber(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_subscriber(String topic, String caller_id, String caller_api)
         {
             return _unregister(subscribers, topic, caller_id, caller_api);
         }
 
-        public ReturnStruct unregister_publisher(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_publisher(String topic, String caller_id, String caller_api)
         {
             return _unregister(publishers, topic, caller_id, caller_api);
         }
 
-        public ReturnStruct unregister_param_subscriber(String param, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_param_subscriber(String param, String caller_id, String caller_api)
         {
             return _unregister(param_subscribers, param, caller_id, caller_api);
         }

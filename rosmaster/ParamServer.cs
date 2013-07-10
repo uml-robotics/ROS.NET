@@ -205,13 +205,11 @@ namespace rosmaster
             /// <param name="caller_id">ID of the caller</param>
             /// <param name="caller_api">API of the caller</param>
             /// <returns>Error code, 1 if successful</returns>
-            public int unsubscribe_param(String key, String caller_id, String caller_api) //USED TO BE TUPPLE
+            public ReturnStruct unsubscribe_param(String key, String caller_id, String caller_api) //USED TO BE TUPPLE
             {
-                int rtn = 0;
-                String str = "";
                 if (key != "/")
                     key = Names.canonicalize_name(key) + "/";
-                return reg_manager.unregister_param_subscriber(key, caller_id, caller_api, ref str, ref rtn);
+                return reg_manager.unregister_param_subscriber(key, caller_id, caller_api);
 
             }
 

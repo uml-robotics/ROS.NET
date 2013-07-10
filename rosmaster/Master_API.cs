@@ -141,7 +141,7 @@ namespace rosmaster
                 }
             }
 
-            public int unsubscribeParam(String caller_id, String caller_api, String key) 
+            public ReturnStruct unsubscribeParam(String caller_id, String caller_api, String key) 
             {
                 key = Names.resolve_name(key, caller_id);
                 return param_server.unsubscribe_param(key, caller_id, caller_api);
@@ -234,11 +234,10 @@ namespace rosmaster
                 return 1;
 
             }
+
             public int unregisterSubscriber(String caller_id, String topic, String caller_api) 
             {
-                String msg = "";
-                int variable = 0;
-                reg_manager.unregister_subscriber(topic, caller_id, caller_api, ref msg, ref variable);
+                reg_manager.unregister_subscriber(topic, caller_id, caller_api);
                 return 1;
             }
 
@@ -255,9 +254,7 @@ namespace rosmaster
             }
             public int unregisterPublisher(String caller_id, String topic, String caller_api) 
             {
-                String msg = "";
-                int variable = 0;
-                reg_manager.unregister_publisher(topic, caller_id, caller_api, ref msg, ref variable);
+                reg_manager.unregister_publisher(topic, caller_id, caller_api);
                 return 1;
             }
 
