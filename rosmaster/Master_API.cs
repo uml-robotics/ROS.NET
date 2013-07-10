@@ -166,9 +166,12 @@ namespace rosmaster
             #region NOTIFICATION ROUTINES
             public void _notify(Registrations r, Func<String, String, List<String>> task, String key, List<String> value, List<String> node_uris) 
             {
-                foreach(String s in node_uris)
+                if (node_uris != null)
                 {
-
+                    foreach (String s in node_uris)
+                    {
+                        // Dispatacher
+                    }
                 }
 
             }
@@ -206,7 +209,7 @@ namespace rosmaster
             {
                 String service_url = services.get_service_api(service);
 
-                if(service_url != null || service_url.Length > 0)
+                if(service_url != null && service_url.Length > 0)
                     return new ReturnStruct(1, "rosrpc URI: [" + service_url + "]", new XmlRpcValue(service_url)); 
                 else
                     return new ReturnStruct(-1, "No provider");

@@ -373,7 +373,12 @@ namespace rosmaster
             String caller_id = parm[0].GetString();
             String service = parm[1].GetString();
 
-            handler.lookupService(caller_id, service);
+            ReturnStruct r = handler.lookupService(caller_id, service);
+
+            res.Set(0, r.statusCode);
+            res.Set(1, r.statusMessage);
+            String s = r.value.GetString();
+            res.Set(2, r.value);
         }
 
         public void registerService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
@@ -390,7 +395,11 @@ namespace rosmaster
             String caller_api = parm[3].GetString();
 
             //String topic = parm[0].GetString();
-            handler.registerService(caller_id, service, service_api, caller_api);
+            ReturnStruct r = handler.registerService(caller_id, service, service_api, caller_api);
+
+            res.Set(0, r.statusCode);
+            res.Set(1, r.statusMessage);
+            res.Set(2, r.value);
         }
 
         public void unregisterService([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
@@ -401,7 +410,11 @@ namespace rosmaster
             String service = parm[1].GetString();
             String service_api = parm[2].GetString();
 
-            handler.unregisterService(caller_id, service, service_api);
+            ReturnStruct r = handler.unregisterService(caller_id, service, service_api);
+
+            res.Set(0, r.statusCode);
+            res.Set(1, r.statusMessage);
+            res.Set(2, r.value);
         }
 #endregion
 
