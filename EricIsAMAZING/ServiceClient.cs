@@ -10,7 +10,7 @@ using Messages;
 
 namespace Ros_CSharp
 {
-#if SERVICES
+
     public class ServiceClient<MReq, MRes> : IServiceClient where MReq : IRosMessage, new() where MRes : IRosMessage, new()
     {
         public ServiceClient(string service, bool persistent, IDictionary header_values, string md5sum)
@@ -107,5 +107,4 @@ namespace Ros_CSharp
 
         #endregion
     }
-#endif
 }

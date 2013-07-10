@@ -136,12 +136,11 @@ namespace Ros_CSharp
                     sub.unsubscribe();
                 foreach (IPublisher pub in collection.publishers)
                     pub.unadvertise();
-#if SERVICES
+
                 foreach (IServiceClient client in collection.serviceclients)
                     client.impl.shutdown();
                 foreach (IServiceServer srv in collection.serviceservers)
                     srv.impl.unadvertise();
-#endif
             }
         }
 
@@ -329,7 +328,7 @@ namespace Ros_CSharp
         }
 
 
-#if SERVICES
+
         public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
@@ -399,7 +398,6 @@ namespace Ros_CSharp
             }
             return client;
         }
-#endif
 
         public void construct(string ns, bool validate_name)
         {
@@ -508,10 +506,9 @@ namespace Ros_CSharp
         {
             public object mutex = new object();
             public List<IPublisher> publishers = new List<IPublisher>();
-#if SERVICES
+
             public List<IServiceClient> serviceclients = new List<IServiceClient>();
             public List<IServiceServer> serviceservers = new List<IServiceServer>();
-#endif
             public List<ISubscriber> subscribers = new List<ISubscriber>();
 
             #region IDisposable Members
@@ -520,10 +517,9 @@ namespace Ros_CSharp
             {
                 publishers.Clear();
                 subscribers.Clear();
-#if SERVICES
+
                 serviceservers.Clear();                
                 serviceclients.Clear();
-#endif
             }
 
             #endregion
