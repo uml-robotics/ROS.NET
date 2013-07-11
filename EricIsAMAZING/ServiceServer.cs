@@ -7,65 +7,42 @@ using System.Diagnostics;
 
 namespace Ros_CSharp
 {
-    public class ServiceServer<T, MReq, MRes> : IServiceServer
+    public class ServiceServer
     {
         public ServiceServer(string service, NodeHandle nodeHandle)
         {
-            impl.service = service;
-            impl.nodeHandle = nodeHandle;
-        }
-
-        public ServiceServer()
-        {
-            throw new NotImplementedException();
+            service = service;
+            nodeHandle = nodeHandle;
         }
 
         public void shutdown()
         {
-            if (impl != null)
-                impl.unadvertise();
+            unadvertise();
         }
 
         public string getService()
         {
-            if (impl != null && impl.IsValid)
-            {
-                return impl.service;
-            }
-            return "";
+                return service;
         }
-    }
+        internal double constructed =
+            (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
 
-    public class IServiceServer
-    {
-        public Impl impl = new Impl();
+        internal NodeHandle nodeHandle;
+        internal string service="";
+        internal bool unadvertised;
 
-        #region Nested type: Impl
-
-        public class Impl
+        public bool IsValid
         {
-            public double constructed =
-                (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
-
-            public NodeHandle nodeHandle;
-            public string service;
-            public bool unadvertised;
-
-            public bool IsValid
-            {
-                get { return !unadvertised; }
-            }
-
-            internal void unadvertise()
-            {
-                if (!unadvertised)
-                {
-                    unadvertised = true;
-                    ServiceManager.Instance.unadvertiseService(service);
-                }
-            }
+            get { return !unadvertised; }
         }
 
-        #endregion
+        internal void unadvertise()
+        {
+            if (!unadvertised)
+            {
+                unadvertised = true;
+                ServiceManager.Instance.unadvertiseService(service);
+            }
+        }
     }
 }
