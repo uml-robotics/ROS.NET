@@ -247,8 +247,8 @@ namespace Ros_CSharp
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
 
             
-               while (!sock.Connected) {}                    
-            if (!initializeSocket())
+            while (ROS.ok && !sock.Connected) {}
+            if (!ROS.ok || !initializeSocket())
                 return false;
             return true;
         }
@@ -270,8 +270,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool setKeepAlive(Socket sock, ulong time, ulong interval)
-        {
+        private bool setKeepAlive(Socket sock, ulong time, ulong interval){
             try
             {
                 // resulting structure

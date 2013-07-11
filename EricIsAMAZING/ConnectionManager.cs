@@ -171,8 +171,7 @@ namespace Ros_CSharp
                               "]. Fail.");
                 return false;
             }
-            EDB.WriteLine("CONNECTED [" + val +
-                          "]. WIN.");
+            //EDB.WriteLine("CONNECTED [" + val + "]. WIN.");
             return ret;
         }
 
