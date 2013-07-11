@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Ros_CSharp;
 using XmlRpcClient = XmlRpc_Wrapper.XmlRpcClient;
 using XmlRpcManager = Ros_CSharp.XmlRpcManager;
 using XmlRpc_Wrapper;
@@ -12,14 +13,21 @@ namespace rosmaster
 {
     class Master
     {
-        private String _ROS_MASTER_URI;
-        private String _uri;
+        private int _port=-1;
+        private string _host="";
         private XmlRpcManager master_node;
         private Master_API.ROSMasterHandler handler;
 
-        public Master(String ROS_MASTER_URI)
+        public Master()
         {
-            _ROS_MASTER_URI = ROS_MASTER_URI;
+            //split the URI (if it's valid) into host and port
+            if (!network.splitURI(ROS.ROS_MASTER_URI, ref _host, ref _port))
+            {
+                Console.WriteLine("Invalid XMLRPC uri. Using WHATEVER I WANT instead.");
+                _host = "localhost";
+                _port = 11311;
+            }
+
             //create handler?
 
 //          Start the ROS Master. 
@@ -33,7 +41,7 @@ namespace rosmaster
         public void start()
         {
             //creatre handler??
-            Console.WriteLine("Master started.... ");
+            Console.WriteLine("Creating XmlRpc server");
             
             handler = new Master_API.ROSMasterHandler();
             
@@ -41,15 +49,9 @@ namespace rosmaster
 
             bindings();
             
-            master_node.Start(_ROS_MASTER_URI);
+            master_node.Start(_port);
 
-            while (master_node.uri == "")
-            {
-                Thread.Sleep(10);
-            }
-
-            Console.WriteLine("Master connected! FUCK YEAH " + master_node.uri);
-            _uri = master_node.uri;
+            Console.WriteLine("Master startup complete.");
         }
 
         public void stop()
