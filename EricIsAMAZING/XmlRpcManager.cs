@@ -261,13 +261,17 @@ namespace Ros_CSharp
                        };
         }
 
-        public void Start()
+        public void Start(String hostname = "0")
         {
             shutting_down = false;
-            port = 0;
+            if (hostname.Length > 1)
+                port = int.Parse(hostname.Split(':')[2].TrimEnd('/'));
+            else
+                port = 0;
+
             bind("getPid", getPid);
 
-            bool bound = server.BindAndListen(0);
+            bool bound = server.BindAndListen(port);
             if (!bound)
                 throw new Exception("RPCServer bind failed");
             port = server.Port;
