@@ -377,8 +377,8 @@ namespace rosmaster
         public ReturnStruct unregister_service(String service, String caller_id, String service_api)
         {
 
-            //caller_api = null;
-            return _unregister(services, service, caller_id, service_api);
+            String caller_api = "";
+            return _unregister(services, service, caller_id, caller_api, service_api);
             //return new ReturnStruct(ret, msg);
 
         }
@@ -549,8 +549,8 @@ namespace rosmaster
 
         public void shutdown_node_task(String api, int caller_id, String reason)
         {
-            XmlRpcManager m = new XmlRpcManager();
-            m.shutdown();
+            //XmlRpcManager m = new XmlRpcManager();
+            //m.shutdown();
         }
 
 
