@@ -143,6 +143,7 @@ namespace Ros_CSharp
             while (ROS.ok && !ROS.shutting_down && enabled)
             {
                 callAvailable();
+                Thread.Sleep(ROS.WallDuration / 10);
             }
         }
 
