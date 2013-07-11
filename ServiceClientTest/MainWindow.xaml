@@ -1,7 +1,7 @@
-﻿<Window x:Class="ServiceTest.MainWindow"
+﻿<Window x:Class="ServiceClientTest.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525" Loaded="Window_Loaded">
+        Title="add_two_ints Client" Height="350" Width="525" Loaded="Window_Loaded">
     <Grid>
         <Label Content="Label" Height="auto" HorizontalAlignment="Stretch" FontSize="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Name="math" VerticalAlignment="Stretch" />
     </Grid>

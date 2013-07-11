@@ -12,7 +12,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
-
 using Messages;
 using Messages.custom_msgs;
 using Messages.roscpp_tutorials;
@@ -28,7 +27,7 @@ using sm = Messages.sensor_msgs;
 using cm = Messages.custom_msgs;
 using tf = Messages.tf;
 
-namespace ServiceTest
+namespace ServiceClientTest
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -36,15 +35,9 @@ namespace ServiceTest
     public partial class MainWindow : Window
     {
         private NodeHandle nodeHandle;
-        private string NODE_NAME = "ServiceTest";
-        //private ServiceServer<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> server;
-        private ServiceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response> client;
-
-        private bool addition(Messages.roscpp_tutorials.TwoInts.Request req, ref Messages.roscpp_tutorials.TwoInts.Response resp)
-        {
-            resp.sum = req.a + req.b;
-            return true;
-        }
+        private string NODE_NAME = "ServiceClientTest";
+        
+        
 
         public MainWindow()
         {
@@ -52,14 +45,11 @@ namespace ServiceTest
         }
          private void Window_Loaded(object sender, RoutedEventArgs e) 
          {
-            ROS.ROS_MASTER_URI = "http://10.0.2.88:11311";
+            ROS.ROS_MASTER_URI = "http://10.0.2.178:11311";
             ROS.ROS_HOSTNAME = "10.0.2.152";
-            ROS.Init(new string[0], NODE_NAME);
+            ROS.Init(new string[0], NODE_NAME+DateTime.Now.Ticks);
 
             nodeHandle = new NodeHandle();
-
-            //server = nodeHandle.advertiseService<Messages.roscpp_tutorials.TwoInts, Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints", addition);
-            client = nodeHandle.serviceClient<Messages.roscpp_tutorials.TwoInts.Request, Messages.roscpp_tutorials.TwoInts.Response>("/add_two_ints");
 
             new Thread(new ThreadStart(() =>
                 {
@@ -68,10 +58,18 @@ namespace ServiceTest
                     {
                         TwoInts.Request req = new TwoInts.Request() { a = r.Next(100), b = r.Next(100) };
                         TwoInts.Response resp = new TwoInts.Response();
-                        if (client.call(req, ref resp))
+                        DateTime before = DateTime.Now;
+                        bool res = nodeHandle.serviceClient<TwoInts.Request, TwoInts.Response>("/add_two_ints").call(req, ref resp);
+                        TimeSpan dif = DateTime.Now.Subtract(before);
                             Dispatcher.Invoke(new Action(() =>
                                 {
-                                    math.Content = "" + req.a + " + " + req.b + " = " + resp.sum;
+                                    string str = "";
+                                    if (res)
+                                        str = "" + req.a + " + " + req.b + " = " + resp.sum + "\n";
+                                    else
+                                        str = "call failed after\n";
+                                    str += Math.Round(dif.TotalMilliseconds,2) + " ms";
+                                    math.Content = str;
                                 }));
                         Thread.Sleep(500);
                     }
