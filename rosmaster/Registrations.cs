@@ -549,8 +549,8 @@ namespace rosmaster
 
         public void shutdown_node_task(String api, int caller_id, String reason)
         {
-            XmlRpcManager m = new XmlRpcManager();
-            m.shutdown();
+            //XmlRpcManager m = new XmlRpcManager();
+            //m.shutdown();
         }
 
 

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using XmlRpcClient = XmlRpc_Wrapper.XmlRpcClient;
+using XmlRpcManager = Ros_CSharp.XmlRpcManager;
 using XmlRpc_Wrapper;
 using System.Runtime.InteropServices;
+
 namespace rosmaster
 {
     class Master
@@ -54,7 +56,7 @@ namespace rosmaster
         {
             if (master_node != null)
             {
-                master_node.shutdown();
+                //master_node.shutdown();
                 master_node = null;
             }
         }
