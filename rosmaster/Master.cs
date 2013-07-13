@@ -9,6 +9,7 @@ using XmlRpcManager = Ros_CSharp.XmlRpcManager;
 using XmlRpc_Wrapper;
 using System.Runtime.InteropServices;
 
+
 namespace rosmaster
 {
     class Master
@@ -78,13 +79,13 @@ namespace rosmaster
             master_node.bind("unregisterPublisher", tobind(new Func<String, String, String, XmlRpcValue>(unregisterPublisher)));
             master_node.bind("registerSubscriber", tobind(new Func<String, String, String, String, XmlRpcValue>(registerSubscriber)));
             master_node.bind("unregisterSubscriber", tobind(new Func<String, String, String, XmlRpcValue>(unregisterSubscriber)));
-            master_node.bind("getPublications", getPublications);
-            //master_node.bind("getSubscriptions", tobind(new Func<String, String, String, String, XmlRpcValue>(getSubscriptions)));
-            master_node.bind("getPublishedTopics", getPublishedTopics);
+            master_node.bind("getPublications", tobind(new Func<XmlRpcValue>(getPublications)));
+            master_node.bind("getSubscriptions", getSubscriptions);
+            master_node.bind("getPublishedTopics", tobind(new Func<XmlRpcValue>(getPublishedTopics)));
             master_node.bind("publisherUpdate", pubUpdate);
             master_node.bind("requestTopic", requestTopic);
-            master_node.bind("getTopicTypes", getTopicTypes);
-            master_node.bind("getSystemState", getSystemState);
+            master_node.bind("getTopicTypes", tobind(new Func<String, String, XmlRpcValue>(getTopicTypes)));
+            master_node.bind("getSystemState", tobind(new Func<XmlRpcValue>(getSystemState)));
 
             master_node.bind("lookupService", tobind(new Func<String, String, XmlRpcValue>(lookupService)));
             master_node.bind("unregisterService", tobind(new Func<String, String, String, XmlRpcValue>(unregisterService)));
@@ -109,13 +110,27 @@ namespace rosmaster
             //master_node.bind("get_time", tobind(new Func<String, String, String, String, XmlRpcValue>(get_time)));
         }
 
+        public XMLRPCFunc tobind(Func<XmlRpcValue> act)
+        {
+            return (IntPtr parms, IntPtr result) =>
+            {
+                XmlRpcValue res = XmlRpcValue.Create(ref result);
+                XmlRpcValue rtn = act();
+                res.Set(0, rtn[0]);
+                res.Set(1, rtn[1]);
+                res.Set(2, rtn[2]);
+            };
+        }
 
         public XMLRPCFunc tobind<A>(Func<A, XmlRpcValue> act)
         {
             return (IntPtr parms, IntPtr result) =>
             {
                 XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-                res = act(parm[0].Get<A>());
+                XmlRpcValue rtn = act(parm[0].Get<A>());
+                res.Set(0, rtn[0]);
+                res.Set(1, rtn[1]);
+                res.Set(2, rtn[2]);
             };
         }
 
@@ -124,7 +139,10 @@ namespace rosmaster
             return (IntPtr parms, IntPtr result) =>
             {
                 XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-                res = act(parm[0].Get<A>(), parm[1].Get<B>());
+                XmlRpcValue rtn = act(parm[0].Get<A>(), parm[1].Get<B>());
+                res.Set(0, rtn[0]);
+                res.Set(1, rtn[1]);
+                res.Set(2, rtn[2]);
             };
         }
 
@@ -133,7 +151,10 @@ namespace rosmaster
             return (IntPtr parms, IntPtr result) =>
             {
                 XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-                res = act(parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>());
+                XmlRpcValue rtn = act(parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>());
+                res.Set(0, rtn[0]);
+                res.Set(1, rtn[1]);
+                res.Set(2, rtn[2]);
             };
         }
 
@@ -142,7 +163,10 @@ namespace rosmaster
             return (IntPtr parms, IntPtr result) =>
             {
                 XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-                res = act( parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>(),parm[3].Get<D>());
+                XmlRpcValue rtn = act( parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>(),parm[3].Get<D>());
+                res.Set(0, rtn[0]);
+                res.Set(1, rtn[1]);
+                res.Set(2, rtn[2]);
             };
         }
 
@@ -184,13 +208,7 @@ namespace rosmaster
 
         public XmlRpcValue lookupService(String caller_id, String service)
         {
-
-
-            XmlRpcValue res = new XmlRpcValue(); //.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            //String caller_id = parm[0].GetString();
-            //String service = parm[1].GetString();
-
+            XmlRpcValue res = new XmlRpcValue();
             ReturnStruct r = handler.lookupService(caller_id, service);
 
             res.Set(0, r.statusCode);
@@ -202,18 +220,7 @@ namespace rosmaster
 
         public XmlRpcValue registerService(String caller_id, String service, String service_api, String caller_api)
         {
-            XmlRpcValue res = new XmlRpcValue();//XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            //Node Name
-            //Full service 
-            //api->rpc
-            //otherapi?
-            /*String caller_id = parm[0].GetString();
-            String service = parm[1].GetString();
-            String service_api  = parm[2].GetString();
-            String caller_api = parm[3].GetString();
-            */
-            //String topic = parm[0].GetString();
+            XmlRpcValue res = new XmlRpcValue();
             ReturnStruct r = handler.registerService(caller_id, service, service_api, caller_api);
 
             res.Set(0, r.statusCode);
@@ -224,12 +231,7 @@ namespace rosmaster
 
         public XmlRpcValue unregisterService(String caller_id, String service, String service_api)
         {
-            XmlRpcValue res = new XmlRpcValue();//XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-           /* String caller_id = parm[0].GetString();
-            String service = parm[1].GetString();
-            String service_api = parm[2].GetString();
-            */
+            XmlRpcValue res = new XmlRpcValue();
             ReturnStruct r = handler.unregisterService(caller_id, service, service_api);
 
             res.Set(0, r.statusCode);
@@ -241,13 +243,9 @@ namespace rosmaster
 
         #region Topic Subscription/Publication
 
-        public void getTopicTypes([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public XmlRpcValue getTopicTypes(String topic, String caller_id)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            String topic = parm[0].GetString();
-
-            String caller_id = parm[1].GetString();
+            XmlRpcValue res = new XmlRpcValue();
             Dictionary<String, String> types = handler.getTopicTypes(topic);
 
             XmlRpcValue value = new XmlRpcValue();
@@ -263,6 +261,7 @@ namespace rosmaster
             res.Set(0, 1);
             res.Set(1, "getTopicTypes");
             res.Set(2, value);
+            return res;
         }
 
         /// <summary>
@@ -270,9 +269,9 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void getPublications([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public XmlRpcValue getPublications()
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            XmlRpcValue res = new XmlRpcValue();
             res.Set(0, 1); //length
             res.Set(1, "publications"); //response too
             XmlRpcValue response = new XmlRpcValue(); //guts, new value here
@@ -290,6 +289,7 @@ namespace rosmaster
                 response.Set(i, pub);
             }
             res.Set(2, response);
+            return res;
         }
 
 
@@ -353,9 +353,9 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void getSystemState([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public XmlRpcValue getSystemState()
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            XmlRpcValue res = new XmlRpcValue();
             res.Set(0, 1);
             res.Set(1, "getSystemState");
             List<List<List<String>>> systemstatelist = handler.getSystemState("");//parm.GetString()
@@ -401,6 +401,7 @@ namespace rosmaster
             }
 
             res.Set(2, listoftypes);
+            return res;
         }
 
         /// <summary>
@@ -408,9 +409,9 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void getPublishedTopics([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public XmlRpcValue getPublishedTopics()
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
+            XmlRpcValue res = new XmlRpcValue();
             List<List<String>> publishedtopics = handler.getPublishedTopics("", "");
             res.Set(0, 1);
             res.Set(1, "current system state");
@@ -426,6 +427,7 @@ namespace rosmaster
                 index++;
             }
             res.Set(2, listofvalues);
+            return res;
         }
 
 
@@ -571,7 +573,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public XmlRpcValue getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
         }
