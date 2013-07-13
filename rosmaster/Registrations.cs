@@ -17,13 +17,13 @@ namespace rosmaster
         /// <summary>
         /// Key:   Value:
         /// </summary>
-        public Dictionary<String, List<String>> map;
+        public Dictionary<String, List<List<String>>> map;
         public Dictionary<String, List<String>> service_api_map;
         //public Tuple<String, String> key;
 
 
         public int type;
-        public List<String> providers;
+        public List<List<String>> providers;
 
         /// <summary>
         /// 
@@ -34,7 +34,7 @@ namespace rosmaster
             if ( type_ == TOPIC_SUBSCRIPTIONS || type_ == TOPIC_PUBLICATIONS || type_ == SERVICE || type_ == PARAM_SUBSCRIPTIONS)
             {
                 type = type_;
-                map = new Dictionary<String, List<String>>();
+                map = new Dictionary<String, List<List<String>>>();
                 //service_api_map = new Dictionary<String, Tuple<String ,String>>();
                 //providers = Tuple<String, String>();
             }
@@ -55,7 +55,7 @@ namespace rosmaster
         /// 
         /// </summary>
         /// <returns></returns>
-        public Dictionary<String, List<String>>.Enumerator IterKeys()
+        public Dictionary<String, List<List<String>>>.Enumerator IterKeys()
         {
             return map.GetEnumerator();
             //return new IEnumerator<Dictionary<int, String>(map);
@@ -84,7 +84,7 @@ namespace rosmaster
         public List<String> get_apis(String key)
         {
             if (map.ContainsKey(key))
-                return map[key];
+                return map[key][1];
             else
                 return null;
         }
@@ -104,7 +104,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public List<String> __getitem__(String key)
+        public List<List<String>> __getitem__(String key)
         {
             return map[key];
         }
@@ -123,11 +123,13 @@ namespace rosmaster
         {
             List<List<String>> retval = new List<List<String>>();
 
-            foreach (KeyValuePair<String, List<String>> pair in map)
+            foreach (KeyValuePair<String, List<List<String>>> pair in map)
             {
                 List<String> value = new List<String>();
                 value.Add(pair.Key);
-                value.AddRange(pair.Value);
+               // foreach(String s in pair.Value)
+                    value.AddRange(pair.Value[0]);
+                    value.AddRange(pair.Value[1]);
                 retval.Add(value);
             }
             return retval;
@@ -136,22 +138,23 @@ namespace rosmaster
 
         public void register(String key, String caller_id, String caller_api, String service_api=null)
         {
-            List<String> tmplist = new List<string>();
+            List<String> tmplist = new List<String>();
             tmplist.Add(caller_id);
             tmplist.Add(caller_api);
 
             if (map.ContainsKey(key) && service_api == null)
             {
                 providers = map[key];
-                if (providers != tmplist )
+                if (!providers.Contains(tmplist) )
                 {
-                    providers = tmplist; //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
+                    providers.Add(tmplist); //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
                 }
             }
             else
             {
 
-                 map[key] = providers = tmplist;
+                 map[key] = providers = new List<List<String>>();
+                 map[key].Add(tmplist);
                  //map.Add(key,providers.First());
             }
 
@@ -165,9 +168,9 @@ namespace rosmaster
                 service_api_map[key] = tmplist;
             }else if(type == Registrations.SERVICE)
             {
+                throw new Exception("service_api must be specified for Registrations.SERVICE");
                 //raise rosmaster.exceptions.InternalException("service_api must be specified for Registrations.SERVICE");
             }
-
         }
 
         public ReturnStruct unregister(String key, String caller_id, String caller_api, String service_api = null)
@@ -193,15 +196,15 @@ namespace rosmaster
                 }
                 else
                 {
-                    service_api_map[key] = null;
-                    map[key] = null;
+                    service_api_map.Remove(key);// = null;
+                    map.Remove(key);// [key] = null;
                 }
                 msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
                 val = 1;
                 return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
             }else if(type == Registrations.SERVICE)
             {
-                throw new Exception();
+                throw new Exception("service_api must be specified for Registrations.SERVICE");
                 //RAISE THE ROOF
             }
             else
@@ -210,7 +213,7 @@ namespace rosmaster
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
                 tmplist.Add(caller_api);
-                if (providers[0] == tmplist[0] && providers[1] == tmplist[1])
+                if (providers.Contains(tmplist) )
                 {
                     map.Remove(key);
                     //providers.Remove(new Tuple<String, String>(caller_id, caller_api));
@@ -233,16 +236,22 @@ namespace rosmaster
             foreach (String key in map.Keys)
             {
                 providers = map[key];
-                List<String> to_remove;// = new Tuple<String,String>();
+                List<List<String>> to_remove = new List<List<string>>();// = new Tuple<String,String>();
 
-                if(map[key][0] == caller_id)
+                foreach (List<String> l in map[key])
                 {
-                    to_remove = map[key];
+                    if (l[0] == caller_id)
+                    {
+                        to_remove.Add(l);
+                    }
                 }
 
-                map.Remove(key);
+                foreach (List<String> l in to_remove)
+                {
+                    map[key].Remove(l);
+                }
 
-                if (providers == null)
+                if (!map.ContainsKey(key))
                 {
                     dead_keys.Add(key);
                 }
