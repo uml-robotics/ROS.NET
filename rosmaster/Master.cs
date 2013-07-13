@@ -449,10 +449,10 @@ namespace rosmaster
             XmlRpcValue res = new XmlRpcValue();
             Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api + " : " + topic);
 
-            handler.registerPublisher(caller_id, topic, type, caller_api);
-            res.Set(0, 1);
-            res.Set(1, "GOOD JOB!");
-            res.Set(2, new XmlRpcValue(""));
+            ReturnStruct st =  handler.registerPublisher(caller_id, topic, type, caller_api);
+            res.Set(0, st.statusCode);
+            res.Set(1, st.statusMessage);
+            res.Set(2, st.value);
             return res;
         }
 
