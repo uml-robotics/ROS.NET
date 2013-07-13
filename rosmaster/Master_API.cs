@@ -37,9 +37,12 @@ namespace rosmaster
             public void mloginfo() { }
             public void mlogwarn() { }
             public void apivalidate() { }
-            public List<String> publisher_update_task(String api, String topic) 
+            public List<String> publisher_update_task(String topic, String pub_uris) 
             {
-
+                 XmlRpcValue args = new XmlRpcValue("master", topic, pub_uris),
+                        result = new XmlRpcValue(),
+                        payload = new XmlRpcValue();
+                 Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false);
                 //XmlRpcManager manager = new XmlRpcManager();
                 return new List<string>(new []{"http://ERIC:1337"});
             }
@@ -170,7 +173,7 @@ namespace rosmaster
                 {
                     foreach (String s in node_uris)
                     {
-                        // Dispatacher
+                        task(key, s);
                     }
                 }
 

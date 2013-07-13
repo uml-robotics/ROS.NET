@@ -86,6 +86,7 @@ namespace rosmaster
             master_node.bind("requestTopic", requestTopic);
             master_node.bind("getTopicTypes", tobind(new Func<String, String, XmlRpcValue>(getTopicTypes)));
             master_node.bind("getSystemState", tobind(new Func<XmlRpcValue>(getSystemState)));
+            //master_node.
 
             master_node.bind("lookupService", tobind(new Func<String, String, XmlRpcValue>(lookupService)));
             master_node.bind("unregisterService", tobind(new Func<String, String, String, XmlRpcValue>(unregisterService)));
@@ -311,7 +312,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public void pubUpdate([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
         {
-            throw new Exception("NOT IMPLEMENTED YET!");
+            //throw new Exception("NOT IMPLEMENTED YET!");
             //mlRpcValue parm = XmlRpcValue.Create(ref parms);
             //List<string> pubs = new List<string>();
             //for (int idx = 0; idx < parm[2].Size; idx++)
@@ -446,7 +447,7 @@ namespace rosmaster
             String caller_api = parm[3].GetString(); //hostname
                         */
             XmlRpcValue res = new XmlRpcValue();
-            Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api);
+            Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api + " : " + topic);
 
             handler.registerPublisher(caller_id, topic, type, caller_api);
             res.Set(0, 1);
