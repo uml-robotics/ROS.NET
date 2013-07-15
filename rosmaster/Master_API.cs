@@ -170,7 +170,7 @@ namespace rosmaster
             #region NOTIFICATION ROUTINES
             public void _notify(Registrations r, Func<String, String, List<String>> task, String key, List<String> value, List<String> node_uris) 
             {
-                if (node_uris != null)
+                if (node_uris != null && node_uris.Count > 0)
                 {
                     task(key, node_uris[1]);
                     foreach (String s in node_uris)
@@ -270,9 +270,11 @@ namespace rosmaster
                 rtn.statusMessage = String.Format("Registered [{0}] as publisher of [{1}]", caller_id, topic);
                 rtn.statusCode = 1;
                 rtn.value = new XmlRpcValue();
+                rtn.value.Set(0, new XmlRpcValue());
                 for (int i = 0; i < sub_uris.Count(); i++)
                 {
-                    rtn.value.Set(i, sub_uris[0]);
+                    XmlRpcValue tmp = new XmlRpcValue(sub_uris[0]);
+                    rtn.value.Set(i, tmp);
                 }
                 return rtn;
             }

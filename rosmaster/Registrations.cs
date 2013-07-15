@@ -83,10 +83,18 @@ namespace rosmaster
         /// <returns></returns>
         public List<String> get_apis(String key)
         {
+            List<String> rtn = new List<String>();
+
             if (map.ContainsKey(key))
-                return map[key][1];
-            else
-                return null;
+            {
+                foreach (List<String> s in map[key])
+                {
+                    rtn.Add(s[1]);
+                    String str = s[1];
+                }
+               // rtn.Add(map[key][0]);
+            }
+            return rtn;
         }
 
         /// <summary>
@@ -129,7 +137,7 @@ namespace rosmaster
                 value.Add(pair.Key);
                // foreach(String s in pair.Value)
                     value.AddRange(pair.Value[0]);
-                    value.AddRange(pair.Value[1]);
+                    //value.AddRange(pair.Value[0]);
                 retval.Add(value);
             }
             return retval;
@@ -213,14 +221,18 @@ namespace rosmaster
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
                 tmplist.Add(caller_api);
-                if (providers.Contains(tmplist) )
+                foreach (List<String> l in providers)
                 {
-                    map.Remove(key);
-                    //providers.Remove(new Tuple<String, String>(caller_id, caller_api));
+                    if (l.Contains(tmplist[0]))
+                    {
 
-                    msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
-                    val = 1;
-                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
+                        map[key].Remove(l);
+                        if (map[key].Count == 0)
+                            map.Remove(key);
+                        msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
+                        val = 1;
+                        return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
+                    }
                 }
                 msg = String.Format("[{0}] is not a known provider of [{1}]", caller_id, key);
                 val = 0;
