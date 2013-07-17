@@ -52,6 +52,8 @@ namespace rosmaster
             
             master_node.Start(_port);
 
+            RosOut.start();
+
             Console.WriteLine("Master startup complete.");
         }
 
@@ -439,13 +441,6 @@ namespace rosmaster
         /// <param name="result"></param>
         public XmlRpcValue registerPublisher(String caller_id, String topic, String type, String caller_api)
         {
-            //XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            /*String caller_id = parm[0].GetString();
-            String topic = parm[1].GetString();
-            String type = parm[2].GetString();
-            String caller_api = parm[3].GetString(); //hostname
-                        */
             XmlRpcValue res = new XmlRpcValue();
             Console.WriteLine("PUBLISHING: " + caller_id + " : " + caller_api + " : " + topic);
 
@@ -464,10 +459,6 @@ namespace rosmaster
         public XmlRpcValue unregisterPublisher(String caller_id, String topic, String caller_api)
         {
             XmlRpcValue res = new XmlRpcValue();//XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            /*String caller_id = parm[0].GetString();
-            String topic = parm[1].GetString();
-            String caller_api = parm[2].GetString();*/
             Console.WriteLine("UNPUBLISHING: " + caller_id + " : " + caller_api);
 
             int ret = handler.unregisterPublisher(caller_id, topic, caller_api);
@@ -483,17 +474,11 @@ namespace rosmaster
         /// <param name="result"></param>
         public XmlRpcValue registerSubscriber(String caller_id, String topic,String type, String caller_api)
         {
-            XmlRpcValue res = new XmlRpcValue();//XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            /*String caller_id = parm[0].GetString();
-            String topic = parm[1].GetString();
-            String type = parm[2].GetString();
-            String caller_api = parm[3].GetString(); //hostname
-        */
-            handler.registerSubscriber(caller_id, topic, type, caller_api);
-            res.Set(0, 1);
-            res.Set(1, "GOOD JOB!");
-            res.Set(2, new XmlRpcValue(""));
+            XmlRpcValue res = new XmlRpcValue();
+            ReturnStruct st =  handler.registerSubscriber(caller_id, topic, type, caller_api);
+            res.Set(0, st.statusCode);
+            res.Set(1, st.statusMessage);
+            res.Set(2, st.value);
             return res;
         }
 
@@ -504,14 +489,7 @@ namespace rosmaster
         /// <param name="result"></param>
         public XmlRpcValue unregisterSubscriber(String caller_id, String topic, String caller_api)
         {
-            XmlRpcValue res = new XmlRpcValue();//XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-
-            /*String caller_id = parm[0].GetString();
-            String topic = parm[1].GetString();
-            String caller_api = parm[2].GetString(); */
-
-            Console.WriteLine("UNSUBSCRIBING: " + caller_id + " : " + caller_api);
-
+            XmlRpcValue res = new XmlRpcValue();
             int ret = handler.unregisterSubscriber(caller_id, topic, caller_api);
             res.Set(0, ret);
             res.Set(1, "unregistered " + caller_id + "as provder of " + topic);

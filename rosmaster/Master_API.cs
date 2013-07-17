@@ -37,16 +37,34 @@ namespace rosmaster
             public void mloginfo() { }
             public void mlogwarn() { }
             public void apivalidate() { }
-            public List<String> publisher_update_task(String topic, String pub_uris) 
+            public List<String> publisher_update_task( String api, String topic, List<string> pub_uris) 
             {
-                XmlRpcValue l = new XmlRpcValue(pub_uris);
-                 XmlRpcValue args = new XmlRpcValue("master", topic, l),
-                        result = new XmlRpcValue(),
+                XmlRpcValue l = new XmlRpcValue();
+                l.Set(0, api);
+                l.Set(1, "");
+                //XmlRpcValue ll = new XmlRpcValue();
+                //l.Set(0, ll);
+                for(int i = 0; i < pub_uris.Count; i++)
+                {
+                    XmlRpcValue ll = new XmlRpcValue(pub_uris[i]);
+                    l.Set(i + 1, ll);
+                }
+
+
+                XmlRpcValue args = new XmlRpcValue();
+                args.Set(0, "master");
+                args.Set(1, topic);
+                args.Set(2, l);
+                       XmlRpcValue result = new XmlRpcValue(new XmlRpcValue(), new XmlRpcValue(), new XmlRpcValue(new XmlRpcValue())),
                         payload = new XmlRpcValue();
-                 Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false);
-                //XmlRpcManager manager = new XmlRpcManager();
+
+                 Ros_CSharp.master.host = api.Replace("http://","").Replace("/","").Split(':')[0];
+                 Ros_CSharp.master.port =  int.Parse( api.Replace("http://", "").Replace("/", "").Split(':')[1]);
+                 Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false );
+                
                 return new List<string>(new []{"http://ERIC:1337"});
             }
+
             public void service_update_task() { }
 
             public ROSMasterHandler()
@@ -168,17 +186,16 @@ namespace rosmaster
 
 
             #region NOTIFICATION ROUTINES
-            public void _notify(Registrations r, Func<String, String, List<String>> task, String key, List<String> value, List<String> node_uris) 
-            {
-                if (node_uris != null && node_uris.Count > 0)
-                {
-                    task(key, node_uris[1]);
-                    foreach (String s in node_uris)
-                    {
-                   //     task(key, s);
-                    }
-                }
 
+            public void _notify(Registrations r, Func< String, String, List<String>, List<String>> task, String key, List<String> value, List<String> node_apis) 
+            {
+                foreach (String node_api in node_apis)
+                {
+                   // if (node_api != null && node_uris.Count > 0)
+                    //{
+                    task(node_api, key, value);
+                    //}
+                }
             }
             public int _notify_param_subscribers(Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>> updates) 
             { 
@@ -232,15 +249,25 @@ namespace rosmaster
 
             #region PUBLISH/SUBSCRIBE
 
-            public int registerSubscriber(String caller_id, String topic, String topic_type, String caller_api) 
+            public ReturnStruct registerSubscriber(String caller_id, String topic, String topic_type, String caller_api) 
             {
                 reg_manager.register_subscriber(topic, caller_id, caller_api);
 
                 if (!topic_types.ContainsValue(topic_type))
                     topic_types.Add(topic, topic_type);
                 List<String> puburis = publishers.get_apis(topic);
-                return 1;
 
+                ReturnStruct rtn = new ReturnStruct();
+                rtn.statusMessage = String.Format("Subscribed to [{0}] ", topic);
+                rtn.statusCode = 1;
+                rtn.value = new XmlRpcValue();
+                rtn.value.Set(0, new XmlRpcValue());
+                for (int i = 0; i < puburis.Count(); i++)
+                {
+                    XmlRpcValue tmp = new XmlRpcValue(puburis[i]);
+                    rtn.value.Set(i, tmp);
+                }
+                return rtn;
             }
 
             public int unregisterSubscriber(String caller_id, String topic, String caller_api) 

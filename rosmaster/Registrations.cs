@@ -90,7 +90,6 @@ namespace rosmaster
                 foreach (List<String> s in map[key])
                 {
                     rtn.Add(s[1]);
-                    String str = s[1];
                 }
                // rtn.Add(map[key][0]);
             }
