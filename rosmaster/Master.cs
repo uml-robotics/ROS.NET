@@ -8,6 +8,7 @@ using XmlRpcClient = XmlRpc_Wrapper.XmlRpcClient;
 using XmlRpcManager = Ros_CSharp.XmlRpcManager;
 using XmlRpc_Wrapper;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 
 namespace rosmaster
@@ -51,6 +52,10 @@ namespace rosmaster
             bindings();
             
             master_node.Start(_port);
+            //Process proc = Process.GetCurrentProcess();
+
+            //handler.setParam("master", "/run_id", new XmlRpcValue());
+            
 
             RosOut.start();
 
@@ -216,12 +221,11 @@ namespace rosmaster
 
             res.Set(0, r.statusCode);
             res.Set(1, r.statusMessage);
-            String s = r.value.GetString();
             res.Set(2, r.value);
             return res;
         }
 
-        public XmlRpcValue registerService(String caller_id, String service, String service_api, String caller_api)
+        public XmlRpcValue registerService(String caller_id, String service, String caller_api, String service_api)
         {
             XmlRpcValue res = new XmlRpcValue();
             ReturnStruct r = handler.registerService(caller_id, service, service_api, caller_api);

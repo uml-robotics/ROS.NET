@@ -34,7 +34,6 @@ namespace rosmaster
             sub = nh.subscribe<Messages.rosgraph_msgs.Log>("/rosout", 10, rosoutCallback);
             pub = nh.advertise<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, true);
 
-
             new Thread(() =>
             {
                 while (!ROS.shutting_down)

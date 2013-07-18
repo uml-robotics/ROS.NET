@@ -65,7 +65,19 @@ namespace rosmaster
                 return new List<string>(new []{"http://ERIC:1337"});
             }
 
-            public void service_update_task() { }
+            public void service_update_task(String api, String service, String uri) 
+            {
+                XmlRpcValue args = new XmlRpcValue();
+                args.Set(0, "master");
+                args.Set(1, service);
+                args.Set(2, uri);
+                XmlRpcValue result = new XmlRpcValue(new XmlRpcValue(), new XmlRpcValue(), new XmlRpcValue(new XmlRpcValue())),
+                 payload = new XmlRpcValue();
+
+                Ros_CSharp.master.host = api.Replace("http://", "").Replace("/", "").Split(':')[0];
+                Ros_CSharp.master.port = int.Parse(api.Replace("http://", "").Replace("/", "").Split(':')[1]);
+                Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false);
+            }
 
             public ROSMasterHandler()
             {
@@ -214,7 +226,7 @@ namespace rosmaster
 
             public void _notify_service_update(String service, String service_api) 
             {
-
+                
             }
 
             #endregion
