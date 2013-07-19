@@ -64,6 +64,10 @@ namespace Ros_CSharp
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
             }
+            if (!persistent)
+            {
+                server_link.connection.drop(Connection.DropReason.Destructing);
+            }
             return ret;
         }
     }

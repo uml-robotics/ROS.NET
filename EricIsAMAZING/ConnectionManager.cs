@@ -111,7 +111,6 @@ namespace Ros_CSharp
             {
                 foreach (Connection c in local_dropped)
                 {
-                    
                     connections.Remove(c);
                 }
             }
