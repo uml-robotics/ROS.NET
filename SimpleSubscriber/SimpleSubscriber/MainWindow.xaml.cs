@@ -26,8 +26,10 @@ namespace SimpleSubscriber
     {
         Subscriber<Messages.std_msgs.String> sub;
         NodeHandle nh;
+        DateTime before;
         public MainWindow()
         {
+            before = DateTime.Now;
             InitializeComponent();
 
             ROS.ROS_MASTER_URI = "http://10.0.2.226:11311";
@@ -42,8 +44,11 @@ namespace SimpleSubscriber
         {
             Dispatcher.Invoke(new Action(() =>
             {
-                l.Content = "Receieved: " + msg.data;
+                TimeSpan dif = DateTime.Now.Subtract(before);
+                l.Content = "Receieved: " + msg.data + "\n" + Math.Round(dif.TotalMilliseconds, 2) + " ms"; ;
             }));
+
+            before = DateTime.Now;
         }
     }
 }

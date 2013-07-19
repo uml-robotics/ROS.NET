@@ -37,7 +37,6 @@ namespace SimplePublisher
 
             pub = nh.advertise<Messages.std_msgs.String>("/my_topic", 1000, true);
 
-            
             new Thread(() =>
             {
                 int i = 0;

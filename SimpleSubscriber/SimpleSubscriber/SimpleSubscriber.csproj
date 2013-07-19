@@ -39,9 +39,6 @@
     <Reference Include="Messages">
       <HintPath>..\..\EricIsAMAZING\bin\Debug\Messages.dll</HintPath>
     </Reference>
-    <Reference Include="Ros_CSharp">
-      <HintPath>..\..\EricIsAMAZING\bin\Debug\Ros_CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -100,6 +97,12 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\EricIsAMAZING\ROS_C-Sharp.csproj">
+      <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
+      <Name>ROS_C-Sharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
