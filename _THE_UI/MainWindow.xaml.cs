@@ -113,6 +113,7 @@ namespace WpfApplication1
             {
                 // ROS stuff
                 ROS.ROS_MASTER_URI = "http://10.0.3.5:11311";
+                ROS.ROS_MASTER_URI = "10.0.3.69";
                 ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
                 Dispatcher.Invoke(new Action(() =>
