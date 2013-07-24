@@ -41,7 +41,7 @@ namespace EStopUC
         public void startListening(NodeHandle node)
         {
 
-            sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
+  //          sub = node.subscribe<m.Bool>("/estopState", 1000, callbackEStop);
             pub = node.advertise<m.Bool>("/setEstop", 1000);
 
         }
@@ -63,30 +63,13 @@ namespace EStopUC
 
         private void callbackEStop(m.Bool msg)
         {
-
-            state = msg.data;
-
-            Dispatcher.Invoke(new Action(() =>
-            {
-                if (msg.data == false)
-                {
-                    EStopCircle.Fill = Brushes.Green;
-                    EStopText.Text = "OFF";
-                }
-                else
-                {
-                    EStopCircle.Fill = Brushes.Red;
-                    EStopText.Text = "ON";
-                }
-            }));
-
-
+            Dispatcher.Invoke(new Action(()=>setMode(msg.data)));
         }
 
         private void EStopCircle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             setMode(!state);
-            pub.publish(new m.Bool() { data = !state });
+            pub.publish(new m.Bool() { data = state });
         }
 
     }
