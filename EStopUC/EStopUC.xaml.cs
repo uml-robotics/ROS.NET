@@ -86,7 +86,7 @@ namespace EStopUC
         private void EStopCircle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             setMode(!state);
-            pub.publish(new m.Bool() { data = state });
+            pub.publish(new m.Bool() { data = !state });
         }
 
     }
