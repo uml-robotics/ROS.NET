@@ -153,34 +153,6 @@ namespace Ros_CSharp
             return false;
         }
 
-      /*  internal IServiceServerLink createServiceServerLink(string name, bool persistent, string md5sum, string md5sum_2,
-                                                            IDictionary header_values)
-        {
-            lock (shutting_down_mutex)
-            {
-                if (shutting_down)
-                    return null;
-            }
-
-            int serv_port=-1;
-            string serv_host="";
-            if (!lookupService(name, ref serv_host, ref serv_port))
-                return null;
-            TcpTransport transport = new TcpTransport(poll_manager.poll_set);
-            if (transport.connect(serv_host, serv_port))
-            {
-                Connection connection = new Connection();
-                connection_manager.addConnection(connection);
-                IServiceServerLink client = new IServiceServerLink(name, persistent, md5sum, md5sum_2, header_values);
-                lock (service_server_links_mutex)
-                    service_server_links.Add(client);
-                connection.initialize(transport, false, null);
-                client.initialize(connection);
-                return client;
-            }
-            return null;
-        }*/
-
         internal void shutdown()
         {
             lock (shutting_down_mutex)
@@ -240,7 +212,10 @@ namespace Ros_CSharp
             args.Set(0, this_node.Name);
             args.Set(1, name);
             if (!master.execute("lookupService", args, ref result, ref payload, false))
+            {
+                EDB.WriteLine("lookupService: Service unknown.");
                 return false;
+            }
             string serv_uri = payload.GetString();
             if (serv_uri.Length == 0)
             {

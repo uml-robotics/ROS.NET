@@ -138,9 +138,9 @@ namespace Ros_CSharp
                     pub.unadvertise();
 
                 foreach (IServiceClient client in collection.serviceclients)
-                    client.impl.shutdown();
-                foreach (IServiceServer srv in collection.serviceservers)
-                    srv.impl.unadvertise();
+                    client.shutdown();
+                foreach (ServiceServer srv in collection.serviceservers)
+                    srv.shutdown();
             }
         }
 
@@ -213,10 +213,7 @@ namespace Ros_CSharp
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
-                if (Callback != null)
-                    ops.callback_queue = Callback;
-                else
-                    ops.callback_queue = ROS.GlobalCallbackQueue;
+                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
             }
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.callback_queue);
             if (TopicManager.Instance.advertise(ops, callbacks))
@@ -310,10 +307,7 @@ namespace Ros_CSharp
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
-                if (Callback != null)
-                    ops.callback_queue = Callback;
-                else
-                    ops.callback_queue = ROS.GlobalCallbackQueue;
+                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
             }
             if (TopicManager.Instance.subscribe(ops))
             {
@@ -329,35 +323,32 @@ namespace Ros_CSharp
 
 
 
-        public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
+        public ServiceServer advertiseService<MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
-            return advertiseService<T, MReq, MRes>(new AdvertiseServiceOptions<MReq, MRes>(service, srv_func));
+            return advertiseService(new AdvertiseServiceOptions<MReq, MRes>(service, srv_func));
         }
 
-        public ServiceServer<T, MReq, MRes> advertiseService<T, MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
+        public ServiceServer advertiseService<MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
             if (ops.callback_queue == null)
             {
-                if (Callback == null)
-                    ops.callback_queue = ROS.GlobalCallbackQueue;
-                else
-                    ops.callback_queue = Callback;
+                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
             }
             if (ServiceManager.Instance.advertiseService(ops))
             {
-                ServiceServer<T, MReq, MRes> srv = new ServiceServer<T, MReq, MRes>(ops.service, this);
+                ServiceServer srv = new ServiceServer(ops.service, this);
                 lock (collection.mutex)
                 {
                     collection.serviceservers.Add(srv);
                 }
                 return srv;
             }
-            return new ServiceServer<T, MReq, MRes>();
+            throw new Exception("Something ain't right with this advertisement.");
         }
 
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name)
@@ -386,17 +377,8 @@ namespace Ros_CSharp
             where MRes : IRosMessage, new()
         {
             ops.service = resolveName(ops.service);
-            ops.md5sum = new MReq().MD5Sum; //IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), new MReq().msgtype.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
-            ServiceClient<MReq, MRes> client = new ServiceClient<MReq, MRes>(ops.service, ops.persistent,
-                                                                             ops.header_values, ops.md5sum);
-            if (client != null)
-            {
-                lock (collection.mutex)
-                {
-                    collection.serviceclients.Add(client);
-                }
-            }
-            return client;
+            ops.md5sum = new MReq().MD5Sum;
+            return new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
         public void construct(string ns, bool validate_name)
@@ -405,10 +387,7 @@ namespace Ros_CSharp
                 ROS.FREAKOUT();
             collection = new NodeHandleBackingCollection();
             UnresolvedNamespace = ns;
-            if (validate_name)
-                Namespace = resolveName(ns);
-            else
-                Namespace = resolveName(ns, true, true);
+            Namespace = validate_name ? resolveName(ns) : resolveName(ns, true, true);
 
             ok = true;
             lock (nh_refcount_mutex)
@@ -508,7 +487,7 @@ namespace Ros_CSharp
             public List<IPublisher> publishers = new List<IPublisher>();
 
             public List<IServiceClient> serviceclients = new List<IServiceClient>();
-            public List<IServiceServer> serviceservers = new List<IServiceServer>();
+            public List<ServiceServer> serviceservers = new List<ServiceServer>();
             public List<ISubscriber> subscribers = new List<ISubscriber>();
 
             #region IDisposable Members

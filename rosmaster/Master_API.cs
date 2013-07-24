@@ -37,13 +37,47 @@ namespace rosmaster
             public void mloginfo() { }
             public void mlogwarn() { }
             public void apivalidate() { }
-            public List<String> publisher_update_task(String api, String topic) 
+            public List<String> publisher_update_task( String api, String topic, List<string> pub_uris) 
             {
+                XmlRpcValue l = new XmlRpcValue();
+                l.Set(0, api);
+                l.Set(1, "");
+                //XmlRpcValue ll = new XmlRpcValue();
+                //l.Set(0, ll);
+                for(int i = 0; i < pub_uris.Count; i++)
+                {
+                    XmlRpcValue ll = new XmlRpcValue(pub_uris[i]);
+                    l.Set(i + 1, ll);
+                }
 
-                //XmlRpcManager manager = new XmlRpcManager();
+
+                XmlRpcValue args = new XmlRpcValue();
+                args.Set(0, "master");
+                args.Set(1, topic);
+                args.Set(2, l);
+                       XmlRpcValue result = new XmlRpcValue(new XmlRpcValue(), new XmlRpcValue(), new XmlRpcValue(new XmlRpcValue())),
+                        payload = new XmlRpcValue();
+
+                 Ros_CSharp.master.host = api.Replace("http://","").Replace("/","").Split(':')[0];
+                 Ros_CSharp.master.port =  int.Parse( api.Replace("http://", "").Replace("/", "").Split(':')[1]);
+                 Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false );
+                
                 return new List<string>(new []{"http://ERIC:1337"});
             }
-            public void service_update_task() { }
+
+            public void service_update_task(String api, String service, String uri) 
+            {
+                XmlRpcValue args = new XmlRpcValue();
+                args.Set(0, "master");
+                args.Set(1, service);
+                args.Set(2, uri);
+                XmlRpcValue result = new XmlRpcValue(new XmlRpcValue(), new XmlRpcValue(), new XmlRpcValue(new XmlRpcValue())),
+                 payload = new XmlRpcValue();
+
+                Ros_CSharp.master.host = api.Replace("http://", "").Replace("/", "").Split(':')[0];
+                Ros_CSharp.master.port = int.Parse(api.Replace("http://", "").Replace("/", "").Split(':')[1]);
+                Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false);
+            }
 
             public ROSMasterHandler()
             {
@@ -141,7 +175,7 @@ namespace rosmaster
                 }
             }
 
-            public int unsubscribeParam(String caller_id, String caller_api, String key) 
+            public ReturnStruct unsubscribeParam(String caller_id, String caller_api, String key) 
             {
                 key = Names.resolve_name(key, caller_id);
                 return param_server.unsubscribe_param(key, caller_id, caller_api);
@@ -164,13 +198,16 @@ namespace rosmaster
 
 
             #region NOTIFICATION ROUTINES
-            public void _notify(Registrations r, Func<String, String, List<String>> task, String key, List<String> value, List<String> node_uris) 
+
+            public void _notify(Registrations r, Func< String, String, List<String>, List<String>> task, String key, List<String> value, List<String> node_apis) 
             {
-                foreach(String s in node_uris)
+                foreach (String node_api in node_apis)
                 {
-
+                   // if (node_api != null && node_uris.Count > 0)
+                    //{
+                    task(node_api, key, value);
+                    //}
                 }
-
             }
             public int _notify_param_subscribers(Dictionary<String, Tuple<String, XmlRpc_Wrapper.XmlRpcValue>> updates) 
             { 
@@ -189,16 +226,34 @@ namespace rosmaster
 
             public void _notify_service_update(String service, String service_api) 
             {
-
+                
             }
 
             #endregion
 
 
             #region SERVICE PROVIDER
-            public void registerServvice() { }
-            public void lookupService() { }
-            public void unregisterService() { }
+            public ReturnStruct registerService(String caller_id, String service, String service_api, String caller_api) 
+            {
+                reg_manager.register_service(service, caller_id, caller_api, service_api);
+                return new ReturnStruct(1, "Registered [" + caller_id + "] as provider of [" + service +"]", new XmlRpcValue(1));
+            }
+
+            public ReturnStruct lookupService(String caller_id, String service) 
+            {
+                String service_url = services.get_service_api(service);
+
+                if(service_url != null && service_url.Length > 0)
+                    return new ReturnStruct(1, "rosrpc URI: [" + service_url + "]", new XmlRpcValue(service_url)); 
+                else
+                    return new ReturnStruct(-1, "No provider");
+            }
+
+            public ReturnStruct unregisterService(String caller_id, String service, String service_api) 
+            {
+                return reg_manager.unregister_service(service, caller_id, service_api);
+                //return new ReturnStruct(1, "Registered [" + caller_id + "] as provider of [" + service + "]", new XmlRpcValue(1));
+            }
 
             #endregion
 
@@ -206,24 +261,42 @@ namespace rosmaster
 
             #region PUBLISH/SUBSCRIBE
 
-            public int registerSubscriber(String caller_id, String topic, String topic_type, String caller_api) 
+            public ReturnStruct registerSubscriber(String caller_id, String topic, String topic_type, String caller_api) 
             {
                 reg_manager.register_subscriber(topic, caller_id, caller_api);
 
                 if (!topic_types.ContainsValue(topic_type))
                     topic_types.Add(topic, topic_type);
                 List<String> puburis = publishers.get_apis(topic);
-                return 1;
 
+                ReturnStruct rtn = new ReturnStruct();
+                rtn.statusMessage = String.Format("Subscribed to [{0}] ", topic);
+                rtn.statusCode = 1;
+                rtn.value = new XmlRpcValue();
+                rtn.value.Set(0, new XmlRpcValue());
+                for (int i = 0; i < puburis.Count(); i++)
+                {
+                    XmlRpcValue tmp = new XmlRpcValue(puburis[i]);
+                    rtn.value.Set(i, tmp);
+                }
+                return rtn;
             }
+
             public int unregisterSubscriber(String caller_id, String topic, String caller_api) 
             {
-                String msg = "";
-                int variable = 0;
-                reg_manager.unregister_subscriber(topic, caller_id, caller_api, ref msg, ref variable);
+                reg_manager.unregister_subscriber(topic, caller_id, caller_api);
                 return 1;
             }
-            public int registerPublisher(String caller_id, String topic, String topic_type, String caller_api) 
+
+            /// <summary>
+            /// Register a publisher
+            /// </summary>
+            /// <param name="caller_id"></param>
+            /// <param name="topic"></param>
+            /// <param name="topic_type"></param>
+            /// <param name="caller_api"></param>
+            /// <returns></returns>
+            public ReturnStruct registerPublisher(String caller_id, String topic, String topic_type, String caller_api) 
             {
                 reg_manager.register_publisher(topic, caller_id, caller_api);
                 if (!topic_types.ContainsValue(topic_type))
@@ -232,13 +305,21 @@ namespace rosmaster
                 List<String> sub_uris = subscribers.get_apis(topic);
                 _notify_topic_subscribers(topic, puburis, sub_uris);
 
-                return 1;
+                ReturnStruct rtn = new ReturnStruct();
+                rtn.statusMessage = String.Format("Registered [{0}] as publisher of [{1}]", caller_id, topic);
+                rtn.statusCode = 1;
+                rtn.value = new XmlRpcValue();
+                rtn.value.Set(0, new XmlRpcValue());
+                for (int i = 0; i < sub_uris.Count(); i++)
+                {
+                    XmlRpcValue tmp = new XmlRpcValue(sub_uris[0]);
+                    rtn.value.Set(i, tmp);
+                }
+                return rtn;
             }
             public int unregisterPublisher(String caller_id, String topic, String caller_api) 
             {
-                String msg = "";
-                int variable = 0;
-                reg_manager.unregister_publisher(topic, caller_id, caller_api, ref msg, ref variable);
+                reg_manager.unregister_publisher(topic, caller_id, caller_api);
                 return 1;
             }
 
@@ -265,13 +346,13 @@ namespace rosmaster
             {
                 if (subgraph != "" && !subgraph.EndsWith("/"))
                     subgraph = subgraph + "/";
-                Dictionary<String, List<String>> e = new Dictionary<String, List<String>>(publishers.map);
+                Dictionary<String, List<List<String>>> e = new Dictionary<String, List<List<String>>>(publishers.map);
                 List<List<String>> rtn = new List<List<String>>();
 
-                foreach (KeyValuePair<String,List<String>> pair in e)
+                foreach (KeyValuePair<String,List<List<String>>> pair in e)
                 {
                     if (pair.Key.StartsWith(subgraph))
-                        foreach (String s in pair.Value)
+                        foreach (List<String> s in pair.Value)
                         {
                             List<String> value = new List<string>();
                             value.Add(pair.Key);

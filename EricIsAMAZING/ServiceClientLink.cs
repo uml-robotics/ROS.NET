@@ -172,27 +172,4 @@ namespace Ros_CSharp
                 connection.drop(Connection.DropReason.Destructing);
         }
     }
-
-    /*public class ServiceClientLink<MReq, MRes> : IServiceClientLink
-        where MReq : IRosMessage, new()
-        where MRes : IRosMessage, new()
-    {
-        public new ServicePublication<MReq, MRes> parent;
-
-        public override void processResponse(IRosMessage msg)
-        {
-            connection.write(msg.Serialized, (uint)msg.Serialized.Length, onResponseWritten);
-        }
-        public override void drop()
-        {
-            throw new NotImplementedException();
-        }
-
-
-        internal bool call<MReq, MRes>(MReq request, ref MRes response)
-        {
-            throw new NotImplementedException();
-            return true;
-        }
-    }*/
 }

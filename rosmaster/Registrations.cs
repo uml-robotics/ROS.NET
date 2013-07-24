@@ -17,13 +17,13 @@ namespace rosmaster
         /// <summary>
         /// Key:   Value:
         /// </summary>
-        public Dictionary<String, List<String>> map;
+        public Dictionary<String, List<List<String>>> map;
         public Dictionary<String, List<String>> service_api_map;
         //public Tuple<String, String> key;
 
 
         public int type;
-        public List<String> providers;
+        public List<List<String>> providers;
 
         /// <summary>
         /// 
@@ -34,7 +34,7 @@ namespace rosmaster
             if ( type_ == TOPIC_SUBSCRIPTIONS || type_ == TOPIC_PUBLICATIONS || type_ == SERVICE || type_ == PARAM_SUBSCRIPTIONS)
             {
                 type = type_;
-                map = new Dictionary<String, List<String>>();
+                map = new Dictionary<String, List<List<String>>>();
                 //service_api_map = new Dictionary<String, Tuple<String ,String>>();
                 //providers = Tuple<String, String>();
             }
@@ -55,7 +55,7 @@ namespace rosmaster
         /// 
         /// </summary>
         /// <returns></returns>
-        public Dictionary<String, List<String>>.Enumerator IterKeys()
+        public Dictionary<String, List<List<String>>>.Enumerator IterKeys()
         {
             return map.GetEnumerator();
             //return new IEnumerator<Dictionary<int, String>(map);
@@ -83,10 +83,17 @@ namespace rosmaster
         /// <returns></returns>
         public List<String> get_apis(String key)
         {
+            List<String> rtn = new List<String>();
+
             if (map.ContainsKey(key))
-                return map[key];
-            else
-                return null;
+            {
+                foreach (List<String> s in map[key])
+                {
+                    rtn.Add(s[1]);
+                }
+               // rtn.Add(map[key][0]);
+            }
+            return rtn;
         }
 
         /// <summary>
@@ -104,7 +111,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public List<String> __getitem__(String key)
+        public List<List<String>> __getitem__(String key)
         {
             return map[key];
         }
@@ -123,11 +130,13 @@ namespace rosmaster
         {
             List<List<String>> retval = new List<List<String>>();
 
-            foreach (KeyValuePair<String, List<String>> pair in map)
+            foreach (KeyValuePair<String, List<List<String>>> pair in map)
             {
                 List<String> value = new List<String>();
                 value.Add(pair.Key);
-                value.AddRange(pair.Value);
+               // foreach(String s in pair.Value)
+                    value.AddRange(pair.Value[0]);
+                    //value.AddRange(pair.Value[0]);
                 retval.Add(value);
             }
             return retval;
@@ -136,22 +145,23 @@ namespace rosmaster
 
         public void register(String key, String caller_id, String caller_api, String service_api=null)
         {
-            List<String> tmplist = new List<string>();
+            List<String> tmplist = new List<String>();
             tmplist.Add(caller_id);
             tmplist.Add(caller_api);
 
             if (map.ContainsKey(key) && service_api == null)
             {
                 providers = map[key];
-                if (providers != tmplist )
+                if (!providers.Contains(tmplist) )
                 {
-                    providers = tmplist; //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
+                    providers.Add(tmplist); //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
                 }
             }
             else
             {
 
-                 map[key] = providers = tmplist;
+                 map[key] = providers = new List<List<String>>();
+                 map[key].Add(tmplist);
                  //map.Add(key,providers.First());
             }
 
@@ -165,21 +175,22 @@ namespace rosmaster
                 service_api_map[key] = tmplist;
             }else if(type == Registrations.SERVICE)
             {
+                throw new Exception("service_api must be specified for Registrations.SERVICE");
                 //raise rosmaster.exceptions.InternalException("service_api must be specified for Registrations.SERVICE");
             }
-
         }
 
-        public int unregister(String key, String caller_id, String caller_api, ref String msg, ref int val, String service_api = null)
+        public ReturnStruct unregister(String key, String caller_id, String caller_api, String service_api = null)
         {
-
+            String msg;
+            int val;
             if (service_api != null)
             {
                 if (service_api_map == null)
                 {
                     msg = String.Format("[{0}] is not a provider of [{1}]",caller_id,key);
                     val = 0;
-                    return 1;
+                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
                 }
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
@@ -188,19 +199,19 @@ namespace rosmaster
                 {
                     msg = String.Format("[{0}] is no longer the current service api handle for [{1}]", service_api, key);
                     val = 0;
-                    return 1;
+                    return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
                 }
                 else
                 {
-                    service_api_map[key] = null;
-                    map[key] = null;
+                    service_api_map.Remove(key);// = null;
+                    map.Remove(key);// [key] = null;
                 }
                 msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
                 val = 1;
-                return 1;
+                return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
             }else if(type == Registrations.SERVICE)
             {
-                throw new Exception();
+                throw new Exception("service_api must be specified for Registrations.SERVICE");
                 //RAISE THE ROOF
             }
             else
@@ -209,18 +220,22 @@ namespace rosmaster
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
                 tmplist.Add(caller_api);
-                if (providers[0] == tmplist[0] && providers[1] == tmplist[1])
+                foreach (List<String> l in providers)
                 {
-                    map.Remove(key);
-                    //providers.Remove(new Tuple<String, String>(caller_id, caller_api));
+                    if (l.Contains(tmplist[0]))
+                    {
 
-                    msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
-                    val = 1;
-                    return 1;
+                        map[key].Remove(l);
+                        if (map[key].Count == 0)
+                            map.Remove(key);
+                        msg = String.Format("Unregistered [{0}] as provider of [{1}]", caller_id, key);
+                        val = 1;
+                        return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
+                    }
                 }
                 msg = String.Format("[{0}] is not a known provider of [{1}]", caller_id, key);
                 val = 0;
-                return 1;
+                return new ReturnStruct(1, msg, new XmlRpc_Wrapper.XmlRpcValue(val));
             }
 
         }
@@ -232,16 +247,22 @@ namespace rosmaster
             foreach (String key in map.Keys)
             {
                 providers = map[key];
-                List<String> to_remove;// = new Tuple<String,String>();
+                List<List<String>> to_remove = new List<List<string>>();// = new Tuple<String,String>();
 
-                if(map[key][0] == caller_id)
+                foreach (List<String> l in map[key])
                 {
-                    to_remove = map[key];
+                    if (l[0] == caller_id)
+                    {
+                        to_remove.Add(l);
+                    }
                 }
 
-                map.Remove(key);
+                foreach (List<String> l in to_remove)
+                {
+                    map[key].Remove(l);
+                }
 
-                if (providers == null)
+                if (!map.ContainsKey(key))
                 {
                     dead_keys.Add(key);
                 }
@@ -330,15 +351,14 @@ namespace rosmaster
             r.register(key, caller_id, caller_api, service_api);
         }
 
-        public int _unregister(Registrations r, String key, String caller_id, String caller_api, ref String msg, ref int ret, String service_api = null)
+        public ReturnStruct _unregister(Registrations r, String key, String caller_id, String caller_api, String service_api = null)
         {
-            int code = 0;
-
+            ReturnStruct ret;
             if (nodes.ContainsKey(caller_id))
             {
                 NodeRef node_ref = nodes[caller_id];
-                ret = r.unregister(key, caller_id, caller_api, ref msg, ref code, service_api);
-                if (code == 1)
+                ret = r.unregister(key, caller_id, caller_api, service_api);
+                if (ret.statusCode == 1)
                 {
                     node_ref.remove(r.type, key);
                 }
@@ -349,9 +369,9 @@ namespace rosmaster
             }
             else
             {
-                ret = 1; code = 0; msg = String.Format("[{0}] is not a registered node",caller_id);
+                ret = new ReturnStruct(0, String.Format("[{0}] is not a registered node",caller_id), new XmlRpc_Wrapper.XmlRpcValue(1));
             }
-            return code;
+            return ret; // new ReturnStruct(code, msg, new XmlRpc_Wrapper.XmlRpcValue(ret));
         }
 
         public void register_service(String service, String caller_id, String caller_api, String service_api)
@@ -374,25 +394,28 @@ namespace rosmaster
             _register(param_subscribers, param, caller_id, caller_api);
         }
 
-        public int unregister_service(String service, String caller_id, String service_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_service(String service, String caller_id, String service_api)
         {
-            //caller_api = null;
-            return _unregister(services, service, caller_id, service_api, ref msg, ref ret);
+
+            String caller_api = "";
+            return _unregister(services, service, caller_id, caller_api, service_api);
+            //return new ReturnStruct(ret, msg);
+
         }
 
-        public int unregister_subscriber(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_subscriber(String topic, String caller_id, String caller_api)
         {
-            return _unregister(subscribers, topic, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(subscribers, topic, caller_id, caller_api);
         }
 
-        public int unregister_publisher(String topic, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_publisher(String topic, String caller_id, String caller_api)
         {
-            return _unregister(publishers, topic, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(publishers, topic, caller_id, caller_api);
         }
 
-        public int unregister_param_subscriber(String param, String caller_id, String caller_api, ref String msg, ref int ret)
+        public ReturnStruct unregister_param_subscriber(String param, String caller_id, String caller_api)
         {
-            return _unregister(param_subscribers, param, caller_id, caller_api, ref msg, ref ret);
+            return _unregister(param_subscribers, param, caller_id, caller_api);
         }
 
         public NodeRef _register_node_api(String caller_id, String caller_api, ref bool rtn)
@@ -546,8 +569,8 @@ namespace rosmaster
 
         public void shutdown_node_task(String api, int caller_id, String reason)
         {
-            XmlRpcManager m = new XmlRpcManager();
-            m.shutdown();
+            //XmlRpcManager m = new XmlRpcManager();
+            //m.shutdown();
         }
 
 

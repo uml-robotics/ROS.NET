@@ -499,7 +499,7 @@ namespace Ros_CSharp
             {
                 CallbackInfo<M> info = new CallbackInfo<M>();
                 info.helper = helper;
-                info.callback = queue;                
+                info.callback = queue;
                 info.subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks);
                 //if (!helper.isConst())
                 //{

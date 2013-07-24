@@ -121,19 +121,17 @@ namespace Ros_CSharp
                 while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
                        !(ok = client.Execute(method, request, response) && XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload)))
                 {
+                    if (!wait_for_master)
+                    {
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
                     if (!printed)
                     {
                         EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
                                       master_port, (wait_for_master ? "Retrying..." : ""));
                         printed = true;
                     }
-
-                    if (!wait_for_master)
-                    {
-                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        return false;
-                    }
-
                     if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
                     {
                         EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,

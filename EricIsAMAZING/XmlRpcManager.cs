@@ -261,23 +261,60 @@ namespace Ros_CSharp
                        };
         }
 
-        public void Start()
+        /// <summary>
+        /// <para> This function starts the XmlRpcServer used to handle inbound calls on this node </para>
+        /// <para> The optional argument is used to force ROS to try to bind to a specific port. 
+        /// Doing so should only be done when acting as the RosMaster. </para>
+        /// <para> </para>
+        /// 
+        /// <para> Jordan, this function used to have the following:
+        ///     <list type="bullet">         
+        ///         <item><description>A string argument named "host"</description></item>
+        ///         <item><description>that defaulted to "0"</description></item>
+        ///         <item><description>and it was used to determine the port.</description></item>
+        ///     </list>
+        /// </para>
+        /// 
+        /// <para>
+        /// ... so now I'm all up in your codes. :-P
+        /// </para>
+        /// <para>
+        ///     -Eric
+        /// </para>
+        /// </summary>
+        /// <param name="p">The specific port number to bind to, if any</param>
+        public void Start(int p=0)
         {
             shutting_down = false;
-            port = 0;
-            bind("getPid", getPid);
 
-            bool bound = server.BindAndListen(0);
+            bind("getPid", getPid);
+            
+            if (p != 0)
+            {
+                //if port isn't 0, then we better be the master, 
+                //      so let's grab this bull by the horns
+                uri = ROS.ROS_MASTER_URI;
+                port = p;
+            }
+            //if port is 0, then we need to get our hostname from ROS' network init,
+            //   and we don't know our port until we're bound and listening
+
+            bool bound = server.BindAndListen(port);
             if (!bound)
                 throw new Exception("RPCServer bind failed");
-            port = server.Port;
-            if (port == 0)
-                throw new Exception("RPCServer's port is invalid");
-            uri = "http://" + network.host + ":" + port + "/";
 
-            EDB.WriteLine("XmlRpc IN THE HIZI (" + uri + ") FOR SHIZI");
-            server_thread = new Thread(serverThreadFunc);
-            server_thread.IsBackground = true;
+            if (p == 0)
+            {
+                //if we weren't called with a port #, then we have to figure out what
+                //    our port number is now that we're bound
+                port = server.Port;
+                if (port == 0)
+                    throw new Exception("RPCServer's port is invalid");
+                uri = "http://" + network.host + ":" + port + "/";
+            }
+
+            EDB.WriteLine("XmlRpc Server IN THE HIZI (" + uri + ") FOR SHIZI");
+            server_thread = new Thread(serverThreadFunc) {IsBackground = true};
             server_thread.Start();
         }
 

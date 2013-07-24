@@ -1,0 +1,9 @@
+﻿<Window x:Class="WpfApplication1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
+        Title="MainWindow" Loaded="Window_Loaded">
+    <Grid>
+        <c:CompressedImageControl x:FieldModifier="public" c:CompressedImageControl.TopicName="/camera/rgb/image_color/compressed" x:Name="TestImage" Width="640" Height="480"></c:CompressedImageControl>
+    </Grid>
+</Window>

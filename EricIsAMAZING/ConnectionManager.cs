@@ -111,7 +111,6 @@ namespace Ros_CSharp
             {
                 foreach (Connection c in local_dropped)
                 {
-                    
                     connections.Remove(c);
                 }
             }
@@ -171,8 +170,7 @@ namespace Ros_CSharp
                               "]. Fail.");
                 return false;
             }
-            EDB.WriteLine("CONNECTED [" + val +
-                          "]. WIN.");
+            //EDB.WriteLine("CONNECTED [" + val + "]. WIN.");
             return ret;
         }
 
