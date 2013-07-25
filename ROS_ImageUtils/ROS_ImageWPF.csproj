@@ -155,7 +155,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EricIsAMAZING\ROS_C-Sharp.csproj">
+    <ProjectReference Include="..\ROS_Comm\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
     </ProjectReference>

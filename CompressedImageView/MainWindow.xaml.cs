@@ -30,7 +30,7 @@ using System.Text;
 #endregion
 
 
-namespace WpfApplication1
+namespace CompressedImageView
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
