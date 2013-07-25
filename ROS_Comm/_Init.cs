@@ -18,85 +18,116 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    /// <summary>
+    /// Helper class for display and/or other output of debugging/peripheral information
+    /// </summary>
     public static class EDB
     {
+        /// <summary>
+        /// This delegate and associated event can be used for logging of all output from EDB to something controlled by the program using ROS_Sharp, such as  file, or other
+        /// </summary>
         public delegate void otheroutput(object o);
         public static event otheroutput OtherOutput;
-        
 
+        //does the actual writing
         private static void _writeline(object o)
         {
-#if DEBUG
             if (OtherOutput != null)
                 OtherOutput(o);
+#if DEBUG
             Debug.WriteLine(o);
 #else
             Console.WriteLine(o);
 #endif
         }
 
-        //[DebuggerStepThrough]
+        /// <summary>
+#if DEBUG
+        /// Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
+#else
+        /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
+#endif
+        /// </summary>
+        /// <param name="o">A string or something to print</param>
+        [DebuggerStepThrough]
         public static void WriteLine(object o)
         {
             _writeline(o);
         }
 
-        //[DebuggerStepThrough]
+        /// <summary>
+#if DEBUG
+        /// Writes a formatted something to System.Debug, and fires an optional OtherOutput event for use in the node
+#else
+        /// Writes a formatted something to System.Console, and fires an optional OtherOutput event for use in the node
+#endif
+        /// </summary>
+        /// <param name="o">A string or something to print</param>
+        [DebuggerStepThrough]
         public static void WriteLine(string format, params object[] args)
         {
-#if DEBUG
             if (args != null && args.Length > 0)
                 _writeline(string.Format(format, args));
             else
                 _writeline(format);
-#else
-            if (args != null && args.Length > 0)
-                Console.WriteLine(string.Format(format, args));
-            else
-                Console.WriteLine(format);
-#endif
         }
     }
 
+    /// <summary>
+    /// Everything happens here.
+    /// </summary>
     public static class ROS
     {
+        /// <summary>
+        /// Gets the current thread's TID, emulating the behavior ROS has in a more interprocess situation on xnix
+        /// </summary>
+        /// <returns></returns>
         public static System.UInt64 getPID()
         {
-           //ProcessThreadCollection ptc = Process.GetCurrentProcess().Threads;
-            //if (Thread.CurrentThread.ManagedThreadId >= ptc.Count)
-                return (System.UInt64)Thread.CurrentThread.ManagedThreadId;
-            //return (System.UInt64)ptc[Thread.CurrentThread.ManagedThreadId].Id;
+            return (System.UInt64)Thread.CurrentThread.ManagedThreadId;
         }
-
 
         public static TimerManager timer_manager = new TimerManager();
 
         public static CallbackQueue GlobalCallbackQueue;
-        public static bool initialized, started, atexit_registered, ok, shutting_down, shutdown_requested;
-        public static int init_options;
+        internal static bool initialized, started, atexit_registered;
+        public static bool ok;
+        internal static bool shutting_down, shutdown_requested;
+        internal static int init_options;
         public static string ROS_MASTER_URI;
         public static string ROS_HOSTNAME;
         public static string ROS_IP;
-        public static object start_mutex = new object();
+        private static object start_mutex = new object();
 
         /// <summary>
         ///   general global sleep time in miliseconds
         /// </summary>
         public static int WallDuration = 20;
 
-        public static RosOutAppender rosoutappender;
+        internal static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
-        public static object shutting_down_mutex = new object();
+        private static object shutting_down_mutex = new object();
         private static bool dictinit;
 
         private static long frequency = Stopwatch.Frequency;
         private static long nanosecPerTick = (1000L * 1000L * 1000L) / frequency;
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
+        /// <summary>
+        /// Turns a DateTime into a Time struct
+        /// </summary>
+        /// <param name="time">DateTime to convert</param>
+        /// <returns>containing secs, nanosecs since 1/1/1970</returns>
         public static Time GetTime(DateTime time)
         {
             return GetTime(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
         }
+
+        /// <summary>
+        /// Turns a TimeSpan into a Time (not a Duration, although it sorta is)
+        /// </summary>
+        /// <param name="timestamp">The timespan to convert to seconds/nanoseconds</param>
+        /// <returns>a time struct</returns>
         public static Time GetTime(TimeSpan timestamp)
         {
             uint seconds = (((uint)Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
@@ -104,32 +135,38 @@ namespace Ros_CSharp
             Time stamp = new Time(new TimeData(seconds, nanoseconds));
             return stamp;
         }
+
+        /// <summary>
+        /// Gets the current time as secs/nsecs
+        /// </summary>
+        /// <returns></returns>
         public static Time GetTime()
         {
             return GetTime(DateTime.Now);
         }
-
-        public static IRosMessage MakeMessage(MsgTypes type)
+        
+        internal static IRosMessage MakeMessage(MsgTypes type)
         {
             return IRosMessage.generate(type);
         }
 
-        public static IRosMessage MakeMessage(MsgTypes type, byte[] data)
+        internal static IRosMessage MakeMessage(MsgTypes type, byte[] data)
         {
             IRosMessage msg = IRosMessage.generate(type);
             msg.Deserialize(data);
             return msg;
         }
 
-        //new Subscriber<type>()
-        //MakeAndDownCast<Subscriber<>, IRosMessage>(typeof(type));
-        public static G MakeAndDowncast<T, G>(params Type[] types)
+        internal static G MakeAndDowncast<T, G>(params Type[] types)
         {
-            if (typeof (T).IsGenericTypeDefinition)
-                return (G) Activator.CreateInstance(typeof (T).MakeGenericType(types));
-            return (G) Activator.CreateInstance(typeof (T));
+            if (typeof(T).IsGenericTypeDefinition)
+                return (G)Activator.CreateInstance(typeof(T).MakeGenericType(types));
+            return (G)Activator.CreateInstance(typeof(T));
         }
 
+        /// <summary>
+        /// If this happens, then the fact that there's a static function called FREAKOUT exists is the least of your problems.
+        /// </summary>
         public static void FREAKOUT()
         {
             throw new Exception("ROS IS FREAKING OUT!");
@@ -256,7 +293,7 @@ Either:
 
         public static void Init(IDictionary remapping_args, string name)
         {
-             Init(remapping_args, name, 0);
+            Init(remapping_args, name, 0);
         }
         internal static List<CallbackQueue> callbax = new List<CallbackQueue>();
         public static void Init(IDictionary remapping_args, string name, int options)
@@ -364,7 +401,6 @@ Either:
             return false;
         }
 
-
         public static void shutdown()
         {
             lock (shutting_down_mutex)
@@ -374,7 +410,7 @@ Either:
                 shutting_down = true;
                 ok = false;
 
-                EDB.WriteLine("We're going down down....");
+                EDB.WriteLine("ROS is shutting down.");
 
                 GlobalCallbackQueue.Disable();
                 GlobalCallbackQueue.Clear();
@@ -411,7 +447,7 @@ Either:
             {
                 dictinit = true;
                 foreach (
-                    Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()})
+                    Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] { Assembly.GetExecutingAssembly() })
                     )
                 {
                     foreach (Type t in a.GetTypes())
