@@ -36,7 +36,7 @@ namespace rosmaster
 
             new Thread(() =>
             {
-                while (!ROS.shutting_down)
+                while (!ROS.ok)
                 {
                     Thread.Sleep(10);
                 }

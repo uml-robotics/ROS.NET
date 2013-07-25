@@ -54,7 +54,7 @@ namespace ServiceClientTest
             new Thread(new ThreadStart(() =>
                 {
                     Random r = new Random();
-                    while (!ROS.shutting_down)
+                    while (ROS.ok)
                     {
                         TwoInts.Request req = new TwoInts.Request() { a = r.Next(100), b = r.Next(100) };
                         TwoInts.Response resp = new TwoInts.Response();

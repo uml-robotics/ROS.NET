@@ -84,7 +84,7 @@ namespace ROS_ImageWPF
 
         private void waitfunc()
         {
-            while (!ROS.initialized)
+            while (!ROS.isStarted())
             {
                 Thread.Sleep(100);
             }
