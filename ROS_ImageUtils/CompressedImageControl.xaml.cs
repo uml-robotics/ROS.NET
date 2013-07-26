@@ -107,29 +107,32 @@ namespace ROS_ImageWPF
                             if (!ROS.isStarted())
                             {
                                 if (target.waitforinit == null)
-                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
+                                {
+                                    string workaround = target.TopicName;
+                                    target.waitforinit = new Thread(() => target.waitfunc(workaround));
+                                }
                                 if (!target.waitforinit.IsAlive)
                                 {
                                     target.waitforinit.Start();
                                 }
                             }
                             else
-                                target.SetupTopic();
+                                target.SetupTopic(target.TopicName);
                         }
                     }
                     catch (Exception e) { Console.WriteLine(e); }
                 }));
 
-        private void waitfunc()
+        private void waitfunc(string TopicName)
         {
             while (!ROS.isStarted())
             {
                 Thread.Sleep(100);
             }
-            Dispatcher.Invoke(new Action(SetupTopic));
+            SetupTopic(TopicName);
         }
         private Thread spinnin;
-        private void SetupTopic()
+        private void SetupTopic(string TopicName)
         {
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
