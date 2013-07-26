@@ -1,32 +1,18 @@
-﻿#region License Stuff
-
-// Eric McCann - 2011
-// University of Massachusetts Lowell
-//  
-//  
-// The DREAMController is intellectual property of the University of Massachusetts lowell, and is patent pending.
-//  
-// Your rights to distribute, videotape, etc. any works that make use of the DREAMController are entirely contingent on the specific terms of your licensing agreement.
+﻿// File: TimerManager.cs
+// Project: ROS_C-Sharp
 // 
-// Feel free to edit any of the supplied samples, or reuse the code in other projects that make use of the DREAMController. They are provided as a resource.
-//  
-//  
-// For license-related questions, contact:
-//  	Kerry Lee Andken
-//  	kerrylee_andken@uml.edu
-//  
-// For technical questions, contact:
-//  	Eric McCann
-//  	emccann@cs.uml.edu
-//  	
-//  	
-
-#endregion
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
 
 #region Using
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -35,29 +21,41 @@ using System.Threading;
 namespace Ros_CSharp
 {
     /// <summary>
-    ///   The timer manager.
+    ///     The timer manager.
     /// </summary>
     public class TimerManager : IDisposable
     {
         /// <summary>
-        ///   The heardof.
+        ///     The heardof.
         /// </summary>
         private Dictionary<Timer, TimerStuff> heardof = new Dictionary<Timer, TimerStuff>();
 
+        public void Dispose()
+        {
+            IList<Timer> ts = new List<Timer>(heardof.Keys);
+            for (int i = 0; i < ts.Count; i++)
+            {
+                Timer x = ts[i];
+                RemoveTimer(ref x);
+            }
+            ts.Clear();
+            heardof.Clear();
+        }
+
         /// <summary>
-        ///   The make timer.
+        ///     The make timer.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
-        /// <param name = "cb">
-        ///   The cb.
+        /// <param name="cb">
+        ///     The cb.
         /// </param>
-        /// <param name = "d">
-        ///   The d.
+        /// <param name="d">
+        ///     The d.
         /// </param>
-        /// <param name = "p">
-        ///   The p.
+        /// <param name="p">
+        ///     The p.
         /// </param>
         public void MakeTimer(ref Timer t, TimerCallback cb, int d, int p)
         {
@@ -78,22 +76,22 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///   The make timer.
+        ///     The make timer.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
-        /// <param name = "cb">
-        ///   The cb.
+        /// <param name="cb">
+        ///     The cb.
         /// </param>
-        /// <param name = "state">
-        ///   The state.
+        /// <param name="state">
+        ///     The state.
         /// </param>
-        /// <param name = "d">
-        ///   The d.
+        /// <param name="d">
+        ///     The d.
         /// </param>
-        /// <param name = "p">
-        ///   The p.
+        /// <param name="p">
+        ///     The p.
         /// </param>
         public void MakeTimer(ref Timer t, TimerCallback cb, object state, int d, int p)
         {
@@ -102,19 +100,19 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///   The start timer.
+        ///     The start timer.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
-        /// <param name = "cb">
-        ///   The cb.
+        /// <param name="cb">
+        ///     The cb.
         /// </param>
-        /// <param name = "d">
-        ///   The d.
+        /// <param name="d">
+        ///     The d.
         /// </param>
-        /// <param name = "p">
-        ///   The p.
+        /// <param name="p">
+        ///     The p.
         /// </param>
         public void StartTimer(ref Timer t, TimerCallback cb, int d, int p)
         {
@@ -123,12 +121,12 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///   The start timer.
+        ///     The start timer.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
-        /// <exception cref = "Exception">
+        /// <exception cref="Exception">
         /// </exception>
         public void StartTimer(ref Timer t)
         {
@@ -139,12 +137,12 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///   The stop timer.
+        ///     The stop timer.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
-        /// <exception cref = "Exception">
+        /// <exception cref="Exception">
         /// </exception>
         public void StopTimer(ref Timer t)
         {
@@ -157,20 +155,22 @@ namespace Ros_CSharp
                     t.Change(Timeout.Infinite, Timeout.Infinite);
                     heardof[t].running = false;
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
         /// <summary>
-        ///   The is running.
+        ///     The is running.
         /// </summary>
-        /// <param name = "t">
-        ///   The t.
+        /// <param name="t">
+        ///     The t.
         /// </param>
         /// <returns>
-        ///   The is running.
+        ///     The is running.
         /// </returns>
-        /// <exception cref = "Exception">
+        /// <exception cref="Exception">
         /// </exception>
         public bool IsRunning(ref Timer t)
         {
@@ -178,56 +178,44 @@ namespace Ros_CSharp
             if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
             return heardof[t].running;
         }
-
-        public void Dispose()
-        {
-            IList<Timer> ts = new List<Timer>(heardof.Keys);
-            for (int i=0;i<ts.Count;i++)
-            {
-                Timer x = ts[i];
-                RemoveTimer(ref x);
-            }
-            ts.Clear();
-            heardof.Clear();
-        }
     }
 
     /// <summary>
-    ///   The timer stuff.
+    ///     The timer stuff.
     /// </summary>
     public class TimerStuff
     {
         /// <summary>
-        ///   The callback.
+        ///     The callback.
         /// </summary>
         public TimerCallback callback;
 
         /// <summary>
-        ///   The delay.
+        ///     The delay.
         /// </summary>
         public int delay;
 
         /// <summary>
-        ///   The period.
+        ///     The period.
         /// </summary>
         public int period;
 
         /// <summary>
-        ///   The running.
+        ///     The running.
         /// </summary>
         public bool running;
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref = "TimerStuff" /> class.
+        ///     Initializes a new instance of the <see cref="TimerStuff" /> class.
         /// </summary>
-        /// <param name = "cb">
-        ///   The cb.
+        /// <param name="cb">
+        ///     The cb.
         /// </param>
-        /// <param name = "d">
-        ///   The d.
+        /// <param name="d">
+        ///     The d.
         /// </param>
-        /// <param name = "p">
-        ///   The p.
+        /// <param name="p">
+        ///     The p.
         /// </param>
         public TimerStuff(TimerCallback cb, int d, int p)
         {

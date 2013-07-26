@@ -1,10 +1,21 @@
+// File: Subscription.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
 #region Using
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
+using System.Linq;
 using Messages;
 using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
@@ -25,10 +36,10 @@ namespace Ros_CSharp
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         public string datatype = "";
-        public MsgTypes msgtype;
         public Dictionary<PublisherLink, LatchInfo> latched_messages = new Dictionary<PublisherLink, LatchInfo>();
         public string md5sum = "";
         public object md5sum_mutex = new object();
+        public MsgTypes msgtype;
         public string name = "";
         public int nonconst_callbacks;
         public List<PendingConnection> pending_connections = new List<PendingConnection>();
@@ -42,7 +53,7 @@ namespace Ros_CSharp
             name = n;
             md5sum = md5s;
             datatype = dt;
-            msgtype = (MsgTypes)Enum.Parse(typeof(MsgTypes), dt.Replace("/","__"));
+            msgtype = (MsgTypes) Enum.Parse(typeof (MsgTypes), dt.Replace("/", "__"));
         }
 
         public bool IsDropped
@@ -73,8 +84,7 @@ namespace Ros_CSharp
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, name);
-            XmlRpcValue conn_data = new XmlRpcValue();
-            conn_data.Size = 0;
+            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
             lock (publisher_links_mutex)
             {
                 int cidx = 0;
@@ -145,10 +155,10 @@ namespace Ros_CSharp
         {
             if (uri1 == null || uri2 == null)
                 throw new Exception("ZOMG IT'S NULL IN URISEQUAL!");
-            string h1, n1;
-            h1 = n1 = "";
-            int p1, p2;
-            p1 = p2 = 0;
+            string n1;
+            string h1 = n1 = "";
+            int p2;
+            int p1 = p2 = 0;
             network.splitURI(uri1, ref h1, ref p1);
             network.splitURI(uri2, ref n1, ref p2);
             return h1 == n1 && p1 == p2;
@@ -177,18 +187,13 @@ namespace Ros_CSharp
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)
-                     return false;
+                    return false;
             }
             bool retval = true;
 #if DEBUG
-            string ss = "";
-            foreach (string s in pubs)
-            {
-                ss += s + ", ";
-            }
+            string ss = pubs.Aggregate("", (current, s) => current + (s + ", "));
             ss += " already have these connections: ";
-            foreach (PublisherLink spc in publisher_links)
-                ss += spc.XmlRpc_Uri;
+            ss = publisher_links.Aggregate(ss, (current, spc) => current + spc.XmlRpc_Uri);
             EDB.WriteLine("Publisher update for [" + name + "]: " + ss);
 #endif
             /*string tt = "Publisher URIS passed to publisher update = ";
@@ -196,44 +201,20 @@ namespace Ros_CSharp
                 tt += "\n\t" + s;
             EDB.WriteLine(tt);*/
             List<string> additions = new List<string>();
-            List<PublisherLink> subtractions = new List<PublisherLink>(), to_add = new List<PublisherLink>();
+            List<PublisherLink> subtractions = new List<PublisherLink>();
             lock (publisher_links_mutex)
             {
-                foreach (PublisherLink spc in publisher_links)
-                {
-                    bool found = false;
-                    foreach (string up_i in pubs)
-                    {
-                        if (urisEqual(spc.XmlRpc_Uri, up_i))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) subtractions.Add(spc);
-                }
+                subtractions.AddRange(from spc in publisher_links let found = pubs.Any(up_i => urisEqual(spc.XmlRpc_Uri, up_i)) where !found select spc);
                 foreach (string up_i in pubs)
                 {
-                    bool found = false;
-                    foreach (PublisherLink spc in publisher_links)
-                    {
-                        if (urisEqual(up_i, spc.XmlRpc_Uri))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
+                    bool found = publisher_links.Any(spc => urisEqual(up_i, spc.XmlRpc_Uri));
                     if (!found)
                     {
                         lock (pending_connections_mutex)
                         {
-                            foreach (PendingConnection pc in pending_connections)
+                            if (pending_connections.Any(pc => urisEqual(up_i, pc.RemoteUri)))
                             {
-                                if (urisEqual(up_i, pc.RemoteUri))
-                                {
-                                    found = true;
-                                    break;
-                                }
+                                found = true;
                             }
                             if (!found) additions.Add(up_i);
                         }
@@ -344,7 +325,6 @@ namespace Ros_CSharp
             if (proto_name == "UDPROS")
             {
                 EDB.WriteLine("OWNED! Only tcpros is supported right now.");
-                return;
             }
             else if (proto_name == "TCPROS")
             {
@@ -360,8 +340,7 @@ namespace Ros_CSharp
                               "]");
 #endif
 
-                TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set);
-                transport._topic = name;
+                TcpTransport transport = new TcpTransport(PollManager.Instance.poll_set) {_topic = name};
                 if (transport.connect(pub_host, pub_port))
                 {
                     Connection connection = new Connection();
@@ -392,7 +371,6 @@ namespace Ros_CSharp
             else
             {
                 EDB.WriteLine("Your xmlrpc server be talking jibber jabber, foo");
-                return;
             }
         }
 
@@ -406,7 +384,7 @@ namespace Ros_CSharp
         }
 
         internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header,
-                                     PublisherLink link)
+            PublisherLink link)
         {
             lock (callbacks_mutex)
             {
@@ -442,12 +420,12 @@ namespace Ros_CSharp
                 if (link.Latched)
                 {
                     LatchInfo li = new LatchInfo
-                                       {
-                                           message = msg,
-                                           link = link,
-                                           connection_header = connection_header,
-                                           receipt_time = receipt_time
-                                       };
+                    {
+                        message = msg,
+                        link = link,
+                        connection_header = connection_header,
+                        receipt_time = receipt_time
+                    };
                     if (latched_messages.ContainsKey(link))
                         latched_messages[link] = li;
                     else
@@ -460,22 +438,23 @@ namespace Ros_CSharp
         }
 
         public MessageDeserializer<T> MakeDeserializer<T>(MsgTypes type, SubscriptionCallbackHelper<T> helper, T m,
-                                                     IDictionary connection_header) where T : IRosMessage, new()
+            IDictionary connection_header) where T : IRosMessage, new()
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage(type));
             return new MessageDeserializer<T>(helper, m, connection_header);
         }
+
         public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m,
-                                                     IDictionary connection_header)
+            IDictionary connection_header)
         {
             if (type == MsgTypes.Unknown) return null;
             //return ROS.MakeDeserializer(ROS.MakeMessage(type));
             return
                 (IMessageDeserializer)
-                Activator.CreateInstance(
-                    typeof (MessageDeserializer<>).MakeGenericType(
-                        ROS.MakeMessage(type).GetType()), helper, m, connection_header);
+                    Activator.CreateInstance(
+                        typeof (MessageDeserializer<>).MakeGenericType(
+                            ROS.MakeMessage(type).GetType()), helper, m, connection_header);
         }
 
         public void Dispose()
@@ -484,7 +463,7 @@ namespace Ros_CSharp
         }
 
         internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue,
-                                     int queue_size, bool allow_concurrent_callbacks, string topiclol) where M : IRosMessage, new()
+            int queue_size, bool allow_concurrent_callbacks, string topiclol) where M : IRosMessage, new()
         {
             lock (md5sum_mutex)
             {
@@ -494,13 +473,10 @@ namespace Ros_CSharp
 
             if (md5sum != "*" && md5sum != this.md5sum)
                 return false;
-            
+
             lock (callbacks_mutex)
             {
-                CallbackInfo<M> info = new CallbackInfo<M>();
-                info.helper = helper;
-                info.callback = queue;
-                info.subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks);
+                CallbackInfo<M> info = new CallbackInfo<M> {helper = helper, callback = queue, subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks)};
                 //if (!helper.isConst())
                 //{
                 ++nonconst_callbacks;
@@ -520,12 +496,12 @@ namespace Ros_CSharp
                                 {
                                     LatchInfo latch_info = latched_messages[link];
                                     IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
-                                                                                        latch_info.connection_header);
+                                        latch_info.connection_header);
                                     bool was_full = false;
-                                    ((Callback<M>) info.subscription_queue).push((SubscriptionCallbackHelper<M>)info.helper, (MessageDeserializer<M>)des, true,
-                                                                                               ref was_full,
-                                                                                               latch_info.receipt_time);
-                                    ((Callback<M>)info.subscription_queue).topic = topiclol;
+                                    ((Callback<M>) info.subscription_queue).push((SubscriptionCallbackHelper<M>) info.helper, (MessageDeserializer<M>) des, true,
+                                        ref was_full,
+                                        latch_info.receipt_time);
+                                    ((Callback<M>) info.subscription_queue).topic = topiclol;
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }
@@ -596,7 +572,7 @@ namespace Ros_CSharp
         {
             public CallbackInfo()
             {
-                base.helper = new SubscriptionCallbackHelper<M>(new M().msgtype);
+                helper = new SubscriptionCallbackHelper<M>(new M().msgtype);
             }
         }
 

@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: CallbackInterface.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +33,8 @@ namespace Ros_CSharp
             size = queue_size;
             this.queue_size = 0;
         }
-        public Callback(CallbackDelegate<T> f) 
+
+        public Callback(CallbackDelegate<T> f)
         {
             Event += func;
             /*{
@@ -35,22 +48,24 @@ namespace Ros_CSharp
                 //f(t);
             };*/
             base.Event +=
-                (b) =>
+                b =>
+                {
+                    if (b.Serialized != null)
                     {
-                        if (b.Serialized != null)
-                        {
-                            IRosMessage t = new T();
-                            t = t.Deserialize(b.Serialized);
-                            t.connection_header = b.connection_header;
-                            f(t as T);
-                        }
-                        else
-                            f(b as T);
-                    };
+                        IRosMessage t = new T();
+                        t = t.Deserialize(b.Serialized);
+                        t.connection_header = b.connection_header;
+                        f(t as T);
+                    }
+                    else
+                        f(b as T);
+                };
             //func = f;
         }
 
+#pragma warning disable 67
         public new event CallbackDelegate<T> Event;
+#pragma warning restore 67
 
         public bool _full;
         public bool allow_concurrent_callbacks;
@@ -63,14 +78,14 @@ namespace Ros_CSharp
         public int size;
         public string topic;
 
-        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,ref bool was_full)
+        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy, ref bool was_full)
         {
             push(helper, deserializer, nonconst_need_copy, ref was_full, new TimeData());
         }
 
 
         public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,
-                         ref bool was_full, TimeData receipt_time)
+            ref bool was_full, TimeData receipt_time)
         {
             pushitgood(helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
         }
@@ -95,12 +110,12 @@ namespace Ros_CSharp
             }
 
             Item i = new Item
-                         {
-                             helper = helper,
-                             deserializer = deserializer,
-                             nonconst_need_copy = nonconst_need_copy,
-                             receipt_time = receipt_time
-                         };
+            {
+                helper = helper,
+                deserializer = deserializer,
+                nonconst_need_copy = nonconst_need_copy,
+                receipt_time = receipt_time
+            };
             queue.Enqueue(i);
             ++queue_size;
         }

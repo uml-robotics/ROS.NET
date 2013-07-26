@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: MessageDeserializer.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System.Collections;
 using Messages;
@@ -17,9 +29,9 @@ namespace Ros_CSharp
         {
         }
 
-        public M message
+        public new M message
         {
-            get { return (M)base.message; }
+            get { return (M) base.message; }
         }
 
         public new SubscriptionCallbackHelper<M> helper

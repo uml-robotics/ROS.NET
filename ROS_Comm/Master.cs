@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: Master.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -34,7 +46,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Checks if master is running? I think.
+        ///     Checks if master is running? I think.
         /// </summary>
         /// <returns></returns>
         public static bool check()
@@ -45,7 +57,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Gets all currently published and subscribed topics and adds them to the topic list
+        ///     Gets all currently published and subscribed topics and adds them to the topic list
         /// </summary>
         /// <param name="topics"> List to store topics</param>
         /// <returns></returns>
@@ -65,7 +77,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Gets all currently existing nodes and adds them to the nodes list
+        ///     Gets all currently existing nodes and adds them to the nodes list
         /// </summary>
         /// <param name="nodes">List to store nodes</param>
         /// <returns></returns>
@@ -96,7 +108,6 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="method"></param>
         /// <param name="request">Full request to send to the master </param>
@@ -105,7 +116,7 @@ namespace Ros_CSharp
         /// <param name="wait_for_master">If you recieve an unseccessful status code, keep retrying.</param>
         /// <returns></returns>
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
-                                   bool wait_for_master)
+            bool wait_for_master)
         {
             try
             {
@@ -116,7 +127,6 @@ namespace Ros_CSharp
                 //EDB.WriteLine("Trying to connect to master @ " + master_host + ":" + master_port);
                 XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 bool printed = false;
-                bool slept = false;
                 bool ok = true;
                 while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
                        !(ok = client.Execute(method, request, response) && XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload)))
@@ -129,17 +139,16 @@ namespace Ros_CSharp
                     if (!printed)
                     {
                         EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                      master_port, (wait_for_master ? "Retrying..." : ""));
+                            master_port, (wait_for_master ? "Retrying..." : ""));
                         printed = true;
                     }
                     if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
                     {
                         EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                      retryTimeout.TotalSeconds);
+                            retryTimeout.TotalSeconds);
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return false;
                     }
-                    slept = true;
                     Thread.Sleep(10);
                 }
                 if (ok && !firstsucces)

@@ -1,8 +1,19 @@
-﻿#region USINGZ
+﻿// File: network.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region USINGZ
 
 using System;
 using System.Collections;
-using System.Linq;
 
 #endregion
 
@@ -32,8 +43,8 @@ namespace Ros_CSharp
 
         public static bool isPrivateIp(string ip)
         {
-            bool b = (string.Compare("192.168", ip) >= 7) || (string.Compare("10.", ip) > 3) ||
-                     (string.Compare("169.253", ip) > 7);
+            bool b = (String.CompareOrdinal("192.168", ip) >= 7) || (String.CompareOrdinal("10.", ip) > 3) ||
+                     (String.CompareOrdinal("169.253", ip) > 7);
             return b;
         }
 
@@ -47,7 +58,7 @@ namespace Ros_CSharp
             Console.WriteLine("REMAPPINGS: ");
             foreach (object o in remappings.Keys)
             {
-                Console.WriteLine("{0} = {1}", (string)o, (string)remappings[o]);
+                Console.WriteLine("{0} = {1}", o, remappings[o]);
             }
             if (remappings.Contains("__hostname"))
                 host = (string) remappings["__hostname"];

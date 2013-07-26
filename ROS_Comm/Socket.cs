@@ -1,10 +1,20 @@
-﻿#region Using
+﻿// File: Socket.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
 
+#region Using
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
-using System.Net;
-using System.Net.Sockets;
 using n = System.Net;
 using ns = System.Net.Sockets;
 
@@ -12,7 +22,7 @@ using ns = System.Net.Sockets;
 
 namespace Ros_CSharp.CustomSocket
 {
-    public class Socket : System.Net.Sockets.Socket
+    public class Socket : ns.Socket
     {
         private static SortedList<uint, Socket> _socklist;
         private static uint nextfakefd = 1;
@@ -22,12 +32,12 @@ namespace Ros_CSharp.CustomSocket
         private string attemptedConnectionEndpoint;
         private bool disposed;
 
-        public Socket(System.Net.Sockets.Socket sock)
+        public Socket(ns.Socket sock)
             : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
         {
         }
 
-        public Socket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
             if (_socklist == null)
@@ -36,7 +46,7 @@ namespace Ros_CSharp.CustomSocket
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
-        public Socket(SocketInformation socketInformation)
+        public Socket(ns.SocketInformation socketInformation)
             : base(socketInformation)
         {
             if (_socklist == null)
@@ -68,25 +78,25 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
-        public new void Connect(IPAddress[] address, int port)
+        public new void Connect(n.IPAddress[] address, int port)
         {
             attemptedConnectionEndpoint = address[0].ToString();
             base.Connect(address, port);
         }
 
-        public new void Connect(IPAddress address, int port)
+        public new void Connect(n.IPAddress address, int port)
         {
             attemptedConnectionEndpoint = address.ToString();
             base.Connect(address, port);
         }
 
-        public new void Connect(EndPoint ep)
+        public new void Connect(n.EndPoint ep)
         {
             attemptedConnectionEndpoint = ep.ToString();
             base.Connect(ep);
         }
 
-        public new bool ConnectAsync(SocketAsyncEventArgs e)
+        public new bool ConnectAsync(ns.SocketAsyncEventArgs e)
         {
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
             return base.ConnectAsync(e);
@@ -108,29 +118,29 @@ namespace Ros_CSharp.CustomSocket
         {
             if (!disposed)
             {
-                EDB.WriteLine("Killing socket w/ FD=" + FD+(attemptedConnectionEndpoint==null?"":"\tTO REMOTE HOST\t"+attemptedConnectionEndpoint));
+                EDB.WriteLine("Killing socket w/ FD=" + FD + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
                 if (Get(FD) != null)
                 {
                     _socklist.Remove(FD);
                 }
                 disposed = true;
-                _freelist.Add(FD);                
+                _freelist.Add(FD);
                 base.Dispose(disposing);
             }
         }
 
-        public bool SafePoll(int timeout, SelectMode sm)
+        public bool SafePoll(int timeout, ns.SelectMode sm)
         {
             if (disposed) return false;
-            bool res = false;            
+            bool res = false;
             try
-            {                
-                res = base.Poll(timeout, sm);
+            {
+                res = Poll(timeout, sm);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e);
-                res = sm == SelectMode.SelectError;
+                res = sm == ns.SelectMode.SelectError;
             }
             return res;
         }
@@ -138,13 +148,13 @@ namespace Ros_CSharp.CustomSocket
         [DebuggerStepThrough]
         public override string ToString()
         {
-            if (attemptedConnectionEndpoint == null || attemptedConnectionEndpoint == "")
+            if (string.IsNullOrEmpty(attemptedConnectionEndpoint))
             {
                 if (!Connected)
                     attemptedConnectionEndpoint = "";
                 else if (RemoteEndPoint != null)
                 {
-                    IPEndPoint ipep = RemoteEndPoint as IPEndPoint;
+                    n.IPEndPoint ipep = RemoteEndPoint as n.IPEndPoint;
                     if (ipep != null)
                         attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
                 }

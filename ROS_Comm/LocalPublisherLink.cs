@@ -1,8 +1,19 @@
-﻿#region Using
+﻿// File: LocalPublisherLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 07/08/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
-using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -14,12 +25,17 @@ namespace Ros_CSharp
 {
     public class LocalPublisherLink : PublisherLink, IDisposable
     {
-        bool dropped;
-        object drop_mutex = new object();
-        LocalSubscriberLink publisher;
+        private object drop_mutex = new object();
+        private bool dropped;
+        private LocalSubscriberLink publisher = null;
 
-        public LocalPublisherLink(Subscription parent, string xmlrpc_uri) : base(parent,xmlrpc_uri)
+        public LocalPublisherLink(Subscription parent, string xmlrpc_uri) : base(parent, xmlrpc_uri)
         {
+        }
+
+        public new string TransportType
+        {
+            get { return "INTRAPROCESS"; /*lol... pwned*/ }
         }
 
         public void setPublisher(LocalSubscriberLink pub_link)
@@ -32,19 +48,9 @@ namespace Ros_CSharp
                 header["callerid"] = this_node.Name;
                 header["type"] = parent.datatype;
                 header["tcp_nodelay"] = "1";
-                setHeader(new Header { Values = header });
+                setHeader(new Header {Values = header});
             }
         }
-
-
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-        }
-
-        #endregion
 
         public override void drop()
         {
@@ -53,7 +59,7 @@ namespace Ros_CSharp
                 if (dropped) return;
                 dropped = true;
             }
-            
+
 
             if (publisher != null)
             {
@@ -74,23 +80,6 @@ namespace Ros_CSharp
             if (parent != null)
                 lock (parent)
                     stats.drops += parent.handleMessage(m, ser, nocopy, m.connection_header, this);
-        }
-
-        public new string TransportType
-        {
-            get { return "INTRAPROCESS"; /*lol... pwned*/ }
-        }
-
-        private void onMessage(Connection conn, ref byte[] buffer, uint size, bool success)
-        {
-            if (success)
-            {
-                IRosMessage msg = IRosMessage.generate(parent.msgtype);
-                msg.Serialized = new byte[buffer.Length];
-                msg.connection_header = getHeader().Values;
-                Array.Copy(buffer, msg.Serialized, buffer.Length);
-                handleMessage(msg, true, false);
-            }
         }
 
         public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes mt)
@@ -115,5 +104,13 @@ namespace Ros_CSharp
                 nocopy = false;
             }
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+        }
+
+        #endregion
     }
 }

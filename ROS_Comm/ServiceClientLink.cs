@@ -1,8 +1,21 @@
-﻿#region Using
+﻿// File: ServiceClientLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 07/08/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
 using Messages;
+using String = Messages.std_msgs.String;
 
 #endregion
 
@@ -13,18 +26,7 @@ namespace Ros_CSharp
         public Connection connection;
         public IServicePublication parent;
         public bool persistent;
-        
 
-        public IServiceClientLink()
-        {
-        }
-
-        public static object create(string request, string response)
-        {
-            Type gen = Type.GetType("ServiceServerLink").MakeGenericType(ROS.GetDataType(request),
-                                                                         ROS.GetDataType(response));
-            return gen.GetConstructor(null).Invoke(null);
-        }
 
         public bool initialize(Connection conn)
         {
@@ -35,7 +37,6 @@ namespace Ros_CSharp
 
         public bool handleHeader(Header header)
         {
-            string md5sum, service, client_callerid;
             if (!header.Values.Contains("md5sum") || !header.Values.Contains("service") || !header.Values.Contains("callerid"))
             {
                 string bbq = "Bogus tcpros header. did not have required elements: md5sum, service, callerid";
@@ -43,11 +44,11 @@ namespace Ros_CSharp
                 connection.sendHeaderError(ref bbq);
                 return false;
             }
-            md5sum = (string)header.Values["md5sum"];
-            service = (string)header.Values["service"];
-            client_callerid = (string)header.Values["client_callerid"];
+            string md5sum = (string) header.Values["md5sum"];
+            string service = (string) header.Values["service"];
+            string client_callerid = (string) header.Values["client_callerid"];
 
-            if (header.Values.Contains("persistent") && (header.Values["persistent"] == "1" || header.Values["persistent"] == "true"))
+            if (header.Values.Contains("persistent") && ((string) header.Values["persistent"] == "1" || (string) header.Values["persistent"] == "true"))
                 persistent = true;
 
             ROS.Debug("Service client [{0}] wants service [{1}] with md5sum [{2}]", client_callerid, service, md5sum);
@@ -92,20 +93,21 @@ namespace Ros_CSharp
 
         public virtual void processResponse(string error, bool success)
         {
-            Messages.std_msgs.String msg = new Messages.std_msgs.String(error);
+            String msg = new String(error);
             msg.Serialize();
             byte[] buf = new byte[msg.Serialized.Length + 1];
-            buf[0] = (byte)(success ? 0x01 : 0x00);
+            buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
-            connection.write(buf, (uint)buf.Length, onResponseWritten, true);
+            connection.write(buf, (uint) buf.Length, onResponseWritten, true);
         }
+
         public virtual void processResponse(IRosMessage msg, bool success)
         {
             msg.Serialize();
             byte[] buf = new byte[msg.Serialized.Length + 1];
-            buf[0] = (byte)(success ? 0x01 : 0x00);
+            buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
-            connection.write(buf, (uint)buf.Length, onResponseWritten, true);
+            connection.write(buf, (uint) buf.Length, onResponseWritten, true);
         }
 
         public virtual void drop()
@@ -133,7 +135,7 @@ namespace Ros_CSharp
             if (conn != connection || size != 4)
                 throw new Exception("Invalid request length read");
 
-            uint len = BitConverter.ToUInt32(buffer,0);
+            uint len = BitConverter.ToUInt32(buffer, 0);
             if (len > 10000000000)
             {
                 ROS.Error("A message over a gigabyte was predicted... stop... being... bad.");

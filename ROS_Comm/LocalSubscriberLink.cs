@@ -1,8 +1,18 @@
-﻿#region Using
+﻿// File: LocalSubscriberLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 07/08/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
-using System.Collections;
-using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -14,15 +24,28 @@ namespace Ros_CSharp
 {
     public class LocalSubscriberLink : SubscriberLink, IDisposable
     {
-        LocalPublisherLink subscriber;
-        object drop_mutex = new object();
-        bool dropped;
+        private object drop_mutex = new object();
+        private bool dropped;
+        private LocalPublisherLink subscriber;
 
         public LocalSubscriberLink(Publication pub)
         {
             parent = pub;
             topic = parent.Name;
         }
+
+        public string TransportType
+        {
+            get { return "INTRAPROCESS"; /*lol... pwned*/ }
+        }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+        }
+
+        #endregion
 
         public void setSubscriber(LocalPublisherLink pub_link)
         {
@@ -42,19 +65,6 @@ namespace Ros_CSharp
                 subscriber.handleMessage(msg, ser, nocopy);
         }
 
-
-        public new string TransportType
-        {
-            get { return "INTRAPROCESS"; /*lol... pwned*/ }
-        }
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-        }
-
-        #endregion
 
         public override void drop()
         {

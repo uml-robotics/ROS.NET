@@ -164,7 +164,6 @@
     <Compile Include="ServiceCallbackHelper.cs" />
     <Compile Include="ServiceClient.cs" />
     <Compile Include="ServiceClientOptions.cs" />
-    <Compile Include="ServiceFunction.cs" />
     <Compile Include="ServiceManager.cs" />
     <Compile Include="ServicePublication.cs" />
     <Compile Include="ServiceServer.cs" />
@@ -178,7 +177,6 @@
     <Compile Include="SubscriberLink.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="SubscriptionCallbackHelper.cs" />
-    <Compile Include="SubscriptionQueue.cs" />
     <Compile Include="TcpTransport.cs" />
     <Compile Include="tf_node.cs" />
     <Compile Include="this_node.cs" />

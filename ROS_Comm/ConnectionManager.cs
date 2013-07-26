@@ -1,8 +1,19 @@
-﻿#define TCPSERVER
+﻿// File: ConnectionManager.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#define TCPSERVER
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -41,7 +52,7 @@ namespace Ros_CSharp
 #if TCPSERVER
                 if (tcpserver_transport == null || tcpserver_transport.LocalEndpoint == null)
                     return -1;
-                return ((IPEndPoint)tcpserver_transport.LocalEndpoint).Port;
+                return ((IPEndPoint) tcpserver_transport.LocalEndpoint).Port;
 #else
                 if (tcpserver_transport == null || tcpserver_transport.LocalEndPoint == null)
                     return -1;
@@ -116,12 +127,8 @@ namespace Ros_CSharp
             }
         }
 
-        private bool _diaf;
-        private object fierydeathmutex = new object();
         public void shutdown()
         {
-            lock (fierydeathmutex)
-                _diaf = true;
             if (tcpserver_transport != null)
             {
 #if TCPSERVER
@@ -140,7 +147,6 @@ namespace Ros_CSharp
 
         public void tcpRosAcceptConnection(TcpTransport transport)
         {
-            string client_uri = transport.ClientURI;
             Connection conn = new Connection();
             addConnection(conn);
             conn.initialize(transport, true, onConnectionHeaderReceived);
@@ -149,17 +155,14 @@ namespace Ros_CSharp
         public bool onConnectionHeaderReceived(Connection conn, Header header)
         {
             bool ret = false;
-            string val = "";
             if (header.Values.Contains("topic"))
             {
-                val = (string)header.Values["topic"];
                 TransportSubscriberLink sub_link = new TransportSubscriberLink();
                 sub_link.initialize(conn);
                 ret = sub_link.handleHeader(header);
             }
             else if (header.Values.Contains("service"))
             {
-                val = (string)header.Values["service"];
                 IServiceClientLink iscl = new IServiceClientLink();
                 iscl.initialize(conn);
                 ret = iscl.handleHeader(header);
@@ -182,7 +185,7 @@ namespace Ros_CSharp
                 tcpRosAcceptConnection(new TcpTransport(
                     tcpserver_transport.
 #if TCPSERVER
-                    AcceptSocket()
+                        AcceptSocket()
 #else
                     accept()
 #endif

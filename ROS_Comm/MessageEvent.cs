@@ -1,6 +1,17 @@
-﻿#region Using
+﻿// File: MessageEvent.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
 
-using System;
+#region Using
+
 using System.Collections;
 using Messages;
 using m = Messages.std_msgs;
@@ -15,7 +26,7 @@ namespace Ros_CSharp
     {
         #region Delegates
 
-        public delegate T SpecCreateFunction<T>();
+        public delegate T SpecCreateFunction<out T>();
 
         #endregion
 
@@ -35,7 +46,7 @@ namespace Ros_CSharp
         }
 
         public MessageEvent(MessageEvent<M> rhs, SpecCreateFunction<M> c)
-            : base(rhs, ()=>c())
+            : base(rhs, () => c())
         {
             speccreate = c;
         }
@@ -43,7 +54,7 @@ namespace Ros_CSharp
         public MessageEvent(MessageEvent<M> rhs, CreateFunction c)
             : base(rhs, c)
         {
-            speccreate = ()=>(M)c();
+            speccreate = () => (M) c();
         }
 
         public MessageEvent(M msg) : base(msg)
@@ -61,24 +72,19 @@ namespace Ros_CSharp
         }
 
         public MessageEvent(M msg, IDictionary head, TimeData rec, bool needcopy, SpecCreateFunction<M> c)
-            : base(msg, head, rec, needcopy, ()=>(IRosMessage)c())
+            : base(msg, head, rec, needcopy, () => (IRosMessage) c())
         {
             speccreate = c;
         }
 
-        public MessageEvent(IRosMessage iRosMessage, IDictionary iDictionary, TimeData timeData, bool p, SpecCreateFunction<M> s) : this((M)iRosMessage, iDictionary, timeData, p, s)
+        public MessageEvent(IRosMessage iRosMessage, IDictionary iDictionary, TimeData timeData, bool p, SpecCreateFunction<M> s) : this((M) iRosMessage, iDictionary, timeData, p, s)
         {
         }
 
         public void init(M msg, IDictionary connhead, TimeData rec, bool needcopy, SpecCreateFunction<M> c)
         {
             speccreate = c;
-            _init(msg, connhead, rec, needcopy, () => (IRosMessage)c());
-        }
-
-        public override IRosMessage getMessage()
-        {
-            return (M) base.getMessage();
+            _init(msg, connhead, rec, needcopy, () => (IRosMessage) c());
         }
     }
 

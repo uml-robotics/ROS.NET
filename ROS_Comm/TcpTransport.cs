@@ -1,12 +1,23 @@
-﻿#region Using
+﻿// File: TcpTransport.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
 using Socket = Ros_CSharp.CustomSocket.Socket;
-using System.Threading;
 
 #endregion
 
@@ -46,6 +57,8 @@ namespace Ros_CSharp
         public const int POLLOUT = 0x004;
 
         public static bool use_keepalive;
+        public IPEndPoint LocalEndPoint;
+        public string _topic;
         public string cached_remote_host = "";
         public object close_mutex = new object();
         public bool closed;
@@ -68,18 +81,20 @@ namespace Ros_CSharp
         }
 
 
-        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(s,pollset,0)
+        public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset) : this(s, pollset, 0)
         {
         }
+
         public TcpTransport(System.Net.Sockets.Socket s, PollSet pollset, int flags) : this(pollset, flags)
         {
             setSocket(new Socket(s));
         }
 
         public TcpTransport(PollSet pollset)
-            : this(pollset,0)
+            : this(pollset, 0)
         {
         }
+
         public TcpTransport(PollSet pollset, int flags) : this()
         {
             poll_set = pollset;
@@ -95,6 +110,11 @@ namespace Ros_CSharp
                     return "[NOT CONNECTED]";
                 return "http://" + connected_host + ":" + connected_port + "/";
             }
+        }
+
+        public string Topic
+        {
+            get { return _topic != null ? _topic : "?!?!?!"; }
         }
 
         public virtual bool getRequiresHeader()
@@ -138,14 +158,6 @@ namespace Ros_CSharp
             }
         }
 
-        public string _topic;
-        public string Topic
-        {
-            get
-            {                
-                return _topic != null ? _topic : "?!?!?!"; 
-            }
-        }
         public void enableRead()
         {
             if (!sock.Connected) close();
@@ -207,9 +219,8 @@ namespace Ros_CSharp
             }
         }
 
-        public IPEndPoint LocalEndPoint;
         public bool connect(string host, int port)
-        {            
+        {
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
@@ -220,14 +231,11 @@ namespace Ros_CSharp
 
             if (!IPAddress.TryParse(host, out IPA))
             {
-                foreach (IPAddress ipa in Dns.GetHostAddresses(host))
-                    if (ipa.ToString().Contains(":"))
-                        continue;
-                    else
-                    {
-                        IPA = ipa;
-                        break;
-                    }
+                foreach (IPAddress ipa in Dns.GetHostAddresses(host).Where(ipa => !ipa.ToString().Contains(":")))
+                {
+                    IPA = ipa;
+                    break;
+                }
                 if (IPA == null)
                 {
                     close();
@@ -243,11 +251,13 @@ namespace Ros_CSharp
             LocalEndPoint = ipep;
             if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
                 return false;
-            
+
             cached_remote_host = "" + host + ":" + port + " on socket " + sock;
 
-            
-            while (ROS.ok && !sock.Connected) {}
+
+            while (ROS.ok && !sock.Connected)
+            {
+            }
             if (!ROS.ok || !initializeSocket())
                 return false;
             return true;
@@ -261,7 +271,7 @@ namespace Ros_CSharp
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             setNonBlocking();
             sock.Bind(new IPEndPoint(IPAddress.Any, port));
-            server_port = (sock.LocalEndPoint as IPEndPoint).Port;
+            server_port = ((IPEndPoint) sock.LocalEndPoint).Port;
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
@@ -270,7 +280,8 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool setKeepAlive(Socket sock, ulong time, ulong interval){
+        private void setKeepAlive(Socket sock, ulong time, ulong interval)
+        {
             try
             {
                 // resulting structure
@@ -309,9 +320,8 @@ namespace Ros_CSharp
             }
             catch (Exception)
             {
-                return false;
+                return;
             }
-            return true;
         }
 
         public void parseHeader(Header header)
@@ -373,12 +383,7 @@ namespace Ros_CSharp
 
         public static string ByteDumpCondensed(byte[] b)
         {
-            string s = "";
-            for (int i = 0; i < b.Length; i++)
-            {
-                s += "" + b[i].ToString("x") + "";
-            }
-            return s;
+            return b.Aggregate("", (current, t) => current + ("" + t.ToString("x") + ""));
         }
 
         public static string ByteDump(byte[] b)
@@ -388,7 +393,7 @@ namespace Ros_CSharp
             for (int i = 0; i < b.Length; i++)
             {
                 bs = b[i].ToString("x");
-                if (b[i] < 16) bs = ""+0 + bs;
+                if (b[i] < 16) bs = "" + 0 + bs;
                 s += "" + bs + " ";
                 if (i%4 == 0) s += "     ";
                 if (i%16 == 0 && i != b.Length - 1) s += "\n";
@@ -428,7 +433,7 @@ namespace Ros_CSharp
             {
                 Console.WriteLine(string.Format("{0} != {1}... ASSHOLE!", (pos + length), buffer.LongLength));
             }*/
-            num_bytes = sock.Receive(buffer, (int)pos, (int)length, SocketFlags.None, out err);
+            num_bytes = sock.Receive(buffer, (int) pos, (int) length, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
@@ -449,7 +454,7 @@ namespace Ros_CSharp
                     //EDB.WriteLine("READ: " + num_bytes);                 
                 }
                 //EDB.WriteLine(ByteDumpCondensed(buffer));
-            }            
+            }
             return num_bytes;
         }
 
@@ -462,7 +467,7 @@ namespace Ros_CSharp
             }
             SocketError err;
             //EDB.WriteLine(ByteDumpCondensed(buffer));
-            int num_bytes = sock.Send(buffer, (int)pos, (int)size, SocketFlags.None, out err);
+            int num_bytes = sock.Send(buffer, (int) pos, (int) size, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
@@ -485,7 +490,7 @@ namespace Ros_CSharp
 
             setKeepAlive(use_keepalive, 60, 10, 9);
 
-            if (cached_remote_host == null || cached_remote_host == "")
+            if (string.IsNullOrEmpty(cached_remote_host))
             {
                 if (is_server)
                     cached_remote_host = "TCPServer Socket";
@@ -573,13 +578,14 @@ namespace Ros_CSharp
 
                 if ((events & POLLERR) != 0 || (events & POLLHUP) != 0 || (events & POLLNVAL) != 0)
                 {
+                    int error = 0;
                     try
                     {
-                        int error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
+                        error = (int) sock.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
                     }
                     catch (Exception e)
                     {
-                        
+                        Console.WriteLine("Failed to get sock options! (error: " + error + ")" + e);
                     }
                     close();
                 }

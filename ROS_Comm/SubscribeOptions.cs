@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: SubscribeOptions.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using Messages;
@@ -28,18 +40,19 @@ namespace Ros_CSharp
             //allow_concurrent_callbacks = false;
             //allow_concurrent_callbacks = true;
         }
-         public SubscribeOptions(string topic, int queue_size)
-         :this ( topic, queue_size, null, null)
-         {
-         }
-            
+
+        public SubscribeOptions(string topic, int queue_size)
+            : this(topic, queue_size, null, null)
+        {
+        }
+
         public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL)
-        :this(topic, queue_size, CALL, null)
+            : this(topic, queue_size, CALL, null)
         {
         }
 
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL , string thisisveryverybad)
+        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL, string thisisveryverybad)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -52,9 +65,10 @@ namespace Ros_CSharp
 
             Type msgtype = new T().GetType();
             string[] chunks = msgtype.FullName.Split('.');
-            datatype = chunks[chunks.Length-2] + "/" + chunks[chunks.Length-1];
+            datatype = chunks[chunks.Length - 2] + "/" + chunks[chunks.Length - 1];
             md5sum = thisisveryverybad ?? new T().MD5Sum;
         }
+
         public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL, string thisisveryverybad, Type JPAddedType)
         {
             // TODO: Complete member initialization
@@ -73,8 +87,6 @@ namespace Ros_CSharp
         }
     }
 
-           
-    
 
-    public delegate void CallbackDelegate<T>(T argument) where T : IRosMessage, new();
+    public delegate void CallbackDelegate<in T>(T argument) where T : IRosMessage, new();
 }

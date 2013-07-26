@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: names.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -26,6 +38,7 @@ namespace Ros_CSharp
         {
             return (Char.IsLetterOrDigit(c) || c == '/' || c == '_');
         }
+
         [DebuggerStepThrough]
         public static bool validate(string name, ref string error)
         {
@@ -48,6 +61,7 @@ namespace Ros_CSharp
             }
             return true;
         }
+
         [DebuggerStepThrough]
         public static string clean(string name)
         {
@@ -55,11 +69,13 @@ namespace Ros_CSharp
                 name = name.Replace("//", "/");
             return name.TrimEnd('/');
         }
+
         [DebuggerStepThrough]
         public static string append(string left, string right)
         {
             return clean(left + "/" + right);
         }
+
         [DebuggerStepThrough]
         public static string remap(string name)
         {
@@ -71,21 +87,25 @@ namespace Ros_CSharp
         {
             return resolve(name, true);
         }
+
         [DebuggerStepThrough]
         public static string resolve(string ns, string name)
         {
             return resolve(ns, name, true);
         }
+
         [DebuggerStepThrough]
         public static string resolve(string name, bool doremap)
         {
             return resolve(this_node.Namespace, name, doremap);
         }
+
         [DebuggerStepThrough]
         internal static Exception InvalidName(string error)
         {
             return new InvalidNameException(error);
         }
+
         [DebuggerStepThrough]
         public static string resolve(string ns, string name, bool doremap)
         {
@@ -111,13 +131,14 @@ namespace Ros_CSharp
                 copy = remap(copy);
             return copy;
         }
+
         [DebuggerStepThrough]
         public static void Init(IDictionary remappings)
         {
             foreach (object k in remappings.Keys)
             {
-                string left = (string)k;
-                string right = (string)remappings[k];
+                string left = (string) k;
+                string right = (string) remappings[k];
                 if (left != "" && left[0] != '_')
                 {
                     string resolved_left = resolve(left, false);
@@ -127,6 +148,7 @@ namespace Ros_CSharp
                 }
             }
         }
+
         [DebuggerStepThrough]
         public static string parentNamespace(string name)
         {
@@ -140,7 +162,7 @@ namespace Ros_CSharp
             int last_pos = name.LastIndexOf('/');
             if (last_pos == -1)
                 return "";
-            else if (last_pos == 0)
+            if (last_pos == 0)
                 return "/";
             return name.Substring(0, last_pos);
         }

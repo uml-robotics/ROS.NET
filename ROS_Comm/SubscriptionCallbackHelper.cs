@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: SubscriptionCallbackHelper.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -63,7 +75,7 @@ namespace Ros_CSharp
 
         protected ISubscriptionCallbackHelper()
         {
-           // EDB.WriteLine("ISubscriptionCallbackHelper: 0 arg constructor");
+            // EDB.WriteLine("ISubscriptionCallbackHelper: 0 arg constructor");
         }
 
         protected ISubscriptionCallbackHelper(CallbackInterface Callback)
@@ -97,13 +109,13 @@ namespace Ros_CSharp
 
         private void assignSubscriptionConnectionHeader(ref IRosMessage msg, IDictionary p)
         {
-           // EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
+            // EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
             msg.connection_header = new Hashtable(p);
         }
 
         public virtual void call(IRosMessage parms)
         {
-           // EDB.WriteLine("ISubscriptionCallbackHelper: call");
+            // EDB.WriteLine("ISubscriptionCallbackHelper: call");
             throw new NotImplementedException();
         }
     }
@@ -126,9 +138,11 @@ namespace Ros_CSharp
         {
         }
     }
+
     public class ISubscriptionCallbackHelperCallParams
     {
         public IMessageEvent Event;
+
         public ISubscriptionCallbackHelperCallParams(IMessageEvent e)
         {
             Event = e;

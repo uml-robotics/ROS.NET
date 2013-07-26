@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: AdvertiseOptions.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using Messages;
 
@@ -24,21 +36,20 @@ namespace Ros_CSharp
         }
 
         public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def,
-                                SubscriberStatusCallback connectcallback)
-            :this(t,q_size,md5,dt, message_def,connectcallback ,null)
+            SubscriberStatusCallback connectcallback)
+            : this(t, q_size, md5, dt, message_def, connectcallback, null)
         {
         }
 
 
         public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def)
-        :this(t,q_size,md5,dt, message_def,null,null)
+            : this(t, q_size, md5, dt, message_def, null, null)
         {
-            
         }
 
         public AdvertiseOptions(string t, int q_size, string md5, string dt, string message_def,
-                                SubscriberStatusCallback connectcallback ,
-                                SubscriberStatusCallback disconnectcallback)
+            SubscriberStatusCallback connectcallback,
+            SubscriberStatusCallback disconnectcallback)
         {
             topic = t;
             queue_size = q_size;
@@ -59,23 +70,23 @@ namespace Ros_CSharp
             disconnectCB = disconnectcallback;
         }
 
-        public AdvertiseOptions(string t, int q_size) 
-           :this( t, q_size,null,null)
+        public AdvertiseOptions(string t, int q_size)
+            : this(t, q_size, null, null)
         {
         }
 
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback,
-                                SubscriberStatusCallback disconnectcallback) :
-                                    this(
-                                    t, q_size, new T().MD5Sum,
-                                    new T().msgtype.ToString().Replace("__", "/"),
-                                    new T().MessageDefinition,
-                                    connectcallback, disconnectcallback)
+            SubscriberStatusCallback disconnectcallback) :
+                this(
+                t, q_size, new T().MD5Sum,
+                new T().msgtype.ToString().Replace("__", "/"),
+                new T().MessageDefinition,
+                connectcallback, disconnectcallback)
         {
         }
 
         public static AdvertiseOptions<M> Create<M>(string topic, int q_size, SubscriberStatusCallback connectcallback,
-                                                    SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
+            SubscriberStatusCallback disconnectcallback, CallbackQueue queue)
             where M : IRosMessage, new()
         {
             return new AdvertiseOptions<M>(topic, q_size, connectcallback, disconnectcallback) {callback_queue = queue};

@@ -1,15 +1,23 @@
-﻿using System;
+﻿// File: ServiceCallbackHelper.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Messages;
 
 namespace Ros_CSharp
 {
     public delegate bool ServiceFunction<in MReq, MRes>(MReq req, ref MRes res)
-        where MReq : Messages.IRosMessage, new()
-        where MRes : Messages.IRosMessage, new();
+        where MReq : IRosMessage, new()
+        where MRes : IRosMessage, new();
 
     public class ServiceCallbackHelperParams<MReq, MRes> : IServiceCallbackHelperParams
     {
@@ -19,8 +27,8 @@ namespace Ros_CSharp
 
     public class IServiceCallbackHelperParams
     {
-        public IRosMessage request,response;
         public IDictionary connection_header;
+        public IRosMessage request, response;
     }
 
     public class ServiceCallbackHelper<MReq, MRes> : IServiceCallbackHelper
@@ -70,12 +78,12 @@ namespace Ros_CSharp
             return _callback;
         }
 
-        public virtual MReq deserialize<MReq,MRes>(ServiceCallbackHelperParams<MReq, MRes> parms) where MReq : IRosMessage where MRes : IRosMessage
+        public virtual MReq deserialize<MReq, MRes>(ServiceCallbackHelperParams<MReq, MRes> parms) where MReq : IRosMessage where MRes : IRosMessage
         {
             //EDB.WriteLine("ISubscriptionCallbackHelper: deserialize");
             IRosMessage msg = ROS.MakeMessage(type);
             assignSubscriptionConnectionHeader(ref msg, parms.connection_header);
-            MReq t = (MReq)msg;
+            MReq t = (MReq) msg;
             t.Deserialize(parms.response.Serialized);
             return t;
             //return SerializationHelper.Deserialize<T>(parms.buffer);

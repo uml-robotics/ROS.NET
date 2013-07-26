@@ -1,4 +1,17 @@
-﻿#region Using
+﻿// File: XmlRpcManager.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
+
 #if DEBUG
 //#define XMLRPC_DEBUG
 #endif
@@ -74,7 +87,7 @@ namespace Ros_CSharp
                 {
                     foreach (AsyncXmlRpcConnection con in added_connections)
                     {
-                        EDB.WriteLine("Completed ASYNC XmlRpc connection to: " + (con as PendingConnection).RemoteUri);
+                        EDB.WriteLine("Completed ASYNC XmlRpc connection to: " + ((con as PendingConnection) != null ? ((PendingConnection) con).RemoteUri : "SOMEWHERE OVER THE RAINBOW"));
                         con.addToDispatch(server.Dispatch);
                         connections.Add(con);
                     }
@@ -125,7 +138,7 @@ namespace Ros_CSharp
             string status_string = response[1].Get<string>();
             if (status_code != 1)
                 return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string,
-                                      response);
+                    response);
             payload = response[2];
             return true;
         }
@@ -155,8 +168,8 @@ namespace Ros_CSharp
                             client.last_use_time = DateTime.Now;
                             break;
                         }
-                        else if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
-                                 !client.client.IsConnected)
+                        if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
+                            !client.client.IsConnected)
                         {
                             client.client.Shutdown();
                             zombies.Add(client);
@@ -207,12 +220,12 @@ namespace Ros_CSharp
                 if (functions.ContainsKey(function_name))
                     return false;
                 functions.Add(function_name,
-                              new FunctionInfo
-                                  {
-                                      name = function_name,
-                                      function = cb,
-                                      wrapper = new XMLRPCCallWrapper(function_name, cb, server)
-                                  });
+                    new FunctionInfo
+                    {
+                        name = function_name,
+                        function = cb,
+                        wrapper = new XMLRPCCallWrapper(function_name, cb, server)
+                    });
             }
             return true;
         }
@@ -230,65 +243,72 @@ namespace Ros_CSharp
 
         public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
         {
-            return (p) =>
-                       {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            return p =>
+            {
+                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         public Action<IntPtr> responseInt(int code, string msg, int response)
         {
-            return (p) =>
-                       {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            return p =>
+            {
+                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         public Action<IntPtr> responseBool(int code, string msg, bool response)
         {
-            return (p) =>
-                       {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            return p =>
+            {
+                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         /// <summary>
-        /// <para> This function starts the XmlRpcServer used to handle inbound calls on this node </para>
-        /// <para> The optional argument is used to force ROS to try to bind to a specific port. 
-        /// Doing so should only be done when acting as the RosMaster. </para>
-        /// <para> </para>
-        /// 
-        /// <para> Jordan, this function used to have the following:
-        ///     <list type="bullet">         
-        ///         <item><description>A string argument named "host"</description></item>
-        ///         <item><description>that defaulted to "0"</description></item>
-        ///         <item><description>and it was used to determine the port.</description></item>
-        ///     </list>
-        /// </para>
-        /// 
-        /// <para>
-        /// ... so now I'm all up in your codes. :-P
-        /// </para>
-        /// <para>
-        ///     -Eric
-        /// </para>
+        ///     <para> This function starts the XmlRpcServer used to handle inbound calls on this node </para>
+        ///     <para>
+        ///         The optional argument is used to force ROS to try to bind to a specific port.
+        ///         Doing so should only be done when acting as the RosMaster.
+        ///     </para>
+        ///     <para> </para>
+        ///     <para>
+        ///         Jordan, this function used to have the following:
+        ///         <list type="bullet">
+        ///             <item>
+        ///                 <description>A string argument named "host"</description>
+        ///             </item>
+        ///             <item>
+        ///                 <description>that defaulted to "0"</description>
+        ///             </item>
+        ///             <item>
+        ///                 <description>and it was used to determine the port.</description>
+        ///             </item>
+        ///         </list>
+        ///     </para>
+        ///     <para>
+        ///         ... so now I'm all up in your codes. :-P
+        ///     </para>
+        ///     <para>
+        ///         -Eric
+        ///     </para>
         /// </summary>
         /// <param name="p">The specific port number to bind to, if any</param>
-        public void Start(int p=0)
+        public void Start(int p = 0)
         {
             shutting_down = false;
 
             bind("getPid", getPid);
-            
+
             if (p != 0)
             {
                 //if port isn't 0, then we better be the master, 

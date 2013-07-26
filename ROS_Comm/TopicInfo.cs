@@ -1,4 +1,16 @@
-﻿namespace Ros_CSharp
+﻿// File: TopicInfo.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+namespace Ros_CSharp
 {
     public class TopicInfo
     {

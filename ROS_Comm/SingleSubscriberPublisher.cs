@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: SingleSubscriberPublisher.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using Messages;
 using m = Messages.std_msgs;

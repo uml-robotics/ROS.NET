@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: TransportPublisherLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -44,7 +56,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            EDB.WriteLine("Init transport publisher link: "+parent.name);
+            EDB.WriteLine("Init transport publisher link: " + parent.name);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -80,20 +92,19 @@ namespace Ros_CSharp
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
-            EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- "+reason.ToString());
+            EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- " + reason.ToString());
             if (dropping || conn != connection)
                 return;
             lock (parent)
             {
                 if (reason == Connection.DropReason.TransportDisconnect)
                 {
-                    string topic = parent != null ? parent.name : "unknown";
                     needs_retry = true;
                     next_retry = DateTime.Now.Add(retry_period);
                     if (retry_timer == null)
                         retry_period = TimeSpan.FromMilliseconds(100);
                     ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer,
-                                                 (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
+                        (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
                 }
                 else
                 {
@@ -183,7 +194,6 @@ namespace Ros_CSharp
                 needs_retry = false;
                 lock (parent)
                 {
-                    string topic = parent != null ? parent.name : "unknown";
                     TcpTransport old_transport = connection.transport;
                     string host = old_transport.connected_host;
                     int port = old_transport.connected_port;

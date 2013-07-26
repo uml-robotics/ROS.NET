@@ -1,14 +1,27 @@
-﻿#region USINGZ
+﻿// File: NodeHandle.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region USINGZ
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.Diagnostics;
+
 #endregion
 
 namespace Ros_CSharp
@@ -26,12 +39,12 @@ namespace Ros_CSharp
         public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
         /// <summary>
-        /// Creates a new node
+        ///     Creates a new node
         /// </summary>
         /// <param name="ns">Namespace of node</param>
         /// <param name="remappings">any remappings</param>
         public NodeHandle(string ns, IDictionary remappings)
-        {            
+        {
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
             construct(ns, true);
@@ -48,7 +61,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a new child node
+        ///     Creates a new child node
         /// </summary>
         /// <param name="parent">Parent node to attach</param>
         /// <param name="ns">Namespace of new node</param>
@@ -63,7 +76,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a new child node with remappings
+        ///     Creates a new child node with remappings
         /// </summary>
         /// <param name="parent">Parent node to attach</param>
         /// <param name="ns">Namespace of new node</param>
@@ -78,14 +91,14 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a new node
+        ///     Creates a new node
         /// </summary>
         public NodeHandle() : this(this_node.Namespace, null)
         {
         }
 
         /// <summary>
-        /// Current callbacks in callback queue
+        ///     Current callbacks in callback queue
         /// </summary>
         public CallbackQueue Callback
         {
@@ -103,7 +116,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Management boolean, if ros is still running
+        ///     Management boolean, if ros is still running
         /// </summary>
         public bool ok
         {
@@ -126,7 +139,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Unregister every subscriber and publisher in this node
+        ///     Unregister every subscriber and publisher in this node
         /// </summary>
         public void shutdown()
         {
@@ -145,32 +158,32 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a publisher
+        ///     Creates a publisher
         /// </summary>
         /// <typeparam name="M">Type of topic</typeparam>
         /// <param name="topic">Name of topic</param>
         /// <param name="q_size">How many messages to qeueue if asynchrinous</param>
         /// <returns>A publisher with the specified topic type, name and options</returns>
-         public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
+        public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
         {
             return advertise<M>(topic, q_size, false);
         }
 
         /// <summary>
-        /// Creates a publisher, specify latching
+        ///     Creates a publisher, specify latching
         /// </summary>
         /// <typeparam name="M">Type of topic</typeparam>
         /// <param name="topic">Name of topic</param>
         /// <param name="q_size">How many messages to enqueue if asynchrinous</param>
         /// <param name="l">Boolean determines whether the given publisher will latch or not</param>
-         /// <returns>A publisher with the specified topic type, name and options</returns>
+        /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int q_size, bool l) where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
         /// <summary>
-        /// Creates a publisher with connect and disconnect callbacks
+        ///     Creates a publisher with connect and disconnect callbacks
         /// </summary>
         /// <typeparam name="M">Type of topic</typeparam>
         /// <param name="topic">Name of topic</param>
@@ -179,14 +192,14 @@ namespace Ros_CSharp
         /// <param name="disconnectcallback">Callback to fire when this node disconnects</param>
         /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
-                                         SubscriberStatusCallback disconnectcallback)
+            SubscriberStatusCallback disconnectcallback)
             where M : IRosMessage, new()
         {
             return advertise<M>(topic, queue_size, connectcallback, disconnectcallback, false);
         }
 
         /// <summary>
-        /// Creates a publisher with connect and disconnect callbacks, specify latching.
+        ///     Creates a publisher with connect and disconnect callbacks, specify latching.
         /// </summary>
         /// <typeparam name="M">Type of topic</typeparam>
         /// <param name="topic">Name of topic</param>
@@ -196,14 +209,14 @@ namespace Ros_CSharp
         /// <param name="l">Boolean determines whether the given publisher will latch or not</param>
         /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int queue_size, SubscriberStatusCallback connectcallback,
-                                         SubscriberStatusCallback disconnectcallback, bool l)
+            SubscriberStatusCallback disconnectcallback, bool l)
             where M : IRosMessage, new()
         {
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
         /// <summary>
-        /// Creates a publisher with the given advertise options
+        ///     Creates a publisher with the given advertise options
         /// </summary>
         /// <typeparam name="M">Type of topic</typeparam>
         /// <param name="ops">Advertise options</param>
@@ -229,20 +242,20 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a subscriber with the given topic name.
+        ///     Creates a subscriber with the given topic name.
         /// </summary>
         /// <typeparam name="M">Type of the subscriber message</typeparam>
         /// <param name="topic">Topic name</param>
         /// <param name="queue_size">How many messages to qeueue</param>
         /// <param name="cb">Callback to fire when a message is receieved</param>
         /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, int queue_size,CallbackDelegate<M> cb) where M : IRosMessage, new()
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), new M().MD5Sum);
         }
 
         /// <summary>
-        /// Creates a subscriber with the given topic name.
+        ///     Creates a subscriber with the given topic name.
         /// </summary>
         /// <typeparam name="M">Topic type</typeparam>
         /// <param name="topic">Topic name</param>
@@ -251,33 +264,32 @@ namespace Ros_CSharp
         /// <param name="thisisveryverybad">internal use</param>
         /// <returns></returns>
         public Subscriber<M> subscribe<M>(string topic, int queue_size,
-                                                        CallbackDelegate<M> cb, string thisisveryverybad ) where M : IRosMessage, new()
+            CallbackDelegate<M> cb, string thisisveryverybad) where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
-
         }
-         
+
         /// <summary>
-        /// Creates a subscriber
+        ///     Creates a subscriber
         /// </summary>
         /// <typeparam name="M">Topic type</typeparam>
         /// <param name="topic">Topic name</param>
         /// <param name="queue_size">How many messages to qeueue</param>
         /// <param name="cb">Function to fire when a message is recieved</param>
         /// <returns>A subscriber</returns>
-         public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
+        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
             where M : IRosMessage, new()
         {
-              return subscribe<M>( topic, queue_size, cb, null);
-       }
+            return subscribe<M>(topic, queue_size, cb, null);
+        }
 
         /// <summary>
-        /// Creates a subscriber
+        ///     Creates a subscriber
         /// </summary>
         /// <typeparam name="M">Topic type</typeparam>
         /// <param name="topic">Topic name</param>
-         /// <param name="queue_size">How many messages to qeueue</param>
-         /// <param name="cb">Function to fire when a message is recieved</param>
+        /// <param name="queue_size">How many messages to qeueue</param>
+        /// <param name="cb">Function to fire when a message is recieved</param>
         /// <param name="thisisveryverybad">internal use</param>
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad)
@@ -288,22 +300,21 @@ namespace Ros_CSharp
                 _callback = ROS.GlobalCallbackQueue;
             }
             SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size,
-                                                                                          cb.func, thisisveryverybad
+                cb.func, thisisveryverybad
                 )
-                                                        {callback_queue = _callback};
+            {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);
         }
 
         /// <summary>
-        /// Creates a subscriber with given subscriber options
+        ///     Creates a subscriber with given subscriber options
         /// </summary>
         /// <typeparam name="M">Topic type</typeparam>
         /// <param name="ops">Subscriber options</param>
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
-            
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
@@ -320,7 +331,6 @@ namespace Ros_CSharp
             }
             return new Subscriber<M>();
         }
-
 
 
         public ServiceServer advertiseService<MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
@@ -358,14 +368,15 @@ namespace Ros_CSharp
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, false, null));
         }
 
-        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name,bool persistent)
+        public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, null));
         }
+
         public ServiceClient<MReq, MRes> serviceClient<MReq, MRes>(string service_name, bool persistent,
-                                                                   IDictionary header_values)
+            IDictionary header_values)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
@@ -413,14 +424,14 @@ namespace Ros_CSharp
             if (nh_refcount == 0 && node_started_by_nh)
                 ROS.shutdown();
         }
+
         [DebuggerStepThrough]
         public void initRemappings(IDictionary rms)
         {
-            
             foreach (object k in remappings.Keys)
             {
-                string left = (string)k;
-                string right = (string)remappings[k];
+                string left = (string) k;
+                string right = (string) remappings[k];
                 if (left != "" && left[0] != '_')
                 {
                     string resolved_left = resolveName(left, false);
@@ -430,6 +441,7 @@ namespace Ros_CSharp
                 }
             }
         }
+
         [DebuggerStepThrough]
         public string remapName(string name)
         {
@@ -440,20 +452,22 @@ namespace Ros_CSharp
                 return (string) remappings[resolved];
             return names.remap(resolved);
         }
+
         [DebuggerStepThrough]
         public string resolveName(string name)
         {
-           return resolveName(name, true);
+            return resolveName(name, true);
         }
 
         [DebuggerStepThrough]
-        public string resolveName(string name, bool remap )
+        public string resolveName(string name, bool remap)
         {
             string error = "";
             if (!names.validate(name, ref error))
                 names.InvalidName(error);
             return resolveName(name, remap, no_validate);
         }
+
         [DebuggerStepThrough]
         public string resolveName(string name, bool remap, bool novalidate)
         {
@@ -497,7 +511,7 @@ namespace Ros_CSharp
                 publishers.Clear();
                 subscribers.Clear();
 
-                serviceservers.Clear();                
+                serviceservers.Clear();
                 serviceclients.Clear();
             }
 

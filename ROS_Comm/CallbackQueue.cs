@@ -1,10 +1,20 @@
-﻿#region USINGZ
+﻿// File: CallbackQueue.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region USINGZ
 
 using System;
-using System.Collections;
-using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
@@ -17,9 +27,9 @@ namespace Ros_CSharp
 {
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
-        private Thread cbthread = null;
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public int calling;
+        private Thread cbthread;
         private bool enabled;
         public Dictionary<UInt64, IDInfo> id_info = new Dictionary<UInt64, IDInfo>();
         private object id_info_mutex = new object();
@@ -59,9 +69,9 @@ namespace Ros_CSharp
         {
             if (tls == null)
                 tls = new TLS
-                          {
-                              calling_in_this_thread = ROS.getPID()
-                          };
+                {
+                    calling_in_this_thread = ROS.getPID()
+                };
         }
 
         internal void notify_all()
@@ -86,11 +96,11 @@ namespace Ros_CSharp
 
         public override void addCallback(CallbackInterface cb, UInt64 owner_id)
         {
-            ICallbackInfo info = new ICallbackInfo { Callback = cb, removal_id = owner_id };
+            ICallbackInfo info = new ICallbackInfo {Callback = cb, removal_id = owner_id};
 
             lock (mutex)
             {
-                if (!enabled) 
+                if (!enabled)
                     return;
                 callbacks.Add(info);
             }
@@ -98,7 +108,7 @@ namespace Ros_CSharp
             {
                 if (!id_info.ContainsKey(owner_id))
                 {
-                    id_info.Add(owner_id, new IDInfo { calling_rw_mutex = new object(), id = owner_id });
+                    id_info.Add(owner_id, new IDInfo {calling_rw_mutex = new object(), id = owner_id});
                 }
             }
             notify_one();
@@ -143,7 +153,7 @@ namespace Ros_CSharp
             while (ROS.ok && !ROS.shutting_down && enabled)
             {
                 callAvailable();
-                Thread.Sleep(ROS.WallDuration / 10);
+                Thread.Sleep(ROS.WallDuration/10);
             }
         }
 
@@ -186,11 +196,10 @@ namespace Ros_CSharp
         public CallOneResult callOneCB(TLS tls)
         {
             ICallbackInfo info = tls.head;
-            if (info == null) 
+            if (info == null)
                 return CallOneResult.Empty;
             IDInfo idinfo = null;
-            if (info != null)
-                idinfo = getIDInfo(info.removal_id);
+            idinfo = getIDInfo(info.removal_id);
             if (idinfo != null)
             {
                 CallbackInterface cb = info.Callback;
@@ -201,7 +210,7 @@ namespace Ros_CSharp
                     if (!info.marked_for_removal)
                     {
                         result = cb.Call();
-                    }                    
+                    }
                     if (result == CallbackInterface.CallResult.TryAgain && !info.marked_for_removal)
                     {
                         lock (mutex)
@@ -213,13 +222,10 @@ namespace Ros_CSharp
                 }
                 return CallOneResult.Called;
             }
-            else
-            {
-                ICallbackInfo cbi = tls.spliceout(info);
-                if (cbi != null)
-                    cbi.Callback.Call();                
-                return CallOneResult.Called;
-            }
+            ICallbackInfo cbi = tls.spliceout(info);
+            if (cbi != null)
+                cbi.Callback.Call();
+            return CallOneResult.Called;
         }
 
         public CallOneResult callOne()
@@ -258,10 +264,9 @@ namespace Ros_CSharp
                     }
                 }
                 sem.Release();
-                if (cbinfo.Callback == null) return CallOneResult.TryAgain;
+                if (cbinfo != null && cbinfo.Callback == null) return CallOneResult.TryAgain;
                 calling++;
             }
-            bool wasempty = tls.Count == 0;
             tls.enqueue(cbinfo);
             CallOneResult res = callOneCB(tls);
             if (res != CallOneResult.Empty)
@@ -291,12 +296,11 @@ namespace Ros_CSharp
             {
                 sem.WaitOne(timeout);
             }
-            lock(mutex)
+            lock (mutex)
             {
                 if (callbacks.Count == 0 || !enabled)
                     return;
-                bool wasempty = tls.Count == 0;
-                callbacks.ForEach((cbi) => tls.enqueue(cbi));
+                callbacks.ForEach(cbi => tls.enqueue(cbi));
                 callbacks.Clear();
                 calling += tls.Count;
             }
@@ -317,14 +321,20 @@ namespace Ros_CSharp
 
     public class TLS
     {
-        public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         private Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
+        public UInt64 calling_in_this_thread = 0xffffffffffffffff;
         private object mut = new object();
-        public int Count { get { lock (mut) return _queue.Count; } }
+
+        public int Count
+        {
+            get { lock (mut) return _queue.Count; }
+        }
+
         public CallbackQueueInterface.ICallbackInfo head
         {
             get { lock (mut) return (_queue.Count == 0 ? null : _queue.Peek()); }
         }
+
         public CallbackQueueInterface.ICallbackInfo tail
         {
             get { lock (mut) return (_queue.Count == 0 ? null : _queue.Last()); }
@@ -343,7 +353,7 @@ namespace Ros_CSharp
         public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
             if (info.Callback == null)
-                return;                
+                return;
             lock (mut)
                 _queue.Enqueue(info);
         }
@@ -367,6 +377,7 @@ namespace Ros_CSharp
             return info;
         }
     }
+
     /*
     public class TLS
     {
@@ -465,8 +476,8 @@ namespace Ros_CSharp
         public virtual void addCallback(CallbackInterface callback)
         {
             addCallback(callback, 0);
-
         }
+
         public virtual void addCallback(CallbackInterface callback, UInt64 owner_id)
         {
             throw new NotImplementedException();

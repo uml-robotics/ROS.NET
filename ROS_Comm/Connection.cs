@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: Connection.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -43,7 +55,7 @@ namespace Ros_CSharp
         public bool writing;
 
         /// <summary>
-        /// Returns the ID of the connection
+        ///     Returns the ID of the connection
         /// </summary>
         public string CallerID
         {
@@ -76,7 +88,7 @@ namespace Ros_CSharp
             int len = 0;
             byte[] buffer = null;
             header.Write(key_vals, ref buffer, ref len);
-            uint msg_len = (uint)len + 4;
+            uint msg_len = (uint) len + 4;
             byte[] full_msg = new byte[msg_len];
             uint j = 0;
             byte[] blen = Header.ByteLength(len);
@@ -108,8 +120,9 @@ namespace Ros_CSharp
 
         public void write(byte[] data, uint size, WriteFinishedFunc finished_func)
         {
-           write(data,size,finished_func,true);
+            write(data, size, finished_func, true);
         }
+
         public void write(byte[] data, uint size, WriteFinishedFunc finished_func, bool immediate)
         {
             if (dropped || sendingHeaderError) return;
@@ -187,7 +200,7 @@ namespace Ros_CSharp
                 return;
             }
             string error_msg = "";
-            if (!header.Parse(data, (int)size, ref error_msg))
+            if (!header.Parse(data, (int) size, ref error_msg))
             {
                 drop(DropReason.HeaderError);
             }
@@ -198,7 +211,7 @@ namespace Ros_CSharp
                 {
                     error_val = (string) header.Values["error"];
                     EDB.WriteLine("Received error message in header for connection to [{0}]: [{1}]",
-                                  "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
+                        "TCPROS connection to [" + transport.cached_remote_host + "]", error_val);
                     drop(DropReason.HeaderError);
                 }
                 else
@@ -267,7 +280,7 @@ namespace Ros_CSharp
                         int bytes_read = transport.read(ref read_buffer, read_filled, to_read);
                         if (dropped)
                             return;
-                        else if (bytes_read < 0)
+                        if (bytes_read < 0)
                         {
                             callback = read_callback;
                             read_callback = null;
@@ -280,7 +293,7 @@ namespace Ros_CSharp
                             callback(this, ref read_buffer, size, false);
                             break;
                         }
-                        read_filled += (uint)bytes_read;
+                        read_filled += (uint) bytes_read;
                     }
                     else
                         break;
@@ -295,7 +308,7 @@ namespace Ros_CSharp
                         read_size = 0;
                         callback(this, ref buffer, size, true);
                     }
-                    else 
+                    else
                         break;
                 }
                 if (read_callback == null)
@@ -320,7 +333,7 @@ namespace Ros_CSharp
                         writing = false;
                         return;
                     }
-                    write_sent += (uint)bytes_sent;
+                    write_sent += (uint) bytes_sent;
                     if (bytes_sent < write_size - write_sent)
                         can_write_more = false;
                     if (write_sent == write_size && !dropped)

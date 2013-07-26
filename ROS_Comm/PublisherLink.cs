@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: PublisherLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 
@@ -32,6 +44,7 @@ namespace Ros_CSharp
         {
             return header;
         }
+
         public bool setHeader(Header h)
         {
             CallerID = (string) h.Values["callerid"];

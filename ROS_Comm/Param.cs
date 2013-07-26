@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: Param.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -16,7 +28,7 @@ namespace Ros_CSharp
         public static List<string> subscribed_params = new List<string>();
 
         /// <summary>
-        /// Sets the paramater on the parameter server
+        ///     Sets the paramater on the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <param name="val">Value of the paramter</param>
@@ -38,7 +50,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Sets the paramater on the parameter server
+        ///     Sets the paramater on the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <param name="val">Value of the paramter</param>
@@ -60,7 +72,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Sets the paramater on the parameter server
+        ///     Sets the paramater on the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <param name="val">Value of the paramter</param>
@@ -82,7 +94,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Sets the paramater on the parameter server
+        ///     Sets the paramater on the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <param name="val">Value of the paramter</param>
@@ -104,7 +116,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Sets the paramater on the parameter server
+        ///     Sets the paramater on the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <param name="val">Value of the paramter</param>
@@ -126,7 +138,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Gets the parameter from the parameter server
+        ///     Gets the parameter from the parameter server
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <returns></returns>
@@ -138,7 +150,7 @@ namespace Ros_CSharp
             parm.Set(1, mapped_key);
             lock (parms_mutex)
             {
-                if ( ! master.execute("getParam", parm, ref response, ref payload, false))
+                if (! master.execute("getParam", parm, ref response, ref payload, false))
                 {
                     string s = response[1].GetString();
 
@@ -150,7 +162,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Checks if the paramter exists.
+        ///     Checks if the paramter exists.
         /// </summary>
         /// <param name="key">Name of the paramerer</param>
         /// <returns></returns>
@@ -165,7 +177,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Deletes a parameter from the parameter server.
+        ///     Deletes a parameter from the parameter server.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -228,7 +240,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Manually update the value of a parameter
+        ///     Manually update the value of a parameter
         /// </summary>
         /// <param name="key">Name of parameter</param>
         /// <param name="v">Value to update param to</param>
@@ -245,7 +257,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Fired when a parameter gets updated
+        ///     Fired when a parameter gets updated
         /// </summary>
         /// <param name="parm">Name of parameter</param>
         /// <param name="result">New value of parameter</param>

@@ -14,6 +14,7 @@ namespace XmlRpc_Wrapper
     {
         #region EventType enum
 
+        [Flags]
         public enum EventType
         {
             ReadableEvent = 1,

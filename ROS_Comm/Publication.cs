@@ -1,15 +1,25 @@
-﻿#region Using
+﻿// File: Publication.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Messages;
 using XmlRpc_Wrapper;
-using String = Messages.std_msgs.String;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System.IO;
-using System.Text;
 
 #endregion
 
@@ -28,16 +38,16 @@ namespace Ros_CSharp
 
         public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
         public object callbacks_mutex = new object();
+        public Header connection_header;
         public IRosMessage last_message;
         public Queue<IRosMessage> publish_queue = new Queue<IRosMessage>();
         public object publish_queue_mutex = new object();
         public object seq_mutex = new object();
         public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
         public object subscriber_links_mutex = new object();
-        public Header connection_header;
 
         public Publication(string name, string datatype, string md5sum, string message_definition, int max_queue,
-                           bool latch, bool has_header)
+            bool latch, bool has_header)
         {
             Name = name;
             DataType = datatype;
@@ -152,12 +162,12 @@ namespace Ros_CSharp
         }
 
         public bool validateHeader(Header header, ref string error_message)
-        {            
+        {
             string md5sum = "", topic = "", client_callerid = "";
             if (!header.Values.Contains("md5sum") || !header.Values.Contains("topic") ||
                 !header.Values.Contains("callerid"))
             {
-                string msg = "Header from subscriber did not have the required elements: md5sum, topic, callerid";
+                const string msg = "Header from subscriber did not have the required elements: md5sum, topic, callerid";
                 EDB.WriteLine(msg);
                 error_message = msg;
                 return false;
@@ -236,10 +246,7 @@ namespace Ros_CSharp
 
         public string dumphex(byte[] test)
         {
-            string s = "";
-            for (int i = 0; i < test.Length; i++)
-                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
-            return s;
+            return test.Aggregate("", (current, t) => current + ((t < 16 ? "0" : "") + t.ToString("x") + " "));
         }
 
         public bool EnqueueMessage(IRosMessage msg)
@@ -254,19 +261,19 @@ namespace Ros_CSharp
             if (HasHeader)
             {
                 object h = msg.GetType().GetField("header").GetValue(msg);
-                Messages.std_msgs.Header header;
+                m.Header header;
                 if (h == null)
-                    header = new Messages.std_msgs.Header();
+                    header = new m.Header();
                 else
-                    header = (Messages.std_msgs.Header) h;
+                    header = (m.Header) h;
                 header.seq = seq;
                 header.stamp = ROS.GetTime();
-                header.frame_id = new String();
+                header.frame_id = new m.String();
                 msg.GetType().GetField("header").SetValue(msg, header);
             }
             msg.connection_header = connection_header.Values;
 
-            lock(subscriber_links_mutex)
+            lock (subscriber_links_mutex)
                 foreach (SubscriberLink sub_link in subscriber_links)
                 {
                     sub_link.enqueueMessage(msg, true, false);

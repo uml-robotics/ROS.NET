@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: ServiceManager.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -17,19 +29,15 @@ namespace Ros_CSharp
     public class ServiceManager
     {
         private static ServiceManager _instance;
-        private static object g_service_manager_mutex = new object();
-        private bool shutting_down;
-        private List<IServicePublication> service_publications = new List<IServicePublication>();
-        private List<IServiceServerLink> service_server_links = new List<IServiceServerLink>();
-        private PollManager poll_manager;
         private ConnectionManager connection_manager;
+        private PollManager poll_manager;
+        private List<IServicePublication> service_publications = new List<IServicePublication>();
+        private object service_publications_mutex = new object();
+        private List<IServiceServerLink> service_server_links = new List<IServiceServerLink>();
+        private object service_server_links_mutex = new object();
+        private bool shutting_down;
+        private object shutting_down_mutex = new object();
         private XmlRpcManager xmlrpc_manager;
-        private object service_publications_mutex = new object(), service_server_links_mutex = new object(), shutting_down_mutex = new object();
-
-        ~ServiceManager()
-        {
-            shutdown();
-        }
 
         public static ServiceManager Instance
         {
@@ -38,6 +46,11 @@ namespace Ros_CSharp
                 if (_instance == null) _instance = new ServiceManager();
                 return _instance;
             }
+        }
+
+        ~ServiceManager()
+        {
+            shutdown();
         }
 
         internal IServicePublication lookupServicePublication(string name)
@@ -72,7 +85,7 @@ namespace Ros_CSharp
             {
                 Connection connection = new Connection();
                 connection_manager.addConnection(connection);
-                ServiceServerLink<M,T> client = new ServiceServerLink<M,T>(service, persistent, request_md5sum, response_md5sum, header_values);
+                ServiceServerLink<M, T> client = new ServiceServerLink<M, T>(service, persistent, request_md5sum, response_md5sum, header_values);
                 lock (service_server_links_mutex)
                     service_server_links.Add(client);
                 connection.initialize(transport, false, null);
@@ -84,7 +97,11 @@ namespace Ros_CSharp
 
         internal void removeServiceServerLink<M, T>(ServiceServerLink<M, T> issl)
             where M : IRosMessage, new()
-            where T : IRosMessage, new() { removeServiceServerLink((IServiceServerLink)issl); } 
+            where T : IRosMessage, new()
+        {
+            removeServiceServerLink((IServiceServerLink) issl);
+        }
+
         internal void removeServiceServerLink(IServiceServerLink issl)
         {
             if (shutting_down) return;
@@ -112,7 +129,7 @@ namespace Ros_CSharp
                 if (ops.helper == null)
                     ops.helper = new ServiceCallbackHelper<MReq, MRes>(ops.srv_func);
                 ServicePublication<MReq, MRes> pub = new ServicePublication<MReq, MRes>(ops.service, ops.md5sum, ops.datatype, ops.req_datatype, ops.res_datatype, ops.helper, ops.callback_queue, ops.tracked_object);
-                service_publications.Add((IServicePublication)pub);
+                service_publications.Add(pub);
             }
 
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
@@ -197,13 +214,13 @@ namespace Ros_CSharp
             return sp.Any(s => s.name == serv_name && !s.isDropped);
         }
 
-        private bool unregisterService(string service)
+        private void unregisterService(string service)
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, service);
             args.Set(2, string.Format("rosrpc://{0}:{1}", network.host, connection_manager.TCPPort));
-            return master.execute("unregisterService", args, ref result, ref payload, false);
+            master.execute("unregisterService", args, ref result, ref payload, false);
         }
 
         internal bool lookupService(string name, ref string serv_host, ref int serv_port)

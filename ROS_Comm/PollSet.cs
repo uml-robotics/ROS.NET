@@ -1,7 +1,20 @@
-﻿#region Using
+﻿// File: PollSet.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Socket = Ros_CSharp.CustomSocket.Socket;
@@ -68,7 +81,7 @@ namespace Ros_CSharp
                 lock (signal_mutex)
                 {
                     signal_locked = true;
-                    byte[] b = new byte[] {0};
+                    byte[] b = {0};
                     if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
                     {
                         localpipeevents[1].Send(b);
@@ -177,14 +190,12 @@ namespace Ros_CSharp
                 }
 
                 SocketUpdateFunc func = null;
-                TcpTransport trans = null;
                 int events = 0;
                 lock (socket_info_mutex)
                 {
                     if (!socket_info.ContainsKey(ufds[i].sock)) continue;
                     SocketInfo info = socket_info[ufds[i].sock];
                     func = info.func;
-                    trans = info.transport;
                     events = info.events;
                 }
 
@@ -225,17 +236,11 @@ namespace Ros_CSharp
             {
                 if (!sockets_changed)
                     return;
-                foreach (SocketInfo info in socket_info.Values)
+                foreach (SocketInfo info in socket_info.Values.Where(info => !ufds.Exists(p => p.sock == info.sock)))
                 {
-                    if (!ufds.Exists((p) => p.sock == info.sock))
-                        ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
+                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
                 }
-                List<PollFD> gtfo = new List<PollFD>();
-                foreach (PollFD fd in ufds)
-                {
-                    if (!socket_info.ContainsKey(fd.sock))
-                        gtfo.Add(fd);
-                }
+                List<PollFD> gtfo = ufds.Where(fd => !socket_info.ContainsKey(fd.sock)).ToList();
                 foreach (PollFD fd in gtfo)
                     ufds.Remove(fd);
             }
@@ -257,8 +262,7 @@ namespace Ros_CSharp
         {
             string s = "";
             lock (socket_info_mutex)
-                foreach (SocketInfo si in socket_info.Values)
-                    s += "" + si.sock + ", ";
+                s = socket_info.Values.Aggregate(s, (current, si) => current + ("" + si.sock + ", "));
             s = s.Remove(s.Length - 3, 2);
             return s;
         }

@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: Spinner.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using m = Messages.std_msgs;
@@ -20,21 +32,23 @@ namespace Ros_CSharp
 
         #endregion
 
-        public virtual void spin()            
+        public virtual void spin()
         {
             spin(null);
-        
         }
+
         public virtual void spin(CallbackQueue queue)
         {
         }
-}
+    }
+
     public class SingleThreadSpinner : Spinner
     {
         public override void spin()
         {
-            this.spin(null);
+            spin(null);
         }
+
         public override void spin(CallbackQueue callbackInterface)
         {
             if (callbackInterface == null)
@@ -54,18 +68,20 @@ namespace Ros_CSharp
 
     public class MultiThreadSpinner : Spinner
     {
-        private int thread_count;
+        // private int thread_count;
 
         public MultiThreadSpinner(int tc)
         {
-            thread_count = tc;
+            throw new NotImplementedException();
+            //thread_count = tc;
         }
+
         public MultiThreadSpinner()
             : this(0)
         {
+            throw new NotImplementedException();
         }
-        
-        
+
 
         public override void Dispose()
         {
@@ -77,10 +93,12 @@ namespace Ros_CSharp
     {
         public AsyncSpinner(int tc)
         {
+            throw new NotImplementedException();
         }
 
         public AsyncSpinner(int tc, CallbackQueueInterface queue)
         {
+            throw new NotImplementedException();
         }
 
         #region IDisposable Members
@@ -94,10 +112,12 @@ namespace Ros_CSharp
 
         public void Start()
         {
+            throw new NotImplementedException();
         }
 
         public void Stop()
         {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,43 +1,90 @@
-﻿using System;
+﻿// File: ServicePublication.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Messages;
 
 namespace Ros_CSharp
 {
-    public class ServicePublication<MReq, MRes> : IServicePublication 
-        where MReq : Messages.IRosMessage, new()
-        where MRes : Messages.IRosMessage, new()
+    public class ServicePublication<MReq, MRes> : IServicePublication
+        where MReq : IRosMessage, new()
+        where MRes : IRosMessage, new()
     {
         public new ServiceCallbackHelper<MReq, MRes> helper;
 
         //internal ftw?
+
+        public ServicePublication(string name, string md5Sum, string datatype, string reqDatatype, string resDatatype, ServiceCallbackHelper<MReq, MRes> helper, CallbackQueueInterface callback, object trackedObject)
+        {
+            if (name == null)
+                throw new Exception("NULL NAME?!");
+            // TODO: Complete member initialization
+            this.name = name;
+            md5sum = md5Sum;
+            this.datatype = datatype;
+            req_datatype = reqDatatype;
+            res_datatype = resDatatype;
+            this.helper = helper;
+            this.callback = callback;
+            tracked_object = trackedObject;
+
+            if (trackedObject != null)
+                has_tracked_object = true;
+        }
+
+        public override void processRequest(ref byte[] buf, uint num_bytes, IServiceClientLink link)
+        {
+            CallbackInterface cb = new ServiceCallback(this, helper, buf, num_bytes, link, has_tracked_object, tracked_object);
+            callback.addCallback(cb, ROS.getPID());
+        }
+
+        internal override void addServiceClientLink(IServiceClientLink iServiceClientLink)
+        {
+            lock (client_links_mutex)
+                client_links.Add(iServiceClientLink);
+        }
+
+        internal override void removeServiceClientLink(IServiceClientLink iServiceClientLink)
+        {
+            lock (client_links_mutex)
+                client_links.Remove(iServiceClientLink);
+        }
+
         public class ServiceCallback : CallbackInterface
         {
-            ServicePublication<MReq, MRes> isp;
-            byte[] buffer;
-            uint num_bytes;
-            bool has_tracked_object;
-            object tracked_object;
-            IServiceClientLink link;
+            private bool _hasTrackedObject;
+            private uint _numBytes;
+            private object _trackedObject;
+            private byte[] buffer;
+            private ServicePublication<MReq, MRes> isp;
+            private IServiceClientLink link;
 
             public ServiceCallback(ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, uint num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
-                : this(null,_helper, buf, num_bytes, link, has_tracked_object, tracked_object)
+                : this(null, _helper, buf, num_bytes, link, has_tracked_object, tracked_object)
             {
             }
 
             public ServiceCallback(ServicePublication<MReq, MRes> sp, ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, uint num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
-                
+
             {
                 isp = sp;
                 if (isp != null && _helper != null)
                     isp.helper = _helper;
                 buffer = buf;
-                this.num_bytes = num_bytes;
+                _numBytes = num_bytes;
                 this.link = link;
-                this.has_tracked_object = has_tracked_object;
-                this.tracked_object = tracked_object;
+                _hasTrackedObject = has_tracked_object;
+                _trackedObject = tracked_object;
             }
 
             internal override CallResult Call()
@@ -47,8 +94,9 @@ namespace Ros_CSharp
                     return CallResult.Invalid;
                 }
 
-                ServiceCallbackHelperParams<MReq, MRes> parms = new ServiceCallbackHelperParams<MReq, MRes> {
-                    request = new MReq().Deserialize(buffer) as MReq, 
+                ServiceCallbackHelperParams<MReq, MRes> parms = new ServiceCallbackHelperParams<MReq, MRes>
+                {
+                    request = new MReq().Deserialize(buffer) as MReq,
                     response = new MRes(),
                     connection_header = link.connection.header.Values
                 };
@@ -76,58 +124,23 @@ namespace Ros_CSharp
                 return CallResult.Success;
             }
         }
-
-        public ServicePublication(string name, string md5Sum, string datatype, string reqDatatype, string resDatatype, ServiceCallbackHelper<MReq, MRes> helper, CallbackQueueInterface callback, object trackedObject)
-        {
-            if (name == null)
-                throw new Exception("NULL NAME?!");
-            // TODO: Complete member initialization
-            this.name = name;
-            this.md5sum = md5Sum;
-            this.datatype = datatype;
-            this.req_datatype = reqDatatype;
-            this.res_datatype = resDatatype;
-            this.helper = helper;
-            this.callback = callback;
-            this.tracked_object = trackedObject;
-
-            if (trackedObject != null)
-                has_tracked_object = true;
-
-        }
-
-        public override void processRequest(ref byte[] buf, uint num_bytes, IServiceClientLink link)
-        {
-            CallbackInterface cb = new ServiceCallback(this, helper, buf, num_bytes, link, has_tracked_object, tracked_object);
-            callback.addCallback(cb, ROS.getPID());
-        }
-
-        internal override void addServiceClientLink(IServiceClientLink iServiceClientLink)
-        {
-            lock (client_links_mutex)
-                client_links.Add(iServiceClientLink);
-        }
-        internal override void removeServiceClientLink(IServiceClientLink iServiceClientLink)
-        {
-            lock (client_links_mutex)
-                client_links.Remove(iServiceClientLink);
-        }
     }
 
     public class IServicePublication
     {
-        internal bool has_tracked_object;
-        internal string name;
-        internal bool isDropped;
-        internal string md5sum;
-        internal string datatype;
-        internal string req_datatype;
-        internal string res_datatype;
-        internal IServiceCallbackHelper helper;
-        protected object client_links_mutex = new object();
         internal CallbackQueueInterface callback;
         internal List<IServiceClientLink> client_links = new List<IServiceClientLink>();
+        protected object client_links_mutex = new object();
+        internal string datatype;
+        internal bool has_tracked_object;
+        internal IServiceCallbackHelper helper;
+        internal bool isDropped;
+        internal string md5sum;
+        internal string name;
+        internal string req_datatype;
+        internal string res_datatype;
         internal object tracked_object;
+
         internal virtual void drop()
         {
             lock (client_links_mutex)
@@ -137,6 +150,7 @@ namespace Ros_CSharp
             dropAllConnections();
             callback.removeByID(ROS.getPID());
         }
+
         private void dropAllConnections()
         {
             List<IServiceClientLink> links;

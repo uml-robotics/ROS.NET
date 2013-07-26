@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: TopicManager.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -44,7 +56,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Binds the XmlRpc requests to callback functions, signal to start
+        ///     Binds the XmlRpc requests to callback functions, signal to start
         /// </summary>
         public void Start()
         {
@@ -64,7 +76,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///  unbinds the XmlRpc requests to callback functions, signal to shutdown
+        ///     unbinds the XmlRpc requests to callback functions, signal to shutdown
         /// </summary>
         public void shutdown()
         {
@@ -106,7 +118,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Updates the list of advertised topics.
+        ///     Updates the list of advertised topics.
         /// </summary>
         /// <param name="topics">List of topics to update</param>
         public void getAdvertisedTopics(ref List<string> topics)
@@ -118,7 +130,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Updates the list of subscribed topics
+        ///     Updates the list of subscribed topics
         /// </summary>
         /// <param name="topics"></param>
         public void getSubscribedTopics(ref List<string> topics)
@@ -131,7 +143,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Looks up all current publishers on a given topic
+        ///     Looks up all current publishers on a given topic
         /// </summary>
         /// <param name="topic">Topic name to look up</param>
         /// <returns></returns>
@@ -144,7 +156,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Checks if the given topic is valid.
+        ///     Checks if the given topic is valid.
         /// </summary>
         /// <typeparam name="T">Advertise Options </typeparam>
         /// <param name="ops"></param>
@@ -167,7 +179,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Register as a publisher on a topic.
+        ///     Register as a publisher on a topic.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="ops"></param>
@@ -188,14 +200,14 @@ namespace Ros_CSharp
                     {
                         EDB.WriteLine
                             ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]",
-                             ops.topic, ops.md5sum,
-                             ops.datatype, pub.Md5sum, pub.DataType);
+                                ops.topic, ops.md5sum,
+                                ops.datatype, pub.Md5sum, pub.DataType);
                         return false;
                     }
                 }
                 else
                     pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size,
-                                          ops.latch, ops.has_header);
+                        ops.latch, ops.has_header);
                 pub.addCallbacks(callbacks);
                 advertised_topics.Add(pub);
             }
@@ -224,9 +236,9 @@ namespace Ros_CSharp
                 sub.addLocalConnection(pub);
 
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, XmlRpcManager.Instance.uri),
-                        result = new XmlRpcValue(),
-                        payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, ref result, ref payload, true);            
+                result = new XmlRpcValue(),
+                payload = new XmlRpcValue();
+            master.execute("registerPublisher", args, ref result, ref payload, true);
             return true;
         }
 
@@ -246,7 +258,7 @@ namespace Ros_CSharp
                     throw subscribeFail(ops, "without a callback");
                 string md5sum = ops.md5sum;
                 string datatype = ops.datatype;
-                Subscription s = new Subscription(ops.topic, md5sum, datatype);                
+                Subscription s = new Subscription(ops.topic, md5sum, datatype);
                 s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks, ops.topic);
                 if (!registerSubscriber(s, ops.datatype))
                 {
@@ -349,7 +361,7 @@ namespace Ros_CSharp
             {
                 Publication p;
                 if ((p = lookupPublicationWithoutLock(topic)) == null || !ROS.ok || shutting_down) return;
-                p.connection_header = new Header { Values = new Hashtable() };
+                p.connection_header = new Header {Values = new Hashtable()};
                 p.connection_header.Values["type"] = p.DataType;
                 p.connection_header.Values["md5sum"] = p.Md5sum;
                 p.connection_header.Values["message_definition"] = p.MessageDefinition;
@@ -368,8 +380,7 @@ namespace Ros_CSharp
                     else
                         serialize = true;
                     msg.Serialized = serfunc();
-                    
-                    
+
 
                     p.publish(msg);
 
@@ -422,10 +433,10 @@ namespace Ros_CSharp
                     ("Tried to subscribe to a topic with the same name but different md5sum as a topic that was already subscribed [" +
                      ops.datatype + "/" + ops.md5sum + " vs. " + sub.datatype + "/" +
                      sub.md5sum + "]");
-            else if (found)
+            if (found)
                 if (
                     !sub.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size,
-                                     ops.allow_concurrent_callbacks, ops.topic))
+                        ops.allow_concurrent_callbacks, ops.topic))
                     return false;
             return found;
         }
@@ -457,7 +468,7 @@ namespace Ros_CSharp
                     ret.Set(2, tcp_ros_params);
                     return true;
                 }
-                else if (proto_name == "UDPROS")
+                if (proto_name == "UDPROS")
                 {
                     EDB.WriteLine("IGNORING UDP GIZNARBAGE");
                 }
@@ -470,7 +481,7 @@ namespace Ros_CSharp
 
         public bool isTopicAdvertised(string topic)
         {
-            return advertised_topics.Count((o) => o.Name == topic) > 0;
+            return advertised_topics.Count(o => o.Name == topic) > 0;
         }
 
         public bool registerSubscriber(Subscription s, string datatype)
@@ -518,8 +529,8 @@ namespace Ros_CSharp
         public bool unregisterSubscriber(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
-                        result = new XmlRpcValue(),
-                        payload = new XmlRpcValue();
+                result = new XmlRpcValue(),
+                payload = new XmlRpcValue();
             master.execute("unregisterSubscriber", args, ref result, ref payload, false);
             return true;
         }
@@ -527,24 +538,15 @@ namespace Ros_CSharp
         public bool unregisterPublisher(string topic)
         {
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
-                        result = new XmlRpcValue(),
-                        payload = new XmlRpcValue();
+                result = new XmlRpcValue(),
+                payload = new XmlRpcValue();
             master.execute("unregisterPublisher", args, ref result, ref payload, false);
             return true;
         }
 
         public Publication lookupPublicationWithoutLock(string topic)
         {
-            Publication t = null;
-            foreach (Publication p in advertised_topics)
-            {
-                if (p.Name == topic && !p.Dropped)
-                {
-                    t = p;
-                    break;
-                }
-            }
-            return t;
+            return advertised_topics.FirstOrDefault(p => p.Name == topic && !p.Dropped);
         }
 
         public void processPublishQueues()
@@ -561,8 +563,8 @@ namespace Ros_CSharp
         public void getBusStats(ref XmlRpcValue stats)
         {
             XmlRpcValue publish_stats = new XmlRpcValue(),
-                        subscribe_stats = new XmlRpcValue(),
-                        service_stats = new XmlRpcValue();
+                subscribe_stats = new XmlRpcValue(),
+                service_stats = new XmlRpcValue();
             publish_stats.Size = 0;
             subscribe_stats.Size = 0;
             service_stats.Size = 0;
@@ -653,9 +655,8 @@ namespace Ros_CSharp
             }
             if (sub != null)
                 return sub.pubUpdate(pubs);
-            else
-                EDB.WriteLine("got a request for updating publishers of topic " + topic +
-                              ", but I don't have any subscribers to that topic.");
+            EDB.WriteLine("got a request for updating publishers of topic " + topic +
+                          ", but I don't have any subscribers to that topic.");
             return false;
         }
 
@@ -680,7 +681,7 @@ namespace Ros_CSharp
             result = res.instance;
             if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
             {
-                string last_error = "Unknown error";
+                const string last_error = "Unknown error";
 
                 XmlRpcManager.Instance.responseInt(0, last_error, 0)(result);
             }

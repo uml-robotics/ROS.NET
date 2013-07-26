@@ -1,11 +1,23 @@
-﻿#region Using
+﻿// File: PollManager.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
 
+#region Using
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using System;
 
 #endregion
 
@@ -21,6 +33,7 @@ namespace Ros_CSharp
 
         private static PollManager _instance;
         public PollSet poll_set;
+        public List<Poll_Signal> poll_signal = new List<Poll_Signal>();
 
         public bool shutting_down;
         public object signal_mutex = new object();
@@ -41,13 +54,11 @@ namespace Ros_CSharp
             }
         }
 
-        public List<Poll_Signal> poll_signal = new List<Poll_Signal>();
-
         public void addPollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
-                Console.WriteLine("Adding pollthreadlistener " + poll.Method.ToString());
+                Console.WriteLine("Adding pollthreadlistener " + poll.Method);
                 if (!poll_signal.Contains(poll)) poll_signal.Add(poll);
                 signal();
             }
@@ -59,7 +70,7 @@ namespace Ros_CSharp
             {
                 foreach (Poll_Signal s in poll_signal)
                 {
-                    s.BeginInvoke((iar) => ((Poll_Signal)iar.AsyncState).EndInvoke(iar), s);
+                    s.BeginInvoke(iar => ((Poll_Signal) iar.AsyncState).EndInvoke(iar), s);
                 }
             }
         }
@@ -68,7 +79,7 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
-                Console.WriteLine("Removing pollthreadlistener " + poll.Method.ToString());
+                Console.WriteLine("Removing pollthreadlistener " + poll.Method);
                 if (poll_signal.Contains(poll)) poll_signal.Remove(poll);
                 signal();
             }
@@ -90,8 +101,7 @@ namespace Ros_CSharp
         public void Start()
         {
             shutting_down = false;
-            thread = new Thread(threadFunc);
-            thread.IsBackground = true;
+            thread = new Thread(threadFunc) {IsBackground = true};
             thread.Start();
         }
 

@@ -1,8 +1,16 @@
-﻿#region Using
+﻿// File: SubscriberCallbacks.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
 
-using System;
-using System.Diagnostics;
-using System.Threading;
+#region Using
 
 #endregion
 
@@ -18,7 +26,7 @@ namespace Ros_CSharp
         }
 
         public SubscriberCallbacks(SubscriberStatusCallback connectCB, SubscriberStatusCallback disconnectCB,
-                                   CallbackQueueInterface Callback)
+            CallbackQueueInterface Callback)
         {
             connect = connectCB;
             disconnect = disconnectCB;

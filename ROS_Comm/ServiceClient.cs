@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: ServiceClient.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
@@ -10,10 +22,9 @@ using Messages;
 
 namespace Ros_CSharp
 {
-
     public class ServiceClient<MReq, MRes> : IServiceClient where MReq : IRosMessage, new() where MRes : IRosMessage, new()
     {
-        internal ServiceClient(string service, bool persistent, IDictionary header_values, string md5sum) : base()
+        internal ServiceClient(string service, bool persistent, IDictionary header_values, string md5sum)
         {
             this.service = service;
             this.persistent = persistent;
@@ -30,7 +41,8 @@ namespace Ros_CSharp
             string md5 = request.MD5Sum;
             return call(request, ref response, md5);
         }
-        public bool call(MReq request, ref MRes response, string service_md5sum) 
+
+        public bool call(MReq request, ref MRes response, string service_md5sum)
         {
             if (service_md5sum != md5sum)
             {
@@ -50,7 +62,7 @@ namespace Ros_CSharp
             }
             else
             {
-                server_link =  ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, service_md5sum, service_md5sum, header_values);
+                server_link = ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, service_md5sum, service_md5sum, header_values);
             }
             if (server_link == null)
             {
@@ -74,10 +86,6 @@ namespace Ros_CSharp
 
     public class IServiceClient
     {
-        protected IServiceClient()
-        {
-        }
-
         internal double constructed =
             (int) Math.Floor(DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds);
 
@@ -87,6 +95,10 @@ namespace Ros_CSharp
         internal bool persistent;
         internal IServiceServerLink server_link;
         internal string service;
+
+        protected IServiceClient()
+        {
+        }
 
         public bool IsValid
         {

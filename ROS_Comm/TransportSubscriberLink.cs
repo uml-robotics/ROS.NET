@@ -1,8 +1,21 @@
-﻿#region Using
+﻿// File: TransportSubscriberLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -18,9 +31,9 @@ namespace Ros_CSharp
         private bool header_written;
         private Queue<IRosMessage> outbox = new Queue<IRosMessage>();
         private object outbox_mutex = new object();
+        private new Publication parent;
         private bool queue_full;
         private bool writing_message;
-        private Publication parent;
 
         public TransportSubscriberLink()
         {
@@ -56,12 +69,12 @@ namespace Ros_CSharp
                 connection.sendHeaderError(ref msg);
                 return false;
             }
-            string topic = (string) header.Values["topic"];
+            string name = (string) header.Values["topic"];
             string client_callerid = (string) header.Values["callerid"];
-            Publication pt = TopicManager.Instance.lookupPublication(topic);
+            Publication pt = TopicManager.Instance.lookupPublication(name);
             if (pt == null)
             {
-                string msg = "received a connection for a nonexistent topic [" + topic + "] from [" +
+                string msg = "received a connection for a nonexistent topic [" + name + "] from [" +
                              connection.transport + "] [" + client_callerid + "]";
                 EDB.WriteLine(msg);
                 connection.sendHeaderError(ref msg);
@@ -76,7 +89,7 @@ namespace Ros_CSharp
             }
             destination_caller_id = client_callerid;
             connection_id = ConnectionManager.Instance.GetNewConnectionID();
-            topic = pt.Name;
+            name = pt.Name;
             parent = pt;
 
             IDictionary m = new Hashtable();
@@ -87,16 +100,14 @@ namespace Ros_CSharp
             m["latching"] = pt.Latch;
             connection.writeHeader(m, onHeaderWritten);
             pt.addSubscriberLink(this);
-            EDB.WriteLine("Exchanged headers for " + topic);
+            EDB.WriteLine("Exchanged headers for " + name);
             return true;
         }
 
-        int triedtosend = 0;
         public override void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
         {
             lock (outbox_mutex)
             {
-                
                 int max_queue = 0;
                 if (parent != null)
                     lock (parent)
@@ -113,8 +124,6 @@ namespace Ros_CSharp
                 }
                 else
                     queue_full = false;
-                if (!queue_full)
-                    triedtosend++;
                 outbox.Enqueue(msg);
             }
 
@@ -162,25 +171,21 @@ namespace Ros_CSharp
                     writing_message = true;
                     m = outbox.Dequeue();
                 }
-
             }
             if (m != null)
             {
-                byte[] M = m.Serialize();                
+                byte[] M = m.Serialize();
                 stats.messages_sent++;
                 //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
                 stats.bytes_sent += M.Length;
                 stats.message_data_sent += M.Length;
-                connection.write(M, (uint)M.Length, onMessageWritten, immediate_write);
+                connection.write(M, (uint) M.Length, onMessageWritten, immediate_write);
             }
         }
 
         public string dumphex(byte[] test)
         {
-            string s = "";
-            for (int i = 0; i < test.Length; i++)
-                s += (test[i] < 16 ? "0" : "") + test[i].ToString("x") + " ";
-            return s;
+            return test.Aggregate("", (current, t) => current + ((t < 16 ? "0" : "") + t.ToString("x") + " "));
         }
     }
 }

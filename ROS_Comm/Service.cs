@@ -1,11 +1,18 @@
-﻿using System;
+﻿// File: Service.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 07/08/2013
+// Updated: 07/26/2013
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using Ros_CSharp;
-using Messages;
 
 namespace Ros_CSharp
 {
@@ -15,8 +22,8 @@ namespace Ros_CSharp
         {
             string mapped_name = names.resolve(service_name);
 
-            string host="";
-            int port=0;
+            string host = "";
+            int port = 0;
 
             if (ServiceManager.Instance.lookUpService(mapped_name, ref host, ref port))
             {
@@ -24,10 +31,10 @@ namespace Ros_CSharp
 
                 IDictionary m = new Hashtable
                 {
-                    {"probe","1"},
-                    {"md5sum","*"},
-                    {"callerid",this_node.Name},
-                    {"service",mapped_name}
+                    {"probe", "1"},
+                    {"md5sum", "*"},
+                    {"callerid", this_node.Name},
+                    {"service", mapped_name}
                 };
 
                 byte[] headerbuf = null;
@@ -39,8 +46,8 @@ namespace Ros_CSharp
                 {
                     byte[] sizebuf = BitConverter.GetBytes(size);
 
-                    transport.write(sizebuf, 0, (uint)sizebuf.Length);
-                    transport.write(headerbuf, 0, (uint)size);
+                    transport.write(sizebuf, 0, (uint) sizebuf.Length);
+                    transport.write(headerbuf, 0, (uint) size);
 
                     return true;
                 }
@@ -60,12 +67,11 @@ namespace Ros_CSharp
         {
             string mapped_name = names.resolve(service_name);
             DateTime start_time = DateTime.Now;
-            bool printed=false, result=false;
+            bool printed = false;
             while (ROS.ok)
             {
                 if (exists(service_name, !printed))
                 {
-                    result = true;
                     break;
                 }
                 printed = true;

@@ -1,10 +1,23 @@
-﻿#region Using
+﻿// File: ServiceServerLink.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Messages;
+using String = Messages.std_msgs.String;
 
 #endregion
 
@@ -13,24 +26,33 @@ namespace Ros_CSharp
     public class IServiceServerLink
     {
         public bool IsValid;
-        public Connection connection;
-        private IDictionary header_values;
         public string RequestMd5Sum;
+        public MsgTypes RequestType;
         public string ResponseMd5Sum;
-        public string name;
-        public MsgTypes RequestType, ResponseType;
-        public bool persistent;
-        public bool header_written;
-        public bool header_read;
+        public MsgTypes ResponseType;
 
-        private bool dropped;
-
-        private CallInfo current_call;
-
-        Queue<CallInfo> call_queue = new Queue<CallInfo>();
+        private Queue<CallInfo> call_queue = new Queue<CallInfo>();
         private object call_queue_mutex = new object();
+        public Connection connection;
+        private CallInfo current_call;
+        public bool header_read;
+        private IDictionary header_values;
+        public bool header_written;
+        public string name;
+        public bool persistent;
 
-        public void initialize<MReq, MRes>() where MReq : IRosMessage,new() where MRes : IRosMessage,new()
+        public IServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
+            IDictionary header_values)
+        {
+            // TODO: Complete member initialization
+            this.name = name;
+            this.persistent = persistent;
+            RequestMd5Sum = requestMd5Sum;
+            ResponseMd5Sum = responseMd5Sum;
+            this.header_values = header_values;
+        }
+
+        public void initialize<MReq, MRes>() where MReq : IRosMessage, new() where MRes : IRosMessage, new()
         {
             MReq req = new MReq();
             MRes res = new MRes();
@@ -38,24 +60,6 @@ namespace Ros_CSharp
             ResponseMd5Sum = res.MD5Sum;
             RequestType = req.msgtype;
             ResponseType = res.msgtype;
-        }
-
-        public IServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
-                                  IDictionary header_values)
-        {
-            // TODO: Complete member initialization
-            this.name = name;
-            this.persistent = persistent;
-            this.RequestMd5Sum = requestMd5Sum;
-            this.ResponseMd5Sum = responseMd5Sum;
-            this.header_values = header_values;
-        }
-
-        public static object create(string request, string response)
-        {
-            Type gen = Type.GetType("ServiceServerLink").MakeGenericType(ROS.GetDataType(request),
-                                                                         ROS.GetDataType(response));
-            return gen.GetConstructor(null).Invoke(null);
         }
 
         internal void initialize(Connection connection)
@@ -66,7 +70,7 @@ namespace Ros_CSharp
 
             IDictionary dict = new Hashtable();
             dict["service"] = name;
-            dict["md5sum"] = IRosService.generate((SrvTypes)Enum.Parse(typeof(SrvTypes), RequestType.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
+            dict["md5sum"] = IRosService.generate((SrvTypes) Enum.Parse(typeof (SrvTypes), RequestType.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
             dict["callerid"] = this_node.Name;
             dict["persistent"] = persistent ? "1" : "0";
             if (header_values != null)
@@ -81,21 +85,22 @@ namespace Ros_CSharp
 
             ROS.Debug("Service client from [{0}] for [{1}] dropped", connection.RemoteString, name);
 
-            dropped = true;
             clearCalls();
 
             ServiceManager.Instance.removeServiceServerLink(this);
         }
+
         private bool onHeaderReceived(Connection conn, Header header)
         {
-            string md5sum, type;
+            string md5sum;
             if (header.Values.Contains("md5sum"))
-                md5sum = (string)header.Values["md5sum"];
+                md5sum = (string) header.Values["md5sum"];
             else
             {
                 ROS.Error("TCPROS header from service server did not have required element: md5sum");
                 return false;
             }
+            //TODO check md5sum
 
             bool empty = false;
             lock (call_queue_mutex)
@@ -162,7 +167,7 @@ namespace Ros_CSharp
                     request = current_call.req;
                 }
                 request.Serialize();
-                connection.write(request.Serialized, (uint)request.Serialized.Length, onRequestWritten);
+                connection.write(request.Serialized, (uint) request.Serialized.Length, onRequestWritten);
             }
         }
 
@@ -190,14 +195,17 @@ namespace Ros_CSharp
             }
             //yield
         }
+
         private void onHeaderWritten(Connection conn)
         {
             header_written = true;
         }
+
         private void onRequestWritten(Connection conn)
         {
             connection.read(5, onResponseOkAndLength);
         }
+
         private void onResponseOkAndLength(Connection conn, ref byte[] buf, uint size, bool success)
         {
             if (conn != connection || size != 5)
@@ -226,7 +234,8 @@ namespace Ros_CSharp
                 onResponse(conn, ref f, 0, true);
             }
         }
-        void onResponse(Connection conn, ref byte[] buf, uint size, bool success)
+
+        private void onResponse(Connection conn, ref byte[] buf, uint size, bool success)
         {
             if (conn != connection) throw new Exception("WRONG CONNECTION");
 
@@ -238,20 +247,15 @@ namespace Ros_CSharp
                     current_call.resp.Serialized = buf;
                 }
                 else
-                    current_call.exception = new Messages.std_msgs.String(buf).data;
+                    current_call.exception = new String(buf).data;
             }
 
             callFinished();
         }
+
         public bool call(IRosMessage req, ref IRosMessage resp)
         {
-            CallInfo info = new CallInfo();
-            info.req = req;
-            info.resp = resp;
-            info.success = false;
-            info.finished = false;
-            info.call_finished = false;
-            info.caller_thread_id = ROS.getPID();
+            CallInfo info = new CallInfo {req = req, resp = resp, success = false, finished = false, call_finished = false, caller_thread_id = ROS.getPID()};
 
             bool immediate = false;
             lock (call_queue_mutex)
@@ -273,7 +277,7 @@ namespace Ros_CSharp
             {
                 info.finished_condition.WaitOne();
             }
-            
+
             lock (info.finished_mutex)
             {
                 info.call_finished = true;
@@ -292,7 +296,7 @@ namespace Ros_CSharp
         where MRes : IRosMessage, new()
     {
         public ServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
-                                  IDictionary header_values)
+            IDictionary header_values)
             : base(name, persistent, requestMd5Sum, responseMd5Sum, header_values)
         {
             initialize<MReq, MRes>();
@@ -301,21 +305,23 @@ namespace Ros_CSharp
         public bool call(MReq req, ref MRes resp)
         {
             IRosMessage iresp = resp;
-            bool r = base.call(req, ref iresp);
-            resp = (MRes)resp.Deserialize(iresp.Serialized);
+            bool r = call(req, ref iresp);
+            resp = (MRes) resp.Deserialize(iresp.Serialized);
             return r;
         }
     }
 
     internal class CallInfo
     {
-        internal IRosMessage req, resp;
-        internal bool finished,call_finished;
-        internal object finished_mutex = new object();
+        internal bool call_finished;
         internal UInt64 caller_thread_id;
+        internal string exception = "";
+        internal bool finished;
+        internal Semaphore finished_condition = new Semaphore(0, int.MaxValue);
+        internal object finished_mutex = new object();
+        internal IRosMessage req, resp;
         internal bool success;
-        internal string exception="";
-        internal Semaphore finished_condition = new Semaphore(0,int.MaxValue);
+
         internal void notify_all()
         {
             finished_condition.Release();

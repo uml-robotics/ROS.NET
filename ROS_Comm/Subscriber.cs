@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: Subscriber.cs
+// Project: ROS_C-Sharp
+// 
+// ROS#
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 03/04/2013
+// Updated: 07/26/2013
+
+#region Using
 
 using System;
 using System.Diagnostics;
@@ -10,7 +22,7 @@ namespace Ros_CSharp
     public class Subscriber<M> : ISubscriber
     {
         /// <summary>
-        /// Creates a ROS Subscriber
+        ///     Creates a ROS Subscriber
         /// </summary>
         /// <param name="topic">Topic name to subscribe to</param>
         /// <param name="nodeHandle">nodehandle</param>
@@ -24,7 +36,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Deep Copy of a subscriber
+        ///     Deep Copy of a subscriber
         /// </summary>
         /// <param name="s">Subscriber to copy</param>
         public Subscriber(Subscriber<M> s)
@@ -35,14 +47,14 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Creates a ROS subscriber
+        ///     Creates a ROS subscriber
         /// </summary>
         public Subscriber()
         {
         }
 
         /// <summary>
-        /// Returns the number of publishers on the subscribers topic
+        ///     Returns the number of publishers on the subscribers topic
         /// </summary>
         public int NumPublishers
         {
@@ -55,7 +67,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Shutdown a subscriber gracefully.
+        ///     Shutdown a subscriber gracefully.
         /// </summary>
         public override void shutdown()
         {
