@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #endregion
 
@@ -330,9 +331,7 @@ namespace XmlRpc_Wrapper
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
                 {
-                    throw new Exception(
-                        "YOU THOUGHT THIS WAS GOING TO BE WATER BUT IT WASN'T... ROCK AND ROOLLLLL!!!!!!");
-                    //return TypeEnum.TypeInvalid;
+                    return TypeEnum.TypeInvalid;
                 }
                 return ValueTypeHelper._typearray[balls];
             }
@@ -504,7 +503,7 @@ namespace XmlRpc_Wrapper
         {
             if (__instance == IntPtr.Zero)
                 return "this XmlRpcValue == (NULL)";
-            string s = "XmlRpcValue ( " + Type.ToString() + " ) -- size = " + Size + " -- data = " + Marshal.PtrToStringAnsi(tostring(instance));
+            string s = "XmlRpcValue ( " + Type + " ) -- size = " + Size + " -- data = " + Marshal.PtrToStringAnsi(tostring(instance));
             return s;
         }
 

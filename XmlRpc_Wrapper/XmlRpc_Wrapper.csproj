@@ -89,6 +89,7 @@
     <Compile Include="XmlRpcServer.cs" />
     <Compile Include="XMLRPCCallWrapper.cs" />
     <Compile Include="XmlRpcSource.cs" />
+    <Compile Include="XmlRpcUtil.cs" />
     <Compile Include="XmlRpcValue.cs" />
   </ItemGroup>
   <ItemGroup>
