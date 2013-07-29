@@ -19,32 +19,22 @@ namespace Messages
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
 		{
 		}
 
 $EXTRACONSTRUCTOR		
 				
-		//[System.Diagnostics.DebuggerStepThrough]
+		[System.Diagnostics.DebuggerStepThrough]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
 		{		
 			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
 		}
 
-		/*		
 		[System.Diagnostics.DebuggerStepThrough]
-		public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
-		{			
-			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
-		}
-		
-		[System.Diagnostics.DebuggerStepThrough]
-		public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
-		{			
-			//$DESERIALIZATIONCODEHERE
-		}*/
-
-		[System.Diagnostics.DebuggerStepThrough]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override byte[] Serialize()
 		{
 			return Serialize(false);
@@ -52,6 +42,7 @@ $EXTRACONSTRUCTOR
 
 		
 		[System.Diagnostics.DebuggerStepThrough]
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override byte[] Serialize(bool partofsomethingelse)
 		{
 			//$SERIALIZATIONCODEHERE			

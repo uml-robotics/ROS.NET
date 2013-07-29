@@ -16,7 +16,9 @@ namespace Messages
     {
         internal static Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>> constructors = new Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>>();
         private static Dictionary<MsgTypes, Type> _typeregistry = new Dictionary<MsgTypes, Type>();
+
         [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosMessage generate(MsgTypes t)
         {
             if (constructors.ContainsKey(t))
@@ -44,33 +46,45 @@ namespace Messages
             else
                 throw new Exception("OH NOES IRosMessage.generate is borked!");
         }
-
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string MD5Sum;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool HasHeader;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool IsMetaType;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string MessageDefinition;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public byte[] Serialized;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IDictionary connection_header;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool IsServiceComponent;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public Dictionary<string, MsgFieldInfo> Fields;
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage()
             : this(MsgTypes.Unknown, "", false, false, null)
         {
         }
 
         [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields)
         :this(t,def,hasheader,meta,fields,"")
         {}
 
         [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5) : this(t,def,hasheader,meta,fields,ms5,false)
         {
         }
 
         [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5, bool isservicemessage)
         {
             msgtype = t;
@@ -82,62 +96,74 @@ namespace Messages
             IsServiceComponent = isservicemessage;
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
             int dontcare = 0;
             SerializationHelper.deserialize(GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
         }
 
-        //[DebuggerStepThrough]
+        [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
         {
             throw new NotImplementedException();
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize()
         {
             return Serialize(false);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize(bool partofsomethingelse)
         {
             throw new NotImplementedException();
         }
     }
 
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public delegate IRosMessage RosServiceDelegate(IRosMessage request);
 
     public class IRosService
     {
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string MD5Sum;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string ServiceDefinition;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public SrvTypes srvtype = SrvTypes.Unknown;
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype_req
         {
             get { return RequestMessage.msgtype; }
         }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype_res
         {
             get { return ResponseMessage.msgtype; }
         }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage RequestMessage, ResponseMessage;
-
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         protected IRosMessage GeneralInvoke(RosServiceDelegate invocation, IRosMessage m)
         {
             return invocation.Invoke(m);
         }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosService()
             : this(SrvTypes.Unknown, "", "")
         {
         }
-
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosService(SrvTypes t, string def, string md5)
         {
             srvtype = t;
             ServiceDefinition = def;
             MD5Sum = md5;
         }
-
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         protected void InitSubtypes(IRosMessage request, IRosMessage response)
         {
             RequestMessage = request;
@@ -148,6 +174,7 @@ namespace Messages
         private static Dictionary<SrvTypes, Type> _typeregistry = new Dictionary<SrvTypes, Type>();
 
         [DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosService generate(SrvTypes t)
         {
             if (constructors.ContainsKey(t))

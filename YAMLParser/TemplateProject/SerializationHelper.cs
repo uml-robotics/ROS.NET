@@ -15,6 +15,7 @@ using String = Messages.std_msgs.String;
 
 namespace Messages
 {
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class SerializationHelper
     {
         private static bool WHAT_IS_HAPPENING;
