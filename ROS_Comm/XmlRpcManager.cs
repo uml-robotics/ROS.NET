@@ -51,7 +51,7 @@ namespace Ros_CSharp
 
         public XmlRpcManager()
         {
-            XmlRpcUtil.ShowOutputFromXmlRpcPInvoke();
+            //XmlRpcUtil.ShowOutputFromXmlRpcPInvoke();
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
@@ -81,6 +81,7 @@ namespace Ros_CSharp
             {
                 if (server.Dispatch == null)
                 {
+                    throw new Exception("XmlRpcManager isn't initialized yet!");
                     return;
                 }
                 lock (added_connections_mutex)
@@ -104,7 +105,8 @@ namespace Ros_CSharp
                     Thread.Sleep(10);
                 }
 
-                if (shutting_down) return;
+                if (shutting_down) 
+                    return;
 
                 foreach (AsyncXmlRpcConnection con in connections)
                 {
