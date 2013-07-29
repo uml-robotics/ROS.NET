@@ -59,8 +59,7 @@ extern "C" XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance)
 extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters, XmlRpcValue *result)
 {
 	try
-	{	
-		XmlRpcUtil::log(1, "Execute...\n", parameters->toXml());
+	{
 		return ((*instance).execute(method, *parameters, *result));
 	}
 	catch (std::exception& ex)
@@ -72,8 +71,7 @@ extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const ch
 extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters)
 {
 	try
-	{	
-		XmlRpcUtil::log(1, "ExecuteNonBlock...\n", parameters->toXml());
+	{
 		return ((*instance).executeNonBlock(method, *parameters));
 	}
 	catch (std::exception& ex)
