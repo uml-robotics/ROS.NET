@@ -150,9 +150,12 @@ extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 {
 	try
-	{
-		
-	return ((*instance).getUri().c_str());
+	{		
+      if (instance == NULL) return NULL;
+      std::string s;
+      s = (*instance).getUri();
+      if (s.length()==0) return NULL;
+	    return (s.c_str());
 	}
 	catch (std::exception& ex)
 	{

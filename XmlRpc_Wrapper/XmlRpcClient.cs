@@ -182,7 +182,18 @@ namespace XmlRpc_Wrapper
         public string Uri
         {
             [DebuggerStepThrough]
-            get { return geturi(instance); }
+            get 
+            {
+                string s = null;
+                try
+                {
+                    s = geturi(instance);
+                }
+                catch(Exception e){
+                    Console.WriteLine(e);
+                }
+                return s;
+            }
         }
 
         public int Port
