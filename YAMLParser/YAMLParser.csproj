@@ -103,14 +103,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Faux\Interfaces.cs">
+    <None Include="Faux\Interfaces.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Faux\SerializationHelper.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Faux\String.cs" />
-    <Compile Include="Faux\Time.cs" />
+    </None>
+    <None Include="Faux\SerializationHelper.cs">
+      <SubType>Code</SubType>
+    </None>
+    <None Include="Faux\String.cs" />
+    <None Include="Faux\Time.cs" />
     <Compile Include="GenerationGuts.cs" />
     <Compile Include="PInvokeAllUpInYoGrill.cs" />
     <Compile Include="Program.cs" />
