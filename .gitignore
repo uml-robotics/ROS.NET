@@ -15,3 +15,4 @@ Messages/
 *.vcxproj.user
 TempMessages/
 TestResults/
+XmlRpc_Wrapper/XmlRpcWin32.instr.pdb
