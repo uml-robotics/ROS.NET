@@ -332,17 +332,17 @@ Either:
             if (!string.IsNullOrEmpty(ROS_HOSTNAME))
             {
                 if (remapping.Contains("__hostname"))
-                    remapping["__hostname"] = ROS_MASTER_URI;
+                    remapping["__hostname"] = ROS_HOSTNAME;
                 else
-                    remapping.Add("__hostname", ROS_MASTER_URI);
+                    remapping.Add("__hostname", ROS_HOSTNAME);
             }
 
             if (!string.IsNullOrEmpty(ROS_IP))
             {
                 if (remapping.Contains("__ip"))
-                    remapping["__ip"] = ROS_MASTER_URI;
+                    remapping["__ip"] = ROS_IP;
                 else
-                    remapping.Add("__ip", ROS_MASTER_URI);
+                    remapping.Add("__ip", ROS_IP);
             }
 
             Init(remapping, name, options);
