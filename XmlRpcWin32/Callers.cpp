@@ -137,9 +137,11 @@ extern "C" XMLRPC_API void XmlRpcClient_ClearFault(XmlRpcClient* instance)
 extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 {
 	try
-	{
-		
-	return ((*instance).getHost().c_str());
+	{	
+		if (instance == NULL) return "";
+		char * ret = (char*)CoTaskMemAlloc(instance->getHost().length()+1);
+		memcpy(ret, instance->getHost().c_str(), instance->getHost().length()+1);
+		return ret;
 	}
 	catch (std::exception& ex)
 	{
@@ -151,17 +153,16 @@ extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 {
 	try
 	{		
-      if (instance == NULL) return NULL;
-      std::string s;
-      s = (*instance).getUri();
-      if (s.length()==0) return NULL;
-	    return (s.c_str());
+      if (instance == NULL) return "";
+	  char * ret = (char*)CoTaskMemAlloc(instance->getUri().length()+1);
+	  memcpy(ret, instance->getUri().c_str(), instance->getUri().length()+1);
+	  return ret;
 	}
 	catch (std::exception& ex)
 	{
 		XmlRpcUtil::error(ex.what());
 	}
-	return "EXCEPTIOWNED";
+	return "";
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance)
 {

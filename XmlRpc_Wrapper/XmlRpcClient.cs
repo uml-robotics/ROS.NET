@@ -172,28 +172,13 @@ namespace XmlRpc_Wrapper
         public string Host
         {
             [DebuggerStepThrough]
-            get
-            {
-                string ret = gethost(instance);
-                return ret;
-            }
+            get { return gethost(instance); }
         }
 
         public string Uri
         {
             [DebuggerStepThrough]
-            get 
-            {
-                string s = null;
-                try
-                {
-                    s = geturi(instance);
-                }
-                catch(Exception e){
-                    Console.WriteLine(e);
-                }
-                return s;
-            }
+            get { return geturi(instance); }            
         }
 
         public int Port
@@ -319,10 +304,10 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool isconnected(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.ThisCall)]
         private static extern string gethost(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.ThisCall)]
         private static extern string geturi(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
