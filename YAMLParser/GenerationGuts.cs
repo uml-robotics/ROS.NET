@@ -669,12 +669,12 @@ namespace FauxMessages
             if (otherstuff.Contains('=')) isconst = true;
             if (!IsArray)
             {
-                if (otherstuff.Contains('=') && type == "string")
+                if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
                 {
                     otherstuff = otherstuff.Replace("\\", "\\\\");
                     otherstuff = otherstuff.Replace("\"", "\\\"");
                     string[] split = otherstuff.Split('=');
-                    otherstuff = split[0] + " = \"" + split[1] + "\"";
+                    otherstuff = split[0] + " = "+split[1].Trim() + "";
                 }
                 if (otherstuff.Contains('=') && type == "bool")
                 {
@@ -688,29 +688,31 @@ namespace FauxMessages
                 {
                     type = MsgsFile.resolver[type];
                 }
-                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + otherstuff + ";";
                 Const = isconst;
                 if (otherstuff.Contains("="))
                 {
                     string[] chunks = otherstuff.Split('=');
                     ConstValue = chunks[chunks.Length - 1].Trim();
-                    ;
+                    if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
+                    }
                 }
+                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + ";";
             }
             else
             {
                 if (length.Length > 0)
-                {
                     IsLiteral = type != "string";
-                    output = lowestindent + "public " + type + "[] " + name + " = new " + type + "[" + length + "];";
-                }
-                else
-                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
                 if (otherstuff.Contains('='))
                 {
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
                 }
+                if (length.Length > 0)
+                    output = lowestindent + "public " + type + "[] " + name + " = new " + type + "[" + length + "];";
+                else
+                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
             }
             Type = type;
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
@@ -737,12 +739,12 @@ namespace FauxMessages
             if (otherstuff.Contains('=')) isconst = true;
             if (!IsArray)
             {
-                if (otherstuff.Contains('=') && type == "string")
+                if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
                 {
                     otherstuff = otherstuff.Replace("\\", "\\\\");
                     otherstuff = otherstuff.Replace("\"", "\\\"");
                     string[] split = otherstuff.Split('=');
-                    otherstuff = split[0] + " = \"" + split[1] + "\"";
+                    otherstuff = split[0] + " = \"" + split[1].Trim() + "\"";
                 }
                 if (otherstuff.Contains('=') && type == "bool")
                 {
@@ -756,28 +758,31 @@ namespace FauxMessages
                 {
                     type = MsgsFile.resolver[type];
                 }
-                output = lowestindent + "public " + (isconst ? "const " : "") + type + " " + name + otherstuff + ";";
                 Const = isconst;
                 if (otherstuff.Contains("="))
                 {
                     string[] chunks = otherstuff.Split('=');
                     ConstValue = chunks[chunks.Length - 1].Trim();
+                    if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
+                    }
                 }
+                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + ";";
             }
             else
             {
                 if (length.Length != 0)
-                {
                     IsLiteral = type != "string";
-                    output = lowestindent + "public " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
-                }
-                else
-                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
                 if (otherstuff.Contains('='))
                 {
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
                 }
+                if (length.Length != 0)
+                    output = lowestindent + "public " + type + "[" + length + "] " + name + " = new " + type + "[" + length + "];";
+                else
+                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
             }
             Type = type;
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
@@ -796,7 +801,8 @@ namespace FauxMessages
                  members.IsLiteral.ToString().ToLower(),
                  ("typeof(" + members.Type + ")"),
                  members.Const.ToString().ToLower(),
-                 members.ConstValue,
+                 members.ConstValue.TrimStart('"').TrimEnd('"'),
+                 //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),
                  members.IsArray.ToString().ToLower(),
                  members.length,
                  //FIX MEEEEEEEE
