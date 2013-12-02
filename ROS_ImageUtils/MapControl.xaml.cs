@@ -122,22 +122,56 @@ namespace ROS_ImageWPF
             Console.WriteLine("MAP TOPIC = " + TopicName);            
             mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
                                                                                                                         {
-                                                                                                                            this.Height = i.info.height;
-                                                                                                                            this.Width = i.info.width;
+                                                                                                                            //this.Height = i.info.height;
+                                                                                                                            //this.Width = i.info.width;
                                                                                                                             MPP = i.info.resolution;
                                                                                                                             this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
-                                                                                                                            UpdateImage(createRGBA(i.data),
-                                                                                                                                        new Size((int)i.info.width,
-                                                                                                                                                 (int)i.info.height), false);
+                                                                                                                            sbyte[] data;
+                                                                                                                            Size s = new Size(i.info.width, i.info.height);
+                                                                                                                            data = findROI(i.data, ref s);
+                                                                                                                            UpdateImage(createRGBA(data), s, false);
                         
                                                                                                                         })));
-        } 
+        }
+
+        private sbyte[] findROI(sbyte[] p, ref Size s)
+        {
+            int minx, miny, maxx, maxy;
+            minx = miny = int.MaxValue;
+            maxx = maxy = int.MinValue;
+            int w=(int)s.Width;
+            int h=(int)s.Height;
+            for(int y=0;y<h;y++)
+                for (int x = 0; x < w; x++)
+                {
+                    if (p[x + y * w] != -1)
+                    {
+                        if (x < minx)
+                            minx = x;
+                        else if (x > maxx)
+                            maxx = x;
+                        if (y < miny)
+                            miny = y;
+                        else if (y > maxy)
+                            maxy = y;
+                    }
+                }
+            maxx = Math.Min(maxx + 20, w);
+            maxy = Math.Min(maxy + 20, h);
+            minx = Math.Max(minx - 20, 0);
+            miny = Math.Max(miny - 20, 0);
+            s = new Size(maxx - minx + 1, maxy - miny + 1);
+            sbyte[] output = new sbyte[(maxx - minx + 1) * (maxy - miny + 1)];
+            for(int y=0;y<maxy-miny+1;y++)
+                for (int x = 0; x < maxx - minx+1; x++)
+                {
+                    output[x + y * (maxx - minx + 1)] = p[(x + minx) + (y + miny) * w];
+                }
+            return output;
+        }
         private byte[] createRGBA(sbyte[] map)
         {
-            byte[] image = new byte[4 * map.Length];/*
-            Func<sbyte, byte[]> triple = (b) => { return new[] { (byte)b, (byte)b, (byte)b, (byte)0xFF }; };
-            Func<sbyte[], byte[]> supertriple = (m) => { List<byte> o = new List<byte>(); for (int i = 0; i < m.Length; i++) o.AddRange(triple(m[i])); return o.ToArray(); };
-            return supertriple(map);*/
+            byte[] image = new byte[4 * map.Length];
             int count = 0;
             foreach (sbyte j in map)
             {
@@ -590,7 +624,7 @@ namespace ROS_ImageWPF
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            image.Transform = new ScaleTransform(1, -1, ActualWidth / 2, ActualHeight / 2);
+            //image.Transform = new ScaleTransform(1, -1, ActualWidth / 2, ActualHeight / 2);
         }
 
         private void Rectangle_SizeChanged(object sender, SizeChangedEventArgs e)
