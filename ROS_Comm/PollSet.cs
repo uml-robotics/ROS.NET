@@ -236,11 +236,27 @@ namespace Ros_CSharp
             {
                 if (!sockets_changed)
                     return;
-                foreach (SocketInfo info in socket_info.Values.Where(info => !ufds.Exists(p => p.sock == info.sock)))
+                foreach (SocketInfo si in socket_info.Values)
                 {
-                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
+                    bool dobreak = false;
+                    foreach(PollFD pfd in ufds)
+                    {
+                        if (pfd.sock == si.sock)
+                        {
+                            dobreak = true;
+                            break;
+                        }
+                    }
+                    if (dobreak)
+                        continue;
+                    ufds.Add(new PollFD { events = si.events, sock = si.sock, revents = 0 });
                 }
-                List<PollFD> gtfo = ufds.Where(fd => !socket_info.ContainsKey(fd.sock)).ToList();
+                List<PollFD> gtfo = new List<PollFD>();
+                foreach (PollFD pfd in ufds)
+                {
+                    if (!socket_info.ContainsKey(pfd.sock))
+                        gtfo.Add(pfd);
+                }
                 foreach (PollFD fd in gtfo)
                     ufds.Remove(fd);
             }
