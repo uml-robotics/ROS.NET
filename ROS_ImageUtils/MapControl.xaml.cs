@@ -110,7 +110,7 @@ namespace ROS_ImageWPF
                 Thread.Sleep(100);
             }
             Thread.Sleep(1000);
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
+            Dispatcher.Invoke(new Action(SetupTopic));
         }
 
         private void SetupTopic()
@@ -120,7 +120,7 @@ namespace ROS_ImageWPF
             if (mapsub != null)
                 mapsub.shutdown();
             Console.WriteLine("MAP TOPIC = " + TopicName);            
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                         {
                                                                                                                             //this.Height = i.info.height;
                                                                                                                             //this.Width = i.info.width;
