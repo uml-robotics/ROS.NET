@@ -236,20 +236,9 @@ namespace Ros_CSharp
             {
                 if (!sockets_changed)
                     return;
-                foreach (SocketInfo si in socket_info.Values)
+                foreach (SocketInfo info in socket_info.Values.Where(info => !ufds.Exists(p => p.sock == info.sock)))
                 {
-                    bool dobreak = false;
-                    foreach(PollFD pfd in ufds)
-                    {
-                        if (pfd.sock == si.sock)
-                        {
-                            dobreak = true;
-                            break;
-                        }
-                    }
-                    if (dobreak)
-                        continue;
-                    ufds.Add(new PollFD { events = si.events, sock = si.sock, revents = 0 });
+                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
                 }
                 List<PollFD> gtfo = ufds.Where(fd => !socket_info.ContainsKey(fd.sock)).ToList();
                 foreach (PollFD fd in gtfo)
