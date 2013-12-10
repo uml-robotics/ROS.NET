@@ -231,7 +231,7 @@ namespace CompressedImageView
         {
             if (initial != null)
             {
-                gm.PoseStamped ps = new gm.PoseStamped() { pose = new gm.Pose() { position = new gm.Point() { x = initial.position.x + x / 100, y = initial.position.y + y / 100, z = initial.position.z + z / 100 }, orientation = new gm.Quaternion() { w = initial.orientation.w, x = initial.orientation.x, y = initial.orientation.y, z = initial.orientation.z } } };
+                gm.PoseStamped ps = new gm.PoseStamped() { pose = new gm.Pose() { position = new gm.Point() { x = initial.position.x + x / 100.0, y = initial.position.y + y / 100.0, z = initial.position.z + z / 100.0 }, orientation = new gm.Quaternion() { w = initial.orientation.w, x = initial.orientation.x, y = initial.orientation.y, z = initial.orientation.z } } };
                 pub.publish(ps);
                 Console.WriteLine(ps.pose.position.x + "," + ps.pose.position.y + "," + ps.pose.position.z);
             }
@@ -239,10 +239,7 @@ namespace CompressedImageView
 
         private void posecb(Messages.baxter_core_msgs.EndpoingState es)
         {
-            if (initial == null)
-            {
-                initial = es.pose;
-            }
+            initial = es.pose;
         }
 #endregion
 
@@ -253,7 +250,7 @@ namespace CompressedImageView
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ROS.ROS_MASTER_URI = "http://baxter:11311";
+            ROS.ROS_MASTER_URI = "http://baxter.local:11311";
             ROS.ROS_HOSTNAME = "10.0.6.9";
             ROS.Init(new string[0], "ROSLEAP");
             leapapi = new LeapAPIIsBadLol();
