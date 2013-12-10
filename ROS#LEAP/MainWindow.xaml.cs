@@ -74,14 +74,11 @@ namespace CompressedImageView
 		    Console.WriteLine("Initialized");
 	    }
 
-	    public void OnConnect ()
-	    {
-		    Console.WriteLine("Connected");
-		    controller.EnableGesture (Gesture.GestureType.TYPECIRCLE);
-		    controller.EnableGesture (Gesture.GestureType.TYPEKEYTAP);
-		    controller.EnableGesture (Gesture.GestureType.TYPESCREENTAP);
-		    controller.EnableGesture (Gesture.GestureType.TYPESWIPE);
-	    }
+        public void OnConnect()
+        {
+            Console.WriteLine("Connected");
+            controller.EnableGesture(Gesture.GestureType.TYPECIRCLE);
+        }
 
 	    public void OnDisconnect ()
 	    {
@@ -94,11 +91,15 @@ namespace CompressedImageView
 		    Console.WriteLine("Exited");
 	    }
 
+        private bool enabled;
+        private bool firsties;
+        private double startpx=0, startpy=0, startpz=0;
+        private double startrr=0, startry=0, startrp=0;
 	    public void OnFrame (Leap.Frame frame)
 	    {
             StringBuilder sb = new System.Text.StringBuilder();
 
-		    if (!frame.Hands.IsEmpty) {
+		    if (enabled && !frame.Hands.IsEmpty) {
 			    // Get the first hand
 			    Hand hand = frame.Hands [0];
 
@@ -121,10 +122,26 @@ namespace CompressedImageView
 			    Vector normal = hand.PalmNormal;
 			    Vector direction = hand.Direction;
 
+                if (!firsties)
+                {
+                    firsties = true;
+                    startrr = normal.Roll;
+                    startrp = direction.Pitch;
+                    startry = direction.Yaw;
+                    startpx = hand.StabilizedPalmPosition.x;
+                    startpy = hand.StabilizedPalmPosition.y;
+                    startpz = hand.StabilizedPalmPosition.z;
+                }
+                else
+                {
+                    holyCrap(startpx - hand.StabilizedPalmPosition.x, startpy - hand.StabilizedPalmPosition.y, startpz - hand.StabilizedPalmPosition.z,
+                        startrr - normal.Roll, startrp - direction.Pitch, startry - direction.Yaw);
+                }
+
 			    // Calculate the hand's pitch, roll, and yaw angles
-			    sb.AppendFormat("Hand pitch: (RPY) = ( {0}, {1}, {2} ) degrees\n",
-                    direction.Pitch * 180.0f / (float)Math.PI,
+                sb.AppendFormat("Hand pitch: (RPY) = ( {0}, {1}, {2} ) degrees\n",
                     normal.Roll * 180.0f / (float)Math.PI,
+                    direction.Pitch * 180.0f / (float)Math.PI,
                     direction.Yaw * 180.0f / (float)Math.PI);
 		    }
 
@@ -142,8 +159,11 @@ namespace CompressedImageView
 				    if (circle.Pointable.Direction.AngleTo (circle.Normal) <= Math.PI / 4) {
 					    //Clockwise if angle is less than 90 degrees
 					    clockwiseness = "clockwise";
+                        enabled = true;
+                        firsties = false;
 				    } else {
 					    clockwiseness = "counterclockwise";
+                        enabled = false;
 				    }
 
 				    float sweptAngle = 0;
@@ -192,12 +212,20 @@ namespace CompressedImageView
 				    break;
 			    }
 		    }
-
-		    if (!frame.Hands.IsEmpty || !frame.Gestures ().IsEmpty) {
-                sb.Append("\n");
-		    }
-            Console.Write(sb);
+            if (enabled)
+            {
+                if (!frame.Hands.IsEmpty || !frame.Gestures().IsEmpty)
+                {
+                    sb.Append("\n");
+                }
+                Console.Write(sb);
+            }
 	    }
+
+        private void holyCrap(double x, double y, double z, double r, double p, double y)
+        {
+
+        }
 #endregion
 
         public MainWindow()
@@ -207,9 +235,9 @@ namespace CompressedImageView
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ROS.ROS_MASTER_URI = "http://10.3.3.37:11311";
-            ROS.ROS_HOSTNAME = "10.3.3.69";
-            ROS.Init(new string[0], "Image_Test");
+            ROS.ROS_MASTER_URI = "http://baxter:11311";
+            ROS.ROS_HOSTNAME = "REACTOR";
+            ROS.Init(new string[0], "ROSLEAP");
             leapapi = new LeapAPIIsBadLol();
             controller = leapapi.Init(this);
         }
