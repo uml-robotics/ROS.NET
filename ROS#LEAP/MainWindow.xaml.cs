@@ -222,9 +222,27 @@ namespace CompressedImageView
             }
 	    }
 
-        private void holyCrap(double x, double y, double z, double r, double p, double y)
-        {
+        private Subscriber<Messages.baxter_core_msgs.EndpoingState> initialsub;
+        private Publisher<gm.PoseStamped> pub;
 
+        private gm.Pose initial = null;
+
+        private void holyCrap(double x, double y, double z, double r, double p, double yaw)
+        {
+            if (initial != null)
+            {
+                gm.PoseStamped ps = new gm.PoseStamped() { pose = new gm.Pose() { position = new gm.Point() { x = initial.position.x + x / 100, y = initial.position.y + y / 100, z = initial.position.z + z / 100 }, orientation = new gm.Quaternion() { w = initial.orientation.w, x = initial.orientation.x, y = initial.orientation.y, z = initial.orientation.z } } };
+                pub.publish(ps);
+                Console.WriteLine(ps.pose.position.x + "," + ps.pose.position.y + "," + ps.pose.position.z);
+            }
+        }
+
+        private void posecb(Messages.baxter_core_msgs.EndpoingState es)
+        {
+            if (initial == null)
+            {
+                initial = es.pose;
+            }
         }
 #endregion
 
@@ -236,10 +254,13 @@ namespace CompressedImageView
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             ROS.ROS_MASTER_URI = "http://baxter:11311";
-            ROS.ROS_HOSTNAME = "REACTOR";
+            ROS.ROS_HOSTNAME = "10.0.6.9";
             ROS.Init(new string[0], "ROSLEAP");
             leapapi = new LeapAPIIsBadLol();
             controller = leapapi.Init(this);
+            NodeHandle nh = new NodeHandle();
+            pub = nh.advertise<gm.PoseStamped>("/right_pose", 1);
+            initialsub = nh.subscribe<Messages.baxter_core_msgs.EndpoingState>("/robot/limb/right/endpoint_state", 1, posecb);
         }
 
         protected override void OnClosed(EventArgs e)

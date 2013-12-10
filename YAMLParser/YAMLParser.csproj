@@ -123,6 +123,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
+    <Content Include="ROS_MESSAGES\baxter_core_msgs\EndpoingState.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
