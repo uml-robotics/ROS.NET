@@ -126,10 +126,10 @@ namespace ROS_ImageWPF
                                                                                                                             //this.Width = i.info.width;
                                                                                                                             MPP = i.info.resolution;
                                                                                                                             this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
-                                                                                                                            sbyte[] data;
+                                                                                                                            //sbyte[] data;
                                                                                                                             Size s = new Size(i.info.width, i.info.height);
-                                                                                                                            data = findROI(i.data, ref s);
-                                                                                                                            UpdateImage(createRGBA(data), s, false);
+                                                                                                                            //data = findROI(i.data, ref s);
+                                                                                                                            UpdateImage(createRGBA(i.data), s, false);
                         
                                                                                                                         })));
         }
