@@ -193,6 +193,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Info(object o)
         {
+            Console.WriteLine("[INFO] " + o);
             if (initialized && rosoutappender != null)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.INFO);
         }
@@ -205,9 +206,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Info(string format, params object[] args)
         {
-            string s = string.Format(format, args);
-            Console.WriteLine("[Info] " + s);
-            Info((object) s);
+            Info((object) string.Format(format, args));
         }
 
         /// <summary>
@@ -217,6 +216,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Debug(object o)
         {
+            Console.WriteLine("[DEBUG] " + o);
             if (initialized && rosoutappender != null)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
@@ -239,6 +239,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Error(object o)
         {
+            Console.WriteLine("[Error] " + o);
             if (initialized && rosoutappender != null)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
@@ -251,8 +252,6 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Error(string format, params object[] args)
         {
-            string s = string.Format(format, args);
-            Console.WriteLine("[Error] " + s);
             Error((object) string.Format(format, args));
         }
 
