@@ -2,9 +2,24 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:RosImageWpf="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageWPF"
-
+        MinHeight="480"
+        MinWidth="640"
         Title="MainWindow" Loaded="Window_Loaded">
     <Grid>
-        <RosImageWpf:CompressedImageControl x:FieldModifier="public" RosImageWpf:CompressedImageControl.TopicName="/camera/rgb/image_color/compressed" x:Name="TestImage" Width="640" Height="480"></RosImageWpf:CompressedImageControl>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_color/compressed" x:Name="TestImage1" Grid.Row="0" Grid.Column="0"></RosImageWpf:CompressedImageControl>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_raw/compressed" x:Name="TestImage2" Grid.Row="0" Grid.Column="1"></RosImageWpf:CompressedImageControl>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/depth/image_raw/compressed" x:Name="TestImage3" Grid.Row="0" Grid.Column="2"></RosImageWpf:CompressedImageControl>
+        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_color" x:Name="TestImage4" Grid.Row="1" Grid.Column="0"></RosImageWpf:ImageControl>
+        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_raw" x:Name="TestImage5" Grid.Row="1" Grid.Column="1"></RosImageWpf:ImageControl>
+        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/depth/image" x:Name="TestImage6" Grid.Row="1" Grid.Column="2"></RosImageWpf:ImageControl>
     </Grid>
 </Window>
