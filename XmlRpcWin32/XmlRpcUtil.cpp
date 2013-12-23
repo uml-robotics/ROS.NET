@@ -24,7 +24,7 @@ using namespace XmlRpc;
 const char XmlRpc::XMLRPC_VERSION[] = "XMLRPC++ 0.7";
 
 // Default log verbosity: 0 for no messages through 5 (writes everything)
-int XmlRpcLogHandler::_verbosity = 0;
+int XmlRpcLogHandler::_verbosity = 2;
 
 // Default log handler
 static class DefaultLogHandler : public XmlRpcLogHandler {
