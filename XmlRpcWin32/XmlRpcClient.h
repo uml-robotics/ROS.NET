@@ -96,10 +96,10 @@ namespace XmlRpc {
     virtual bool parseResponse(XmlRpcValue& result);
 
     // Server location
-    std::string _host;
-    std::string _uri;
     int _port;
   public:
+    std::string _host;
+    std::string _uri;
     const std::string &getHost() { return _host; }
     const std::string &getUri()  { return _uri; }
     int getPort() const { return _port; }

@@ -164,6 +164,11 @@ extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 	}
 	return "";
 }
+extern XMLRPC_API bool XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri)
+{
+    if (instance == NULL) return false;
+    return (instance->getPort() == port && instance->getUri().compare(uri) == 0 && instance->getHost().compare(host) == 0);
+}
 extern "C" XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance)
 {
 	try
