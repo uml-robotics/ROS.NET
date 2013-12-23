@@ -108,6 +108,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericImage.xaml.cs">
+      <DependentUpon>GenericImage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SlaveImage.xaml.cs">
       <DependentUpon>SlaveImage.xaml</DependentUpon>
     </Compile>
@@ -116,6 +119,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="GenericImage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MapControl.xaml">
       <Generator>MSBuild:Compile</Generator>
