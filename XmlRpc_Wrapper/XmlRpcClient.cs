@@ -171,14 +171,14 @@ namespace XmlRpc_Wrapper
 
         public string Host
         {
-            [DebuggerStepThrough]
-            get { return gethost(instance); }
+            //[DebuggerStepThrough]
+            get { return Marshal.PtrToStringAnsi(gethost(instance)); }
         }
 
         public string Uri
         {
             [DebuggerStepThrough]
-            get { return geturi(instance); }            
+            get { return Marshal.PtrToStringAnsi(geturi(instance)); }            
         }
 
         public int Port
@@ -190,19 +190,19 @@ namespace XmlRpc_Wrapper
         public string Request
         {
             [DebuggerStepThrough]
-            get { return getrequest(instance); }
+            get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
         }
 
         public string Header
         {
             [DebuggerStepThrough]
-            get { return getheader(instance); }
+            get { return Marshal.PtrToStringAnsi(getheader(instance)); }
         }
 
         public string Response
         {
             [DebuggerStepThrough]
-            get { return getresponse(instance); }
+            get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
         }
 
         public int SendAttempts
@@ -309,25 +309,22 @@ namespace XmlRpc_Wrapper
         private static extern bool isconnected(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
-        private static extern string gethost(IntPtr target);
+        private static extern IntPtr gethost(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.Cdecl)]
-        private static extern string geturi(IntPtr target);
+        private static extern IntPtr geturi(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
         private static extern int getport(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern string getrequest(IntPtr target);
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr getrequest(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl
-            )]
-        private static extern string getheader(IntPtr target);
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr getheader(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern string getresponse(IntPtr target);
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr getresponse(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetSendAttempts",
             CallingConvention = CallingConvention.Cdecl)]
