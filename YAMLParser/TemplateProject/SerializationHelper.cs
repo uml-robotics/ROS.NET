@@ -219,8 +219,11 @@ Console.WriteLine("//deserialize: " + T.FullName);
     Marshal.Copy(bytes, 0, $B, {1});
     $A = Marshal.PtrToStructure($B, typeof({0}));    
 ", T.FullName, Marshal.SizeOf(T)));*/
-            }
-                return mem != IntPtr.Zero ? Marshal.PtrToStructure(mem, T) : null;
+                }
+                if (mem == IntPtr.Zero) return null;
+                object obj = Marshal.PtrToStructure(mem, T);
+                Marshal.FreeHGlobal(mem);
+                return obj;
             }
             IRosMessage MSG;
             int startingpos = 0, currpos = 0;
@@ -282,6 +285,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                     Marshal.Copy(bytes, currpos, pIP, leng);
                                     object o = Marshal.PtrToStructure(pIP, TT);
                                     vals.SetValue(o, i);
+                                    Marshal.FreeHGlobal(pIP);
                                 }
                                 else
                                     vals.SetValue(null, i);
