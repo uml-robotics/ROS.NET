@@ -88,7 +88,7 @@ namespace ROS_ImageWPF
             {
                 Thread.Sleep(100);
             }
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
+            Dispatcher.Invoke(new Action(SetupTopic));
         }
 
         private void SetupTopic()
@@ -100,7 +100,7 @@ namespace ROS_ImageWPF
             wtf = DateTime.Now;
 
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
-                Dispatcher.BeginInvoke(new Action(() =>
+                Dispatcher.Invoke(new Action(() =>
                     {
                         UpdateImage(i.data, new Size((int)i.width, (int)i.height), false, i.encoding.data);
                         if (ImageReceivedEvent != null) ImageReceivedEvent(this);

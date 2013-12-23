@@ -30,6 +30,7 @@ extern "C" {
 	extern XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance);
 	extern XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance);
+  extern XMLRPC_API bool XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri);
 	extern XMLRPC_API const char* XmlRpcClient_GetRequest(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetHeader(XmlRpcClient* instance);
 	extern XMLRPC_API const char* XmlRpcClient_GetResponse(XmlRpcClient* instance);

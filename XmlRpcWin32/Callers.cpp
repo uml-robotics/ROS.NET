@@ -137,11 +137,9 @@ extern "C" XMLRPC_API void XmlRpcClient_ClearFault(XmlRpcClient* instance)
 extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 {
 	try
-	{	
+	{
 		if (instance == NULL) return "";
-		char * ret = (char*)CoTaskMemAlloc(instance->getHost().length()+1);
-		memcpy(ret, instance->getHost().c_str(), instance->getHost().length()+1);
-		return ret;
+		return (*instance)._host.c_str();
 	}
 	catch (std::exception& ex)
 	{
@@ -152,17 +150,20 @@ extern "C" XMLRPC_API const char* XmlRpcClient_GetHost(XmlRpcClient* instance)
 extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 {
 	try
-	{		
-      if (instance == NULL) return "";
-	  char * ret = (char*)CoTaskMemAlloc(instance->getUri().length()+1);
-	  memcpy(ret, instance->getUri().c_str(), instance->getUri().length()+1);
-	  return ret;
+	{
+		if (instance == NULL) return "";
+		return (*instance)._uri.c_str();
 	}
 	catch (std::exception& ex)
 	{
 		XmlRpcUtil::error(ex.what());
 	}
 	return "";
+}
+extern XMLRPC_API bool XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri)
+{
+    if (instance == NULL) return false;
+    return (instance->getPort() == port && instance->getUri().compare(uri) == 0 && instance->getHost().compare(host) == 0);
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance)
 {

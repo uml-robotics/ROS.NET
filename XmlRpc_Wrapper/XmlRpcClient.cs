@@ -244,6 +244,10 @@ namespace XmlRpc_Wrapper
         #endregion
 
         #region public function passthroughs
+        public bool CheckIdentity(string host, int port, string uri)
+        {
+            return checkident(instance, host, port, uri);
+        }
 
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
@@ -304,10 +308,10 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool isconnected(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.ThisCall)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
         private static extern string gethost(IntPtr target);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.ThisCall)]
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.Cdecl)]
         private static extern string geturi(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
@@ -339,6 +343,9 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetEOF", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool geteof(IntPtr target);
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_CheckIdent", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool checkident(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host, int port, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength",
             CallingConvention = CallingConvention.Cdecl)]

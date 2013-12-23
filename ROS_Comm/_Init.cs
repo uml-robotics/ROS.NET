@@ -313,6 +313,17 @@ namespace Ros_CSharp
                     ROS_MASTER_URI = (string) _vars["ROS_MASTER_URI"];
             }
 
+            //If ROS.ROS_HOSTNAME was not explicitely set by the program calling Init, check the environment.
+            if (string.IsNullOrEmpty(ROS_HOSTNAME))
+            {
+                IDictionary _vars;
+
+                //check user env first, then machine if user doesn't have uri defined.
+                if ((_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User)).Contains("ROS_HOSTNAME")
+                    || (_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine)).Contains("ROS_HOSTNAME"))
+                    ROS_HOSTNAME = (string)_vars["ROS_HOSTNAME"];
+            }
+
             //if defined NOW, then add to remapping, or replace remapping (in the case it was explicitly set by program AND was passed as remapping arg)
             if (!string.IsNullOrEmpty(ROS_MASTER_URI))
             {

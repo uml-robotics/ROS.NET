@@ -110,7 +110,7 @@ namespace ROS_ImageWPF
                 Thread.Sleep(100);
             }
             Thread.Sleep(1000);
-            Dispatcher.BeginInvoke(new Action(SetupTopic));
+            Dispatcher.Invoke(new Action(SetupTopic));
         }
 
         private void SetupTopic()
@@ -120,16 +120,16 @@ namespace ROS_ImageWPF
             if (mapsub != null)
                 mapsub.shutdown();
             Console.WriteLine("MAP TOPIC = " + TopicName);            
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.BeginInvoke(new Action(() =>
+            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                         {
                                                                                                                             //this.Height = i.info.height;
                                                                                                                             //this.Width = i.info.width;
                                                                                                                             MPP = i.info.resolution;
                                                                                                                             this.origin = new System.Windows.Point(i.info.origin.position.x,i.info.origin.position.y);
-                                                                                                                            sbyte[] data;
+                                                                                                                            //sbyte[] data;
                                                                                                                             Size s = new Size(i.info.width, i.info.height);
-                                                                                                                            data = findROI(i.data, ref s);
-                                                                                                                            UpdateImage(createRGBA(data), s, false);
+                                                                                                                            //data = findROI(i.data, ref s);
+                                                                                                                            UpdateImage(createRGBA(i.data), s, false);
                         
                                                                                                                         })));
         }
