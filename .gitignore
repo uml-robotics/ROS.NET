@@ -16,3 +16,4 @@ Messages/
 TempMessages/
 TestResults/
 XmlRpc_Wrapper/XmlRpcWin32.instr.pdb
+*.psess
