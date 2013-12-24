@@ -262,51 +262,6 @@ namespace Ros_CSharp
                 xy + wz, 1.0 - (xx + zz), yz - wx,
                 xz - wy, yz + wx, 1.0 - (xx + yy));
         }
-
-        public OILER getEuler()
-        {
-            return getEuler(1);
-        }
-
-        public OILER getEuler(int sol)
-        {
-            OILER out1 = new OILER(), out2 = new OILER();
-            if (Math.Abs(m_el[2].x) >= 1)
-            {
-                out1.yaw = out2.yaw = 0;
-                double delta = Math.Atan2(m_el[2].y, m_el[2].z);
-                if (m_el[2].x < 0)
-                {
-                    out1.pitch = out2.pitch = Math.PI/2.0;
-                    out1.roll = out2.roll = delta;
-                }
-                else
-                {
-                    out1.pitch = out2.pitch = -Math.PI/2.0;
-                    out1.roll = out2.roll = delta;
-                }
-            }
-            else
-            {
-                out1.pitch = -Math.Asin(m_el[2].x);
-                out2.pitch = Math.PI - out1.pitch;
-
-                out1.roll = Math.Atan2(m_el[2].y/Math.Cos(out1.pitch), m_el[2].z/Math.Cos(out1.pitch));
-                out2.roll = Math.Atan2(m_el[2].y/Math.Cos(out2.pitch), m_el[2].z/Math.Cos(out2.pitch));
-
-                out1.yaw = Math.Atan2(m_el[1].x/Math.Cos(out1.pitch), m_el[0].x/Math.Cos(out1.pitch));
-                out2.yaw = Math.Atan2(m_el[1].x/Math.Cos(out2.pitch), m_el[0].x/Math.Cos(out2.pitch));
-            }
-
-            return sol == 1 ? out1 : out2;
-        }
-
-        public struct OILER
-        {
-            //suck it, math nerds
-            public double pitch, roll;
-            public double yaw;
-        }
     }
 
     public class TransformAccum
@@ -532,6 +487,62 @@ namespace Ros_CSharp
         public override string ToString()
         {
             return string.Format("({0},{1},{2},{3})", x, y, z, w);
+        }
+
+        public emVector3 getRPY()
+        {
+            emVector3 ret = new emVector3();
+            double w2 = w * w;
+            double x2 = x * x;
+            double y2 = y * y;
+            double z2 = z * z;
+            double unitLength = length();    // Normalized == 1, otherwise correction divisor.
+            double abcd = w * x + y * z;
+            double eps = Math.E;
+            double pi = Math.PI;
+            if (abcd > (0.5 - eps) * unitLength)
+            {
+                ret.z = 2 * Math.Atan2(y, w);
+                ret.y = pi;
+                ret.x = 0;
+            }
+            else if (abcd < (-0.5 + eps) * unitLength)
+            {
+                ret.z = -2 * Math.Atan2(y, w);
+                ret.y = -pi;
+                ret.x = 0;
+            }
+            else
+            {
+                double adbc = w * z - x * y;
+                double acbd = w * y - x * z;
+                ret.z = Math.Atan2(2 * adbc, 1 - 2 * (z2 + x2));
+                ret.y = Math.Asin(2 * abcd / unitLength);
+                ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
+            }
+            return ret;
+        }
+
+        public static emQuaternion FromRPY(emVector3 rpy)
+        {
+            double halfroll = rpy.x / 2;
+            double halfpitch = rpy.y / 2;
+            double halfyaw = rpy.z / 2;
+
+            double sin_r2 = Math.Sin(halfroll);
+            double sin_p2 = Math.Sin(halfpitch);
+            double sin_y2 = Math.Sin(halfyaw);
+
+            double cos_r2 = Math.Cos(halfroll);
+            double cos_p2 = Math.Cos(halfpitch);
+            double cos_y2 = Math.Cos(halfyaw);
+
+            return new emQuaternion(
+                cos_r2 * cos_p2 * cos_y2 + sin_r2 * sin_p2 * sin_y2,
+                sin_r2 * cos_p2 * cos_y2 - cos_r2 * sin_p2 * sin_y2,
+                cos_r2 * sin_p2 * cos_y2 + sin_r2 * cos_p2 * sin_y2,
+                cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
+                );
         }
     }
 
