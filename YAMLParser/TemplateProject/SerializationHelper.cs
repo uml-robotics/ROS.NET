@@ -25,17 +25,19 @@ namespace Messages
         }
 
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static MsgTypes GetMessageType(Type t)
         {
             MsgTypes mt;
             //gross, but it gets the job done   
             lock (GetMessageTypeMemo)
             {
-                if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
+                /*if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
                     GetMessageTypeMemo.Add(typeof(Single), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Float32")); //ERIC
                 if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
                     GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
+                if (t == typeof(Byte) && !GetMessageTypeMemo.ContainsKey(t))
+                    GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Byte")); //ERIC*/
                 if (GetMessageTypeMemo.ContainsKey(t))
                     return GetMessageTypeMemo[t];
                 mt = GetMessageType(t.FullName);
@@ -53,7 +55,7 @@ namespace Messages
                 ret = Type.GetType(s, true, true);
             else
                 ret = IRosMessage.generate(mt).GetType();
-//            Console.WriteLine(s + "=" + ret.Name);
+            //            Console.WriteLine(s + "=" + ret.Name);
             return ret;
         }
 
@@ -77,9 +79,21 @@ namespace Messages
                     if (s.Contains("System."))
                     {
                         Array types = Enum.GetValues(typeof(MsgTypes));
-                        MsgTypes[] mts = (MsgTypes[])types;
-                        string test = s.Split('.')[1];
-                        MsgTypes m = mts.FirstOrDefault(mt => mt.ToString().ToLower().Equals(test.ToLower()));
+                        string test = s.Replace("[]", "").Split('.')[1];
+                        string testmsgtype;
+                        MsgTypes m = MsgTypes.Unknown;
+                        for (int i = 0; i < types.Length; i++)
+                        {
+                            testmsgtype = types.GetValue(i).ToString();
+                            if (!testmsgtype.Contains("std_msgs")) continue;
+                            string[] pieces = testmsgtype.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                            testmsgtype = pieces[pieces.Length - 1];
+                            if (testmsgtype.ToLower().Equals(test.ToLower()))
+                            {
+                                m = (MsgTypes)types.GetValue(i);
+                                break;
+                            }
+                        }
                         GetMessageTypeMemoString.Add(s, m);
                         return m;
                     }
@@ -194,7 +208,7 @@ namespace Messages
         {
             if (bytes == null && !WHAT_IS_HAPPENING || bytes.Length == 0 && !WHAT_IS_HAPPENING)
             {
-//                Console.WriteLine("Deserializing empty array?");
+                //                Console.WriteLine("Deserializing empty array?");
                 amountread = 0;
                 return null;
             }
@@ -234,32 +248,38 @@ Console.WriteLine("//deserialize: " + T.FullName);
             if (MSG != null)
                 MT = MSG.msgtype;
             startingpos = currpos;
-            
+
             int currinfo = 0;
             while ((currpos < bytes.Length || WHAT_IS_HAPPENING) && currinfo < infos.Length)
             {
-               // Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
+                // Console.WriteLine(infos[currinfo].Name + "(" + currpos + "/" + bytes.Length + ")");
                 Type type = GetType(infos[currinfo].FieldType.FullName);
                 //Console.WriteLine("GetType returned: " + type.FullName);
                 Type realtype = infos[currinfo].FieldType;
-                MsgTypes msgtype = GetMessageType(type);
 
+                MsgTypes msgtype = GetMessageType(type);
                 bool knownpiecelength = IsSizeKnown(realtype, true) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
-                if (knownpiecelength)
+
+                if (realtype == typeof(Byte[])) //this is deplorable.
                 {
-                    if (infos[currinfo].FieldType.IsArray && msgtype == MsgTypes.std_msgs__Byte)
+                    //SHORTCUT
+                    byte[] PWNED;
+                    MsgFieldInfo mfi = MSG.Fields[infos[currinfo].Name];
+                    int num = mfi.Length;
+                    if (mfi.Length == -1) //if -1, then array length not in definition
                     {
-                        Array vals = (infos[currinfo].GetValue(thestructure) as Array);
-                        if (vals != null)
-                        {
-                            int num = vals.Length;
-                            byte[] PWNED = new byte[num];
-                            Array.Copy(bytes, currpos, PWNED, 0, num);
-                            currpos += num;
-                            infos[currinfo].SetValue(thestructure, PWNED);
-                        }
+                        num = BitConverter.ToInt32(bytes, currpos);
+                        currpos += 4;
                     }
-                    else if (infos[currinfo].FieldType.IsArray && msgtype != MsgTypes.std_msgs__String)
+                    PWNED = new byte[num];
+                    Array.Copy(bytes, currpos, PWNED, 0, num);
+                    currpos += PWNED.Length;
+                    infos[currinfo].SetValue(thestructure, PWNED);
+                    PWNED = null;
+                }
+                else if (knownpiecelength)
+                {
+                    if (infos[currinfo].FieldType.IsArray && msgtype != MsgTypes.std_msgs__String)
                     //must have length defined, or else knownpiecelength would be false... so look it up in the dict!
                     {
                         Type TT = GetType(infos[currinfo].FieldType.GetElementType().FullName);
@@ -324,7 +344,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                     Array.Copy(bytes, currpos, piece, 0, piece.Length);
                                 int len = 0;
                                 object obj = _deserialize(realtype, T, piece, out len,
-                                                         IsSizeKnown(realtype, true));
+                                                            IsSizeKnown(realtype, true));
                                 //if ((int)(infos[currinfo].Attributes & FieldAttributes.InitOnly) != 0)
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
@@ -395,7 +415,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                 Array.Copy(bytes, currpos, chunk, 0, chunk.Length);
                                 int len = 0;
                                 object data = _deserialize(TT, T, chunk, out len,
-                                                          IsSizeKnown(TT, false));
+                                                            IsSizeKnown(TT, false));
                                 val.SetValue(data, i);
                                 currpos += len;
                             }
@@ -487,6 +507,8 @@ Console.WriteLine("//deserialize: " + T.FullName);
                 currinfo++;
             }
             amountread = currpos - startingpos;
+            infos = null;
+            bytes = null;
             return thestructure;
         }
 
@@ -541,7 +563,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
             }
             byte[] wholeshebang = new byte[totallength];
             int currpos = 0;
-            
+
             if (!partofsomethingelse)
             {
                 wholeshebang = new byte[totallength + 4]; //THE WHOLE SHEBANG

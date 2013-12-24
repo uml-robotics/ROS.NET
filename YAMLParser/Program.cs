@@ -321,7 +321,7 @@ namespace YAMLParser
         public static void Finalize()
         {            
             string F = VCDir + "\\msbuild.exe";
-            Console.WriteLine("\n\nBUILDING A THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
+            Console.WriteLine("\n\nBUILDING A PROJECT THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
