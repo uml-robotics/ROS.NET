@@ -40,6 +40,8 @@ namespace Ros_CSharp
         public WriteFinishedFunc header_written_callback;
         public bool is_server;
         public byte[] read_buffer;
+        private byte[] length_buffer = new byte[4];
+        private byte[] real_read_buffer;
         public ReadFinishedFunc read_callback;
         public uint read_filled;
         public object read_mutex = new object();
@@ -110,7 +112,14 @@ namespace Ros_CSharp
                 if (read_callback != null)
                     throw new Exception("NOYOUBLO");
                 read_callback = finished_func;
-                read_buffer = new byte[size];
+                if (size == 4)
+                    read_buffer = length_buffer;
+                else
+                {
+                    if (real_read_buffer == null || real_read_buffer.Length != size)
+                        real_read_buffer = new byte[size];
+                    read_buffer = real_read_buffer;
+                }
                 read_size = size;
                 read_filled = 0;
                 transport.enableRead();
@@ -131,8 +140,7 @@ namespace Ros_CSharp
                 if (write_callback != null)
                     throw new Exception("NOYOUBLO");
                 write_callback = finished_func;
-                write_buffer = new byte[data.Length];
-                Array.Copy(data, write_buffer, data.Length);
+                write_buffer = data;
                 write_size = size;
                 transport.enableWrite();
                 if (immediate)
@@ -284,13 +292,12 @@ namespace Ros_CSharp
                         {
                             callback = read_callback;
                             read_callback = null;
-                            byte[] buffer = new byte[read_buffer.Length];
-                            Array.Copy(read_buffer, buffer, buffer.Length);
+                            byte[] buffer = read_buffer;
                             read_buffer = null;
                             size = read_size;
                             read_size = 0;
                             read_filled = 0;
-                            callback(this, ref read_buffer, size, false);
+                            callback(this, ref buffer, size, false);
                             break;
                         }
                         read_filled += (uint) bytes_read;
@@ -301,8 +308,7 @@ namespace Ros_CSharp
                     {
                         callback = read_callback;
                         size = read_size;
-                        byte[] buffer = new byte[read_buffer.Length];
-                        Array.Copy(read_buffer, buffer, buffer.Length);
+                        byte[] buffer = read_buffer;
                         read_buffer = null;
                         read_callback = null;
                         read_size = 0;

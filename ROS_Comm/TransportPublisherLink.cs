@@ -174,9 +174,8 @@ namespace Ros_CSharp
             if (success)
             {
                 IRosMessage msg = IRosMessage.generate(parent.msgtype);
-                msg.Serialized = new byte[buffer.Length];
+                msg.Serialized = buffer;
                 msg.connection_header = getHeader().Values;
-                Array.Copy(buffer, msg.Serialized, buffer.Length);
                 handleMessage(msg, true, false);
             }
             if (success || !connection.transport.getRequiresHeader())

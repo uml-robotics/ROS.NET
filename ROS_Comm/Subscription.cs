@@ -276,7 +276,7 @@ namespace Ros_CSharp
                 return false;
             }
 #if DEBUG
-            //EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+            EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
@@ -303,7 +303,6 @@ namespace Ros_CSharp
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
             XmlRpcValue proto = new XmlRpcValue();
-            //Console.WriteLine(result.instance+"\n\t"+result);
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
                 return;
