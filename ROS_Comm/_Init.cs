@@ -216,7 +216,9 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Debug(object o)
         {
+#if DEBUG
             Console.WriteLine("[DEBUG] " + o);
+#endif
             if (initialized && rosoutappender != null)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
