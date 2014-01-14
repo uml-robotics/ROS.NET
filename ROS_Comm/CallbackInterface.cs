@@ -107,18 +107,18 @@ namespace Ros_CSharp
                 }
                 else
                     _full = false;
+
+                Item i = new Item
+                {
+                    helper = helper,
+                    deserializer = deserializer,
+                    nonconst_need_copy = nonconst_need_copy,
+                    receipt_time = receipt_time
+                };
+                queue.Enqueue(i);
+
+                ++queue_size;
             }
-
-            Item i = new Item
-            {
-                helper = helper,
-                deserializer = deserializer,
-                nonconst_need_copy = nonconst_need_copy,
-                receipt_time = receipt_time
-            };
-            queue.Enqueue(i);
-
-            ++queue_size;
         }
 
         public override void clear()

@@ -210,6 +210,12 @@ namespace Ros_CSharp
 
         public void lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform)
         {
+            string error_string = null;
+            lookupTransform(target_frame, source_frame, time, out transform, ref error_string);
+        }
+
+        public void lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform, ref string error_string)
+        {
             transform = new emTransform();
 
             string mapped_tgt = resolve(tf_prefix, target_frame);
@@ -230,11 +236,10 @@ namespace Ros_CSharp
                 uint target_id = getFrameID(mapped_tgt);
                 uint source_id = getFrameID(mapped_src);
 
-                string error_string = "";
                 TransformAccum accum = new TransformAccum();
 
                 TF_STATUS retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
-                if (retval != TF_STATUS.NO_ERROR)
+                if (error_string != null && retval != TF_STATUS.NO_ERROR)
                 {
                     switch (retval)
                     {
@@ -345,7 +350,8 @@ namespace Ros_CSharp
 
             if (frame != top_parent)
             {
-                error_str = "" + frameids_reverse[source_id] + " DOES NOT CONNECT TO " + frameids_reverse[target_id];
+                if (error_str != null)
+                    error_str = "" + frameids_reverse[source_id] + " DOES NOT CONNECT TO " + frameids_reverse[target_id];
                 return TF_STATUS.CONNECTIVITY_ERROR;
             }
 
@@ -809,6 +815,67 @@ namespace Ros_CSharp
                 xy + wz, 1.0 - (xx + zz), yz - wx,
                 xz - wy, yz + wx, 1.0 - (xx + yy));
         }
+        public struct Euler
+        {
+            public double roll, pitch, yaw;
+        }
+
+        internal emVector3 getYPR(uint solution_number = 1)
+        {
+            Euler euler_out;
+            Euler euler_out2; //second solution
+            //get the pointer to the raw data
+
+            // Check that pitch is not at a singularity
+            // Check that pitch is not at a singularity
+            if (Math.Abs(m_el[2].x) >= 1)
+            {
+                euler_out.yaw = 0;
+                euler_out2.yaw = 0;
+
+                // From difference of angles formula
+                double delta = Math.Atan2(m_el[2].y, m_el[2].z);
+                if (m_el[2].x < 0)  //gimbal locked down
+                {
+                    euler_out.pitch = Math.PI / 2.0d;
+                    euler_out2.pitch = Math.PI / 2.0d;
+                    euler_out.roll = delta;
+                    euler_out2.roll = delta;
+                }
+                else // gimbal locked up
+                {
+                    euler_out.pitch = -Math.PI / 2.0d;
+                    euler_out2.pitch = -Math.PI / 2.0d;
+                    euler_out.roll = delta;
+                    euler_out2.roll = delta;
+                }
+            }
+            else
+            {
+                euler_out.pitch = -Math.Asin(m_el[2].x);
+                euler_out2.pitch = Math.PI - euler_out.pitch;
+
+                euler_out.roll = Math.Atan2(m_el[2].y / Math.Cos(euler_out.pitch),
+                        m_el[2].z / Math.Cos(euler_out.pitch));
+                euler_out2.roll = Math.Atan2(m_el[2].y / Math.Cos(euler_out2.pitch),
+                        m_el[2].z / Math.Cos(euler_out2.pitch));
+
+                euler_out.yaw = Math.Atan2(m_el[1].x / Math.Cos(euler_out.pitch),
+                        m_el[0].x / Math.Cos(euler_out.pitch));
+                euler_out2.yaw = Math.Atan2(m_el[1].x / Math.Cos(euler_out2.pitch),
+                        m_el[0].x / Math.Cos(euler_out2.pitch));
+            }
+
+            if (solution_number == 1)
+            {
+                /*yaw = euler_out.yaw; 
+                pitch = euler_out.pitch;
+                roll = euler_out.roll;*/
+                return new emVector3(euler_out.yaw, euler_out.pitch, euler_out.roll);
+            }
+            return new emVector3(euler_out2.yaw, euler_out2.pitch, euler_out2.roll);
+
+        }
     }
     public enum WalkEnding
     {
@@ -1072,6 +1139,8 @@ namespace Ros_CSharp
 
         public emVector3 getRPY()
         {
+            emVector3 tmp = new emMatrix3x3(this).getYPR();
+            return new emVector3(tmp.z, tmp.y, tmp.x);
             emVector3 ret = new emVector3();
             double w2 = w * w;
             double x2 = x * x;
