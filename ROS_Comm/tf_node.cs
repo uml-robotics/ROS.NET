@@ -524,7 +524,7 @@ namespace Ros_CSharp
         const uint MAX_LENGTH_LINKED_LIST = 10000000;
         const System.Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
 
-        private volatile SortedList<ulong, TransformStorage> storage = new SortedList<ulong, TransformStorage>();
+        private volatile DLL<TransformStorage> storage = new DLL<TransformStorage>();
         private ulong max_storage_time;
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
         {
@@ -536,13 +536,13 @@ namespace Ros_CSharp
 
             if (target_time == 0)
             {
-                one = storage[storage.Keys.Max()];
+                one = storage.Back;
                 return 1;
             }
 
             if (storage.Count == 1)
             {
-                TransformStorage ts = storage[storage.Keys.Min()];
+                TransformStorage ts = storage.Front;
                 if (ts.stamp == target_time)
                 {
                     one = ts;
@@ -555,16 +555,16 @@ namespace Ros_CSharp
                 }
             }
 
-            ulong latest_time = /*storage[*/storage.Keys.Max()/*].stamp*/;
-            ulong earliest_time = /*storage[*/storage.Keys.Min()/*].stamp*/;
+            ulong latest_time = storage.Back.stamp;
+            ulong earliest_time = storage.Front.stamp;
             if (target_time == latest_time)
             {
-                one = storage[latest_time];
+                one = storage.Back;
                 return 1;
             }
             else if (target_time == earliest_time)
             {
-                one = storage[earliest_time];
+                one = storage.Front;
                 return 1;
             }
             else if (target_time > latest_time)
@@ -578,11 +578,11 @@ namespace Ros_CSharp
                 return 0;
             }
 
-            int i;
+            ulong i;
             for (i = 0; i < storage.Count; i++) {
-            if (storage[storage.Keys[i]].stamp <= target_time) break;}
-            one = storage[storage.Keys[i+1]];
-            two = storage[storage.Keys[i]];
+            if (storage[i].stamp <= target_time) break;}
+            one = storage[i+1];
+            two = storage[i];
             return 2;
         }
 
@@ -612,10 +612,10 @@ namespace Ros_CSharp
 
         private void pruneList()
         {
-            ulong latest_time = storage.Keys.Max();
-            int preprune = storage.Count,postprune=0;
-            while ((postprune = storage.Count) > 0 && storage.Keys.Min() + max_storage_time < latest_time)
-                storage.RemoveAt(0);
+            ulong latest_time = storage.Back.stamp;
+            ulong preprune = storage.Count,postprune=0;
+            while ((postprune = storage.Count) > 0 && storage.Front.stamp + max_storage_time < latest_time)
+                storage.popFront();
             //Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
         }
 
@@ -665,10 +665,10 @@ namespace Ros_CSharp
 
         public bool insertData(TransformStorage new_data)
         {
-            if (storage.Keys.Count > 0 && storage[storage.Keys.Min()].stamp > new_data.stamp + max_storage_time)
+            if (storage.Count > 0 && storage.Front.stamp > new_data.stamp + max_storage_time)
                 return false;
 
-            storage[new_data.stamp] = new_data;
+            storage.insert(new_data, (a,b)=> a.stamp > new_data.stamp);
             pruneList();
             return true;
         }
@@ -698,7 +698,7 @@ namespace Ros_CSharp
             {
                 return new TimeAndFrameID(0, 0);
             }
-            TransformStorage ts = storage[storage.Keys.Max()];
+            TransformStorage ts = storage.Back;
             return new TimeAndFrameID(ts.stamp, ts.frame_id);
         }
 
@@ -710,13 +710,13 @@ namespace Ros_CSharp
         public ulong getLatestTimeStamp()
         {
             if (storage.Count == 0) return 0;
-            return storage.Keys.Max();
+            return storage.Back.stamp;
         }
 
         public ulong getOldestTimestamp()
         {
             if (storage.Count == 0) return 0;
-            return storage.Keys.Min();
+            return storage.Front.stamp;
         }
 
         #region ERROR THROWERS

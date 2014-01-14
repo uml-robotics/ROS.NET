@@ -54,12 +54,14 @@ namespace CompressedImageView
                 emTransform wheeee = tf_node.instance.transformFrame("/base_link", "/camera_link", out trans, out rot);
                 if (wheeee != null && wheeee.translation != null)
                 {
-                    Console.WriteLine("base ==> camera: xyz=" + wheeee.translation + " rpy=" + wheeee.rotation.getRPY());
+                    Console.WriteLine("base ==> camera: rpy=" + ((180.0 / Math.PI) * wheeee.rotation.getRPY()));
                 }
-                wheeee = tf_node.instance.transformFrame("/camera_link", "/base_link", out trans, out rot);
-                if (wheeee != null && wheeee.translation != null)
+                gm.Vector3 trans2 = new gm.Vector3();
+                gm.Quaternion rot2 = new gm.Quaternion();
+                emTransform wheeee2 = tf_node.instance.transformFrame("/camera_link", "/base_link", out trans2, out rot2);
+                if (wheeee2 != null && wheeee2.translation != null)
                 {
-                    Console.WriteLine("camera ==> base: xyz=" + wheeee.translation + " rpy=" + wheeee.rotation.getRPY());
+                    Console.WriteLine("camera ==> base: rpy=" + ((180.0 / Math.PI) * wheeee2.rotation.getRPY()));
                 }
             });
             testies.Start();

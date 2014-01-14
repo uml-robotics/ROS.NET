@@ -71,7 +71,7 @@ namespace Ros_CSharp
         public bool allow_concurrent_callbacks;
 
         public bool callback_mutex;
-        public Queue<Item> queue = new Queue<Item>();
+        public volatile Queue<Item> queue = new Queue<Item>();
         public object queue_mutex = new object();
 
         public uint queue_size;
