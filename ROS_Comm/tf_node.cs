@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Messages;
 using Messages.std_msgs;
@@ -68,16 +69,17 @@ namespace Ros_CSharp
                                 }
                             }
                         }
-                        Thread.Sleep(100);
+                        Thread.Sleep(10);
                     }
                 });
                 updateThread.Start();
             }
-            tfhandle.subscribe<tfMessage>("/tf", 1, tfCallback);
+            tfhandle.subscribe<tfMessage>("/tf", 100, tfCallback);
         }
-
+        
         public static tf_node instance
         {
+            [System.Diagnostics.DebuggerStepThrough]
             get
             {
                 if (_instance == null)
@@ -95,9 +97,25 @@ namespace Ros_CSharp
         public emTransform transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
         {
             emTransform trans = new emTransform();
-            transformer.lookupTransform(source, target, new Time(new TimeData()), out trans);
-            vec = trans != null ? trans.translation.ToMsg() : new emVector3().ToMsg();
-            quat = trans != null ? trans.rotation.ToMsg() : new emQuaternion().ToMsg();
+            try
+            {
+                transformer.lookupTransform(target, source, new Time(new TimeData()), out trans);
+            }
+            catch (Exception e)
+            {
+                ROS.Error(e.ToString());
+                trans = null;
+            }
+            if (trans != null)
+            {
+                vec = trans.translation != null ? trans.translation.ToMsg() : new emVector3().ToMsg();
+                quat = trans.rotation != null ? trans.rotation.ToMsg() : new emQuaternion().ToMsg();
+            }
+            else
+            {
+                vec = null;
+                quat = null;
+            }
             return trans;
         }
 
@@ -115,110 +133,639 @@ namespace Ros_CSharp
         }
     }
 
+    public enum TF_STATUS
+    {
+        NO_ERROR, LOOKUP_ERROR, CONNECTIVITY_ERROR, EXTRAPOLATION_ERROR
+    }
+
     public class Transformer
     {
+        const string tf_prefix = "/";
+        const uint MAX_GRAPH_DEPTH = 100;
+        const double DEFAULT_CACHE_TIME = 1000000000;
+        const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
+
+        public static string resolve(string prefix, string frame_name)
+        {
+            if (frame_name.Length > 0)
+            {
+                if (frame_name[0] == '/')
+                    return frame_name;
+            }
+            if (prefix.Length > 0)
+            {
+                if (prefix[0] == '/')
+                    return prefix + "/" + frame_name;
+                return "/" + prefix + "/" + frame_name;
+            }
+            return "/" + frame_name;
+        }
+
         //autobots, roll out
         private object framemutex = new object();
-        private Dictionary<string, emTransform> frames = new Dictionary<string, emTransform> {{"/", null}};
+        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> {{"NO_PARENT", 0}};
+        Dictionary<uint,string> frameids_reverse = new Dictionary<uint,string>() {{0, "NO_PARENT" }};
+        SortedList<uint,TimeCache> frames = new SortedList<uint,TimeCache>();
+
+        private ulong cache_time;
+        private bool interpolating;
+
+        public Transformer(bool i=true, ulong ct = (ulong)DEFAULT_CACHE_TIME)
+        {
+            interpolating = i;
+            cache_time = ct;
+        }
+
+        public void clear()
+        {
+            lock (framemutex)
+            {
+                foreach (TimeCache tc in frames.Values)
+                    tc.clearList();
+            }
+        }
 
         public void lookupTransform(String t, String s, Time time, out emTransform transform)
         {
-            lookupTransform(t.data, s.data, time, out transform);
+            try
+            {
+                lookupTransform(t.data, s.data, time, out transform);
+            }
+            catch (Exception e)
+            {
+                transform = null;
+                ROS.Error(e);
+                throw e;
+            }
+        }
+
+        public uint getFrameID(string frame)
+        {
+            if (frameIDs.ContainsKey(frame))
+            {
+                return frameIDs[frame];
+            }
+            return 0;
         }
 
         public void lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform)
         {
+            transform = new emTransform();
+
+            string mapped_tgt = resolve(tf_prefix, target_frame);
+            string mapped_src = resolve(tf_prefix, source_frame);
+
+            if (mapped_tgt == mapped_src)
+            {
+                transform.translation = new emVector3();
+                transform.rotation = new emQuaternion();
+                transform.child_frame_id = mapped_src;
+                transform.frame_id = mapped_tgt;
+                transform.stamp = ROS.GetTime(DateTime.Now);
+                return;
+            }
+
             lock (framemutex)
             {
+                uint target_id = getFrameID(mapped_tgt);
+                uint source_id = getFrameID(mapped_src);
+
+                string error_string = "";
                 TransformAccum accum = new TransformAccum();
-                if (!walkToTopParent(accum, time, target_frame, source_frame))
+
+                TF_STATUS retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
+                if (retval != TF_STATUS.NO_ERROR)
                 {
-                    transform = new emTransform();
-                    return;
+                    switch (retval)
+                    {
+                        case TF_STATUS.CONNECTIVITY_ERROR: ROS.Error("NO CONNECTIONSZSZ: " + error_string); break;
+                        case TF_STATUS.EXTRAPOLATION_ERROR: ROS.Error("EXTRAPOLATION: " + error_string); break;
+                        case TF_STATUS.LOOKUP_ERROR: ROS.Error("LOOKUP: " + error_string); break;
+                    }
                 }
-                transform = new emTransform(accum.result_quat, accum.result_vec, accum.time, source_frame, target_frame);
+                transform.translation = accum.result_vec;
+                transform.rotation = accum.result_quat;
+                transform.child_frame_id = mapped_src;
+                transform.frame_id = mapped_tgt;
+                transform.stamp = new Time { data = new TimeData { sec = (uint)(accum.time >> 32), nsec = (uint)(accum.time & 0xFFFFFFFF) } };
             }
         }
 
-        public bool walkToTopParent(TransformAccum f, Time time, string target_frame, string source_frame)
+        public TF_STATUS walkToTopParent<F>(F f, ulong time, uint target_id, uint source_id, ref string error_str) where F : ATransformAccum
         {
-            if (target_frame == source_frame)
+            if (target_id == source_id)
             {
-                f.finalize(TransformAccum.WalkEnding.Identity, time);
-                return true;
+                f.finalize(WalkEnding.Identity, time);
+                return TF_STATUS.NO_ERROR;
             }
-            string frame = source_frame;
-            string top_parent = frame;
-            if (!frames.ContainsKey(frame)) return false;
-            while (frames[frame] != null)
+            if (time == 0)
             {
-                emTransform cache = frames[frame];
-                if (cache == null)
+                TF_STATUS retval = getLatestCommonTime(target_id, source_id, ref time, ref error_str);
+                if (retval != TF_STATUS.NO_ERROR)
+                    return retval;
+            }
+            uint frame = source_id;
+            uint top_parent = frame;
+            uint depth = 0;
+            while (frame != 0)
+            {
+                if (!frames.ContainsKey(frame))
+                {
+                    top_parent = frame;
                     break;
-                string parent = cache.parent_frame_id;
-                if (parent == null)
+                }
+                TimeCache cache = frames[frame];
+                uint parent = f.gather(cache, time, ref error_str);
+                if (parent == 0)
                 {
                     top_parent = frame;
                     break;
                 }
 
-                if (frame == target_frame)
+                if (frame == target_id)
                 {
-                    f.finalize(TransformAccum.WalkEnding.TargetParentOfSource, time);
-                    return true;
+                    f.finalize(WalkEnding.TargetParentOfSource, time);
+                    return TF_STATUS.NO_ERROR;
                 }
-                f.accum(cache, true);
+
+                f.accum(true);
+
                 top_parent = frame;
                 frame = parent;
+                ++depth;
+                if (depth > MAX_GRAPH_DEPTH)
+                {
+                    if (error_str != null)
+                    {
+                        error_str = "The tf tree is invalid because it contains a loop.";
+                    }
+                    return TF_STATUS.LOOKUP_ERROR;
+                }
             }
 
-            frame = target_frame;
+            frame = target_id;
+            depth = 0;
             while (frame != top_parent)
             {
-                emTransform cache = frames[frame];
-                if (cache == null)
-                {
+                if (!frames.ContainsKey(frame))
                     break;
+                TimeCache cache = frames[frame];
+
+                uint parent = f.gather(cache, time, ref error_str);
+
+                if (parent == 0)
+                {
+                    if (error_str != null)
+                    {
+                        error_str += ", when looking up transform from frame [" + frameids_reverse[source_id] + "] to [" + frameids_reverse[target_id] + "]";
+                    }
+                    return TF_STATUS.EXTRAPOLATION_ERROR;
                 }
 
-                string parent = cache.parent_frame_id;
-                if (parent == null)
+                if (frame == source_id)
                 {
-                    return false;
+                    f.finalize(WalkEnding.SourceParentOfTarget, time);
+                    return TF_STATUS.NO_ERROR;
                 }
-                if (frame == source_frame)
-                {
-                    f.finalize(TransformAccum.WalkEnding.SourceParentOfTarget, time);
-                    return true;
-                }
-                f.accum(cache, false);
+
+                f.accum(false);
+
                 frame = parent;
+                ++depth;
+                if (depth > MAX_GRAPH_DEPTH)
+                {
+                    if (error_str != null)
+                    {
+                        error_str = "The tf tree is invalid because it contains a loop.";
+                    }
+                    return TF_STATUS.LOOKUP_ERROR;
+                }
             }
 
-            if (frame != top_parent) return false;
 
-            f.finalize(TransformAccum.WalkEnding.FullPath, time);
+            if (frame != top_parent)
+            {
+                error_str = "" + frameids_reverse[source_id] + " DOES NOT CONNECT TO " + frameids_reverse[target_id];
+                return TF_STATUS.CONNECTIVITY_ERROR;
+            }
 
-            return true;
+            f.finalize(WalkEnding.FullPath, time);
+
+            return TF_STATUS.NO_ERROR;
+        }
+
+        private TF_STATUS getLatestCommonTime(uint target_id, uint source_id, ref ulong time, ref string error_str)
+        {
+            if (target_id == source_id)
+            {
+                time = TimeCache.toLong(ROS.GetTime(DateTime.Now).data);
+                return TF_STATUS.NO_ERROR;
+            }
+
+            List<TimeAndFrameID> lct = new List<TimeAndFrameID>();
+
+            uint frame = source_id;
+            TimeAndFrameID temp;
+            uint depth = 0;
+            ulong common_time = ulong.MaxValue;
+            while (frame != 0)
+            {
+                TimeCache cache;
+                if (!frames.ContainsKey(frame)) break;
+                cache = frames[frame];
+                TimeAndFrameID latest = cache.getLatestTimeAndParent();
+                if (latest.frame_id == 0)
+                    break;
+                if (latest.time != 0)
+                    common_time = Math.Min(latest.time, common_time);
+                lct.Add(latest);
+                frame = latest.frame_id;
+                if (frame == target_id)
+                {
+                    time = common_time;
+                    if (time == ulong.MaxValue)
+                        time = 0;
+                    return TF_STATUS.NO_ERROR;
+                }
+                ++depth;
+                if (depth > MAX_GRAPH_DEPTH)
+                {
+                    if (error_str != null)
+                    {
+                        error_str = "The tf tree is invalid because it contains a loop.";
+                    }
+                    return TF_STATUS.LOOKUP_ERROR;
+                }
+            }
+
+            frame = target_id;
+            depth = 0;
+            common_time = ulong.MaxValue;
+            uint common_parent = 0;
+            while (true)
+            {
+                TimeCache cache;
+                if (!frames.ContainsKey(frame))
+                    break;
+                cache = frames[frame];
+                TimeAndFrameID latest = cache.getLatestTimeAndParent();
+                if (latest.frame_id == 0)
+                    break;
+                if (latest.time != 0)
+                    common_time = Math.Min(latest.time, common_time);
+
+                foreach (TimeAndFrameID tf in lct)
+                    if (tf.frame_id == latest.frame_id)
+                    {
+                        common_parent = tf.frame_id;
+                        break;
+                    }
+                frame = latest.frame_id;
+
+                if (frame == source_id)
+                {
+                    time = common_time;
+                    if (time == uint.MaxValue)
+                    {
+                        time = 0;
+                    }
+                    return TF_STATUS.NO_ERROR;
+                }
+                ++depth;
+                if (depth > MAX_GRAPH_DEPTH)
+                {
+                    if (error_str != null)
+                    {
+                        error_str = "The tf tree is invalid because it contains a loop.";
+                    }
+                    return TF_STATUS.LOOKUP_ERROR;
+                }
+            }
+            if (common_parent == 0)
+            {
+                error_str = "" + frameids_reverse[source_id] + " DOES NOT CONNECT TO " + frameids_reverse[target_id];
+                return TF_STATUS.CONNECTIVITY_ERROR;
+            }
+            for (int i = 0; i < lct.Count; i++)
+            {
+                if (lct[i].time != 0)
+                    common_time = Math.Min(common_time, lct[i].time);
+                if (lct[i].frame_id == common_parent)
+                    break;
+            }
+            if (common_time == uint.MaxValue)
+                common_time = 0;
+            time = common_time;
+            return TF_STATUS.NO_ERROR;
+        }
+
+        public uint lookupOrInsertFrameNumber(string frame)
+        {
+            if (!frameIDs.ContainsKey(frame))
+            {
+                frameIDs.Add(frame, (uint)(frameIDs.Count + 1));
+                frameids_reverse.Add((uint)frameids_reverse.Count+1, frame);
+            }
+            return frameIDs[frame];
         }
 
         public bool setTransform(emTransform transform)
         {
-            if (transform.child_frame_id == transform.frame_id)
+            emTransform mapped_transform = new emTransform(transform.rotation, transform.translation, transform.stamp, transform.frame_id, transform.child_frame_id);
+            mapped_transform.child_frame_id = resolve(tf_prefix, transform.child_frame_id);
+            mapped_transform.frame_id = resolve(tf_prefix, transform.frame_id);
+
+            if (mapped_transform.child_frame_id == mapped_transform.frame_id)
                 return false;
-            if (transform.child_frame_id == "/")
+            if (mapped_transform.child_frame_id == "/")
                 return false;
-            if (transform.frame_id == "/")
+            if (mapped_transform.frame_id == "/")
                 return false;
-            lock (frames)
+            lock (framemutex)
             {
-                if (!frames.ContainsKey(transform.frame_id)) frames.Add(transform.frame_id, transform);
-                else frames[transform.frame_id] = transform;
+                uint frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
+                TimeCache frame = null;
+                if (!frames.ContainsKey(frame_number))
+                {
+                    frames[frame_number] = new TimeCache(cache_time);
+                    frame = frames[frame_number];
+                }
+                else
+                    frame = frames[frame_number];
+                if (frame.insertData(new TransformStorage(mapped_transform, lookupOrInsertFrameNumber(mapped_transform.frame_id), frame_number)))
+                {
+                    // authority? meh
+                }
+                else
+                    return false;
             }
             return true;
         }
     }
 
+    public struct TimeAndFrameID
+    {
+        public ulong time;
+        public uint frame_id;
+        public TimeAndFrameID(ulong t, uint f)
+        {
+            time = t;
+            frame_id = f;
+        }
+    }
+
+    public class TimeCache
+    {
+        public static ulong toLong(TimeData td)
+        {
+            return (((ulong)td.sec) << 32) | td.nsec;
+        }
+        const int MIN_INTERPOLATION_DISTANCE = 5;
+        const uint MAX_LENGTH_LINKED_LIST = 10000000;
+        const System.Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
+
+        private volatile SortedList<ulong, TransformStorage> storage = new SortedList<ulong, TransformStorage>();
+        private ulong max_storage_time;
+        private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
+        {
+            if (storage.Count == 0)
+            {
+                createEmptyException(ref error_str);
+                return 0;
+            }
+
+            if (target_time == 0)
+            {
+                one = storage[storage.Keys.Max()];
+                return 1;
+            }
+
+            if (storage.Count == 1)
+            {
+                TransformStorage ts = storage[storage.Keys.Min()];
+                if (ts.stamp == target_time)
+                {
+                    one = ts;
+                    return 1;
+                }
+                else
+                {
+                    createExtrapolationException1(target_time, ts.stamp, ref error_str);
+                    return 0;
+                }
+            }
+
+            ulong latest_time = /*storage[*/storage.Keys.Max()/*].stamp*/;
+            ulong earliest_time = /*storage[*/storage.Keys.Min()/*].stamp*/;
+            if (target_time == latest_time)
+            {
+                one = storage[latest_time];
+                return 1;
+            }
+            else if (target_time == earliest_time)
+            {
+                one = storage[earliest_time];
+                return 1;
+            }
+            else if (target_time > latest_time)
+            {
+                createExtrapolationException2(target_time, latest_time, ref error_str);
+                return 0;
+            }
+            else if (target_time < earliest_time)
+            {
+                createExtrapolationException3(target_time, earliest_time, ref error_str);
+                return 0;
+            }
+
+            int i;
+            for (i = 0; i < storage.Count; i++) {
+            if (storage[storage.Keys[i]].stamp <= target_time) break;}
+            one = storage[storage.Keys[i+1]];
+            two = storage[storage.Keys[i]];
+            return 2;
+        }
+
+        private void interpolate(TransformStorage one, TransformStorage two, ulong time, ref TransformStorage output)
+        {
+            if (one.stamp == two.stamp)
+            {
+                output = two;
+                return;
+            }
+
+            if (output == null)
+                output = new TransformStorage();
+
+            double ratio = (time - one.stamp) / (two.stamp - one.stamp);
+            output.translation.setInterpolate3(one.translation, two.translation, ratio);
+            output.rotation = slerp(one.rotation, two.rotation, ratio);
+            output.stamp = one.stamp;
+            output.frame_id = one.frame_id;
+            output.child_frame_id = one.child_frame_id;
+        }
+
+        private emQuaternion slerp(emQuaternion q1, emQuaternion q2, double rt)
+        {
+            return q1.slerp(q2, rt);
+        }
+
+        private void pruneList()
+        {
+            ulong latest_time = storage.Keys.Max();
+            int preprune = storage.Count,postprune=0;
+            while ((postprune = storage.Count) > 0 && storage.Keys.Min() + max_storage_time < latest_time)
+                storage.RemoveAt(0);
+            //Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
+        }
+
+        public TimeCache()
+            : this(DEFAULT_MAX_STORAGE_TIME)
+        {
+
+        }
+
+        public TimeCache(ulong max_storage_time)
+        {
+            this.max_storage_time = max_storage_time;
+        }
+
+        public bool getData(TimeData time_, ref TransformStorage data_out, ref string error_str)
+        {
+            return getData(toLong(time_), ref data_out, ref error_str);
+        }
+        public bool getData(ulong time_, ref TransformStorage data_out, ref string error_str)
+        {
+            TransformStorage temp1 = null, temp2 = null;
+            int num_nodes;
+            num_nodes = findClosest(ref temp1, ref temp2, time_, ref error_str);
+            switch (num_nodes)
+            {
+                case 0:
+                    return false;
+                case 1:
+                    data_out = temp1;
+                    break;
+                case 2:
+                    if (temp1.frame_id == temp2.frame_id)
+                    {
+                        interpolate(temp1, temp2, time_, ref data_out);
+                    }
+                    else
+                    {
+                        data_out = temp1;
+                    }
+                    break;
+                default:
+                    ROS.FREAKOUT();
+                    break;
+            }
+            return true;
+        }
+
+        public bool insertData(TransformStorage new_data)
+        {
+            if (storage.Keys.Count > 0 && storage[storage.Keys.Min()].stamp > new_data.stamp + max_storage_time)
+                return false;
+
+            storage[new_data.stamp] = new_data;
+            pruneList();
+            return true;
+        }
+
+        public void clearList()
+        {
+            storage.Clear();
+        }
+
+        public uint getParent(ulong time, ref string error_str)
+        {
+            TransformStorage temp1 = null, temp2 = null;
+
+            int num_nodes;
+            num_nodes = findClosest(ref temp1,ref temp2, time, ref error_str);
+            if (num_nodes == 0) return 0;
+            return temp1.frame_id;
+        }
+        public uint getParent(TimeData time_, ref string error_str)
+        {
+            return getParent(toLong(time_), ref error_str);
+        }
+
+        public TimeAndFrameID getLatestTimeAndParent()
+        {
+            if (storage.Count == 0)
+            {
+                return new TimeAndFrameID(0, 0);
+            }
+            TransformStorage ts = storage[storage.Keys.Max()];
+            return new TimeAndFrameID(ts.stamp, ts.frame_id);
+        }
+
+        public uint getListLength()
+        {
+            return (uint)storage.Count;
+        }
+
+        public ulong getLatestTimeStamp()
+        {
+            if (storage.Count == 0) return 0;
+            return storage.Keys.Max();
+        }
+
+        public ulong getOldestTimestamp()
+        {
+            if (storage.Count == 0) return 0;
+            return storage.Keys.Min();
+        }
+
+        #region ERROR THROWERS
+        void createEmptyException(ref string error_str)
+        {
+            if (error_str != null) error_str = "Cache is empty!";
+        }
+        void createExtrapolationException1(ulong t0, ulong t1, ref string error_str)
+        {
+            if (error_str != null) error_str = "Lookup would require extrapolation at time \n"+t0+", but only time \n"+t1+" is in the buffer";
+        }
+        void createExtrapolationException2(ulong t0, ulong t1, ref string error_str)
+        {
+            if (error_str != null) error_str = "Lookup would require extrapolation into the future. Requested time \n"+t0+" but the latest data is at the time \n"+t1;
+        }
+        void createExtrapolationException3(ulong t0, ulong t1, ref string error_str)
+        {
+            if (error_str != null) error_str = "Lookup would require extrapolation into the past. Requested time \n"+t0+" but the earliest data is at the time \n"+t1;
+        }
+        #endregion
+    }
+
+    public class TransformStorage
+    {
+        public emQuaternion rotation;
+        public emVector3 translation;
+        public ulong stamp;
+        public uint frame_id;
+        public uint child_frame_id;
+
+        public TransformStorage()
+        { 
+            rotation = new emQuaternion();
+        
+            translation = new emVector3();
+        }
+
+        public TransformStorage(emTransform data, uint frame_id, uint child_frame_id)
+        {
+            rotation = data.rotation;
+            translation = data.translation;
+            stamp = TimeCache.toLong(data.stamp.data);
+            this.frame_id = frame_id;
+            this.child_frame_id = child_frame_id;
+        }
+
+    }
+
+    [System.Diagnostics.DebuggerStepThrough]
     public class emMatrix3x3
     {
         public emVector3[] m_el = new emVector3[3];
@@ -263,16 +810,39 @@ namespace Ros_CSharp
                 xz - wy, yz + wx, 1.0 - (xx + yy));
         }
     }
-
-    public class TransformAccum
+    public enum WalkEnding
     {
-        public enum WalkEnding
+        Identity,
+        TargetParentOfSource,
+        SourceParentOfTarget,
+        FullPath
+    }
+    public abstract class ATransformAccum
+    {
+        public TransformStorage st;
+        public abstract uint gather(TimeCache cache, ulong time, ref string error_str);
+        public abstract void accum(bool source);
+        public abstract void finalize(WalkEnding end, ulong time);
+    }
+
+    public class CanTransformAccum : ATransformAccum
+    {
+        public override uint gather(TimeCache cache, ulong time, ref string error_str)
         {
-            Identity,
-            TargetParentOfSource,
-            SourceParentOfTarget,
-            FullPath
+            return cache.getParent(time, ref error_str);
         }
+
+        public override void accum(bool source)
+        {
+        }
+
+        public override void finalize(WalkEnding end, ulong time)
+        {
+        }
+    }
+
+    public class TransformAccum : ATransformAccum
+    {
 
         public emQuaternion result_quat;
         public emVector3 result_vec;
@@ -280,9 +850,16 @@ namespace Ros_CSharp
         public emVector3 source_to_top_vec = new emVector3();
         public emQuaternion target_to_top_quat = new emQuaternion();
         public emVector3 target_to_top_vec = new emVector3();
-        public Time time;
+        public ulong time;
 
-        public void finalize(WalkEnding end, Time _time)
+        public override uint gather(TimeCache cache, ulong time_, ref string error_str)
+        {
+            if (!cache.getData(time_, ref st, ref error_str))
+                return 0;
+            return st.frame_id;
+        }
+
+        public override void finalize(WalkEnding end, ulong _time)
         {
             switch (end)
             {
@@ -293,20 +870,26 @@ namespace Ros_CSharp
                     result_quat = source_to_top_quat;
                     break;
                 case WalkEnding.SourceParentOfTarget:
-                    result_quat = target_to_top_quat.inverse();
-                    result_vec = quatRotate(result_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
+                    {
+                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                        emVector3 inv_target_vec = quatRotate(inv_target_quat, -1 * target_to_top_vec);
+                        result_quat = inv_target_quat;
+                        result_vec = inv_target_vec;
+                    }
                     break;
                 case WalkEnding.FullPath:
-                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
-                    result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
-                    result_quat = inv_target_quat*source_to_top_quat;
+                    {
+                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                        emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
+                        result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
+                        result_quat = inv_target_quat * source_to_top_quat;
+                    }
                     break;
             }
             time = _time;
         }
 
-        public void accum(emTransform st, bool source)
+        public override void accum(bool source)
         {
             if (source)
             {
@@ -320,6 +903,7 @@ namespace Ros_CSharp
             }
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
             emQuaternion q = rotation*v;
@@ -328,15 +912,15 @@ namespace Ros_CSharp
         }
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     public class emTransform
     {
-        private static Dictionary<string, string> paternityTest;
         public string child_frame_id;
         public string frame_id;
 
         public emQuaternion rotation;
-        public Time stamp;
         public emVector3 translation;
+        public Time stamp;
 
         public emTransform() : this(new emQuaternion(), new emVector3(), new Time(new TimeData()), "", "")
         {
@@ -348,33 +932,16 @@ namespace Ros_CSharp
 
         public emTransform(emQuaternion q, emVector3 v, Time t, string fid, string cfi)
         {
-            if (paternityTest == null) paternityTest = new Dictionary<string, string>();
             rotation = q;
             translation = v;
             stamp = t;
 
             frame_id = fid;
             child_frame_id = cfi;
-            if (cfi.Length > 0 && fid.Length > 0)
-            {
-                if (!paternityTest.ContainsKey(cfi))
-                    paternityTest.Add(cfi, fid);
-                else
-                    paternityTest[cfi] = fid;
-            }
-        }
-
-        public string parent_frame_id
-        {
-            get
-            {
-                if (paternityTest == null || !paternityTest.ContainsKey(frame_id))
-                    return "/";
-                return paternityTest[frame_id];
-            }
         }
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     public class emQuaternion
     {
         public double w;
@@ -423,6 +990,20 @@ namespace Ros_CSharp
         public static emQuaternion operator *(emQuaternion v1, double d)
         {
             return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
+        }
+        public static emQuaternion operator *(float d, emQuaternion v1)
+        {
+            return v1 * ((double)d);
+        }
+
+        public static emQuaternion operator *(int d, emQuaternion v1)
+        {
+            return v1 * ((double)d);
+        }
+
+        public static emQuaternion operator *(double d, emQuaternion v1)
+        {
+            return new emQuaternion(v1.x * d, v1.y * d, v1.z * d, v1.w * d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
@@ -544,8 +1125,40 @@ namespace Ros_CSharp
                 cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
                 );
         }
+
+        public double angleShortestPath(emQuaternion q)
+        {
+            double s = Math.Sqrt(length2() * q.length2());
+            if (dot(q) < 0)
+                return Math.Acos(dot(-1 * q) / s) * 2.0;
+            return Math.Acos(dot(q) / s) * 2.0;
+        }
+
+        public emQuaternion slerp(emQuaternion q, double t)
+        {
+            double theta = angleShortestPath(q);
+            if (theta != 0)
+            {
+                double d = 1.0 / Math.Sin(theta);
+                double s0 = Math.Sin(1.0 - t) * theta;
+                double s1 = Math.Sin(t * theta);
+                if (dot(q) < 0)
+                {
+                    return new emQuaternion((x * s0 + -1 * q.x * s1) * d,
+                        (y * s0 + -1 * q.y * s1) * d,
+                        (z * s0 + -1 * q.z * s1) * d,
+                        (w * s0 + -1 * q.w * s1) * d);
+                }
+                return new emQuaternion((x * s0 + q.x * s1) * d,
+                        (y * s0 + q.y * s1) * d,
+                        (z * s0 + q.z * s1) * d,
+                        (w * s0 + q.w * s1) * d);
+            }
+            return new emQuaternion(this);
+        }
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     public class emVector3
     {
         public double x, y, z;
@@ -599,9 +1212,32 @@ namespace Ros_CSharp
             return new emVector3(v1.x*d, v1.y*d, v1.z*d);
         }
 
+        public static emVector3 operator *(float d, emVector3 v1)
+        {
+            return v1 * ((double)d);
+        }
+
+        public static emVector3 operator *(int d, emVector3 v1)
+        {
+            return v1 * ((double)d);
+        }
+
+        public static emVector3 operator *(double d, emVector3 v1)
+        {
+            return new emVector3(v1.x * d, v1.y * d, v1.z * d);
+        }
+
         public override string ToString()
         {
             return string.Format("({0},{1},{2})", x, y, z);
+        }
+
+        public void setInterpolate3(emVector3 v0, emVector3 v1, double rt)
+        {
+            double s = 1.0 - rt;
+            x = s * v0.x + rt * v1.x;
+            y = s * v0.y + rt * v1.y;
+            z = s * v0.z + rt * v1.z;
         }
     }
 }

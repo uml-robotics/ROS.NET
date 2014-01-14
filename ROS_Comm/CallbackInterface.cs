@@ -25,7 +25,7 @@ namespace Ros_CSharp
 {
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
-        public Callback(CallbackDelegate<T> f, string topic, int queue_size, bool allow_concurrent_callbacks) : this(f)
+        public Callback(CallbackDelegate<T> f, string topic, uint queue_size, bool allow_concurrent_callbacks) : this(f)
         {
             this.topic = topic;
             this.allow_concurrent_callbacks = allow_concurrent_callbacks;
@@ -75,7 +75,7 @@ namespace Ros_CSharp
         public object queue_mutex = new object();
 
         public uint queue_size;
-        public int size;
+        public uint size;
         public string topic;
 
         public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy, ref bool was_full)
@@ -117,6 +117,7 @@ namespace Ros_CSharp
                 receipt_time = receipt_time
             };
             queue.Enqueue(i);
+
             ++queue_size;
         }
 

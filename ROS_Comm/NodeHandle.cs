@@ -249,7 +249,7 @@ namespace Ros_CSharp
         /// <param name="queue_size">How many messages to qeueue</param>
         /// <param name="cb">Callback to fire when a message is receieved</param>
         /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackDelegate<M> cb) where M : IRosMessage, new()
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), new M().MD5Sum);
         }
@@ -263,7 +263,7 @@ namespace Ros_CSharp
         /// <param name="cb">Function to fire when a message is recieved , delegate</param>
         /// <param name="thisisveryverybad">internal use</param>
         /// <returns></returns>
-        public Subscriber<M> subscribe<M>(string topic, int queue_size,
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size,
             CallbackDelegate<M> cb, string thisisveryverybad) where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
@@ -277,7 +277,7 @@ namespace Ros_CSharp
         /// <param name="queue_size">How many messages to qeueue</param>
         /// <param name="cb">Function to fire when a message is recieved</param>
         /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb)
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb)
             where M : IRosMessage, new()
         {
             return subscribe<M>(topic, queue_size, cb, null);
@@ -292,7 +292,7 @@ namespace Ros_CSharp
         /// <param name="cb">Function to fire when a message is recieved</param>
         /// <param name="thisisveryverybad">internal use</param>
         /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, int queue_size, CallbackInterface cb, string thisisveryverybad)
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb, string thisisveryverybad)
             where M : IRosMessage, new()
         {
             if (_callback == null)

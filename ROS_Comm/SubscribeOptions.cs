@@ -32,7 +32,7 @@ namespace Ros_CSharp
         public bool latch;
         public string md5sum = "";
         public string message_definition = "";
-        public int queue_size;
+        public uint queue_size;
         public string topic = "";
 
         public SubscribeOptions() : this("", 1, null)
@@ -41,18 +41,18 @@ namespace Ros_CSharp
             //allow_concurrent_callbacks = true;
         }
 
-        public SubscribeOptions(string topic, int queue_size)
+        public SubscribeOptions(string topic, uint queue_size)
             : this(topic, queue_size, null, null)
         {
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL)
+        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL)
             : this(topic, queue_size, CALL, null)
         {
         }
 
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL, string thisisveryverybad)
+        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL, string thisisveryverybad)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -69,7 +69,7 @@ namespace Ros_CSharp
             md5sum = thisisveryverybad ?? new T().MD5Sum;
         }
 
-        public SubscribeOptions(string topic, int queue_size, CallbackDelegate<T> CALL, string thisisveryverybad, Type JPAddedType)
+        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL, string thisisveryverybad, Type JPAddedType)
         {
             // TODO: Complete member initialization
             this.topic = topic;

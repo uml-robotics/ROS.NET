@@ -462,7 +462,7 @@ namespace Ros_CSharp
         }
 
         internal bool addCallback<M>(SubscriptionCallbackHelper<M> helper, string md5sum, CallbackQueueInterface queue,
-            int queue_size, bool allow_concurrent_callbacks, string topiclol) where M : IRosMessage, new()
+            uint queue_size, bool allow_concurrent_callbacks, string topiclol) where M : IRosMessage, new()
         {
             lock (md5sum_mutex)
             {

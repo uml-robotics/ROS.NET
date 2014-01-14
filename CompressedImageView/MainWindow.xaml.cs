@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System;
 using System.IO;
 using System.Threading;
+using System.Windows.Threading;
 using Messages;
 using Messages.custom_msgs;
 using Ros_CSharp;
@@ -44,7 +45,24 @@ namespace CompressedImageView
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            ROS.ROS_MASTER_URI = "http://robot-lab8:11311";
             ROS.Init(new string[0], "Image_Test");
+            DispatcherTimer testies = new DispatcherTimer() { Interval = new TimeSpan(0,0,0,1) };
+            testies.Tick += new EventHandler((o,e3)=>{
+                gm.Vector3 trans = new gm.Vector3();
+                gm.Quaternion rot = new gm.Quaternion();
+                emTransform wheeee = tf_node.instance.transformFrame("/base_link", "/camera_link", out trans, out rot);
+                if (wheeee != null && wheeee.translation != null)
+                {
+                    Console.WriteLine("base ==> camera: xyz=" + wheeee.translation + " rpy=" + wheeee.rotation.getRPY());
+                }
+                wheeee = tf_node.instance.transformFrame("/camera_link", "/base_link", out trans, out rot);
+                if (wheeee != null && wheeee.translation != null)
+                {
+                    Console.WriteLine("camera ==> base: xyz=" + wheeee.translation + " rpy=" + wheeee.rotation.getRPY());
+                }
+            });
+            testies.Start();
         }
 
         protected override void OnClosed(EventArgs e)

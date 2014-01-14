@@ -87,6 +87,7 @@
     <Compile Include="CallbackQueue.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionManager.cs" />
+    <Compile Include="DLL.cs" />
     <Compile Include="ServiceClientLink.cs" />
     <Compile Include="LocalSubscriberLink.cs" />
     <Compile Include="LocalPublisherLink.cs" />
