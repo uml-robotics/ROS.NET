@@ -47,6 +47,7 @@ namespace Ros_CSharp
         public static event otheroutput OtherOutput;
 
         //does the actual writing
+        [DebuggerStepThrough]
         private static void _writeline(object o)
         {
             if (OtherOutput != null)
