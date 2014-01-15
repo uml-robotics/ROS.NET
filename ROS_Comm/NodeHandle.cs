@@ -226,7 +226,7 @@ namespace Ros_CSharp
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
-                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
+                ops.callback_queue = Callback;
             }
             SubscriberCallbacks callbacks = new SubscriberCallbacks(ops.connectCB, ops.disconnectCB, ops.callback_queue);
             if (TopicManager.Instance.advertise(ops, callbacks))
@@ -238,6 +238,7 @@ namespace Ros_CSharp
                 }
                 return pub;
             }
+            else Console.WriteLine("ADVERTISE FAILED!!!!");
             return null;
         }
 
