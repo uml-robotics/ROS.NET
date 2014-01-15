@@ -535,7 +535,8 @@ Either:
                     ServiceManager.Instance.shutdown();
                     PollManager.Instance.shutdown();
                     XmlRpcManager.Instance.shutdown();
-                    rosoutappender.shutdown();
+                    if (rosoutappender != null)
+                        rosoutappender.shutdown();
                 }
 
                 started = false;
