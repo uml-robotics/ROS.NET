@@ -478,7 +478,7 @@ namespace Ros_CSharp
     {
         public virtual void addCallback(CallbackInterface callback)
         {
-            addCallback(callback, 0);
+            addCallback(callback, ROS.getPID());
         }
 
         public virtual void addCallback(CallbackInterface callback, UInt64 owner_id)
