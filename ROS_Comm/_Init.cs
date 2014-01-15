@@ -196,7 +196,9 @@ namespace Ros_CSharp
         public static void Info(object o)
         {
             Console.WriteLine("[INFO] " + o);
-            if (initialized && rosoutappender != null)
+            if (initialized && rosoutappender == null)
+                rosoutappender = new RosOutAppender();
+            if (initialized)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.INFO);
         }
 
@@ -221,7 +223,9 @@ namespace Ros_CSharp
 #if DEBUG
             Console.WriteLine("[DEBUG] " + o);
 #endif
-            if (initialized && rosoutappender != null)
+            if (initialized && rosoutappender == null)
+                rosoutappender = new RosOutAppender();
+            if (initialized)
                 rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
 
@@ -244,8 +248,10 @@ namespace Ros_CSharp
         public static void Error(object o)
         {
             Console.WriteLine("[Error] " + o);
-            if (initialized && rosoutappender != null)
-                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.ERROR);
+            if (initialized && rosoutappender == null)
+                rosoutappender = new RosOutAppender();
+            if (initialized)
+            rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
         /// <summary>
@@ -478,8 +484,6 @@ Either:
                 ConnectionManager.Instance.Start();
                 PollManager.Instance.Start();
                 XmlRpcManager.Instance.Start();
-
-                rosoutappender = new RosOutAppender();
 
                 //Time.Init();
                 GlobalCallbackQueue.Enable();
