@@ -13,13 +13,21 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_color/compressed" x:Name="TestImage1" Grid.Row="0" Grid.Column="0"></RosImageWpf:CompressedImageControl>
-        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_raw/compressed" x:Name="TestImage2" Grid.Row="0" Grid.Column="1"></RosImageWpf:CompressedImageControl>
-        <RosImageWpf:CompressedImageControl x:FieldModifier="public" TopicName="/camera/depth/image_raw/compressed" x:Name="TestImage3" Grid.Row="0" Grid.Column="2"></RosImageWpf:CompressedImageControl>
-        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_color" x:Name="TestImage4" Grid.Row="1" Grid.Column="0"></RosImageWpf:ImageControl>
-        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/rgb/image_raw" x:Name="TestImage5" Grid.Row="1" Grid.Column="1"></RosImageWpf:ImageControl>
-        <RosImageWpf:ImageControl x:FieldModifier="public" TopicName="/camera/depth/image" x:Name="TestImage6" Grid.Row="1" Grid.Column="2"></RosImageWpf:ImageControl>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" Topic="/camera/rgb/image_color/compressed" x:Name="TestImage1" Grid.Row="0" Grid.Column="0"></RosImageWpf:CompressedImageControl>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" Topic="/camera/rgb/image_raw/compressed" x:Name="TestImage2" Grid.Row="0" Grid.Column="1"></RosImageWpf:CompressedImageControl>
+        <RosImageWpf:CompressedImageControl x:FieldModifier="public" Topic="/camera/depth/image_raw/compressed" x:Name="TestImage3" Grid.Row="0" Grid.Column="2"></RosImageWpf:CompressedImageControl>
+        <Button Click="_1" Grid.Row="1" Grid.Column="0">Reset</Button>
+        <Button Click="_2" Grid.Row="1" Grid.Column="1">Reset</Button>
+        <Button Click="_3" Grid.Row="1" Grid.Column="2">Reset</Button>
+        <RosImageWpf:ImageControl x:FieldModifier="public" Topic="/camera/rgb/image_color" x:Name="TestImage4" Grid.Row="2" Grid.Column="0"></RosImageWpf:ImageControl>
+        <RosImageWpf:ImageControl x:FieldModifier="public" Topic="/camera/rgb/image_raw" x:Name="TestImage5" Grid.Row="2" Grid.Column="1"></RosImageWpf:ImageControl>
+        <RosImageWpf:ImageControl x:FieldModifier="public" Topic="/camera/depth/image" x:Name="TestImage6" Grid.Row="2" Grid.Column="2"></RosImageWpf:ImageControl>
+        <Button Click="_4" Grid.Row="3" Grid.Column="0">Reset</Button>
+        <Button Click="_5" Grid.Row="3" Grid.Column="1">Reset</Button>
+        <Button Click="_6" Grid.Row="3" Grid.Column="2">Reset</Button>
     </Grid>
 </Window>
