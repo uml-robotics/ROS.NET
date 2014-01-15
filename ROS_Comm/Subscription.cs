@@ -290,6 +290,8 @@ namespace Ros_CSharp
             XmlRpcValue proto = new XmlRpcValue();
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
             {
+                conn.failures++;
+                EDB.WriteLine("Negotiating for "+conn.parent.name+" has failed "+conn.failures+" times");
                 return;
             }
             lock (pending_connections_mutex)

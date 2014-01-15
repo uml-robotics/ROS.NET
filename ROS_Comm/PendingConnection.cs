@@ -24,10 +24,17 @@ namespace Ros_CSharp
 {
     public class PendingConnection : AsyncXmlRpcConnection, IDisposable
     {
-        public bool NEVERAGAIN;
         public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
+        private int _failures = 0;
+
+        public int failures
+        {
+            get { return _failures; }
+            set { _failures = value; }
+        }
+
         //public XmlRpcValue stickaroundyouwench = null;
         public PendingConnection(XmlRpcClient client, Subscription s, string uri)
         {
@@ -75,14 +82,19 @@ namespace Ros_CSharp
             {
                 res &= client.ExecuteCheckDone(chk);
                 if (res)
+                {
                     parent.pendingConnectionDone(this, chk.instance);
+                    return true;
+                }
             }
             if (client.ExecuteCheckDone(chk))
             {
                 parent.pendingConnectionDone(this, chk.instance);
                 return true;
             }
-            return false;
+            if (res)
+                Console.WriteLine("This case would have been missed previously!");
+            return res;
         }
     }
 }
