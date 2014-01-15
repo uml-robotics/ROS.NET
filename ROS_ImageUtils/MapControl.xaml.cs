@@ -65,14 +65,32 @@ namespace ROS_ImageWPF
 
         }
 
-        public string TopicName
+        public string Topic
         {
             get { return GetValue(TopicProperty) as string; }
             set { SetValue(TopicProperty, value); }
         }
         private Thread waitforinit;
-        private static NodeHandle imagehandle;
+        private NodeHandle imagehandle;
         private Subscriber<nm.OccupancyGrid> mapsub;
+        
+        private void Init()
+        {
+            if (!ROS.isStarted())
+            {
+                if (waitforinit == null)
+                {
+                    string workaround = Topic;
+                    waitforinit = new Thread(() => waitfunc(workaround));
+                }
+                if (!waitforinit.IsAlive)
+                {
+                    waitforinit.Start();
+                }
+            }
+            else
+                SetupTopic(Topic);
+        }
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -86,41 +104,36 @@ namespace ROS_ImageWPF
                         if (obj is MapControl)
                         {
                             MapControl target = obj as MapControl;
-                            target.TopicName = (string)args.NewValue;
-                            if (!ROS.isStarted())
-                            {
-                                if (target.waitforinit == null)
-                                    target.waitforinit = new Thread(new ThreadStart(target.waitfunc));
-                                if (!target.waitforinit.IsAlive)
-                                {
-                                    target.waitforinit.Start();
-                                }
-                            }
-                            else
-                                target.SetupTopic();
+                            target.Topic = (string)args.NewValue;
+                            target.Init();
                         }
                     }
                     catch (Exception e) { Console.WriteLine(e); }
                 }));
 
-        private void waitfunc()
+        private void waitfunc(string topic)
         {
             while (!ROS.isStarted())
             {
                 Thread.Sleep(100);
             }
             Thread.Sleep(1000);
-            Dispatcher.Invoke(new Action(SetupTopic));
+            SetupTopic(topic);
         }
 
-        private void SetupTopic()
+        private void SetupTopic(string topic)
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (mapsub != null)
+            if (mapsub != null || mapsub.topic != topic)
+            {
                 mapsub.shutdown();
-            Console.WriteLine("MAP TOPIC = " + TopicName);            
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
+                mapsub = null;
+            }
+            if (mapsub != null)
+                return;
+            Console.WriteLine("MAP TOPIC = " + topic);            
+            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, (i) => Dispatcher.Invoke(new Action(() =>
                                                                                                                         {
                                                                                                                             SmartResize(i.info.width, i.info.height);
                                                                                                                             MPP = i.info.resolution;

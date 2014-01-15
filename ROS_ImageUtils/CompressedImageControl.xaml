@@ -6,7 +6,7 @@
              xmlns:ros="clr-namespace:ROS_ImageWPF"
                      mc:Ignorable="d" Loaded="UserControl_Loaded" SizeChanged="UserControl_SizeChanged" >
     <Grid SnapsToDevicePixels="True">
-        <ros:GenericImage x:Name="guts" />
+        <ros:GenericImage x:Name="guts" x:FieldModifier="public"/>
         <Canvas Name="ROI_Container" RenderTransformOrigin="0.5,0.5" >
             <Canvas.RenderTransform>
                 <ScaleTransform ScaleY="-1"></ScaleTransform>

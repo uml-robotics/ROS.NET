@@ -4,6 +4,6 @@
                       xmlns:RosImageWpf="clr-namespace:ROS_ImageWPF" 
                       Loaded="UserControl_Loaded" SnapsToDevicePixels="True" SizeChanged="UserControl_SizeChanged" >
   <Grid SnapsToDevicePixels="True">
-        <RosImageWpf:GenericImage x:Name="guts" />
+        <RosImageWpf:GenericImage x:Name="guts" x:FieldModifier="public"/>
     </Grid>
 </UserControl>

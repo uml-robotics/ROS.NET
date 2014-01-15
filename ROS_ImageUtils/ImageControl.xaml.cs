@@ -48,19 +48,44 @@ namespace ROS_ImageWPF
         public delegate void ImageReceivedHandler(ImageControl sender);
         public event ImageReceivedHandler ImageReceivedEvent;
 
-        public static string newTopicName;
-        public string TopicName
+        public string Topic
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            set { Console.WriteLine("CHANGING TOPIC FROM "+Topic+" to "+value);SetValue(TopicProperty, value); Init(); }
         }
         private Thread waitforinit;
-        private static NodeHandle imagehandle;
+        private  NodeHandle imagehandle;
         private Subscriber<sm.Image> imgsub;
         public void shutdown()
         {
+            if (imgsub != null)
+            {
+                imgsub.shutdown();
+                imgsub = null;
+            }
             if (imagehandle != null)
+            {
                 imagehandle.shutdown();
+                imagehandle = null;
+            }
+        }
+
+        private void Init()
+        {
+            if (!ROS.isStarted())
+            {
+                if (waitforinit == null)
+                {
+                    string workaround = Topic;
+                    waitforinit = new Thread(() => waitfunc(workaround));
+                }
+                if (!waitforinit.IsAlive)
+                {
+                    waitforinit.Start();
+                }
+            }
+            else
+                SetupTopic(Topic);
         }
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -75,23 +100,7 @@ namespace ROS_ImageWPF
                         if (obj is ImageControl)
                         {
                             ImageControl target = obj as ImageControl;
-                            target.TopicName = (string)args.NewValue;
-                            if (newTopicName != null)
-                                target.TopicName = newTopicName;
-                            if (!ROS.isStarted())
-                            {
-                                if (target.waitforinit == null)
-                                {
-                                    string workaround = target.TopicName;
-                                    target.waitforinit = new Thread(() => target.waitfunc(workaround));
-                                }
-                                if (!target.waitforinit.IsAlive)
-                                {
-                                    target.waitforinit.Start();
-                                }
-                            }
-                            else
-                                target.SetupTopic(target.TopicName);
+                            target.Topic = (string)args.NewValue;
                         }
                     }
                     catch (Exception e) { Console.WriteLine(e); }
@@ -106,21 +115,19 @@ namespace ROS_ImageWPF
             SetupTopic(TopicName);
         }
         private Thread spinnin;
-        private static object nhmut = new object();
         private void SetupTopic(string TopicName)
         {
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
-            lock (nhmut)
-            {
-                if (imagehandle == null)
-                    imagehandle = new NodeHandle();
-            }
-            if (imgsub != null)
+            if (imagehandle == null)
+                imagehandle = new NodeHandle();
+            if (imgsub != null && imgsub.topic != TopicName)
             {
                 imgsub.shutdown();
                 imgsub = null;
             }
+            if (imgsub != null)
+                return;
             imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, (i) =>
                 Dispatcher.Invoke(new Action(() =>
                     {

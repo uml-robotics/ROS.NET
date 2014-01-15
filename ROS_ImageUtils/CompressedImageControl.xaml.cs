@@ -82,19 +82,46 @@ namespace ROS_ImageWPF
             _slaves.Add(s);
         }
         public static string newTopicName;
-        public string TopicName
+        public string Topic
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            set { Console.WriteLine("CHANGING TOPIC FROM " + Topic + " to " + value); SetValue(TopicProperty, value); Init();}
         }
         private Thread waitforinit;
-        private static NodeHandle imagehandle;
+        private NodeHandle imagehandle;
         private Subscriber<sm.CompressedImage> imgsub;
         public void shutdown()
         {
+            if (imgsub != null)
+            {
+                imgsub.shutdown();
+                imgsub = null;
+            }
             if (imagehandle != null)
+            {
                 imagehandle.shutdown();
+                imagehandle = null;
+            }
         }
+
+        private void Init()
+        {
+            if (!ROS.isStarted())
+            {
+                if (waitforinit == null)
+                {
+                    string workaround = Topic;
+                    waitforinit = new Thread(() => waitfunc(workaround));
+                }
+                if (!waitforinit.IsAlive)
+                {
+                    waitforinit.Start();
+                }
+            }
+            else
+                SetupTopic(Topic);
+        }
+
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -108,23 +135,7 @@ namespace ROS_ImageWPF
                         if (obj is CompressedImageControl)
                         {
                             CompressedImageControl target = obj as CompressedImageControl;
-                            target.TopicName = (string)args.NewValue;
-                            if (newTopicName != null)
-                                target.TopicName = newTopicName;
-                            if (!ROS.isStarted())
-                            {
-                                if (target.waitforinit == null)
-                                {
-                                    string workaround = target.TopicName;
-                                    target.waitforinit = new Thread(() => target.waitfunc(workaround));
-                                }
-                                if (!target.waitforinit.IsAlive)
-                                {
-                                    target.waitforinit.Start();
-                                }
-                            }
-                            else
-                                target.SetupTopic(target.TopicName);
+                            target.Topic = (string)args.NewValue;
                         }
                     }
                     catch (Exception e) { Console.WriteLine(e); }
@@ -139,33 +150,28 @@ namespace ROS_ImageWPF
             SetupTopic(TopicName);
         }
         private Thread spinnin;
-        private static object nhmut = new object();
         private void SetupTopic(string TopicName)
         {
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
-            lock (nhmut)
-            {
-                if (imagehandle == null)
-                    imagehandle = new NodeHandle();
-            }
-            if (imgsub != null)
+            if (imagehandle == null)
+                imagehandle = new NodeHandle();
+            if (imgsub != null && imgsub.topic != TopicName)
             {
                 imgsub.shutdown();
                 imgsub = null;
             }
             Console.WriteLine("IMG TOPIC " + TopicName);
-            if (imgsub == null || imgsub.topic != TopicName)
+            if (imgsub != null)
+                return;
+            imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
             {
-                imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
-                {
-                    UpdateImage(ref i.data);
-                    foreach (SlaveImage si in _slaves)
-                        si.UpdateImage(ref i.data);
-                    if (ImageReceivedEvent != null)
-                        ImageReceivedEvent(this);
-                }))) { allow_concurrent_callbacks = true });
-            }
+                UpdateImage(ref i.data);
+                foreach (SlaveImage si in _slaves)
+                    si.UpdateImage(ref i.data);
+                if (ImageReceivedEvent != null)
+                    ImageReceivedEvent(this);
+            }))) { allow_concurrent_callbacks = true });
         }
 
         /// <summary>
