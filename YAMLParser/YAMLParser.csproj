@@ -136,6 +136,9 @@
     <Content Include="ROS_MESSAGES\baxter_core_msgs\EndpoingState.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\dynamixel_msgs\JointState.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

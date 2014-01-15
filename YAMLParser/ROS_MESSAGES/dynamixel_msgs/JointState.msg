@@ -1,0 +1,10 @@
+﻿Header header
+string name
+int32[] motor_ids
+int32[] motor_temps
+float64 goal_pos
+float64 current_pos
+float64 error
+float64 velocity
+float64 load
+bool is_moving
