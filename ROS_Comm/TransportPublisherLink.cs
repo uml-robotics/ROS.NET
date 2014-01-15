@@ -88,6 +88,10 @@ namespace Ros_CSharp
             if (parent != null)
                 lock (parent)
                     parent.removePublisherLink(this);
+            else
+            {
+                EDB.WriteLine("TransportPublisherLink met an untimely demise.");
+            }
         }
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
@@ -120,7 +124,9 @@ namespace Ros_CSharp
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
-            if (conn != connection) return false;
+            Console.WriteLine("HEADER RECEIVED");
+            if (conn != connection) 
+                return false;
             if (!setHeader(header))
             {
                 drop();

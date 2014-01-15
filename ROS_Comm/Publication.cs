@@ -301,6 +301,7 @@ namespace Ros_CSharp
 
         public void peerConnect(SubscriberLink sub_link)
         {
+            EDB.WriteLine("PEER CONNECT: ["+sub_link.topic+"]");
             foreach (SubscriberCallbacks cbs in callbacks)
             {
                 if (cbs.connect != null && cbs.Callback != null)
@@ -313,6 +314,7 @@ namespace Ros_CSharp
 
         public void peerDisconnect(SubscriberLink sub_link)
         {
+            EDB.WriteLine("PEER DISCONNECT: [" + sub_link.topic + "]");
             foreach (SubscriberCallbacks cbs in callbacks)
             {
                 if (cbs.disconnect != null && cbs.Callback != null)
