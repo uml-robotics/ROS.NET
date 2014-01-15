@@ -139,15 +139,7 @@ namespace Ros_CSharp
         {
             lock (mutex)
             {
-                for (int i = 0; i < callbacks.Count; i++)
-                {
-                    ICallbackInfo info = callbacks[i];
-                    if (info.removal_id == owner_id)
-                    {
-                        i--;
-                        callbacks.RemoveAt(i);
-                    }
-                }
+                callbacks.RemoveAll((ici) => ici.removal_id == owner_id);
             }
         }
 
