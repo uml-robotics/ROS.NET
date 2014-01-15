@@ -191,15 +191,8 @@ namespace Ros_CSharp
             }
             bool retval = true;
 #if DEBUG
-            string ss = pubs.Aggregate("", (current, s) => current + (s + ", "));
-            ss += " already have these connections: ";
-            ss = publisher_links.Aggregate(ss, (current, spc) => current + spc.XmlRpc_Uri);
-            EDB.WriteLine("Publisher update for [" + name + "]: " + ss);
+            EDB.WriteLine("Publisher update for [" + name + "]: " + publisher_links.Aggregate(pubs.Aggregate("", (current, s) => current + (s + ", "))+" already have these connections: ", (current, spc) => current + spc.XmlRpc_Uri));
 #endif
-            /*string tt = "Publisher URIS passed to publisher update = ";
-            foreach (string s in pubs)
-                tt += "\n\t" + s;
-            EDB.WriteLine(tt);*/
             List<string> additions = new List<string>();
             List<PublisherLink> subtractions = new List<PublisherLink>();
             lock (publisher_links_mutex)
@@ -208,16 +201,14 @@ namespace Ros_CSharp
                 foreach (string up_i in pubs)
                 {
                     bool found = publisher_links.Any(spc => urisEqual(up_i, spc.XmlRpc_Uri));
-                    if (!found)
+                    if (found) continue;
+                    lock (pending_connections_mutex)
                     {
-                        lock (pending_connections_mutex)
+                        if (pending_connections.Any(pc => urisEqual(up_i, pc.RemoteUri)))
                         {
-                            if (pending_connections.Any(pc => urisEqual(up_i, pc.RemoteUri)))
-                            {
-                                found = true;
-                            }
-                            if (!found) additions.Add(up_i);
+                            found = true;
                         }
+                        if (!found) additions.Add(up_i);
                     }
                 }
 
@@ -276,7 +267,8 @@ namespace Ros_CSharp
                 return false;
             }
 #if DEBUG
-            EDB.WriteLine("Began asynchronous xmlrpc connection to [" + peer_host + ":" + peer_port + "]");
+            EDB.WriteLine("Began asynchronous xmlrpc connection to http://" + peer_host + ":" + peer_port + "/ for topic [" + name +
+                              "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
             lock (pending_connections_mutex)
@@ -295,6 +287,11 @@ namespace Ros_CSharp
                 if (shutting_down || _dropped)
                     return;
             }
+            XmlRpcValue proto = new XmlRpcValue();
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
+            {
+                return;
+            }
             lock (pending_connections_mutex)
             {
                 pending_connections.Remove(conn);
@@ -302,11 +299,6 @@ namespace Ros_CSharp
             string peer_host = conn.client.Host;
             int peer_port = conn.client.Port;
             string xmlrpc_uri = "http://" + peer_host + ":" + peer_port + "/";
-            XmlRpcValue proto = new XmlRpcValue();
-            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
-            {
-                return;
-            }
             if (proto.Size == 0)
             {
 #if DEBUG
