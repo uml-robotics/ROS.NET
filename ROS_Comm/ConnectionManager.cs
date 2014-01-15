@@ -168,14 +168,14 @@ namespace Ros_CSharp
             if (header.Values.Contains("topic"))
             {
                 TransportSubscriberLink sub_link = new TransportSubscriberLink();
-                sub_link.initialize(conn);
-                ret = sub_link.handleHeader(header);
+                ret = sub_link.initialize(conn);
+                ret &= sub_link.handleHeader(header);
             }
             else if (header.Values.Contains("service"))
             {
                 IServiceClientLink iscl = new IServiceClientLink();
-                iscl.initialize(conn);
-                ret = iscl.handleHeader(header);
+                ret = iscl.initialize(conn);
+                ret &= iscl.handleHeader(header);
             }
             else
             {
