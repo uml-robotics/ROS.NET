@@ -129,7 +129,10 @@ namespace Ros_CSharp
                     removeemall(owner_id);
                 }
             else
+            {
+                Console.WriteLine("removeByID w/ WRONG THREAD ID");
                 removeemall(owner_id);
+            }
         }
 
         private void removeemall(ulong owner_id)
