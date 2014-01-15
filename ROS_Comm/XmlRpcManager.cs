@@ -31,6 +31,7 @@ namespace Ros_CSharp
 {
     public class XmlRpcManager : IDisposable
     {
+        private static object singleton_mutex = new object();
         private static XmlRpcManager _instance;
         private List<AsyncXmlRpcConnection> added_connections = new List<AsyncXmlRpcConnection>();
         private object added_connections_mutex = new object();
@@ -61,7 +62,14 @@ namespace Ros_CSharp
             [DebuggerStepThrough]
             get
             {
-                if (_instance == null) _instance = new XmlRpcManager();
+                if (_instance == null)
+                {
+                    lock (singleton_mutex)
+                    {
+                        if (_instance == null)
+                            _instance = new XmlRpcManager();
+                    }
+                }
                 return _instance;
             }
         }

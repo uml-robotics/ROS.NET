@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Messages;
@@ -36,7 +37,7 @@ namespace Ros_CSharp
         #endregion
 
         private static TopicManager _instance;
-
+        private static object singleton_mutex = new object();
         private List<Publication> advertised_topics = new List<Publication>();
         private object advertised_topics_mutex = new object();
         private List<string> advertised_topics_names = new List<string>();
@@ -48,9 +49,18 @@ namespace Ros_CSharp
 
         public static TopicManager Instance
         {
+            [DebuggerStepThrough]
             get
             {
-                if (_instance == null) _instance = new TopicManager();
+
+                if (_instance == null)
+                {
+                    lock (singleton_mutex)
+                    {
+                        if (_instance == null)
+                            _instance = new TopicManager();
+                    }
+                }
                 return _instance;
             }
         }

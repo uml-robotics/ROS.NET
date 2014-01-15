@@ -30,6 +30,7 @@ namespace Ros_CSharp
     public class tf_node
     {
         private static tf_node _instance;
+        private static object singleton_mutex = new object();
 
         private Queue<tfMessage> additions;
         public object addlock = new object();
@@ -83,7 +84,13 @@ namespace Ros_CSharp
             get
             {
                 if (_instance == null)
-                    _instance = new tf_node();
+                {
+                    lock (singleton_mutex)
+                    {
+                        if (_instance == null)
+                            _instance = new tf_node();
+                    }
+                }
                 return _instance;
             }
         }

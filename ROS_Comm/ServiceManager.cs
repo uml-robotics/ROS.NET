@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Messages;
 using XmlRpc_Wrapper;
@@ -29,6 +30,7 @@ namespace Ros_CSharp
     public class ServiceManager
     {
         private static ServiceManager _instance;
+        private static object singleton_instance = new object();
         private ConnectionManager connection_manager;
         private PollManager poll_manager;
         private List<IServicePublication> service_publications = new List<IServicePublication>();
@@ -41,9 +43,13 @@ namespace Ros_CSharp
 
         public static ServiceManager Instance
         {
+            [DebuggerStepThrough]
             get
             {
-                if (_instance == null) _instance = new ServiceManager();
+                if (_instance == null) 
+                    lock (singleton_instance)
+                        if (_instance == null)
+                            _instance = new ServiceManager();
                 return _instance;
             }
         }

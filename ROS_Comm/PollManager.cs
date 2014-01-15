@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -32,6 +33,7 @@ namespace Ros_CSharp
         #endregion
 
         private static PollManager _instance;
+        private static object singleton_mutex = new object();
         public PollSet poll_set;
         public List<Poll_Signal> poll_signal = new List<Poll_Signal>();
 
@@ -47,9 +49,13 @@ namespace Ros_CSharp
 
         public static PollManager Instance
         {
+            [DebuggerStepThrough]
             get
             {
-                if (_instance == null) _instance = new PollManager();
+                if (_instance == null) 
+                    lock(singleton_mutex)
+                        if (_instance == null)
+                            _instance = new PollManager();
                 return _instance;
             }
         }

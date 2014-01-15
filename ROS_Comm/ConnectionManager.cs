@@ -15,6 +15,7 @@
 #region Using
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Ros_CSharp
     public class ConnectionManager
     {
         private static ConnectionManager _instance;
-
+        private static object singleton_mutex = new object();
         private uint connection_id_counter;
         private object connection_id_counter_mutex = new object();
         private List<Connection> connections = new List<Connection>();
@@ -63,9 +64,18 @@ namespace Ros_CSharp
 
         public static ConnectionManager Instance
         {
+            [DebuggerStepThrough]
             get
             {
-                if (_instance == null) _instance = new ConnectionManager();
+
+                if (_instance == null)
+                {
+                    lock (singleton_mutex)
+                    {
+                        if (_instance == null)
+                            _instance = new ConnectionManager();
+                    }
+                }
                 return _instance;
             }
         }
