@@ -148,8 +148,9 @@ namespace Ros_CSharp
             while (ROS.ok && !ROS.shutting_down && enabled)
             {
                 callAvailable();
-                Thread.Sleep(ROS.WallDuration/10);
+                Thread.Sleep(ROS.WallDuration);
             }
+            Console.WriteLine("CallbackQueue thread broke out!");
         }
 
         public void Enable()
@@ -246,15 +247,13 @@ namespace Ros_CSharp
                     ICallbackInfo info = callbacks[i];
                     if (info.marked_for_removal)
                     {
-                        i--;
-                        callbacks.RemoveAt(i);
+                        callbacks.RemoveAt(--i);
                         continue;
                     }
                     if (info.Callback.ready())
                     {
                         cbinfo = info;
-                        i--;
-                        callbacks.RemoveAt(i);
+                        callbacks.RemoveAt(--i);
                         break;
                     }
                 }
@@ -316,31 +315,45 @@ namespace Ros_CSharp
 
     public class TLS
     {
-        private Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
+        private volatile Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
+        private UInt64 _count = 0;
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
+#if SAFE
         private object mut = new object();
+#endif
 
         public int Count
         {
-            get { lock (mut) return _queue.Count; }
+            get { return (int)_count; }
         }
 
         public CallbackQueueInterface.ICallbackInfo head
         {
-            get { lock (mut) return (_queue.Count == 0 ? null : _queue.Peek()); }
+            get { if (Count == 0) return null; 
+#if SAFE
+                lock (mut) 
+#endif
+                    return _queue.Peek(); }
         }
 
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { lock (mut) return (_queue.Count == 0 ? null : _queue.Last()); }
+            get { if (Count == 0) return null; 
+#if SAFE
+                lock(mut) 
+#endif
+                    return _queue.Last(); }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
         {
             CallbackQueueInterface.ICallbackInfo icb;
+#if SAFE
             lock (mut)
+#endif
             {
                 icb = _queue.Dequeue();
+                _count--;
             }
             return icb;
         }
@@ -349,24 +362,35 @@ namespace Ros_CSharp
         {
             if (info.Callback == null)
                 return;
+#if SAFE
             lock (mut)
+#endif
+            {
                 _queue.Enqueue(info);
+                _count++;
+            }
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
             CallbackQueueInterface.ICallbackInfo icb;
             int stop;
+#if SAFE
             lock (mut)
+#endif
             {
                 if (!_queue.Contains(info))
                     return null;
-                stop = _queue.Count;
+                stop = Count;
                 for (int i = 0; i < stop; i++)
                 {
                     icb = _queue.Dequeue();
+                    _count--;
                     if (icb != info)
+                    {
                         _queue.Enqueue(icb);
+                        _count++;
+                    }
                 }
             }
             return info;
