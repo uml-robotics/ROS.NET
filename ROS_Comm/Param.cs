@@ -161,12 +161,30 @@ namespace Ros_CSharp
             return payload;
         }
 
+        public static List<string> list()
+        {
+            List<string> ret = new List<string>();
+            XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
+            parm.Set(0, this_node.Name);
+            if (!master.execute("getParamNames", parm, ref result, ref payload, false))
+                return ret;
+            if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != TypeEnum.TypeArray)
+            {
+                Console.WriteLine("Expected a return code, a description, and a list!");
+                return ret;
+            }
+            XmlRpcValue list = result[2];
+            for (int i = 0; i < list.Size; i++)
+                ret.Add(list[i].GetString());
+            return ret;
+        }
+
         /// <summary>
         ///     Checks if the paramter exists.
         /// </summary>
         /// <param name="key">Name of the paramerer</param>
         /// <returns></returns>
-        public static bool had(string key)
+        public static bool has(string key)
         {
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
@@ -249,6 +267,7 @@ namespace Ros_CSharp
             string clean_key = names.clean(key);
             lock (parms_mutex)
             {
+                Console.WriteLine("RECEIVED PARAMETER UPDATE FOR " + clean_key + " = " + v);
                 if (!parms.ContainsKey(clean_key))
                     parms.Add(clean_key, v);
                 else

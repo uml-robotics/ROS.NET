@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLParser", "YAMLParser\YA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondPass", "SecondPass\SecondPass.csproj", "{92E82652-FE4F-40DA-8749-F976E29183A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosParamClient", "RosParamClient\RosParamClient.csproj", "{6B80C4EB-9982-47C0-A127-AE46440E1F22}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -209,6 +211,21 @@ Global
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Release|x86.ActiveCfg = Release|x86
 		{92E82652-FE4F-40DA-8749-F976E29183A4}.Release|x86.Build.0 = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Debug|x86.ActiveCfg = Debug|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Debug|x86.Build.0 = Debug|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.GunItAndRunIt|Any CPU.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.GunItAndRunIt|Mixed Platforms.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.GunItAndRunIt|Mixed Platforms.Build.0 = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.GunItAndRunIt|x86.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.GunItAndRunIt|x86.Build.0 = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Release|Any CPU.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Release|Mixed Platforms.Build.0 = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Release|x86.ActiveCfg = Release|x86
+		{6B80C4EB-9982-47C0-A127-AE46440E1F22}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
