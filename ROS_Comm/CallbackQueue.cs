@@ -371,8 +371,11 @@ namespace Ros_CSharp
             lock (mut)
 #endif
             {
-                _queue.Enqueue(info);
-                _count++;
+                if (!_queue.Contains(info))
+                {
+                    _queue.Enqueue(info);
+                    _count++;
+                }
             }
         }
 
@@ -387,18 +390,10 @@ namespace Ros_CSharp
                 if (!_queue.Contains(info))
                     return null;
                 stop = Count;
-                for (int i = 0; i < stop; i++)
-                {
-                    icb = _queue.Dequeue();
-                    _count--;
-                    if (icb != info)
-                    {
-                        _queue.Enqueue(icb);
-                        _count++;
-                    }
-                }
+                _queue = new Queue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[]{info}));
+                _count--;
+                return info;
             }
-            return info;
         }
     }
 
