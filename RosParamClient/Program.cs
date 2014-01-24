@@ -88,7 +88,6 @@ namespace RosParamClient
             RemappingHelper.GetRemappings(ref args, out remappings);
             ROS.Init(args, "");
             new Program(args).result();
-            Console.ReadLine();
         }
     }
 }
