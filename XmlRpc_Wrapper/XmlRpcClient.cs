@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc_Wrapper
 {
+    [DebuggerStepThrough]
     public class XmlRpcClient : XmlRpcSource, IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
@@ -165,13 +166,13 @@ namespace XmlRpc_Wrapper
 
         public bool IsConnected
         {
-            //[DebuggerStepThrough]
+            [DebuggerStepThrough]
             get { return isconnected(instance); }
         }
 
         public string Host
         {
-            //[DebuggerStepThrough]
+            [DebuggerStepThrough]
             get { return Marshal.PtrToStringAnsi(gethost(instance)); }
         }
 

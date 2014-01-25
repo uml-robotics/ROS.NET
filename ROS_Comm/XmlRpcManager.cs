@@ -29,6 +29,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class XmlRpcManager : IDisposable
     {
         private static object singleton_mutex = new object();
@@ -403,6 +404,7 @@ namespace Ros_CSharp
         #endregion
     }
 
+    [DebuggerStepThrough]
     public class CachedXmlRpcClient
     {
         public XmlRpcClient client;

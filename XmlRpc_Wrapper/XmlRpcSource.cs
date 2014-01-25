@@ -7,6 +7,7 @@ using System.Diagnostics;
 
 namespace XmlRpc_Wrapper
 {
+    [DebuggerStepThrough]
     public abstract class XmlRpcSource : IDisposable
     {
         protected IntPtr __instance;

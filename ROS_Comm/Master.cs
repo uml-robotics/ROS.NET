@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using XmlRpc_Wrapper;
 
@@ -22,6 +23,7 @@ using XmlRpc_Wrapper;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public static class master
     {
         public static int port;
@@ -30,7 +32,7 @@ namespace Ros_CSharp
         public static TimeSpan retryTimeout = TimeSpan.FromSeconds(0);
         private static bool firstsucces;
 
-        internal static void init(IDictionary remapping_args)
+        public static void init(IDictionary remapping_args)
         {
             if (remapping_args.Contains("__master"))
             {
@@ -154,7 +156,7 @@ namespace Ros_CSharp
                 if (ok && !firstsucces)
                 {
                     firstsucces = true;
-                    EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+                    //EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
                 }
                 XmlRpcManager.Instance.releaseXMLRPCClient(client);
                 return true;
