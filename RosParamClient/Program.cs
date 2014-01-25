@@ -41,26 +41,24 @@ namespace RosParamClient
             switch (OP)
             {
                 case op.del:
-                    if (!Param.del(args[1])) 
+                    if (!Param.del(names.resolve(args[1]))) 
                             Console.WriteLine("Failed to delete "+args[1]);
                     break;
                 case op.get:
-                    if (Param.has(args[1]))
-                        Console.WriteLine("Parameter "+args[1]+" is not defined");
-                    else
-                    {
-                        Console.WriteLine(Param.getParam(args[1]));
-                        _result = 0;
-                    }
+                {
+                    string s = Param.get(args[1]);
+                    if (s != null)
+                        Console.WriteLine(s);
+                }
                     break;
                 case op.list:
+                {
                     foreach (string s in Param.list())
                         Console.WriteLine(s);
+                }
                     break;
                 case op.set:
-                    if (!Param.del(args[1]))
-                        Console.WriteLine("Failed to delete "+args[1]);
-
+                    Param.set(args[1], args[2]);
                     break;
             }
         }
@@ -86,7 +84,11 @@ namespace RosParamClient
             ROS.ROS_HOSTNAME = "192.168.121.1";
             IDictionary remappings;
             RemappingHelper.GetRemappings(ref args, out remappings);
-            ROS.Init(args, "");
+            network.init(remappings);
+            master.init(remappings);
+            this_node.Init("", remappings, (int) (InitOption.AnonymousName | InitOption.NoRousout));
+            Param.init(remappings);
+            //ROS.Init(args, "");
             new Program(args).result();
         }
     }

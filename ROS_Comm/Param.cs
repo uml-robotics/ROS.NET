@@ -142,7 +142,7 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="key">Name of the parameter</param>
         /// <returns></returns>
-        public static XmlRpcValue getParam(String key)
+        internal static XmlRpcValue getParam(String key)
         {
             string mapped_key = names.resolve(key);
             XmlRpcValue parm = new XmlRpcValue(), response = new XmlRpcValue(), payload = new XmlRpcValue();
@@ -153,12 +153,23 @@ namespace Ros_CSharp
                 if (! master.execute("getParam", parm, ref response, ref payload, false))
                 {
                     string s = response[1].GetString();
-
                     throw new Exception(s);
                 }
             }
 
             return payload;
+        }
+
+
+
+        /// <summary>
+        ///     Gets the parameter from the parameter server
+        /// </summary>
+        /// <param name="key">Name of the parameter</param>
+        /// <returns></returns>
+        public static string get(String key)
+        {
+            return getParam(key).GetString();
         }
 
         public static List<string> list()
@@ -173,9 +184,10 @@ namespace Ros_CSharp
                 Console.WriteLine("Expected a return code, a description, and a list!");
                 return ret;
             }
-            XmlRpcValue list = result[2];
-            for (int i = 0; i < list.Size; i++)
-                ret.Add(list[i].GetString());
+            for (int i = 0; i < payload.Size; i++)
+            {
+                ret.Add(payload[i].GetString());
+            }
             return ret;
         }
 
@@ -220,7 +232,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        internal static void init(IDictionary remapping_args)
+        public static void init(IDictionary remapping_args)
         {
             foreach (object o in remapping_args.Keys)
             {
