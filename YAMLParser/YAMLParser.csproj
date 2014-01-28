@@ -136,6 +136,36 @@
     <Content Include="ROS_MESSAGES\baxter_core_msgs\EndpoingState.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\BoolParameter.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\Config.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\DoubleParameter.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\Group.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\GroupState.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\IntParameter.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\ParamDescription.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\StrParameter.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\ConfigDescription.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\dynamic_reconfigure\Reconfigure.srv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\dynamixel_msgs\JointState.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
