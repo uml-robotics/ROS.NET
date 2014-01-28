@@ -38,12 +38,90 @@ namespace Ros_CSharp
         public bool node_started_by_nh;
         public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
+        public class nhparam
+        {
+            private NodeHandle parent;
+
+            public nhparam(NodeHandle p)
+            {
+                parent = p;
+            }
+
+            public void get(string key, ref bool dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref bool dest, bool def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public void get(string key, ref int dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref int dest, int def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public void get(string key, ref double dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref double dest, double def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+            public void get(string key, ref string dest, string def = null)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public bool has(string key)
+            {
+                return Param.has(names.resolve(parent.Namespace, key));
+            }
+
+            public bool del(string key)
+            {
+                return Param.del(names.resolve(parent.Namespace, key));
+            }
+
+            public void set<T>(string key, T value)
+            {
+                string resolved = names.resolve(parent.Namespace, key);
+                T t = default(T);
+                if (t is string)
+                {
+                    Param.set(resolved, value as string);
+                }
+                else
+                {
+                    Param.set(resolved, "" + value);
+                }
+            }
+        }
+
+        private nhparam _param;
+
+        public nhparam param
+        {
+            get
+            {
+                if (_param == null) _param = new nhparam(this); return _param;
+            }
+        }
+
         /// <summary>
         ///     Creates a new node
         /// </summary>
         /// <param name="ns">Namespace of node</param>
         /// <param name="remappings">any remappings</param>
-        public NodeHandle(string ns, IDictionary remappings)
+        public NodeHandle(string ns, IDictionary remappings=null)
         {
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);

@@ -159,17 +159,70 @@ namespace Ros_CSharp
 
             return payload;
         }
-
-
-
-        /// <summary>
-        ///     Gets the parameter from the parameter server
-        /// </summary>
-        /// <param name="key">Name of the parameter</param>
-        /// <returns></returns>
-        public static string get(String key)
+        
+        public static void get(string key, ref bool dest)
         {
-            return getParam(key).GetString();
+            bool b = getParam(key).GetBool();
+            dest = b;
+        }
+
+        public static void get(string key, ref bool dest, bool def)
+        {
+            try
+            {
+                get(key, ref dest);
+            }
+            catch
+            {
+                dest = def;
+            }
+        }
+
+        public static void get(string key, ref int dest)
+        {
+            int i = getParam(key).GetInt();
+            dest = i;
+        }
+
+        public static void get(string key, ref int dest, int def)
+        {
+            try
+            {
+                get(key, ref dest);
+            }
+            catch
+            {
+                dest = def;
+            }
+        }
+
+        public static void get(string key, ref double dest)
+        {
+            double d = getParam(key).GetDouble();
+            dest = d;
+        }
+
+        public static void get(string key, ref double dest, double def)
+        {
+            try
+            {
+                get(key, ref dest);
+            }
+            catch
+            {
+                dest = def;
+            }
+        }
+        public static void get(string key, ref string dest, string def = null)
+        {
+            try
+            {
+                dest = getParam(key).GetString();
+            }
+            catch
+            {
+                dest = def;
+            }
         }
 
         public static List<string> list()
