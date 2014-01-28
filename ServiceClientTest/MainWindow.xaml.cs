@@ -45,8 +45,6 @@ namespace ServiceClientTest
         }
          private void Window_Loaded(object sender, RoutedEventArgs e) 
          {
-            ROS.ROS_MASTER_URI = "http://10.0.2.178:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.152";
             ROS.Init(new string[0], NODE_NAME+DateTime.Now.Ticks);
 
             nodeHandle = new NodeHandle();
