@@ -29,7 +29,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public class XmlRpcManager : IDisposable
     {
         private static object singleton_mutex = new object();
@@ -174,18 +174,18 @@ namespace Ros_CSharp
                     {
                         try
                         {
-                            if (client.client.CheckIdentity(host, port, uri)) //client.client.Host == host && client.client.Port == port && client.client.Uri == uri)
-                            {
-                                c = client.client;
-                                client.in_use = true;
-                                client.last_use_time = DateTime.Now;
-                                break;
-                            }
                             if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
                                 !client.client.IsConnected)
                             {
                                 client.client.Shutdown();
                                 zombies.Add(client);
+                            }
+                            else if (client.client.CheckIdentity(host, port, uri)) //client.client.Host == host && client.client.Port == port && client.client.Uri == uri)
+                            {
+                                c = client.client;
+                                client.in_use = true;
+                                client.last_use_time = DateTime.Now;
+                                break;
                             }
                         }
                         catch (Exception e)

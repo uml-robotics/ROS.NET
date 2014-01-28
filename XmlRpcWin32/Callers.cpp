@@ -14,12 +14,12 @@ extern "C" XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr ptr)
 {
 	CBREF = ptr;
 }
-extern "C" XMLRPC_API bool IntegerEchoRepeat(int val)
+extern "C" XMLRPC_API unsigned char IntegerEchoRepeat(int val)
 {
 	if (!CBREF)
-		return false;	
+		return 0;	
 	CBREF(val);
-	return true;
+	return 1;
 }
 extern "C" XMLRPC_API void StringPassingTest(const char *str)
 {
@@ -56,11 +56,11 @@ extern "C" XMLRPC_API void XmlRpcClient_Close(XmlRpcClient* instance)
 		XmlRpcUtil::error(ex.what());
 	}
 }
-extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters, XmlRpcValue *result)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_Execute(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters, XmlRpcValue *result)
 {
 	try
 	{
-		return ((*instance).execute(method, *parameters, *result));
+		return ((*instance).execute(method, *parameters, *result)) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -68,11 +68,11 @@ extern "C" XMLRPC_API bool XmlRpcClient_Execute(XmlRpcClient* instance, const ch
 	}
 	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, const char* method, XmlRpcValue *parameters)
 {
 	try
 	{
-		return ((*instance).executeNonBlock(method, *parameters));
+		return ((*instance).executeNonBlock(method, *parameters)) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -80,16 +80,16 @@ extern "C" XMLRPC_API bool XmlRpcClient_ExecuteNonBlock(XmlRpcClient* instance, 
 	}
 	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_IsConnected(XmlRpcClient* instance)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_IsConnected(XmlRpcClient* instance)
 {
 	return (*instance).testConnection();
 }
 
-extern "C" XMLRPC_API bool XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_ExecuteCheckDone(XmlRpcClient* instance, XmlRpcValue *result)
 {
 	try
 	{	
-		return ((*instance).executeCheckDone(*result));
+		return ((*instance).executeCheckDone(*result)) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -110,12 +110,12 @@ extern "C" XMLRPC_API unsigned XmlRpcClient_HandleEvent(XmlRpcClient* instance, 
 	}
 	return 0;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_IsFault(XmlRpcClient* instance)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_IsFault(XmlRpcClient* instance)
 {
 	try
 	{
 		
-	return ((*instance).isFault());
+	return ((*instance).isFault()) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -160,10 +160,10 @@ extern "C" XMLRPC_API const char* XmlRpcClient_GetUri(XmlRpcClient* instance)
 	}
 	return "";
 }
-extern XMLRPC_API bool XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri)
+extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri)
 {
-    if (instance == NULL) return false;
-    return (instance->getPort() == port && instance->getUri().compare(uri) == 0 && instance->getHost().compare(host) == 0);
+    if (instance == NULL) return 0;
+    return (instance->getPort() == port && instance->getUri().compare(uri) == 0 && instance->getHost().compare(host) == 0) ? 1 : 0;
 }
 extern "C" XMLRPC_API int XmlRpcClient_GetPort(XmlRpcClient* instance)
 {
@@ -243,12 +243,12 @@ extern "C" XMLRPC_API int XmlRpcClient_GetBytesWritten(XmlRpcClient* instance)
 	}
 	return 0;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_GetExecuting(XmlRpcClient* instance)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_GetExecuting(XmlRpcClient* instance)
 {
 	try
 	{
 		
-	return ((*instance)._executing);
+	return ((*instance)._executing) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -256,12 +256,12 @@ extern "C" XMLRPC_API bool XmlRpcClient_GetExecuting(XmlRpcClient* instance)
 	}
 	return false;
 }
-extern "C" XMLRPC_API bool XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue *result)
+extern "C" XMLRPC_API unsigned char XmlRpcClient_GetEOF(XmlRpcClient* instance, XmlRpcValue *result)
 {
 	try
 	{
 		
-	return ((*instance)._eof);
+	return ((*instance)._eof) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -369,12 +369,12 @@ extern "C" XMLRPC_API XmlRpcValue *XmlRpcValue_Create6(XmlRpcValue *rhs)
 	}
 	return NULL;
 }
-extern "C" XMLRPC_API bool XmlRpcValue_Valid(XmlRpcValue* instance)
+extern "C" XMLRPC_API unsigned char XmlRpcValue_Valid(XmlRpcValue* instance)
 {
 	try
 	{
 		
-	return ((*instance).valid());
+	return ((*instance).valid()) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -420,12 +420,12 @@ extern "C" XMLRPC_API void XmlRpcValue_SetSize(XmlRpcValue* instance, int size)
 		XmlRpcUtil::error(ex.what());
 	}
 }
-extern "C" XMLRPC_API bool XmlRpcValue_HasMember(XmlRpcValue* instance, const char* name)
+extern "C" XMLRPC_API unsigned char XmlRpcValue_HasMember(XmlRpcValue* instance, const char* name)
 {
 	try
 	{
 		
-	return ((*instance).hasMember(name));
+	return ((*instance).hasMember(name)) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -540,11 +540,11 @@ extern "C" XMLRPC_API const char* XmlRpcValue_GetString0(XmlRpcValue* instance)
 	}
 	return "";
 }
-extern "C" XMLRPC_API bool XmlRpcValue_GetBool0(XmlRpcValue* instance)
+extern "C" XMLRPC_API unsigned char XmlRpcValue_GetBool0(XmlRpcValue* instance)
 {
 	try
 	{
-	return ((*instance).operator bool &());
+	  return ((*instance).operator bool &()) ? 1 : 0;
 		
 	}
 	catch (std::exception& ex)
@@ -726,12 +726,12 @@ extern "C" XMLRPC_API void XmlRpcSource_SetFd(XmlRpcSource *instance, int fd)
 		XmlRpcUtil::error(ex.what());
 	}
 }
-extern "C" XMLRPC_API bool XmlRpcSource_GetKeepOpen(XmlRpcSource *instance)
+extern "C" XMLRPC_API unsigned char XmlRpcSource_GetKeepOpen(XmlRpcSource *instance)
 {
 	try
 	{
 		
-	return ((*instance).getKeepOpen());
+	return ((*instance).getKeepOpen()) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{
@@ -873,12 +873,12 @@ extern "C" XMLRPC_API XmlRpcServerMethod *XmlRpcServer_FindMethod(XmlRpcServer *
 	}
 	return NULL;
 }
-extern "C" XMLRPC_API bool XmlRpcServer_BindAndListen(XmlRpcServer *instance, int port, int backlog)
+extern "C" XMLRPC_API unsigned char XmlRpcServer_BindAndListen(XmlRpcServer *instance, int port, int backlog)
 {
 	try
 	{
 		
-	return ((*instance).bindAndListen(port, backlog));
+	return ((*instance).bindAndListen(port, backlog)) ? 1 : 0;
 	}
 	catch (std::exception& ex)
 	{

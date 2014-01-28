@@ -37,7 +37,7 @@ namespace XmlRpc_Wrapper
         private static extern void IntegerEchoFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] printint callback);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool IntegerEchoRepeat(int val);
+        private static extern byte IntegerEchoRepeat(int val);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "SetStringOutFunc", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SetAwesomeFunctionPtr(

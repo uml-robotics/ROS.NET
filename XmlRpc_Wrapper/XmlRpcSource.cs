@@ -53,7 +53,7 @@ namespace XmlRpc_Wrapper
 
         public bool KeepOpen
         {
-            get { return getkeepopen(instance); }
+            get { return getkeepopen(instance)!=0; }
             set { setkeepopen(instance, value); }
         }
 
@@ -78,7 +78,7 @@ namespace XmlRpc_Wrapper
         private static extern void setfd(IntPtr target, int fd);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool getkeepopen(IntPtr target);
+        private static extern byte getkeepopen(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
         private static extern void setkeepopen(IntPtr target, bool keepopen);

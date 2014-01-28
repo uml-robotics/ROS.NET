@@ -262,7 +262,7 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr create(IntPtr rhs);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Valid", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool valid(IntPtr target);
+        private static extern byte valid(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_SetType", CallingConvention = CallingConvention.Cdecl)]
         private static extern int settype(IntPtr target, int type);
@@ -278,7 +278,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_HasMember", CallingConvention = CallingConvention.Cdecl)
         ]
-        private static extern bool hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
+        private static extern byte hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set1", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string value);
@@ -309,7 +309,7 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr getstring(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool getbool(IntPtr target);
+        private static extern byte getbool(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl
             )]
@@ -349,7 +349,7 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                return valid(__instance);
+                return valid(__instance) != 0;
             }
         }
 
@@ -488,7 +488,7 @@ namespace XmlRpc_Wrapper
         public bool GetBool()
         {
             SegFault();
-            return getbool(__instance);
+            return getbool(__instance) != 0;
         }
 
         [DebuggerStepThrough]
@@ -524,7 +524,7 @@ namespace XmlRpc_Wrapper
         public bool HasMember(string name)
         {
             SegFault();
-            return hasmember(instance, name);
+            return hasmember(instance, name) != 0;
         }
 
         [DebuggerStepThrough]

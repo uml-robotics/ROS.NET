@@ -225,7 +225,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen",
             CallingConvention = CallingConvention.Cdecl)]
-        private static extern bool bindandlisten(IntPtr target, int port, int backlog);
+        private static extern byte bindandlisten(IntPtr target, int port, int backlog);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Work", CallingConvention = CallingConvention.Cdecl)]
         private static extern void work(IntPtr target, double msTime);
@@ -292,7 +292,7 @@ namespace XmlRpc_Wrapper
         public bool BindAndListen(int port, int backlog)
         {
             SegFault();
-            return bindandlisten(instance, port, backlog);
+            return bindandlisten(instance, port, backlog) != 0;
         }
 
 

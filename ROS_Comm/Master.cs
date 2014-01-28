@@ -23,7 +23,7 @@ using XmlRpc_Wrapper;
 
 namespace Ros_CSharp
 {
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public static class master
     {
         public static int port;
@@ -156,7 +156,7 @@ namespace Ros_CSharp
                 if (ok && !firstsucces)
                 {
                     firstsucces = true;
-                    //EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
+                    EDB.WriteLine(string.Format("CONNECTED TO MASTER AT [{0}:{1}]", master_host, master_port));
                 }
                 XmlRpcManager.Instance.releaseXMLRPCClient(client);
                 return true;
