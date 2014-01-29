@@ -9,41 +9,86 @@ using Ros_CSharp;
 
 namespace DynamicReconfigure
 {
-    public delegate void ConfigDelegate(Config newconfig);
-
-    public delegate void DescriptionDelegate(ConfigDescription newdescription);
-
     public class DynamicReconfigureInterface
     {
         private string name;
         private int timeout = 0;
-        public event ConfigDelegate ConfigEvent;
-        public event DescriptionDelegate DescriptionEvent;
         private ServiceServer setServer;
         private Subscriber<Config> configSub;
         private Subscriber<ConfigDescription> descSub;
         private NodeHandle nh;
 
-        public DynamicReconfigureInterface(NodeHandle n, string name, int timeout = 0, ConfigDelegate ccb = null, DescriptionDelegate dcb = null)
+        public DynamicReconfigureInterface(NodeHandle n, string name, int timeout = 0)
         {
             nh = n;
             this.name = name;
             this.timeout = timeout;
-            if (ccb != null)
-                ConfigEvent += ccb;
-            if (dcb != null)
-                DescriptionEvent += dcb;
+        }
+
+        private Dictionary<string, List<Action<int>>> intcbs = new Dictionary<string, List<Action<int>>>();
+        private Dictionary<string, List<Action<bool>>> boolcbs = new Dictionary<string, List<Action<bool>>>();
+        private Dictionary<string, List<Action<string>>> strcbs = new Dictionary<string, List<Action<string>>>();
+        private Dictionary<string, List<Action<double>>> doublecbs = new Dictionary<string, List<Action<double>>>();
+        public void Subscribe(string paramname, Action<int> act)
+        {
+            if (!intcbs.ContainsKey(paramname))
+                intcbs[paramname] = new List<Action<int>>();
+            intcbs[paramname].Add(act);
+        }
+        public void Subscribe(string paramname, Action<bool> act)
+        {
+            if (!boolcbs.ContainsKey(paramname))
+                boolcbs[paramname] = new List<Action<bool>>();
+            boolcbs[paramname].Add(act);
+        }
+        public void Subscribe(string paramname, Action<string> act)
+        {
+            if (!strcbs.ContainsKey(paramname))
+                strcbs[paramname] = new List<Action<string>>();
+            strcbs[paramname].Add(act);
+        }
+        public void Subscribe(string paramname, Action<double> act)
+        {
+            if (!doublecbs.ContainsKey(paramname))
+                doublecbs[paramname] = new List<Action<double>>();
+            doublecbs[paramname].Add(act);
         }
 
         private void ConfigCallback(Config m)
         {
-            if (ConfigEvent != null) ConfigEvent(m);
-
+            foreach (BoolParameter bp in m.bools)
+            {
+                if (boolcbs.ContainsKey(bp.name.data))
+                {
+                    boolcbs[bp.name.data].ForEach((a) => a(bp.value));
+                }
+            }
+            foreach (IntParameter ip in m.ints)
+            {
+                if (intcbs.ContainsKey(ip.name.data))
+                {
+                    intcbs[ip.name.data].ForEach((a) => a(ip.value));
+                }
+            }
+            foreach (DoubleParameter dp in m.doubles)
+            {
+                if (doublecbs.ContainsKey(dp.name.data))
+                {
+                    doublecbs[dp.name.data].ForEach((a) => a(dp.value));
+                }
+            }
+            foreach (StrParameter sp in m.strs)
+            {
+                if (strcbs.ContainsKey(sp.name.data))
+                {
+                    strcbs[sp.name.data].ForEach((a) => a(sp.value.data));
+                }
+            }
         }
 
         private void DescriptionCallback(ConfigDescription m)
         {
-            if (DescriptionEvent != null) DescriptionEvent(m);
+            Console.WriteLine("DESCRIPTION UPDATED");
         }
 
         public void SubscribeForUpdates()
@@ -78,7 +123,6 @@ namespace DynamicReconfigure
             }
             setServer = nh.advertiseService(sn, (Reconfigure.Request req, ref Reconfigure.Request res) => 
             {
-                Console.WriteLine("HOLY FUCKSTICK");
                 res.config = req.config;
                 return true;
             });
@@ -88,9 +132,7 @@ namespace DynamicReconfigure
         {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { strs = new[] { new StrParameter { name = new Messages.std_msgs.String(key), value = new Messages.std_msgs.String(value) } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
-            if (nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                Console.WriteLine("SET SUCCESSFUL!");
-            else
+            if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
         }
 
@@ -98,9 +140,7 @@ namespace DynamicReconfigure
         {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { ints = new[] { new IntParameter { name = new Messages.std_msgs.String(key), value = value } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
-            if (nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                Console.WriteLine("SET SUCCESSFUL!");
-            else
+            if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
         }
 
@@ -108,9 +148,7 @@ namespace DynamicReconfigure
         {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { doubles = new[] { new DoubleParameter { name = new Messages.std_msgs.String(key), value = value } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
-            if (nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                Console.WriteLine("SET SUCCESSFUL!");
-            else
+            if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
         }
 
@@ -118,9 +156,7 @@ namespace DynamicReconfigure
         {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { bools = new[] { new BoolParameter { name = new Messages.std_msgs.String(key), value = value } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
-            if (nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                Console.WriteLine("SET SUCCESSFUL!");
-            else
+            if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
         }
     }

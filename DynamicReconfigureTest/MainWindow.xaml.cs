@@ -24,40 +24,38 @@ namespace DynamicReconfigureTest
     {
         private DynamicReconfigureInterface dynamic;
         private NodeHandle nh;
-        private Subscriber<GroupState> test;
+        private Subscriber<Config> test;
 
+        protected override void OnClosed(EventArgs e)
+        {
+            ROS.shutdown();
+            base.OnClosed(e);
+        }
         public MainWindow()
         {
             ROS.Init(new string[0], "dynamic_reconfigure_sharp_" + Environment.MachineName);
             nh = new NodeHandle();
             InitializeComponent();
 
-            test = nh.subscribe<GroupState>("/bool", 1, (t) => {
-                                                                                          Console.WriteLine("GOT ONE!");
-            });
-            ROS.Error("FUCK");
-
-            /*dynamic = new DynamicReconfigureInterface(nh, "/camera/driver", 0,
-                (c) =>
-                {
-                    Console.WriteLine("CONFIG CHANGED");
-                },
-                (d) =>
-                {
-                    Console.WriteLine("DESC CHANGED");
-                });
-            dynamic.SubscribeForUpdates();*/
-
+            dynamic = new DynamicReconfigureInterface(nh, "/camera/driver");
+            dynamic.SubscribeForUpdates();
+            dynamic.Subscribe("depth_registration", (b) => Dispatcher.Invoke(new Action(() =>
+            {
+                lock (_checkBox)
+                    _checkBox.IsChecked = b;
+            })));
         }
 
         private void _checkBox_OnChecked(object sender, RoutedEventArgs e)
         {
-            dynamic.Set("depth_registration", true);
+            lock(_checkBox)
+                dynamic.Set("depth_registration", true);
         }
 
         private void _checkBox_OnUnchecked(object sender, RoutedEventArgs e)
         {
-            dynamic.Set("depth_registration", false);
+            lock (_checkBox)
+                dynamic.Set("depth_registration", false);
         }
     }
 }
