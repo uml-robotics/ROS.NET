@@ -17,6 +17,8 @@ namespace DynamicReconfigure
         private Subscriber<Config> configSub;
         private Subscriber<ConfigDescription> descSub;
         private NodeHandle nh;
+        private ConfigDescription latestDescription;
+        private Action<ConfigDescription> descriptionCallback;
 
         public DynamicReconfigureInterface(NodeHandle n, string name, int timeout = 0)
         {
@@ -86,9 +88,18 @@ namespace DynamicReconfigure
             }
         }
 
+        public void DescribeParameters(Action<ConfigDescription> pda)
+        {
+            descriptionCallback = pda;
+            if (latestDescription != null)
+                pda(latestDescription);
+        }
+
         private void DescriptionCallback(ConfigDescription m)
         {
-            Console.WriteLine("DESCRIPTION UPDATED");
+            latestDescription = m;
+            if (descriptionCallback != null)
+                descriptionCallback(latestDescription);
         }
 
         public void SubscribeForUpdates()
