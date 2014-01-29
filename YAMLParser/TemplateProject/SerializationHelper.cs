@@ -32,12 +32,8 @@ namespace Messages
             //gross, but it gets the job done   
             lock (GetMessageTypeMemo)
             {
-                /*if (t == typeof(Single) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
-                    GetMessageTypeMemo.Add(typeof(Single), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Float32")); //ERIC
                 if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
-                    GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
-                if (t == typeof(Byte) && !GetMessageTypeMemo.ContainsKey(t))
-                    GetMessageTypeMemo.Add(typeof(Boolean), (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Byte")); //ERIC*/
+                    GetMessageTypeMemo.Add(t, (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
                 if (GetMessageTypeMemo.ContainsKey(t))
                     return GetMessageTypeMemo[t];
                 mt = GetMessageType(t.FullName);
@@ -349,6 +345,11 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                 infos[currinfo].SetValue(thestructure, obj);
                                 currpos += len;
                             }
+                        }
+                        else if (msgtype == MsgTypes.std_msgs__Bool)
+                        {
+                            infos[currinfo].SetValue(thestructure, bytes[currpos] != 0);
+                            currpos++;
                         }
                         else
                         {
