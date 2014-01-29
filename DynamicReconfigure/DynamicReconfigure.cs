@@ -24,16 +24,15 @@ namespace DynamicReconfigure
         private Subscriber<ConfigDescription> descSub;
         private NodeHandle nh;
 
-        public DynamicReconfigureInterface(string name, int timeout = 0, ConfigDelegate ccb = null, DescriptionDelegate dcb = null)
+        public DynamicReconfigureInterface(NodeHandle n, string name, int timeout = 0, ConfigDelegate ccb = null, DescriptionDelegate dcb = null)
         {
+            nh = n;
             this.name = name;
             this.timeout = timeout;
             if (ccb != null)
                 ConfigEvent += ccb;
             if (dcb != null)
                 DescriptionEvent += dcb;
-
-            nh = new NodeHandle();
         }
 
         private void ConfigCallback(Config m)

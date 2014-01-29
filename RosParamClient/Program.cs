@@ -46,7 +46,8 @@ namespace RosParamClient
                     break;
                 case op.get:
                 {
-                    string s = Param.get(args[1]);
+                    string s = null;
+                    Param.get(args[1], ref s);
                     if (s != null)
                         Console.WriteLine(s);
                 }
