@@ -27,6 +27,7 @@ namespace Ros_CSharp
         public string RemoteUri;
         public XmlRpcClient client;
         public Subscription parent;
+        private XmlRpcValue chk;
         private int _failures = 0;
 
         public int failures
@@ -36,9 +37,10 @@ namespace Ros_CSharp
         }
 
         //public XmlRpcValue stickaroundyouwench = null;
-        public PendingConnection(XmlRpcClient client, Subscription s, string uri)
+        public PendingConnection(XmlRpcClient client, Subscription s, string uri, XmlRpcValue chk)
         {
             this.client = client;
+            this.chk = chk;
             parent = s;
             RemoteUri = uri;
         }
@@ -47,6 +49,7 @@ namespace Ros_CSharp
 
         public void Dispose()
         {
+            chk.Dispose();
             client.Dispose();
             client = null;
         }
@@ -57,7 +60,7 @@ namespace Ros_CSharp
         {
             if (disp == null)
                 return;
-            if (!check())
+            if (check())
                 return;
             client.SegFault();
             disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
@@ -72,29 +75,14 @@ namespace Ros_CSharp
         public override bool check()
         {
             client.SegFault();
-            XmlRpcValue chk = new XmlRpcValue();
             if (parent == null)
                 return false;
-            bool res = client.IsConnected;
-            if (res == false)
-                EDB.WriteLine("DEAD MASTER DETECTED!");
-            else
-            {
-                res &= client.ExecuteCheckDone(chk);
-                if (res)
-                {
-                    parent.pendingConnectionDone(this, chk.instance);
-                    return true;
-                }
-            }
             if (client.ExecuteCheckDone(chk))
             {
                 parent.pendingConnectionDone(this, chk.instance);
                 return true;
             }
-            if (res)
-                Console.WriteLine("This case would have been missed previously!");
-            return res;
+            return false;
         }
     }
 }

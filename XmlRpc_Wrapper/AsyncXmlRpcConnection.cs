@@ -1,19 +1,11 @@
 ﻿namespace XmlRpc_Wrapper
 {
-    public class AsyncXmlRpcConnection
+    public abstract class AsyncXmlRpcConnection
     {
+        public abstract void addToDispatch(XmlRpcDispatch disp);
 
-        public virtual void addToDispatch(XmlRpcDispatch disp)
-        {
-        }
+        public abstract void removeFromDispatch(XmlRpcDispatch disp);
 
-        public virtual void removeFromDispatch(XmlRpcDispatch disp)
-        {
-        }
-
-        public virtual bool check()
-        {
-            return false;
-        }
+        public abstract bool check();
     }
 }

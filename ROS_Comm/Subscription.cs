@@ -272,7 +272,7 @@ namespace Ros_CSharp
             EDB.WriteLine("Began asynchronous xmlrpc connection to http://" + peer_host + ":" + peer_port + "/ for topic [" + name +
                               "]");
 #endif
-            PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri);
+            PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri, Params);
             lock (pending_connections_mutex)
             {
                 pending_connections.Add(conn);

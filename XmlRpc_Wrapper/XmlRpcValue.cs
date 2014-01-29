@@ -247,7 +247,7 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr create();
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create2", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create(bool value);
+        private static extern IntPtr create([MarshalAs(UnmanagedType.I1)] bool value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create3", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create(int value);
@@ -262,7 +262,8 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr create(IntPtr rhs);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Valid", CallingConvention = CallingConvention.Cdecl)]
-        private static extern byte valid(IntPtr target);
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool valid(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_SetType", CallingConvention = CallingConvention.Cdecl)]
         private static extern int settype(IntPtr target, int type);
@@ -278,7 +279,8 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_HasMember", CallingConvention = CallingConvention.Cdecl)
         ]
-        private static extern byte hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool hasmember(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set1", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string value);
@@ -290,7 +292,7 @@ namespace XmlRpc_Wrapper
         private static extern void set(IntPtr target, int value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set7", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void set(IntPtr target, bool value);
+        private static extern void set(IntPtr target, [MarshalAs(UnmanagedType.I1)] bool value);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Set9", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set(IntPtr target, double value);
@@ -309,7 +311,8 @@ namespace XmlRpc_Wrapper
         private static extern IntPtr getstring(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetBool0", CallingConvention = CallingConvention.Cdecl)]
-        private static extern byte getbool(IntPtr target);
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool getbool(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_GetDouble0", CallingConvention = CallingConvention.Cdecl
             )]
@@ -349,7 +352,7 @@ namespace XmlRpc_Wrapper
             get
             {
                 SegFault();
-                return valid(__instance) != 0;
+                return valid(__instance);
             }
         }
 
@@ -488,7 +491,7 @@ namespace XmlRpc_Wrapper
         public bool GetBool()
         {
             SegFault();
-            return getbool(__instance) != 0;
+            return getbool(__instance);
         }
 
         [DebuggerStepThrough]
@@ -524,7 +527,7 @@ namespace XmlRpc_Wrapper
         public bool HasMember(string name)
         {
             SegFault();
-            return hasmember(instance, name) != 0;
+            return hasmember(instance, name);
         }
 
         [DebuggerStepThrough]

@@ -77,11 +77,12 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetFd", CallingConvention = CallingConvention.Cdecl)]
         private static extern void setfd(IntPtr target, int fd);
 
+        [return: MarshalAs(UnmanagedType.I1)]
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
         private static extern byte getkeepopen(IntPtr target);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void setkeepopen(IntPtr target, bool keepopen);
+        private static extern void setkeepopen(IntPtr target, [MarshalAs(UnmanagedType.I1)] bool keepopen);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
