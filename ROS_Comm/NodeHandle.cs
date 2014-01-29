@@ -26,6 +26,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class NodeHandle : IDisposable
     {
         public string Namespace = "", UnresolvedNamespace = "";
@@ -574,6 +575,7 @@ namespace Ros_CSharp
 
         #region Nested type: NodeHandleBackingCollection
 
+        [DebuggerStepThrough]
         public class NodeHandleBackingCollection : IDisposable
         {
             public object mutex = new object();

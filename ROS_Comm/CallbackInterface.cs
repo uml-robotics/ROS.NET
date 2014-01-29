@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -23,6 +24,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
         public Callback(CallbackDelegate<T> f, string topic, uint queue_size, bool allow_concurrent_callbacks) : this(f)
@@ -188,6 +190,7 @@ namespace Ros_CSharp
         }
     }
 
+    [DebuggerStepThrough]
     public class CallbackInterface
     {
         #region Delegates

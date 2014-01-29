@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -23,6 +24,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
@@ -67,6 +69,7 @@ namespace Ros_CSharp
         }
     }
 
+    [DebuggerStepThrough]
     public class ISubscriptionCallbackHelper
     {
         private CallbackInterface _callback;

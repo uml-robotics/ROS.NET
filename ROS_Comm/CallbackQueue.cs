@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Messages;
@@ -25,6 +26,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
@@ -490,6 +492,7 @@ namespace Ros_CSharp
     }
      */
 
+    [DebuggerStepThrough]
     public class CallbackQueueInterface
     {
         public virtual void addCallback(CallbackInterface callback)

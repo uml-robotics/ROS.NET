@@ -23,7 +23,7 @@ using XmlRpc_Wrapper;
 
 namespace Ros_CSharp
 {
-    //[DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static class master
     {
         public static int port;

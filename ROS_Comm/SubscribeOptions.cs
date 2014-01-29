@@ -13,6 +13,7 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -22,6 +23,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class SubscribeOptions<T> where T : IRosMessage, new()
     {
         public bool allow_concurrent_callbacks = true;

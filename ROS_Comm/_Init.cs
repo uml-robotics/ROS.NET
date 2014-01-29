@@ -97,6 +97,7 @@ namespace Ros_CSharp
     /// <summary>
     ///     Everything happens here.
     /// </summary>
+    [DebuggerStepThrough]
     public static class ROS
     {
         public static TimerManager timer_manager = new TimerManager();

@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Messages;
 using XmlRpc_Wrapper;
@@ -26,6 +27,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class Subscription
     {
         private bool _dropped;
@@ -561,6 +563,7 @@ namespace Ros_CSharp
 
         #region Nested type: CallbackInfo
 
+        [DebuggerStepThrough]
         public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
             public CallbackInfo()
@@ -573,6 +576,7 @@ namespace Ros_CSharp
 
         #region Nested type: ICallbackInfo
 
+        [DebuggerStepThrough]
         public class ICallbackInfo
         {
             public CallbackQueueInterface callback;
@@ -589,6 +593,7 @@ namespace Ros_CSharp
 
         #region Nested type: LatchInfo
 
+        [DebuggerStepThrough]
         public class LatchInfo
         {
             public IDictionary connection_header;

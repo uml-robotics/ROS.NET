@@ -28,6 +28,7 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+    [DebuggerStepThrough]
     public class TopicManager
     {
         #region Delegates

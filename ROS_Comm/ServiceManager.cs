@@ -255,12 +255,12 @@ namespace Ros_CSharp
 
         internal bool lookUpService(string mapped_name, string host, int port)
         {
-            throw new NotImplementedException();
+            return lookupService(mapped_name, ref host, ref port);
         }
 
         internal bool lookUpService(string mapped_name, ref string host, ref int port)
         {
-            throw new NotImplementedException();
+            return lookupService(mapped_name, ref host, ref port);
         }
     }
 }
