@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using Messages;
 using String = Messages.std_msgs.String;
@@ -22,7 +23,9 @@ namespace Messages
             if (!srvmd5memo.ContainsKey(m))
             {
                 IRosService irm = IRosService.generate(m);
-                srvmd5memo.Add(m,Sum(PrepareToHash(irm.RequestMessage), PrepareToHash(irm.ResponseMessage)));
+                string req = PrepareToHash(irm.RequestMessage);
+                string res = PrepareToHash(irm.ResponseMessage);
+                srvmd5memo.Add(m,Sum(req, res));
             }
             return srvmd5memo[m];
         }
@@ -57,7 +60,16 @@ namespace Messages
                 if (l.Contains("=")) haves.Enqueue(l); else havenots.Enqueue(l);
             } hashme = "";
             while (haves.Count + havenots.Count > 0) hashme += (haves.Count > 0 ? haves.Dequeue() : havenots.Dequeue()) + (haves.Count + havenots.Count >= 1 ? "\n" : "");
-            if (irm.IsMetaType)
+            /*if (irm.IsServiceComponent)
+            {
+                object o = irm;
+                FieldInfo[] infos = SerializationHelper.GetFields(irm.GetType(), ref o, out irm);
+                if (infos.Length == 1 && infos[0].FieldType.FullName.Contains("Messages"))
+                {
+
+                }
+            }*/
+            if (irm.IsMetaType || irm.IsServiceComponent)
             {
                 Type t = irm.GetType();
                 object o = irm;
