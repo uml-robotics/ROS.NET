@@ -51,7 +51,6 @@ namespace DynamicReconfigureSharp
             InitializeComponent();
         }
 
-        private static Dictionary<string, int> typeHist = new Dictionary<string, int>();
         private Dictionary<string, int> minint = new Dictionary<string, int>();
         private Dictionary<string, int> maxint = new Dictionary<string, int>();
         private Dictionary<string, int> defint = new Dictionary<string, int>();
@@ -103,8 +102,6 @@ namespace DynamicReconfigureSharp
             _parent = g.parent;
             foreach (ParamDescription s in g.parameters)
             {
-                if (s.edit_method.data.Contains("enum_description"))
-                    continue;
                 switch (TYPE_DICT[s.type.data])
                 {
                     case DYN_RECFG_TYPE.type_bool:
@@ -121,19 +118,12 @@ namespace DynamicReconfigureSharp
                     break;
                     case DYN_RECFG_TYPE.type_str:
                         HandleString(s.name.data);
-                        paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defstring[s.name.data], maxstring[s.name.data], minstring[s.name.data], s.edit_method.data));
+                        if (s.edit_method.data.Contains("enum_description"))
+                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defstring[s.name.data], maxstring[s.name.data], minstring[s.name.data], s.edit_method.data));
+                        else
+                            paramsHolder.Children.Add(new DynamicReconfigureStringBox(dynamic, s, defstring[s.name.data]));
                     break;
                 }
-                Console.WriteLine((maxbool.Count + maxint.Count + maxdouble.Count + maxstring.Count) + "/" + (max.ints.Length + max.bools.Length + max.strs.Length + max.doubles.Length));
-                /*if (!typeHist.ContainsKey(s.edit_method.data))
-                {
-                    typeHist[s.edit_method.data] = 0;
-                }
-                typeHist[s.edit_method.data]++;*/
-            }
-            foreach (KeyValuePair<string, int> kvp in typeHist)
-            {
-                Console.WriteLine("" + kvp.Value + "x\t" + kvp.Key);
             }
         }
 
@@ -167,8 +157,8 @@ namespace DynamicReconfigureSharp
         private void HandleDouble(string n)
         {
             var pmax = max.doubles.FirstOrDefault((p) => p.name.data == n);
-            var pdef = min.doubles.FirstOrDefault((p) => p.name.data == n);
-            var pmin = def.doubles.FirstOrDefault((p) => p.name.data == n);
+            var pdef = def.doubles.FirstOrDefault((p) => p.name.data == n);
+            var pmin = min.doubles.FirstOrDefault((p) => p.name.data == n);
             if (pmax != null) maxdouble[n] = pmax.value; else maxdouble[n] = double.MaxValue;
             if (pmin != null) mindouble[n] = pmin.value; else mindouble[n] = double.MinValue;
             if (pdef != null) defdouble[n] = pdef.value; else defdouble[n] = (mindouble[n] + (maxdouble[n] - mindouble[n])/2d);

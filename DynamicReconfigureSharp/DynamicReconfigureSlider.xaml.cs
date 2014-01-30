@@ -48,18 +48,19 @@ namespace DynamicReconfigureSharp
                 value.Maximum = 1000.0;
             else
                 value.Maximum = max;
-            value.Value = this.def = def;
             description.Content = name;
             JustTheTip.Content = pd.description.data;
 
             if (isDouble)
             {
-                textBehavior.RegularExpression = @"^[\-0-9]*[\.0-9]+$";
+                textBehavior.RegularExpression = @"^[\-\.0-9]+$";
                 value.IsSnapToTickEnabled = false;
                 //value.TickFrequency = (value.Maximum - value.Minimum)/100d;
                 minlabel.Content = "" + (((int)(value.Minimum * 100)) / 100d);
                 maxlabel.Content = "" + (((int)(value.Maximum * 100)) / 100d);
                 box.Text = "" + (((int)(value.Value * 100)) / 100d);
+                value.Value = this.def = def;
+                ignore = false;
                 dynamic.Subscribe(name, new Action<double>(changed));
             }
             else
@@ -70,9 +71,10 @@ namespace DynamicReconfigureSharp
                 minlabel.Content = ""+(int)value.Minimum;
                 maxlabel.Content = "" + (int)value.Maximum;
                 box.Text = "" + (int)value.Value;
+                value.Value = this.def = def;
+                ignore = false;
                 dynamic.Subscribe(name, new Action<int>(changed));
             }
-            ignore = false;
         }
 
         private void changed(int newstate)

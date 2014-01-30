@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,32 +39,77 @@ namespace DynamicReconfigureTest
         {
             ROS.Init(new string[0], "dynamic_reconfigure_sharp_" + Environment.MachineName);
             nh = new NodeHandle();
-            InitializeComponent();
+            try
+            {
+                InitializeComponent();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Close();
+            }
 
             topicPoller = new Thread(() =>
             {
                 while (ROS.ok)
                 {
-                    TopicInfo[] topics = new TopicInfo[0];
-                    master.getTopics(ref topics);
-                    foreach (TopicInfo ti in topics)
+                    Dispatcher.Invoke(new Action(() =>
                     {
-                        if (ti.data_type == "dynamic_reconfigure/Config")
+                        lock (this)
                         {
-                            string prefix = ti.name.Replace("/parameter_updates", "");
-                            if (!knownConfigurations.ContainsKey(prefix))
+                            TopicInfo[] topics = new TopicInfo[0];
+                            master.getTopics(ref topics);
+                            List<string> prevlist = new List<string>(knownConfigurations.Keys);
+                            bool changed = false;
+                            foreach (TopicInfo ti in topics)
                             {
-                                DynamicReconfigurePage drp = null;
-                                Dispatcher.Invoke(new Action(() =>
+                                if (ti.data_type == "dynamic_reconfigure/Config")
                                 {
-                                    drp = new DynamicReconfigurePage(nh, prefix);
-                                    TargetBox.Items.Add(new ComboBoxItem {Content = prefix});
-                                }));
-                                if (drp != null)
-                                    knownConfigurations.Add(prefix, drp);
+                                    string prefix = ti.name.Replace("/parameter_updates", "");
+                                    prevlist.Remove(prefix);
+                                    if (!knownConfigurations.ContainsKey(prefix))
+                                    {
+                                        DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, prefix);
+                                        TargetBox.Items.Add(prefix);
+                                        if (drp != null)
+                                            knownConfigurations.Add(prefix, drp);
+                                        changed = true;
+                                    }
+                                }
+                            }
+                            foreach (string s in prevlist)
+                            {
+                                foreach (ListBoxItem lbi in TargetBox.Items)
+                                {
+                                    string S = lbi.Content as string;
+                                    if (S == s)
+                                    {
+                                        changed = true;
+                                        TargetBox.Items.Remove(s);
+                                        break;
+                                    }
+                                }
+                                knownConfigurations.Remove(s);
+                            }
+                            if (changed)
+                            {
+                                string sel = (TargetBox.SelectedItem as ListBoxItem).Content as string;
+                                List<string> keys = knownConfigurations.Keys.ToList();
+                                keys.Sort();
+                                TargetBox.Items.Clear();
+                                string none = "None";
+                                TargetBox.Items.Add(none);
+                                if (string.Equals(sel, none))
+                                    TargetBox.SelectedIndex = TargetBox.Items.Count - 1;
+                                foreach (string k in keys)
+                                {
+                                    TargetBox.Items.Add(k);
+                                    if (string.Equals(sel, k))
+                                        TargetBox.SelectedIndex = TargetBox.Items.Count - 1;
+                                }
                             }
                         }
-                    }
+                    }));
                     Thread.Sleep(1000);
                 }
             });
@@ -72,15 +118,18 @@ namespace DynamicReconfigureTest
 
         private void TargetBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            IEnumerable<ComboBoxItem> prevs = e.RemovedItems.OfType<ComboBoxItem>();
-            IEnumerable<ComboBoxItem> news = e.AddedItems.OfType<ComboBoxItem>();
-            if (prevs.Count() != 1 || news.Count() != 1) return;
-            PageContainer.Children.Clear();
-            string newprefix = news.ElementAt(0).Content as string;
-            if (newprefix != null)
+            lock (this)
             {
-                if (knownConfigurations.ContainsKey(newprefix))
-                    PageContainer.Children.Add(knownConfigurations[newprefix]);
+                IEnumerable<string> prevs = e.RemovedItems.OfType<string>();
+                IEnumerable<string> news = e.AddedItems.OfType<string>();
+                if (prevs.Count() != 1 || news.Count() != 1) return;
+                PageContainer.Children.Clear();
+                string newprefix = news.ElementAt(0) as string;
+                if (newprefix != null)
+                {
+                    if (knownConfigurations.ContainsKey(newprefix))
+                        PageContainer.Children.Add(knownConfigurations[newprefix]);
+                }
             }
         }
     }

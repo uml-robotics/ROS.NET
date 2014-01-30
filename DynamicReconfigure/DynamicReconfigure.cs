@@ -31,59 +31,90 @@ namespace DynamicReconfigure
         private Dictionary<string, List<Action<bool>>> boolcbs = new Dictionary<string, List<Action<bool>>>();
         private Dictionary<string, List<Action<string>>> strcbs = new Dictionary<string, List<Action<string>>>();
         private Dictionary<string, List<Action<double>>> doublecbs = new Dictionary<string, List<Action<double>>>();
+        private Dictionary<string, int> lastint = new Dictionary<string, int>();
+        private Dictionary<string, bool> lastbool = new Dictionary<string, bool>();
+        private Dictionary<string, string> laststring = new Dictionary<string, string>();
+        private Dictionary<string, double> lastdouble = new Dictionary<string, double>();
         public void Subscribe(string paramname, Action<int> act)
         {
-            if (!intcbs.ContainsKey(paramname))
-                intcbs[paramname] = new List<Action<int>>();
-            intcbs[paramname].Add(act);
+            lock (this)
+            {
+                if (!intcbs.ContainsKey(paramname))
+                    intcbs[paramname] = new List<Action<int>>();
+                if (lastint.ContainsKey(paramname))
+                    act(lastint[paramname]);
+                intcbs[paramname].Add(act);
+            }
         }
         public void Subscribe(string paramname, Action<bool> act)
         {
-            if (!boolcbs.ContainsKey(paramname))
-                boolcbs[paramname] = new List<Action<bool>>();
-            boolcbs[paramname].Add(act);
+            lock (this)
+            {
+                if (!boolcbs.ContainsKey(paramname))
+                    boolcbs[paramname] = new List<Action<bool>>();
+                if (lastbool.ContainsKey(paramname))
+                    act(lastbool[paramname]);
+                boolcbs[paramname].Add(act);
+            }
         }
         public void Subscribe(string paramname, Action<string> act)
         {
-            if (!strcbs.ContainsKey(paramname))
-                strcbs[paramname] = new List<Action<string>>();
-            strcbs[paramname].Add(act);
+            lock (this)
+            {
+                if (!strcbs.ContainsKey(paramname))
+                    strcbs[paramname] = new List<Action<string>>();
+                if (laststring.ContainsKey(paramname))
+                    act(laststring[paramname]);
+                strcbs[paramname].Add(act);
+            }
         }
         public void Subscribe(string paramname, Action<double> act)
         {
-            if (!doublecbs.ContainsKey(paramname))
-                doublecbs[paramname] = new List<Action<double>>();
-            doublecbs[paramname].Add(act);
+            lock (this)
+            {
+                if (!doublecbs.ContainsKey(paramname))
+                    doublecbs[paramname] = new List<Action<double>>();
+                if (lastdouble.ContainsKey(paramname))
+                    act(lastdouble[paramname]);
+                doublecbs[paramname].Add(act);
+            }
         }
 
         private void ConfigCallback(Config m)
         {
-            foreach (BoolParameter bp in m.bools)
+            lock (this)
             {
-                if (boolcbs.ContainsKey(bp.name.data))
+                foreach (BoolParameter bp in m.bools)
                 {
-                    boolcbs[bp.name.data].ForEach((a) => a(bp.value));
+                    lastbool[bp.name.data] = bp.value;
+                    if (boolcbs.ContainsKey(bp.name.data))
+                    {
+                        boolcbs[bp.name.data].ForEach((a) => a(bp.value));
+                    }
                 }
-            }
-            foreach (IntParameter ip in m.ints)
-            {
-                if (intcbs.ContainsKey(ip.name.data))
+                foreach (IntParameter ip in m.ints)
                 {
-                    intcbs[ip.name.data].ForEach((a) => a(ip.value));
+                    lastint[ip.name.data] = ip.value;
+                    if (intcbs.ContainsKey(ip.name.data))
+                    {
+                        intcbs[ip.name.data].ForEach((a) => a(ip.value));
+                    }
                 }
-            }
-            foreach (DoubleParameter dp in m.doubles)
-            {
-                if (doublecbs.ContainsKey(dp.name.data))
+                foreach (DoubleParameter dp in m.doubles)
                 {
-                    doublecbs[dp.name.data].ForEach((a) => a(dp.value));
+                    lastdouble[dp.name.data] = dp.value;
+                    if (doublecbs.ContainsKey(dp.name.data))
+                    {
+                        doublecbs[dp.name.data].ForEach((a) => a(dp.value));
+                    }
                 }
-            }
-            foreach (StrParameter sp in m.strs)
-            {
-                if (strcbs.ContainsKey(sp.name.data))
+                foreach (StrParameter sp in m.strs)
                 {
-                    strcbs[sp.name.data].ForEach((a) => a(sp.value.data));
+                    laststring[sp.name.data] = sp.value.data;
+                    if (strcbs.ContainsKey(sp.name.data))
+                    {
+                        strcbs[sp.name.data].ForEach((a) => a(sp.value.data));
+                    }
                 }
             }
         }

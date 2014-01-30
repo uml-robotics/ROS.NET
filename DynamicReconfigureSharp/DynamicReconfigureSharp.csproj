@@ -60,6 +60,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="DynamicReconfigureStringBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="DynamicReconfigureStringDropdown.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -87,6 +91,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DynamicReconfigureStringBox.xaml.cs">
+      <DependentUpon>DynamicReconfigureStringBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="DynamicReconfigureStringDropdown.xaml.cs">
       <DependentUpon>DynamicReconfigureStringDropdown.xaml</DependentUpon>
