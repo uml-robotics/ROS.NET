@@ -97,7 +97,7 @@ namespace Ros_CSharp
                 {
                     foreach (AsyncXmlRpcConnection con in added_connections)
                     {
-                        EDB.WriteLine("Completed ASYNC XmlRpc connection to: " + ((con as PendingConnection) != null ? ((PendingConnection) con).RemoteUri : "SOMEWHERE OVER THE RAINBOW"));
+                        //EDB.WriteLine("Completed ASYNC XmlRpc connection to: " + ((con as PendingConnection) != null ? ((PendingConnection) con).RemoteUri : "SOMEWHERE OVER THE RAINBOW"));
                         con.addToDispatch(server.Dispatch);
                         connections.Add(con);
                     }
@@ -351,7 +351,7 @@ namespace Ros_CSharp
                 uri = "http://" + network.host + ":" + port + "/";
             }
 
-            EDB.WriteLine("XmlRpc Server IN THE HIZI (" + uri + ") FOR SHIZI");
+            //EDB.WriteLine("XmlRpc Server IN THE HIZI (" + uri + ") FOR SHIZI");
             server_thread = new Thread(serverThreadFunc) {IsBackground = true};
             server_thread.Start();
         }

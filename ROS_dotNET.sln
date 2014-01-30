@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosParamClient", "RosParamC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicReconfigure", "DynamicReconfigure\DynamicReconfigure.csproj", "{B3BDD464-343E-429C-9EB3-E359A1EB0C43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicReconfigureTest", "DynamicReconfigureTest\DynamicReconfigureTest.csproj", "{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicReconfigureSharp", "DynamicReconfigureSharp\DynamicReconfigureSharp.csproj", "{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution

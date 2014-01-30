@@ -110,8 +110,15 @@ namespace DynamicReconfigure
                 descSub.shutdown();
             string configtop = names.resolve(name, "parameter_updates");
             string paramtop = names.resolve(name, "parameter_descriptions");
-            configSub = nh.subscribe<Config>(configtop, 1, ConfigCallback);
-            descSub = nh.subscribe<ConfigDescription>(paramtop, 1, DescriptionCallback);
+            try
+            {
+                configSub = nh.subscribe<Config>(configtop, 1, ConfigCallback);
+                descSub = nh.subscribe<ConfigDescription>(paramtop, 1, DescriptionCallback);
+            }
+            catch (InvalidCastException ice)
+            {
+                Console.WriteLine(ice);
+            }
         }
 
         public void AdvertiseReconfigureService()

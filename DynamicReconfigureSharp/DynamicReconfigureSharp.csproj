@@ -8,8 +8,8 @@
     <ProjectGuid>{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DynamicReconfigureTest</RootNamespace>
-    <AssemblyName>DynamicReconfigureTest</AssemblyName>
+    <RootNamespace>DynamicReconfigureSharp</RootNamespace>
+    <AssemblyName>DynamicReconfigureSharp</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -59,6 +60,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="DynamicReconfigureStringDropdown.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DynamicReconfigureSlider.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DynamicReconfigureCheckbox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DynamicReconfigureGroup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DynamicReconfigurePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -66,6 +87,21 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DynamicReconfigureStringDropdown.xaml.cs">
+      <DependentUpon>DynamicReconfigureStringDropdown.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicReconfigureSlider.xaml.cs">
+      <DependentUpon>DynamicReconfigureSlider.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicReconfigureCheckbox.xaml.cs">
+      <DependentUpon>DynamicReconfigureCheckbox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicReconfigureGroup.xaml.cs">
+      <DependentUpon>DynamicReconfigureGroup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicReconfigurePage.xaml.cs">
+      <DependentUpon>DynamicReconfigurePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

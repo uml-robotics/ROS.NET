@@ -56,7 +56,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            EDB.WriteLine("Init transport publisher link: " + parent.name);
+            //EDB.WriteLine("Init transport publisher link: " + parent.name);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -124,7 +124,6 @@ namespace Ros_CSharp
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
-            Console.WriteLine("HEADER RECEIVED");
             if (conn != connection) 
                 return false;
             if (!setHeader(header))

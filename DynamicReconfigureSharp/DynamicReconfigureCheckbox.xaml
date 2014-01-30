@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="DynamicReconfigureSharp.DynamicReconfigureCheckbox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d">
+    <UserControl.ToolTip>
+        <ToolTip Name="JustTheTip"></ToolTip>
+    </UserControl.ToolTip>
+    <Grid Height="auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Label Name="description">Description</Label>
+        <CheckBox Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Name="_checkBox" Margin="2" Checked="_checkBox_OnChecked" Unchecked="_checkBox_OnUnchecked"></CheckBox>
+    </Grid>
+</UserControl>
