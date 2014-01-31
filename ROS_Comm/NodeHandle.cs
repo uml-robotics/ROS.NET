@@ -124,6 +124,8 @@ namespace Ros_CSharp
         /// <param name="remappings">any remappings</param>
         public NodeHandle(string ns, IDictionary remappings=null)
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
             construct(ns, true);
@@ -132,6 +134,8 @@ namespace Ros_CSharp
 
         public NodeHandle(NodeHandle rhs)
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             Callback = rhs.Callback;
             remappings = new Hashtable(rhs.remappings);
             unresolved_remappings = new Hashtable(rhs.unresolved_remappings);
@@ -146,7 +150,8 @@ namespace Ros_CSharp
         /// <param name="ns">Namespace of new node</param>
         public NodeHandle(NodeHandle parent, string ns)
         {
-            Console.WriteLine("NEW NODEHANDLE!");
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             remappings = new Hashtable(parent.remappings);
@@ -162,7 +167,8 @@ namespace Ros_CSharp
         /// <param name="remappings">Remappings</param>
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
-            Console.WriteLine("NEW NODEHANDLE!");
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             this.remappings = new Hashtable(remappings);
@@ -302,6 +308,8 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified options</returns>
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
@@ -395,6 +403,8 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {

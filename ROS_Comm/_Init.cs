@@ -285,6 +285,8 @@ namespace Ros_CSharp
         /// <param name="options"> options? </param>
         public static void Init(string[] args, string name, int options)
         {
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
             // ROS_MASTER_URI/ROS_HOSTNAME definition precedence:
             // 1. explicitely set by program
             // 2. passed in as remap argument
