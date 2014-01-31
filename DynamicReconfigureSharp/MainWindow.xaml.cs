@@ -57,6 +57,8 @@ namespace DynamicReconfigureTest
                     {
                         lock (this)
                         {
+                            if (!ROS.ok)
+                                return;
                             TopicInfo[] topics = new TopicInfo[0];
                             master.getTopics(ref topics);
                             List<string> prevlist = new List<string>(knownConfigurations.Keys);
@@ -109,6 +111,8 @@ namespace DynamicReconfigureTest
                             }
                         }
                     }));
+                    if (!ROS.ok)
+                        return;
                     Thread.Sleep(1000);
                 }
             });
