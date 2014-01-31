@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="RosoutDebugUC.RosoutDebug"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="250" d:DesignWidth="480" Loaded="UserControl_Loaded">
+    
+       <DataGrid Name="abraCadabra" Visibility="Hidden" AutoGenerateColumns="False"  Height="auto" Width="auto" FontSize="10" Padding="1">
+          <DataGrid.Columns>
+              <DataGridTextColumn Header="Time Stamp" Binding="{Binding timestamp}"/>
+              <DataGridTextColumn Header="Level" Binding="{Binding level}"/>
+              <DataGridTextColumn Header="Message" Binding="{Binding msgdata}"/>
+              <DataGridTextColumn Header="Name" Binding="{Binding msgname}"/>
+          </DataGrid.Columns>
+      </DataGrid>
+    
+</UserControl>
