@@ -13,8 +13,7 @@
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Label Name="description">Description</Label>
-        <ComboBox Name="enum" Grid.Column="1" SelectionChanged="Enum_OnSelectionChanged">
-            <ComboBoxItem IsSelected="True">Yeah fucking right</ComboBoxItem>
+        <ComboBox Name="enum" Grid.Column="1" SelectionChanged="Enum_OnSelectionChanged" SelectedValuePath="Tag">
         </ComboBox>
     </Grid>
 </UserControl>
