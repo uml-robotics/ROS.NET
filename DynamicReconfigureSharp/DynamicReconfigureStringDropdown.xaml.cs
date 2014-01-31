@@ -126,9 +126,6 @@ namespace DynamicReconfigureSharp
 
         public DynamicReconfigureStringDropdown(DynamicReconfigureInterface dynamic, ParamDescription pd, object def, object max, object min, string edit_method)
         {
-            //TODO: parse the array of enumerations
-            return;
-
             this.def = def;
             this.max = max;
             this.min = min;
