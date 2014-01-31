@@ -177,33 +177,36 @@ namespace Messages
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosService generate(SrvTypes t)
         {
-            if (constructors.ContainsKey(t))
-                return constructors[t].Invoke(t);
-            Type thistype = typeof(IRosService);
-            foreach (Type othertype in thistype.Assembly.GetTypes())
+            lock (constructors)
             {
-                if (thistype == othertype || !othertype.IsSubclassOf(thistype))
+                if (constructors.ContainsKey(t))
+                    return constructors[t].Invoke(t);
+                Type thistype = typeof (IRosService);
+                foreach (Type othertype in thistype.Assembly.GetTypes())
                 {
-                    continue;
+                    if (thistype == othertype || !othertype.IsSubclassOf(thistype))
+                    {
+                        continue;
+                    }
+                    IRosService srv = Activator.CreateInstance(othertype) as IRosService;
+                    if (srv != null)
+                    {
+                        if (srv.srvtype == SrvTypes.Unknown)
+                            throw new Exception("OH NOES IRosService.generate is borked!");
+                        if (!_typeregistry.ContainsKey(srv.srvtype))
+                            _typeregistry.Add(srv.srvtype, srv.GetType());
+                        if (!constructors.ContainsKey(srv.srvtype))
+                            constructors.Add(srv.srvtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosService);
+                        srv.RequestMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype + "__Request"));
+                        srv.ResponseMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype + "__Response"));
+                    }
                 }
-                IRosService srv = Activator.CreateInstance(othertype) as IRosService;
-                if (srv != null)
-                {
-                    if (srv.srvtype == SrvTypes.Unknown)
-                        throw new Exception("OH NOES IRosService.generate is borked!");
-                    if (!_typeregistry.ContainsKey(srv.srvtype))
-                        _typeregistry.Add(srv.srvtype, srv.GetType());
-                    if (!constructors.ContainsKey(srv.srvtype))
-                        constructors.Add(srv.srvtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosService);
-                    srv.RequestMessage = IRosMessage.generate((MsgTypes)Enum.Parse(typeof(MsgTypes), srv.srvtype + "__Request"));
-                    srv.ResponseMessage = IRosMessage.generate((MsgTypes)Enum.Parse(typeof(MsgTypes), srv.srvtype + "__Response"));
-                }
+
+                if (constructors.ContainsKey(t))
+                    return constructors[t].Invoke(t);
+                else
+                    throw new Exception("OH NOES IRosService.generate is borked!");
             }
-            
-            if (constructors.ContainsKey(t))
-                return constructors[t].Invoke(t);
-            else
-                throw new Exception("OH NOES IRosService.generate is borked!");
         }
     }
 }
