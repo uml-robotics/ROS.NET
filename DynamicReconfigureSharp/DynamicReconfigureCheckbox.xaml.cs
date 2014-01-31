@@ -42,8 +42,10 @@ namespace DynamicReconfigureSharp
         private void changed(bool newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() => _checkBox.IsChecked = newstate));
-            ignore = false;
+            Dispatcher.BeginInvoke(new Action(() => { 
+                _checkBox.IsChecked = newstate;
+                ignore = false;
+            }));
         }
 
         private void _checkBox_OnChecked(object sender, RoutedEventArgs e)

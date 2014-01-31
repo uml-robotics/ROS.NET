@@ -179,34 +179,46 @@ namespace DynamicReconfigure
 
         public void Set(string key, string value)
         {
+            new Action(() =>
+            {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { strs = new[] { new StrParameter { name = new Messages.std_msgs.String(key), value = new Messages.std_msgs.String(value) } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
             if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
+            }).BeginInvoke((iar) => { }, null);
         }
 
         public void Set(string key, int value)
         {
+            new Action(() =>
+            {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { ints = new[] { new IntParameter { name = new Messages.std_msgs.String(key), value = value } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
             if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
+            }).BeginInvoke((iar) => { }, null);
         }
 
         public void Set(string key, double value)
         {
+            new Action(() =>
+            {
             Reconfigure.Request req = new Reconfigure.Request { config = new Config() { doubles = new[] { new DoubleParameter { name = new Messages.std_msgs.String(key), value = value } } } };
             Reconfigure.Response resp = new Reconfigure.Response();
             if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                 Console.WriteLine("SET FAILED!");
+            }).BeginInvoke((iar) => { }, null);
         }
 
         public void Set(string key, bool value)
         {
-            Reconfigure.Request req = new Reconfigure.Request { config = new Config() { bools = new[] { new BoolParameter { name = new Messages.std_msgs.String(key), value = value } } } };
-            Reconfigure.Response resp = new Reconfigure.Response();
-            if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                Console.WriteLine("SET FAILED!");
+            new Action(() =>
+            {
+                Reconfigure.Request req = new Reconfigure.Request {config = new Config() {bools = new[] {new BoolParameter {name = new Messages.std_msgs.String(key), value = value}}}};
+                Reconfigure.Response resp = new Reconfigure.Response();
+                if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
+                    Console.WriteLine("SET FAILED!");
+            }).BeginInvoke((iar) => { }, null);
         }
     }
 }

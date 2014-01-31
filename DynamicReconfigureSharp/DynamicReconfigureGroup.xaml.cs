@@ -97,43 +97,46 @@ namespace DynamicReconfigureSharp
             this.max = max;
             this.def = def;
             group = g;
-            container.Header = g.name.data;
+            //container.Header = g.name.data;
             _id = g.id;
             _parent = g.parent;
-            foreach (ParamDescription s in g.parameters)
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                switch (TYPE_DICT[s.type.data])
+                foreach (ParamDescription s in g.parameters)
                 {
-                    case DYN_RECFG_TYPE.type_bool:
-                        HandleBool(s.name.data);
-                        if (s.edit_method.data.Contains("enum_description"))
-                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defbool[s.name.data], maxbool[s.name.data], minbool[s.name.data], s.edit_method.data));
-                        else
-                            paramsHolder.Children.Add(new DynamicReconfigureCheckbox(dynamic, s, defbool[s.name.data]));
-                    break;
-                    case DYN_RECFG_TYPE.type_double:
-                        HandleDouble(s.name.data);
-                        if (s.edit_method.data.Contains("enum_description"))
-                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], s.edit_method.data));
-                        else
-                            paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], true));
-                    break;
-                    case DYN_RECFG_TYPE.type_int:
-                        HandleInt(s.name.data);
-                        if (s.edit_method.data.Contains("enum_description"))
-                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], s.edit_method.data));
-                        else
-                            paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], false));
-                    break;
-                    case DYN_RECFG_TYPE.type_str:
-                        HandleString(s.name.data);
-                        if (s.edit_method.data.Contains("enum_description"))
-                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defstring[s.name.data], maxstring[s.name.data], minstring[s.name.data], s.edit_method.data));
-                        else
-                            paramsHolder.Children.Add(new DynamicReconfigureStringBox(dynamic, s, defstring[s.name.data]));
-                    break;
+                    switch (TYPE_DICT[s.type.data])
+                    {
+                        case DYN_RECFG_TYPE.type_bool:
+                            HandleBool(s.name.data);
+                            if (s.edit_method.data.Contains("enum_description"))
+                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defbool[s.name.data], maxbool[s.name.data], minbool[s.name.data], s.edit_method.data));
+                            else
+                                paramsHolder.Children.Add(new DynamicReconfigureCheckbox(dynamic, s, defbool[s.name.data]));
+                            break;
+                        case DYN_RECFG_TYPE.type_double:
+                            HandleDouble(s.name.data);
+                            if (s.edit_method.data.Contains("enum_description"))
+                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], s.edit_method.data));
+                            else
+                                paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], true));
+                            break;
+                        case DYN_RECFG_TYPE.type_int:
+                            HandleInt(s.name.data);
+                            if (s.edit_method.data.Contains("enum_description"))
+                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], s.edit_method.data));
+                            else
+                                paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], false));
+                            break;
+                        case DYN_RECFG_TYPE.type_str:
+                            HandleString(s.name.data);
+                            if (s.edit_method.data.Contains("enum_description"))
+                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defstring[s.name.data], maxstring[s.name.data], minstring[s.name.data], s.edit_method.data));
+                            else
+                                paramsHolder.Children.Add(new DynamicReconfigureStringBox(dynamic, s, defstring[s.name.data]));
+                            break;
+                    }
                 }
-            }
+            }));
         }
 
         private void HandleInt(string n)
