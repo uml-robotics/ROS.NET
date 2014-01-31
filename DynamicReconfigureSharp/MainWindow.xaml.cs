@@ -93,7 +93,7 @@ namespace DynamicReconfigureTest
                             }
                             if (changed)
                             {
-                                string sel = (TargetBox.SelectedItem as ListBoxItem).Content as string;
+                                string sel = (TargetBox.SelectedItem as string);
                                 List<string> keys = knownConfigurations.Keys.ToList();
                                 keys.Sort();
                                 TargetBox.Items.Clear();

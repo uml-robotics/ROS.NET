@@ -7,8 +7,8 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <ComboBox Name="TargetBox" Grid.Row="0" SelectionChanged="TargetBox_OnSelectionChanged">
-            <ComboBoxItem  IsSelected="True">None</ComboBoxItem>
+        <ComboBox Name="TargetBox" Grid.Row="0" SelectionChanged="TargetBox_OnSelectionChanged" SelectedIndex="0">
+            None
         </ComboBox>
         <Grid Name="PageContainer" Grid.Row="1"></Grid>
     </Grid>

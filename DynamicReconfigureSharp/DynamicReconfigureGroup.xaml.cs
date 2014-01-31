@@ -106,15 +106,24 @@ namespace DynamicReconfigureSharp
                 {
                     case DYN_RECFG_TYPE.type_bool:
                         HandleBool(s.name.data);
-                        paramsHolder.Children.Add(new DynamicReconfigureCheckbox(dynamic, s, defbool[s.name.data]));
+                        if (s.edit_method.data.Contains("enum_description"))
+                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defbool[s.name.data], maxbool[s.name.data], minbool[s.name.data], s.edit_method.data));
+                        else
+                            paramsHolder.Children.Add(new DynamicReconfigureCheckbox(dynamic, s, defbool[s.name.data]));
                     break;
                     case DYN_RECFG_TYPE.type_double:
                         HandleDouble(s.name.data);
-                        paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], true));
+                        if (s.edit_method.data.Contains("enum_description"))
+                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], s.edit_method.data));
+                        else
+                            paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], true));
                     break;
                     case DYN_RECFG_TYPE.type_int:
                         HandleInt(s.name.data);
-                        paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], false));
+                        if (s.edit_method.data.Contains("enum_description"))
+                            paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], s.edit_method.data));
+                        else
+                            paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], false));
                     break;
                     case DYN_RECFG_TYPE.type_str:
                         HandleString(s.name.data);
