@@ -172,28 +172,22 @@ namespace Ros_CSharp
                 {
                     if (!client.in_use)
                     {
-                        try
+                        if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
+                            !client.client.IsConnected)
                         {
-                            if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
-                                !client.client.IsConnected)
-                            {
-                                client.client.Shutdown();
-                                zombies.Add(client);
-                            }
-                            else if (client.client.CheckIdentity(host, port, uri)) //client.client.Host == host && client.client.Port == port && client.client.Uri == uri)
-                            {
-                                c = client.client;
-                                client.in_use = true;
-                                client.last_use_time = DateTime.Now;
-                                break;
-                            }
+                            client.client.Shutdown();
+                            zombies.Add(client);
                         }
-                        catch (Exception e)
+                        else if (client.client.CheckIdentity(host, port, uri)) //client.client.Host == host && client.client.Port == port && client.client.Uri == uri)
                         {
-                            Debug.WriteLine("fuck");
+                            c = client.client;
+                            client.in_use = true;
+                            client.last_use_time = DateTime.Now;
+                            break;
                         }
                     }
                 }
+                zombies.Add(null);
                 clients = clients.Except(zombies).ToList();
             }
             if (c == null)

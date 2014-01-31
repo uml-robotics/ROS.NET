@@ -79,9 +79,8 @@ namespace DynamicReconfigureTest
                             }
                             foreach (string s in prevlist)
                             {
-                                foreach (ListBoxItem lbi in TargetBox.Items)
+                                foreach (string S in TargetBox.Items)
                                 {
-                                    string S = lbi.Content as string;
                                     if (S == s)
                                     {
                                         changed = true;
