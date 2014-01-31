@@ -189,11 +189,11 @@ namespace Ros_CSharp
                 }
                 zombies.Add(null);
                 clients = clients.Except(zombies).ToList();
-            }
-            if (c == null)
-            {
-                c = new XmlRpcClient(host, port, uri);
-                clients.Add(new CachedXmlRpcClient(c) {in_use = true, last_use_time = DateTime.Now});
+                if (c == null)
+                {
+                    c = new XmlRpcClient(host, port, uri);
+                    clients.Add(new CachedXmlRpcClient(c) {in_use = true, last_use_time = DateTime.Now});
+                }
             }
             return c;
         }
