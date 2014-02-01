@@ -9,10 +9,11 @@
     </UserControl.ToolTip>
     <Grid Height="auto">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Label Name="description">Description</Label>
+        <Label Name="description" HorizontalAlignment="Right">Description</Label>
         <ComboBox Name="enum" Grid.Column="1" SelectionChanged="Enum_OnSelectionChanged" SelectedValuePath="Tag">
         </ComboBox>
     </Grid>

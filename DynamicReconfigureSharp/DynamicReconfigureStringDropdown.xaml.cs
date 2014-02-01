@@ -140,7 +140,7 @@ namespace DynamicReconfigureSharp
     /// <summary>
     /// Interaction logic for DynamicReconfigureStringDropdown.xaml
     /// </summary>
-    public partial class DynamicReconfigureStringDropdown : UserControl
+    public partial class DynamicReconfigureStringDropdown : UserControl, IDynamicReconfigureLayout
     {
         private static readonly Dictionary<string, DROPDOWN_TYPE> types = new Dictionary<string, DROPDOWN_TYPE>()
         {
@@ -154,8 +154,6 @@ namespace DynamicReconfigureSharp
         private string edit_method;
         private bool ignore = true;
         private EnumDescription enumdescription;
-
-
 
         public DynamicReconfigureStringDropdown(DynamicReconfigureInterface dynamic, ParamDescription pd, object def, object max, object min, string edit_method)
         {
@@ -199,7 +197,7 @@ namespace DynamicReconfigureSharp
                 {
                     case DROPDOWN_TYPE.INT:
                     {
-                        ComboBoxItem cbi = new ComboBoxItem() {Tag = int.Parse(enumdescription.Enum[i].value), Content = enumdescription.Enum[i].name, ToolTip = new ToolTip() {Content = enumdescription.Enum[i].description}};
+                        ComboBoxItem cbi = new ComboBoxItem() {Tag = int.Parse(enumdescription.Enum[i].value), Content = enumdescription.Enum[i].name, ToolTip = new ToolTip() {Content = enumdescription.Enum[i].description+" ("+enumdescription.Enum[i].value+")"}};
                         @enum.Items.Add(cbi);
                         if (i == 0)
                         {
@@ -225,7 +223,7 @@ namespace DynamicReconfigureSharp
                     break;
                 }
             }
-            description.Content = name;
+            description.Content = name + ":";
             JustTheTip.Content = pd.description.data;
             ignore = false;
         }
@@ -236,6 +234,8 @@ namespace DynamicReconfigureSharp
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 @enum.SelectedValue = newstate;
+                if (stringchanged != null)
+                    stringchanged(newstate);
                 ignore = false;
             }));
         }
@@ -246,6 +246,8 @@ namespace DynamicReconfigureSharp
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 @enum.SelectedValue = newstate;
+                if (intchanged != null)
+                    intchanged(newstate);
                 ignore = false;
             }));
         }
@@ -254,8 +256,6 @@ namespace DynamicReconfigureSharp
         private void Enum_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ignore) return;
-            if (@enum.SelectionBoxItem == null)
-                @enum.SelectedIndex = 0;
             switch (types[enumdescription.Enum[0].type])
             {
                 case DROPDOWN_TYPE.INT:
@@ -266,5 +266,55 @@ namespace DynamicReconfigureSharp
                     break;
             }
         }
+
+
+        private event Action<int> intchanged;
+        private event Action<string> stringchanged;
+        internal Action<int> Instrument(Action<int> cb)
+        {
+            intchanged += cb;
+            return (d) =>
+            {
+                foreach (ComboBoxItem i in @enum.Items)
+                {
+                    if ((int)i.Tag == d)
+                    {
+                        ignore = false;
+                        i.IsSelected = true;
+                        break;
+                    }
+                }
+            };
+        }
+        internal Action<string> Instrument(Action<string> cb)
+        {
+            stringchanged += cb;
+            return (d) =>
+            {
+                foreach (ComboBoxItem i in @enum.Items)
+                {
+                    if ((string)i.Tag == d)
+                    {
+                        ignore = false;
+                        i.IsSelected = true;
+                        break;
+                    }
+                }
+            };
+        }
+
+        #region IDynamicReconfigureLayout Members
+
+        public double getDescriptionWidth()
+        {
+            return (Content as Grid).ColumnDefinitions[0].ActualWidth;
+        }
+
+        public void setDescriptionWidth(double w)
+        {
+            (Content as Grid).ColumnDefinitions[0].Width = new GridLength(w);
+        }
+
+        #endregion
     }
 }

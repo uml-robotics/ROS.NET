@@ -9,10 +9,11 @@
     </UserControl.ToolTip>
     <Grid Height="auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.33*"></ColumnDefinition>
-            <ColumnDefinition Width="0.66*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Label Name="description">Description</Label>
+        <Label Name="description" HorizontalAlignment="Right">Description</Label>
         <TextBox Name="Box" Grid.Column="1" MinWidth="100" HorizontalAlignment="Stretch" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus"  >
         </TextBox>
     </Grid>

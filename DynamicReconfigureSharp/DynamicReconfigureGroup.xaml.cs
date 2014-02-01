@@ -51,18 +51,10 @@ namespace DynamicReconfigureSharp
             InitializeComponent();
         }
 
-        private Dictionary<string, int> minint = new Dictionary<string, int>();
-        private Dictionary<string, int> maxint = new Dictionary<string, int>();
-        private Dictionary<string, int> defint = new Dictionary<string, int>();
-        private Dictionary<string, bool> minbool = new Dictionary<string, bool>();
-        private Dictionary<string, bool> maxbool = new Dictionary<string, bool>();
-        private Dictionary<string, bool> defbool = new Dictionary<string, bool>();
-        private Dictionary<string, string> minstring = new Dictionary<string, string>();
-        private Dictionary<string, string> maxstring = new Dictionary<string, string>();
-        private Dictionary<string, string> defstring = new Dictionary<string, string>();
-        private Dictionary<string, double> mindouble = new Dictionary<string, double>();
-        private Dictionary<string, double> maxdouble = new Dictionary<string, double>();
-        private Dictionary<string, double> defdouble = new Dictionary<string, double>();
+        private Dictionary<string, DynamicReconfigureCheckbox> checkboxes = new Dictionary<string, DynamicReconfigureCheckbox>();
+        private Dictionary<string, DynamicReconfigureStringDropdown> dropdowns = new Dictionary<string, DynamicReconfigureStringDropdown>();
+        private Dictionary<string, DynamicReconfigureStringBox> boxes = new Dictionary<string, DynamicReconfigureStringBox>();
+        private Dictionary<string, DynamicReconfigureSlider> sliders = new Dictionary<string, DynamicReconfigureSlider>();
 
         private static readonly Dictionary<string, DYN_RECFG_TYPE> TYPE_DICT = new Dictionary<string, DYN_RECFG_TYPE>
         {
@@ -88,11 +80,12 @@ namespace DynamicReconfigureSharp
         };
 
         private Config def, min, max;
+
         public DynamicReconfigureGroup(Group g, Config def, Config min, Config max, string name, DynamicReconfigureInterface dynamic)
             : this()
         {
             this.dynamic = dynamic;
-            this.name = name;
+            this.name = name + ":";
             this.min = min;
             this.max = max;
             this.def = def;
@@ -100,80 +93,180 @@ namespace DynamicReconfigureSharp
             //container.Header = g.name.data;
             _id = g.id;
             _parent = g.parent;
-            Dispatcher.BeginInvoke(new Action(() =>
+            Loaded += (sender, args) =>
             {
                 foreach (ParamDescription s in g.parameters)
                 {
                     switch (TYPE_DICT[s.type.data])
                     {
                         case DYN_RECFG_TYPE.type_bool:
-                            HandleBool(s.name.data);
+                        {
+                            var pdef = def.bools.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmax = max.bools.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmin = min.bools.FirstOrDefault((p) => p.name.data == s.name.data);
                             if (s.edit_method.data.Contains("enum_description"))
-                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defbool[s.name.data], maxbool[s.name.data], minbool[s.name.data], s.edit_method.data));
+                            {
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                paramsHolder.Children.Add(d);
+                                dropdowns.Add(s.name.data, d);
+                            }
                             else
-                                paramsHolder.Children.Add(new DynamicReconfigureCheckbox(dynamic, s, defbool[s.name.data]));
+                            {
+                                var d = new DynamicReconfigureCheckbox(dynamic, s, pdef.value);
+                                paramsHolder.Children.Add(d);
+                                checkboxes.Add(s.name.data, d);
+                            }
+                        }
                             break;
                         case DYN_RECFG_TYPE.type_double:
-                            HandleDouble(s.name.data);
+                        {
+                            var pdef = def.doubles.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmax = max.doubles.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmin = min.doubles.FirstOrDefault((p) => p.name.data == s.name.data);
                             if (s.edit_method.data.Contains("enum_description"))
-                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], s.edit_method.data));
+                            {
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                paramsHolder.Children.Add(d);
+                                dropdowns.Add(s.name.data, d);
+                            }
                             else
-                                paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defdouble[s.name.data], maxdouble[s.name.data], mindouble[s.name.data], true));
+                            {
+                                var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, true);
+                                paramsHolder.Children.Add(d);
+                                sliders.Add(s.name.data, d);
+                            }
+                        }
                             break;
                         case DYN_RECFG_TYPE.type_int:
-                            HandleInt(s.name.data);
+                        {
+                            var pmax = max.ints.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmin = min.ints.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pdef = def.ints.FirstOrDefault((p) => p.name.data == s.name.data);
                             if (s.edit_method.data.Contains("enum_description"))
-                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], s.edit_method.data));
+                            {
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                paramsHolder.Children.Add(d);
+                                dropdowns.Add(s.name.data, d);
+                            }
                             else
-                                paramsHolder.Children.Add(new DynamicReconfigureSlider(dynamic, s, defint[s.name.data], maxint[s.name.data], minint[s.name.data], false));
+                            {
+                                var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, false);
+                                paramsHolder.Children.Add(d);
+                                sliders.Add(s.name.data, d);
+                            }
+                        }
                             break;
                         case DYN_RECFG_TYPE.type_str:
-                            HandleString(s.name.data);
+                        {
+                            var pdef = def.strs.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmax = max.strs.FirstOrDefault((p) => p.name.data == s.name.data);
+                            var pmin = min.strs.FirstOrDefault((p) => p.name.data == s.name.data);
                             if (s.edit_method.data.Contains("enum_description"))
-                                paramsHolder.Children.Add(new DynamicReconfigureStringDropdown(dynamic, s, defstring[s.name.data], maxstring[s.name.data], minstring[s.name.data], s.edit_method.data));
+                            {
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value.data, pmax.value.data, pmin.value.data, s.edit_method.data);
+                                paramsHolder.Children.Add(d);
+                                dropdowns.Add(s.name.data, d);
+                            }
                             else
-                                paramsHolder.Children.Add(new DynamicReconfigureStringBox(dynamic, s, defstring[s.name.data]));
+                            {
+                                var d = new DynamicReconfigureStringBox(dynamic, s, pdef.value.data);
+                                paramsHolder.Children.Add(d);
+                                boxes.Add(s.name.data, d);
+                            }
+                        }
                             break;
                     }
                 }
-            }));
+
+                SizeChangedEventHandler saeh = null;
+                saeh = new SizeChangedEventHandler((o, a)
+                    =>
+                {
+                    double maxwidth = 0;
+                    foreach (DynamicReconfigureCheckbox d in checkboxes.Values) GetMaxWidth(d, ref maxwidth);
+                    foreach (DynamicReconfigureSlider d in sliders.Values) GetMaxWidth(d, ref maxwidth);
+                    foreach (DynamicReconfigureStringBox d in boxes.Values) GetMaxWidth(d, ref maxwidth);
+                    foreach (DynamicReconfigureStringDropdown d in dropdowns.Values) GetMaxWidth(d, ref maxwidth);
+                    foreach (IDynamicReconfigureLayout idrl in paramsHolder.Children)
+                        idrl.setDescriptionWidth(maxwidth);
+                    SizeChanged -= saeh;
+                });
+                SizeChanged += saeh;
+            };
         }
 
-        private void HandleInt(string n)
+        private void GetMaxWidth<T>(T t, ref double w) where T : IDynamicReconfigureLayout
         {
-            var pmax = max.ints.FirstOrDefault((p) => p.name.data == n);
-            var pmin = min.ints.FirstOrDefault((p) => p.name.data == n);
-            var pdef = def.ints.FirstOrDefault((p) => p.name.data == n);
-            if (pmax != null) maxint[n] = pmax.value; else maxint[n] = int.MaxValue;
-            if (pmin != null) minint[n] = pmin.value; else minint[n] = int.MinValue;
-            if (pdef != null) defint[n] = pdef.value; else defint[n] = (minint[n] + (maxint[n] - minint[n]) / 2);
+            double W = t.getDescriptionWidth();
+            w = W > w ? W : w;
         }
-        private void HandleBool(string n)
+
+        /// <summary>
+        /// Expose a specific function to call to set a specific named-parameter to an outside caller, and allow them to receive a callback when it is changed by somebody else.
+        /// </summary>
+        /// <param name="name">Name of the parameter</param>
+        /// <param name="cb">A callback the caller wants called when the named parameter changes</param>
+        /// <returns>An action the caller can invoke to change the parameter</returns>
+        public Action<double> Instrument(string name, Action<double> cb)
         {
-            var pmax = max.bools.FirstOrDefault((p) => p.name.data == n);
-            var pmin = min.bools.FirstOrDefault((p) => p.name.data == n);
-            var pdef = def.bools.FirstOrDefault((p) => p.name.data == n);
-            if (pmax != null) maxbool[n] = pmax.value; else maxbool[n] = true;
-            if (pmin != null) minbool[n] = pmin.value; else minbool[n] = false;
-            if (pdef != null) defbool[n] = pdef.value; else defbool[n] = false;
+            if (sliders.ContainsKey(name))
+            {
+                return sliders[name].Instrument(cb);
+            }
+            throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a double");
         }
-        private void HandleString(string n)
+
+        /// <summary>
+        /// Expose a specific function to call to set a specific named-parameter to an outside caller, and allow them to receive a callback when it is changed by somebody else.
+        /// </summary>
+        /// <param name="name">Name of the parameter</param>
+        /// <param name="cb">A callback the caller wants called when the named parameter changes</param>
+        /// <returns>An action the caller can invoke to change the parameter</returns>
+        public Action<int> Instrument(string name, Action<int> cb)
         {
-            var pmax = max.strs.FirstOrDefault((p) => p.name.data == n);
-            var pmin = min.strs.FirstOrDefault((p) => p.name.data == n);
-            var pdef = def.strs.FirstOrDefault((p) => p.name.data == n);
-            if (pmax != null) maxstring[n] = pmax.value.data;
-            if (pmin != null) minstring[n] = pmin.value.data;
-            if (pdef != null) defstring[n] = pdef.value.data;
+            if (sliders.ContainsKey(name))
+            {
+                return sliders[name].Instrument(cb);
+            }
+            if (dropdowns.ContainsKey(name))
+            {
+                return dropdowns[name].Instrument(cb);
+            }
+            throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is an int");
         }
-        private void HandleDouble(string n)
+
+        /// <summary>
+        /// Expose a specific function to call to set a specific named-parameter to an outside caller, and allow them to receive a callback when it is changed by somebody else.
+        /// </summary>
+        /// <param name="name">Name of the parameter</param>
+        /// <param name="cb">A callback the caller wants called when the named parameter changes</param>
+        /// <returns>An action the caller can invoke to change the parameter</returns>
+        public Action<bool> Instrument(string name, Action<bool> cb)
         {
-            var pmax = max.doubles.FirstOrDefault((p) => p.name.data == n);
-            var pdef = def.doubles.FirstOrDefault((p) => p.name.data == n);
-            var pmin = min.doubles.FirstOrDefault((p) => p.name.data == n);
-            if (pmax != null) maxdouble[n] = pmax.value; else maxdouble[n] = double.MaxValue;
-            if (pmin != null) mindouble[n] = pmin.value; else mindouble[n] = double.MinValue;
-            if (pdef != null) defdouble[n] = pdef.value; else defdouble[n] = (mindouble[n] + (maxdouble[n] - mindouble[n])/2d);
+            if (checkboxes.ContainsKey(name))
+            {
+                return checkboxes[name].Instrument(cb);
+            }
+            throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a bool");
+        }
+
+        /// <summary>
+        /// Expose a specific function to call to set a specific named-parameter to an outside caller, and allow them to receive a callback when it is changed by somebody else.
+        /// </summary>
+        /// <param name="name">Name of the parameter</param>
+        /// <param name="cb">A callback the caller wants called when the named parameter changes</param>
+        /// <returns>An action the caller can invoke to change the parameter</returns>
+        public Action<string> Instrument(string name, Action<string> cb)
+        {
+            if (dropdowns.ContainsKey(name))
+            {
+                return dropdowns[name].Instrument(cb);
+            }
+            if (boxes.ContainsKey(name))
+            {
+                return boxes[name].Instrument(cb);
+            }
+            throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a string");
         }
     }
 }

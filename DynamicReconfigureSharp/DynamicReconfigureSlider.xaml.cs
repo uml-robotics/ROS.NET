@@ -22,7 +22,7 @@ namespace DynamicReconfigureSharp
     /// <summary>
     /// Interaction logic for DynamicReconfigureSlider.xaml
     /// </summary>
-    public partial class DynamicReconfigureSlider : UserControl
+    public partial class DynamicReconfigureSlider : UserControl, IDynamicReconfigureLayout
     {
         private DynamicReconfigureInterface dynamic;
         private string name;
@@ -48,20 +48,19 @@ namespace DynamicReconfigureSharp
                 value.Maximum = 1000.0;
             else
                 value.Maximum = max;
-            description.Content = name;
+            description.Content = name + ":";
             JustTheTip.Content = pd.description.data;
 
             if (isDouble)
             {
                 textBehavior.RegularExpression = @"^[\-\.0-9]+$";
                 value.IsSnapToTickEnabled = false;
-                //value.TickFrequency = (value.Maximum - value.Minimum)/100d;
-                minlabel.Content = "" + (((int)(value.Minimum * 100)) / 100d);
-                maxlabel.Content = "" + (((int)(value.Maximum * 100)) / 100d);
-                box.Text = "" + (((int)(value.Value * 100)) / 100d);
+                value.TickFrequency = 0;
+                minlabel.Content = string.Format("{0:N2}", value.Minimum);
+                maxlabel.Content = string.Format("{0:N2}", value.Maximum);
                 value.Value = this.def = def;
-                ignore = false;
                 dynamic.Subscribe(name, new Action<double>(changed));
+                ignore = false;
             }
             else
             {
@@ -70,31 +69,35 @@ namespace DynamicReconfigureSharp
                 value.IsSnapToTickEnabled = true;
                 minlabel.Content = ""+(int)value.Minimum;
                 maxlabel.Content = "" + (int)value.Maximum;
-                box.Text = "" + (int)value.Value;
                 value.Value = this.def = def;
-                ignore = false;
                 dynamic.Subscribe(name, new Action<int>(changed));
+                ignore = false;
             }
         }
 
         private void changed(int newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() => { 
-                value.Value = newstate;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
                 box.Text = "" + newstate;
+                value.Value = newstate;
+                if (intchanged != null)
+                    intchanged(newstate);
+                ignore = false;
             }));
-            ignore = false;
         }
         private void changed(double newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
+                box.Text = string.Format("{0:N2}", newstate);
                 value.Value = newstate;
-                box.Text = "" + (((int)(newstate * 100)) / 100d);
+                if (doublechanged != null)
+                    doublechanged(newstate);
+                ignore = false;
             }));
-            ignore = false;
         }
 
         private void commit()
@@ -105,7 +108,8 @@ namespace DynamicReconfigureSharp
                 if (double.TryParse(box.Text, out d))
                 {
                     value.Value = d;
-                    dynamic.Set(name, d);
+                    if (!ignore)
+                        dynamic.Set(name, d);
                 }
             }
             else
@@ -114,7 +118,8 @@ namespace DynamicReconfigureSharp
                 if (int.TryParse(box.Text, out i))
                 {
                     value.Value = i;
-                    dynamic.Set(name, i);
+                    if (!ignore)
+                        dynamic.Set(name, i);
                 }
             }
         }
@@ -136,43 +141,51 @@ namespace DynamicReconfigureSharp
         {
             if (isDouble)
             {
-                if (value.IsMouseCaptureWithin || !ignore)
-                    box.Text = ""+(((int)(value.Value*100)) / 100d);
-                if (!ignore && !value.IsMouseCaptureWithin)
+                box.Text = string.Format("{0:N2}", value.Value);
+                if (!ignore)
                     dynamic.Set(name, value.Value);
             }
             else
             {
-                int val = 0;
-                if (value.IsMouseCaptureWithin || !ignore)
-                {
-                    val = (int)Math.Round(value.Value);
-                    box.Text = "" + val;
-                }
-                if (!ignore && !value.IsMouseCaptureWithin)
-                    dynamic.Set(name, val);
+                box.Text = "" + (int)value.Value;
+                if (!ignore)
+                    dynamic.Set(name, (int)value.Value);
             }
         }
 
-        private void Value_OnGotMouseCapture(object sender, MouseEventArgs e)
+        #region IDynamicReconfigureLayout Members
+
+        public double getDescriptionWidth()
         {
-            ignore = true;
+            return (Content as Grid).ColumnDefinitions[0].ActualWidth;
         }
 
-        private void Value_OnLostMouseCapture(object sender, MouseEventArgs e)
+        public void setDescriptionWidth(double w)
         {
-            if (isDouble)
+            (Content as Grid).ColumnDefinitions[0].Width = new GridLength(w);
+        }
+
+        #endregion
+
+        private event Action<int> intchanged;
+        private event Action<double> doublechanged;
+        internal Action<int> Instrument(Action<int> cb)
+        {
+            intchanged += cb;
+            return (d) =>
             {
-                box.Text = "" + (((int)(value.Value * 100)) / 100d);
-                dynamic.Set(name, value.Value);
-            }
-            else
+                ignore = false;
+                value.Value = d;
+            };
+        }
+        internal Action<double> Instrument(Action<double> cb)
+        {
+            doublechanged += cb;
+            return (d) =>
             {
-                int val = (int)Math.Round(value.Value);
-                box.Text = "" + val;
-                dynamic.Set(name, val);
-            }
-            ignore = false;
+                ignore = false;
+                value.Value = d;
+            };
         }
     }
 

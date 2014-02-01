@@ -35,10 +35,13 @@ namespace DynamicReconfigureSharp
         public DynamicReconfigurePage(NodeHandle n, string name) : this()
         {
             nh = n;
-            this.name = name;
-            dynamic = new DynamicReconfigureInterface(nh, name);
-            dynamic.DescribeParameters(DescriptionRecieved);
-            dynamic.SubscribeForUpdates();
+            this.name = name + ":";
+            Loaded += (sender, args) =>
+            {
+                dynamic = new DynamicReconfigureInterface(nh, name);
+                dynamic.SubscribeForUpdates();
+                dynamic.DescribeParameters(DescriptionRecieved);
+            };
         }
 
         private void DescriptionRecieved(ConfigDescription cd)
@@ -46,7 +49,7 @@ namespace DynamicReconfigureSharp
             def = cd.dflt;
             max = cd.max;
             min = cd.min;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 SortedList<int, DynamicReconfigureGroup> hierarchy = new SortedList<int, DynamicReconfigureGroup>();
                 foreach (Group g in cd.groups)

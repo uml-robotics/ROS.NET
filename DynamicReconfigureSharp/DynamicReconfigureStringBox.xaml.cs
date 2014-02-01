@@ -19,7 +19,7 @@ namespace DynamicReconfigureSharp
     /// <summary>
     /// Interaction logic for DynamicReconfigureStringDropdown.xaml
     /// </summary>
-    public partial class DynamicReconfigureStringBox : UserControl
+    public partial class DynamicReconfigureStringBox : UserControl, IDynamicReconfigureLayout
     {
         private DynamicReconfigureInterface dynamic;
         private string name;
@@ -32,7 +32,7 @@ namespace DynamicReconfigureSharp
             name = pd.name.data;
             this.dynamic = dynamic;
             InitializeComponent();
-            description.Content = name;
+            description.Content = name + ":";
             JustTheTip.Content = pd.description.data;
             dynamic.Subscribe(name, changed);
             ignore = false;
@@ -41,8 +41,13 @@ namespace DynamicReconfigureSharp
         private void changed(string newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() => Box.Text = newstate));
-            ignore = false;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Box.Text = newstate;
+                if (stringchanged != null)
+                    stringchanged(newstate);
+                ignore = false;
+            }));
         }
 
         private void commit()
@@ -60,5 +65,30 @@ namespace DynamicReconfigureSharp
         {
             commit();
         }
+
+        private event Action<string> stringchanged;
+        internal Action<string> Instrument(Action<string> cb)
+        {
+            stringchanged += cb;
+            return (d) =>
+            {
+                Box.Text = d;
+                commit();
+            };
+        }
+
+        #region IDynamicReconfigureLayout Members
+
+        public double getDescriptionWidth()
+        {
+            return (Content as Grid).ColumnDefinitions[0].ActualWidth;
+        }
+
+        public void setDescriptionWidth(double w)
+        {
+            (Content as Grid).ColumnDefinitions[0].Width = new GridLength(w);
+        }
+
+        #endregion
     }
 }

@@ -11,8 +11,9 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Label Name="description">Description</Label>
-        <CheckBox Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Name="_checkBox" Margin="2" Checked="_checkBox_OnChecked" Unchecked="_checkBox_OnUnchecked"></CheckBox>
+        <Label Name="description" HorizontalAlignment="Right">Description</Label>
+        <CheckBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Name="_checkBox" Margin="2" Checked="_checkBox_OnChecked" Unchecked="_checkBox_OnUnchecked"></CheckBox>
     </Grid>
 </UserControl>

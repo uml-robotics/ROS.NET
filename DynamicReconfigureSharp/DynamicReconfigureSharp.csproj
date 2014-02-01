@@ -111,6 +111,7 @@
     <Compile Include="DynamicReconfigurePage.xaml.cs">
       <DependentUpon>DynamicReconfigurePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="IDynamicReconfigureLayout.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

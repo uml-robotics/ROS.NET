@@ -11,22 +11,22 @@
     </UserControl.ToolTip>
     <Grid Height="auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.5*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="0.25*"></ColumnDefinition>
+            <ColumnDefinition Width="70"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Label Name="description" Grid.Column="0">Description</Label>
+        <Label Name="description" Grid.Column="0" HorizontalAlignment="Right">Description</Label>
         <Grid Name="numberline" Grid.Column="1" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Label Name="maxlabel" Grid.Column="2">3.14</Label>
-            <Label Name="minlabel" Grid.Column="0">-3.14</Label>
-            <Slider Name="value" Maximum="3.14" Minimum="-3.14" Grid.Column="1" VerticalAlignment="Center" Value="0" ValueChanged="Value_OnValueChanged" GotMouseCapture="Value_OnGotMouseCapture" LostMouseCapture="Value_OnLostMouseCapture"></Slider>
+            <Label Name="maxlabel" Grid.Column="2"></Label>
+            <Label Name="minlabel" Grid.Column="0"></Label>
+            <Slider Name="value" Grid.Column="1" VerticalAlignment="Center" ValueChanged="Value_OnValueChanged"> </Slider>
         </Grid>
-        <TextBox Name="box" VerticalAlignment="Center" Grid.Column="2" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus" Text="0.0">
+        <TextBox Name="box" VerticalAlignment="Center" Grid.Column="2" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus">
             <i:Interaction.Behaviors>
                 <DynamicReconfigureSharp:AllowableCharactersTextBoxBehavior x:Name="textBehavior" MaxLength="50" />
             </i:Interaction.Behaviors>
