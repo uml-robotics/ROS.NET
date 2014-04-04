@@ -15,7 +15,7 @@ namespace XmlRpc_Wrapper
     {
         #region Reference Tracking + unmanaged pointer management
                 
-        public void Dispose()
+        public new void Dispose()
         {
             Shutdown();
         }
@@ -61,7 +61,7 @@ namespace XmlRpc_Wrapper
 
 
         [DebuggerStepThrough]
-        private static void AddRef(IntPtr ptr)
+        private new static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
             if (refdumper == null)
@@ -91,7 +91,7 @@ namespace XmlRpc_Wrapper
         }
 
         [DebuggerStepThrough]
-        private static void RmRef(ref IntPtr ptr)
+        private new static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
             {
@@ -266,7 +266,7 @@ namespace XmlRpc_Wrapper
             return executecheckdone(instance, result.instance);
         }
 
-        public UInt16 HandleEvent(UInt16 eventType)
+        public new UInt16 HandleEvent(UInt16 eventType)
         {
             return handleevent(instance, eventType);
         }

@@ -149,7 +149,6 @@ namespace ROS_ImageWPF
             }
             SetupTopic(TopicName);
         }
-        private Thread spinnin;
         private void SetupTopic(string TopicName)
         {
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")

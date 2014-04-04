@@ -7,13 +7,8 @@ namespace rosmaster
 {
     public static class Names
     {
-        private static readonly String PRN_SEPARATOR = "/";
-        private static readonly String TYPE_SEPARATOR = "/";
         private static readonly String SEP = "/";
-        private static readonly String GLOBALNS = "/";
         private static readonly String PRIV_NAME = "~";
-        private static readonly String REMAP = ":=";
-        private static readonly String ANYTYPE = "*";
 
         /*public String get_ros_namespace(String env = null)
         {

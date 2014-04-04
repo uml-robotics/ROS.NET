@@ -20,7 +20,7 @@ namespace Ros_CSharp
         where MReq : IRosMessage, new()
         where MRes : IRosMessage, new()
     {
-        public new ServiceCallbackHelper<MReq, MRes> helper;
+        public ServiceCallbackHelper<MReq, MRes> helper;
 
         //internal ftw?
 
@@ -133,7 +133,6 @@ namespace Ros_CSharp
         protected object client_links_mutex = new object();
         internal string datatype;
         internal bool has_tracked_object;
-        internal IServiceCallbackHelper helper;
         internal bool isDropped;
         internal string md5sum;
         internal string name;

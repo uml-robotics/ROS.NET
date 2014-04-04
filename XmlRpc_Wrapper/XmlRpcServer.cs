@@ -14,7 +14,7 @@ namespace XmlRpc_Wrapper
     {
         #region Reference Tracking + unmanaged pointer management
 
-        public void Dispose()
+        public new void Dispose()
         {
             Shutdown();
         }
@@ -60,7 +60,7 @@ namespace XmlRpc_Wrapper
 
 
         [DebuggerStepThrough]
-        private static void AddRef(IntPtr ptr)
+        private new static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
             if (refdumper == null)
@@ -90,7 +90,7 @@ namespace XmlRpc_Wrapper
         }
 
         [DebuggerStepThrough]
-        private static void RmRef(ref IntPtr ptr)
+        private new static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
             {
@@ -114,7 +114,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public IntPtr instance
+        public new IntPtr instance
         {
             [DebuggerStepThrough]
             get
@@ -298,7 +298,7 @@ namespace XmlRpc_Wrapper
 
 
         [DebuggerStepThrough]
-        public void SegFault()
+        public new void SegFault()
         {
             if (instance == IntPtr.Zero)
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");

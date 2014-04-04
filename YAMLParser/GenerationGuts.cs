@@ -191,6 +191,7 @@ namespace FauxMessages
 
             #region request
             string RequestDict = Request.GenFields();
+            meta = Request.meta;
             GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
             GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
             GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" +RequestDefinition +"\"");
