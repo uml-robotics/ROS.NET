@@ -136,7 +136,7 @@ namespace Ros_CSharp
                 throw new Exception("Invalid request length read");
 
             uint len = BitConverter.ToUInt32(buffer, 0);
-            if (len > 10000000000)
+            if (len > 1000000000)
             {
                 ROS.Error("A message over a gigabyte was predicted... stop... being... bad.");
                 connection.drop(Connection.DropReason.Destructing);
