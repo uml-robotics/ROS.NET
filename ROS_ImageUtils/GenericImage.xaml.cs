@@ -429,5 +429,10 @@ namespace ROS_ImageWPF
         {
             image.Transform = new ScaleTransform(scalex, scaley, ActualWidth / 2, ActualHeight / 2);
         }
+
+        public void Transform(int scalex, int scaley)
+        {
+            image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth / 2, ActualHeight / 2);
+        }
     }
 }

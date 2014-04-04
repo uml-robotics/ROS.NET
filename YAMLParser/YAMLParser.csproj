@@ -96,6 +96,9 @@
     <Content Include="ROS_MESSAGES\baxter_core_msgs\EndpoingState.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\rock_publisher\imgData.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ROS_MESSAGES\dynamic_reconfigure\BoolParameter.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -115,6 +118,27 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ROS_MESSAGES\dynamic_reconfigure\ParamDescription.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\rock_publisher\recalibrateMsg.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\sample_acquisition\ArmMovement.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\sample_acquisition\ArmStatus.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\sensor_msgs\Imu.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\uvc_camera\camera_sliders.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ROS_MESSAGES\sensor_msgs\Joy.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ROS_MESSAGES\dynamic_reconfigure\StrParameter.msg">
@@ -138,12 +162,9 @@
     <None Include="ROS_MESSAGES\std_srvs\Empty.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="ROS_MESSAGES\trust_msgs\RunDescription.msg">
+    <None Include="ROS_MESSAGES\uvc_camera\camera_sliders.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ROS_MESSAGES\trust_msgs\InterfaceCommand.msg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <None Include="TemplateProject\PubSubTest._cs" />
     <Content Include="TemplateProject\Time.cs" />
     <Content Include="TemplateProject\SerializationHelper.cs">

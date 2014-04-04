@@ -8,8 +8,8 @@
                      d:DesignHeight="300" d:DesignWidth="300"
                       Loaded="UserControl_Loaded" SnapsToDevicePixels="True" SizeChanged="UserControl_SizeChanged" >
     <Grid SnapsToDevicePixels="True">
-        <RosImageWpf:GenericImage x:Name="guts" />
-        <Canvas Name="ROI_Container" RenderTransformOrigin="0.5,0.5" >
+        <RosImageWpf:GenericImage x:Name="guts" x:FieldModifier="public" />
+        <Canvas Name="ROI_Container" RenderTransformOrigin="0.5,0.5" x:FieldModifier="public">
             <Canvas.RenderTransform>
                 <ScaleTransform ScaleY="-1"></ScaleTransform>
             </Canvas.RenderTransform>
