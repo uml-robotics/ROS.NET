@@ -33,6 +33,30 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicReconfigure", "Dynam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicReconfigureSharp", "DynamicReconfigureSharp\DynamicReconfigureSharp.csproj", "{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_THE_UI", "_THE_UI\_THE_UI.csproj", "{3CC4573C-8AC0-4F85-ABCE-A2BEF39AF031}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmGaugeUC", "ArmGaugeUC\ArmGaugeUC.csproj", "{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraSlidersUC", "CameraSlidersUC\CameraSlidersUC.csproj", "{38EA6580-6652-4943-8F53-CAAC2ADE4231}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EStopUC", "EStopUC\EStopUC.csproj", "{F54D5582-9661-40E4-A635-ECB160C85A8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MotorBarGraphUC", "MotorBarGraph\MotorBarGraphUC.csproj", "{63959F15-7F39-4068-B2E4-8B147AC157E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockCounterUC", "RockCounterUC\RockCounterUC.csproj", "{FF0CDEAF-89AA-481A-A6DF-DDC52AEBA15E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosoutDebugUC", "RosoutDebugUC\RosoutDebugUC.csproj", "{60B4B7ED-B9F4-4016-9443-26F305C8B56A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UberSlider", "UberSlider\UberSlider.csproj", "{90D7D884-48BF-4C33-96EC-23C7FD81BC5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimerStopwatchUC", "TimerStopwatchUC\TimerStopwatchUC.csproj", "{AEE5965A-A9F5-479A-816D-40306C779E1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiltSliderUC", "TiltSliderUC\TiltSliderUC.csproj", "{A1A1F1CB-F82A-4331-A9FC-3E01D8CF9635}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BattVoltUC", "VoltageUC\BattVoltUC.csproj", "{4ECB4384-3D98-43F3-9466-B88EC1046AFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_IMUUtil", "ROS_IMUUtils\ROS_IMUUtil.csproj", "{03154B06-B16C-447C-AEEE-7AD153ACF2B7}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ROS_dotNET.vsmdi
@@ -90,6 +114,9 @@ Global
 		{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}.Debug|x86.Build.0 = Debug|x86
 		{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}.Release|x86.ActiveCfg = Release|x86
 		{4A0D19A0-BD73-45A2-886D-C40756DB8D9F}.Release|x86.Build.0 = Release|x86
+		{3CC4573C-8AC0-4F85-ABCE-A2BEF39AF031}.Debug|x86.ActiveCfg = Debug|x86
+		{3CC4573C-8AC0-4F85-ABCE-A2BEF39AF031}.Debug|x86.Build.0 = Debug|x86
+		{3CC4573C-8AC0-4F85-ABCE-A2BEF39AF031}.Release|x86.ActiveCfg = Release|x86
 		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|x86.ActiveCfg = Debug|x86
 		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Debug|x86.Build.0 = Debug|x86
 		{D8FF8A55-F789-44D5-B1D0-0EF2924F8311}.Release|x86.ActiveCfg = Release|x86

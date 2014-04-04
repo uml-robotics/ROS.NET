@@ -1,0 +1,86 @@
+﻿<Window x:Class="WpfApplication1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ROS_ImageWPF;assembly=ROS_ImageUtils"
+        xmlns:RosoutDebugUC="clr-namespace:RosoutDebugUC;assembly=RosoutDebugUC"
+        xmlns:CameraSlidersUC="clr-namespace:CameraSlidersUC;assembly=CameraSlidersUC"
+        xmlns:TiltSliderUC="clr-namespace:TiltSliderUC;assembly=TiltSliderUC"
+        Background="DarkGray" Height="800" Icon="Icon.png" Loaded="Window_Loaded" Name="Window1" Title="Camera Test Window (NO MULTIPLEXER)" Width="1350" WindowStyle="SingleBorderWindow" >
+    <Grid>        
+        <!-- BEGIN main camera windows -->
+        <!-- END main camera windows -->
+        
+        <Canvas>            
+            <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="25" Width="414" />
+            <!--<StackPanel Visibility="Visible" Background="WhiteSmoke" Canvas.Left="36" Canvas.Top="433">
+                <TextBox Background="Gainsboro" HorizontalAlignment="Center">Recalibration</TextBox>
+                <RadioButton GroupName="Colors" Content="Blue" Checked="RadioButton_Checked_B" />
+                <RadioButton GroupName="Colors" Content="Green" Checked="RadioButton_Checked_G" />
+                <RadioButton GroupName="Colors" Content="Red" Checked="RadioButton_Checked_R" />
+                <RadioButton GroupName="Colors" Content="Orange" Checked="RadioButton_Checked_O" />
+                <RadioButton GroupName="Colors" Content="Purple" Checked="RadioButton_Checked_P" />
+                <RadioButton GroupName="Colors" Content="Yellow" Checked="RadioButton_Checked_Y" />
+                <Button Click="Button_Click_Send">Send Selection</Button>
+                <Button Click="Button_Click_Clear">Clear Selections</Button>
+                <Border Padding="10"></Border>
+                <TextBlock Padding="4" Background="Gainsboro"> Restore Default Calibrations</TextBlock>
+                <Button Click="Button_Click_Restore0">Main Cam</Button>
+                <Button Click="Button_Click_Restore1">Rear Cam</Button>
+                <Button Click="Button_Click_Restore2">Cam 3</Button>
+                <Button Click="Button_Click_Restore3">Cam 4</Button>
+            </StackPanel>-->
+            <TabControl Background="Honeydew" Height="427" Name="MainCameraTabControl" Width="720" SelectionChanged="MainCameraTabControl_SelectionChanged" Canvas.Left="480" Canvas.Top="23">
+                <TabItem Background="Gold" Header="Main Camera 1" Name="MainCamera1">
+                    <Grid>
+                        <!--c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed"-->
+                        <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" c:CompressedImageControl.TopicName="/camera0_stream/republished/image_raw/compressed" x:FieldModifier="public" x:Name="camImage0"></c:CompressedImageControl>
+                        <Canvas Name="camRect0" />
+                    </Grid>
+                </TabItem>
+                <TabItem Background="Red" Header="Rear Camera" Name="MainCamera2">
+                    <Grid>
+                        <!--c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed"-->
+                        <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" c:CompressedImageControl.TopicName="/camera1_stream/republished/image_raw/compressed" x:FieldModifier="public" x:Name="camImage1"></c:CompressedImageControl>
+                        <Canvas Name="camRect1" />
+                    </Grid>
+                </TabItem>
+                <TabItem Background="Green" Header="Main Camera 3" Name="MainCamera3">
+                    <Grid>
+                        <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                        <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" c:CompressedImageControl.TopicName="/camera2_stream/republished/image_raw/compressed" x:FieldModifier="public" x:Name="camImage2"></c:CompressedImageControl>
+                        <Canvas Name="camRect2" />
+                    </Grid>
+                </TabItem>
+                <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
+                    <Grid>
+                        <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                        <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove" c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed" x:FieldModifier="public" x:Name="camImage3"></c:CompressedImageControl>
+                        <Canvas Name="camRect3" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="500" Height="250" Canvas.Left="220" Canvas.Top="478" />
+            <TabControl Background="WhiteSmoke" Height="284" Name="SubCameraTabControl" Width="458" SelectionChanged="SubCameraTabControl_SelectionChanged" Canvas.Left="737" Canvas.Top="466">
+                <TabItem Background="Gold" Header="Main Camera 1" Name="SubCamera1">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave0"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Red" Header="Rear Camera" Name="SubCamera2">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave1"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave2"></c:SlaveImage>
+                </TabItem>
+                <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
+                    <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3"></c:SlaveImage>
+                </TabItem>
+            </TabControl>
+            <Grid Height="300" Width="100" Background="White" Canvas.Left="1219" Canvas.Top="49">
+                <Label Content="Tilt" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center" />
+                <Slider Orientation="Vertical" Minimum="-36000" Maximum="36000" TickFrequency="3600" IsSnapToTickEnabled="True" Name="Tilt_Slider" HorizontalAlignment="Center" VerticalAlignment="Center" Value="0" Height="250" ValueChanged="Tilt_Slider_ValueChanged" />
+                <Label FontSize="16" Content="0" Name="Tilt_Lvl" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+            </Grid>
+            <!--<TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />-->
+        </Canvas>
+        <!-- BEGIN sub camera windows -->
+    </Grid>
+</Window>

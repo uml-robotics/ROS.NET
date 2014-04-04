@@ -33,8 +33,7 @@ namespace RosoutDebugUC
     public partial class RosoutDebug : UserControl
     {
 
-        ObservableCollection<rosoutString> rosoutdata;
-        NodeHandle node;
+        ObservableCollection<rosoutString> rosoutdata = new ObservableCollection<rosoutString>();
         Subscriber<Messages.rosgraph_msgs.Log> sub;
 
         public RosoutDebug()
@@ -48,25 +47,18 @@ namespace RosoutDebugUC
             if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
 
-            rosoutdata = new ObservableCollection<rosoutString>();
             abraCadabra.ItemsSource = rosoutdata;
+        }
 
-            
-
-            new Thread(() =>
-            {
-                while (!ROS.isStarted())
-                    Thread.Sleep(200);
-                node = new NodeHandle();
-                sub = node.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 1000, callback);
-            }).Start();
-
+        public void startListening(NodeHandle nh)
+        {
+            sub = nh.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 100, callback);
         }
 
         private void callback(Messages.rosgraph_msgs.Log msg)
         {
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.Invoke(new Action(() =>
             {
                 if (abraCadabra.Visibility != System.Windows.Visibility.Visible)
                     abraCadabra.Visibility = System.Windows.Visibility.Visible;                
@@ -75,17 +67,12 @@ namespace RosoutDebugUC
                 string msgdata = msg.msg.data + "\n";
                 string msgname = msg.name.data + "\n";
 
-                lock (rosoutdata)
-                {
-                    //slower than hell itself.  Should have used add().  Will regret it in the morning.
-                    rosoutString rss = new rosoutString(timestamp, level, msgdata, msgname);
-                    //if (!(msgname == "/uirepublisher\n"))
-                    rosoutdata.Add(rss);
-                    abraCadabra.ScrollIntoView(rss);
+                rosoutString rss = new rosoutString(timestamp, level, msgdata, msgname);
+                rosoutdata.Add(rss);
+                abraCadabra.ScrollIntoView(rss);
 
-                    //To prevent the list from getting too big, this cuts off old 
-                    cleanList();
-                }
+                //To prevent the list from getting too big, this cuts off old 
+                cleanList();
             }));
 
         }
@@ -117,10 +104,8 @@ namespace RosoutDebugUC
         //prevents the list of growing too large. The hardcoded limit is set to 100 elements for the rosout display.
         public void cleanList()
         {
-
-            if (rosoutdata.Count > 200)
+            if (rosoutdata.Count > 30)
                 rosoutdata.RemoveAt(0);
-
         }
     }
 
