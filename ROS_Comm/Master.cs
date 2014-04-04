@@ -39,7 +39,7 @@ namespace Ros_CSharp
                 uri = (string) remapping_args["__master"];
                 ROS.ROS_MASTER_URI = uri;
             }
-            if (uri == "")
+            if (string.IsNullOrEmpty(uri))
                 uri = ROS.ROS_MASTER_URI;
             if (!network.splitURI(uri, ref host, ref port))
             {
