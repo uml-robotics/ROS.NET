@@ -90,7 +90,7 @@ namespace Ros_CSharp
                         names.Add(name);
                     }
                 }
-            }
+            } 
             nodes = names.ToArray();
             return true;
         }
@@ -106,7 +106,7 @@ namespace Ros_CSharp
         /// <returns></returns>
         public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
                                    bool wait_for_master)
-        {
+        {   
             try
             {
                 DateTime startTime = DateTime.Now;

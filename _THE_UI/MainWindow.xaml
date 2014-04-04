@@ -55,16 +55,16 @@
                     <Canvas Name="camRect2" />
                 </Grid>
             </TabItem>
-            <TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
+            <!--<TabItem Background="Blue" Header="Main Camera 4" Name="MainCamera4">
                 <Grid>
-                    <!--c:CompressedImageControl.TopicName="/camera3_stream/republished/image_raw/compressed"-->
+                
                     <c:CompressedImageControl MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" MouseMove="UserControl_MouseMove"
                     c:CompressedImageControl.TopicName="/camera3/image_raw/compressed"
                     x:FieldModifier="public" x:Name="camImage3">
                     </c:CompressedImageControl>
                     <Canvas Name="camRect3" />
                 </Grid>
-            </TabItem>
+            </TabItem>-->
         </TabControl>
         <!-- END main camera windows -->
         
@@ -73,7 +73,7 @@
             <uber:VerticalUberSlider Name="_trans" Height="236" Canvas.Left="1539" Canvas.Top="465" uber:VerticalUberSlider.Label="Linear    Max Vel" uber:VerticalUberSlider.Max="5.0" uber:VerticalUberSlider.Min="0.0" uber:VerticalUberSlider.Value="0.5" Width="48" />
             <uber:UberSlider Name="_rot" Width="232" Canvas.Left="1440" Canvas.Top="714" uber:UberSlider.Label="Angular Max Vel" uber:UberSlider.Max="6.28" uber:UberSlider.Min="0.0" uber:UberSlider.Value="0.5" />
             <EStopUC:UserControl1 Name="EStop" Visibility="Visible" Width="150" Height="150" Canvas.Left="1738" Canvas.Top="749" />
-            <BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />
+            <!--<BattVoltUC:BattVolt Name="battvolt" Visibility="Visible" Width="200" Height="125" Canvas.Left="1688" Canvas.Top="908" />-->
             <rock:RockCounter Name="rockCounter" Canvas.Left="1404" Canvas.Top="791" />
             <CameraSlidersUC:CSUC x:Name="MainCameraSlider" Visibility="Visible" Canvas.Left="36" Canvas.Top="384" Width="414" />
             <MotorGraph:MotorGraph Name="MotorGraph" Visibility="Visible" Canvas.Left="1551" Canvas.Top="109" Width="153" Height="311" />
@@ -113,9 +113,9 @@
                 <TabItem Background="Green" Header="Sub Camera 3" Name="SubCamera3">
                     <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave2"></c:SlaveImage>
                 </TabItem>
-                <TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
+                <!--<TabItem Background="Blue" Header="Sub Camera 4" Name="SubCamera4">
                     <c:SlaveImage x:FieldModifier="public" x:Name="camImageSlave3"></c:SlaveImage>
-                </TabItem>
+                </TabItem>-->
             </TabControl>
             <!--<ArmGaugeUC:ArmGauge Name="armGauge" Visibility="Visible" Width="160" Height="343" Canvas.Left="1698" Canvas.Top="70" />-->
             <!--<TiltSliderUC:TSUC x:Name="TiltSlider" Visibility="Visible" Canvas.Left="1421" Canvas.Top="201" Width="75" />-->
@@ -125,7 +125,7 @@
         <!-- END sub camera windows -->
 
         <!-- BEGIN user control interfaces -->
-        <RosoutDebugUC:RosoutDebug Visibility="Visible" Width="450" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+        <!--<RosoutDebugUC:RosoutDebug Visibility="Visible" Width="450" Height="250" HorizontalAlignment="Left" VerticalAlignment="Bottom" />-->
         <!-- END user control interfaces -->
     </Grid>
 </Window>

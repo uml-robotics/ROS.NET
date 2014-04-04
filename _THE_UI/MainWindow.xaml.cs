@@ -81,7 +81,7 @@ namespace WpfApplication1
         Stopwatch sw = new Stopwatch();
 
         // 
-        private DetectionHelper[] detectors;
+        //private DetectionHelper[] detectors;
 
         private bool _adr;
 
@@ -105,24 +105,24 @@ namespace WpfApplication1
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
+            controllerUpdater = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 33) };
             controllerUpdater.Tick += Link;
             controllerUpdater.Start();
 
-            new Thread(() =>
-            {
+            /*new Thread(() =>
+            {*/
                 // ROS stuff
                 ROS.ROS_MASTER_URI = "http://10.10.10.206:11311";
                 ROS.ROS_HOSTNAME = "10.10.10.219";
                 ROS.Init(new string[0], "The_UI_" + System.Environment.MachineName.Replace("-", "__"));
                 nh = new NodeHandle();
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    battvolt.startListening(nh);
+                /*Dispatcher.Invoke(new Action(() =>
+                {*/
+                    //battvolt.startListening(nh);
                     EStop.startListening(nh);
                     MotorGraph.startListening(nh);
                     
-                }));
+                //}));
                 velPub = nh.advertise<gm.Twist>("/cmd_vel", 1);
                 multiplexPub = nh.advertise<m.Byte>("/cam_select", 1);
                 armPub = nh.advertise<am.ArmMovement>("/arm/movement", 1);
@@ -131,35 +131,23 @@ namespace WpfApplication1
 
                 tilt_pub = new Publisher<m.Int32>[4];
 
-                recalPub0 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera0/recalibrate", 4);
-                recalPub1 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera1/recalibrate", 4);
-                recalPub2 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera2/recalibrate", 4);
-                recalPub3 = nh.advertise<Messages.rock_publisher.recalibrateMsg>("/camera3/recalibrate", 4);
-
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     tilt_pub[i] = nh.advertise<m.Int32>("camera" + i + "/tilt", 1);
                 }
 
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3, MainCamera4 };
-                    subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3, SubCamera4 };
-                    mainImages = new ROS_ImageWPF.CompressedImageControl[] { camImage0, camImage1, camImage2, camImage3 };
-                    subImages = new ROS_ImageWPF.SlaveImage[] { camImageSlave0, camImageSlave1, camImageSlave2, camImageSlave3 };
+                    mainCameras = new TabItem[] { MainCamera1, MainCamera2, MainCamera3 };
+                    subCameras = new TabItem[] { SubCamera1, SubCamera2, SubCamera3 };
+                    mainImages = new ROS_ImageWPF.CompressedImageControl[] { camImage0, camImage1, camImage2 };
+                    subImages = new ROS_ImageWPF.SlaveImage[] { camImageSlave0, camImageSlave1, camImageSlave2 };
                     for (int i = 0; i < mainCameras.Length; i++)
                     {
                         mainImages[i].AddSlave(subImages[i]);
                     }
                     subCameras[1].Focus();
                     adr(false);
-
-                    // instantiating some global helpers
-                    detectors = new DetectionHelper[4];
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        detectors[i] = new DetectionHelper(nh, i, this);
-                    }
                 }));
 
 #if !INSTANT_DETECTION_DEATH
@@ -175,7 +163,7 @@ namespace WpfApplication1
                     Thread.Sleep(100);
                 }
 #endif
-            }).Start();
+            //}).Start();
         }
 
         // close ros when application closes
@@ -421,10 +409,11 @@ namespace WpfApplication1
                         theMsg.img = camImage2.latestFrame;
                         recalPub2.publish(theMsg);
                         break;
-                    case 3:
+                    /*case 3:
                         theMsg.img = camImage3.latestFrame;
                         recalPub3.publish(theMsg);
-                        break;
+                        break;*/
+
                 }
                 //ROS.spinOnce(nh);
             }));
