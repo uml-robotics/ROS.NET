@@ -24,31 +24,31 @@ namespace SimplePublisher
     /// </summary>
     public partial class MainWindow : Window
     {
-        Publisher<Messages.std_msgs.String> pub;
+        Publisher<Messages.tf.tfMessage> pub;
         NodeHandle nh;
         public MainWindow()
         {
             InitializeComponent();
 
-            ROS.ROS_MASTER_URI = "http://10.0.2.226:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.226";
             ROS.Init(new string[0], "simplePublisher");
             nh = new NodeHandle();
 
-            pub = nh.advertise<Messages.std_msgs.String>("/my_topic", 1000, true);
+            pub = nh.advertise<Messages.tf.tfMessage>("/tf_test", 1000, true);
 
             new Thread(() =>
             {
                 int i = 0;
                 while (ROS.ok)
                 {
-                    Messages.std_msgs.String msg = new Messages.std_msgs.String();
-                    msg.data = "Hello: " + i++;
+                    Messages.tf.tfMessage msg = new Messages.tf.tfMessage();
+                    msg.transforms = new Messages.geometry_msgs.TransformStamped[1];
+                    msg.transforms[0] = new Messages.geometry_msgs.TransformStamped();
+                    msg.transforms[0].header.seq = (uint)i++;
                     pub.publish(msg);
                     Thread.Sleep(100);
                     Dispatcher.Invoke(new Action(() =>
                                {
-                                   l.Content = "Sending: " + msg.data;
+                                   l.Content = "Sending: " + msg.transforms[0].header.seq;
                                }));
                 }
             }).Start();

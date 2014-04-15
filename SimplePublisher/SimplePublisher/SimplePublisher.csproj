@@ -11,7 +11,8 @@
     <RootNamespace>SimplePublisher</RootNamespace>
     <AssemblyName>SimplePublisher</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -30,14 +31,14 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Messages">
-      <HintPath>..\..\Messages\bin\Debug\Messages.dll</HintPath>
+      <HintPath>..\..\Messages\Messages.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -52,9 +53,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="XmlRpc_Wrapper">
-      <HintPath>..\..\XmlRpc_Wrapper\bin\Debug\XmlRpc_Wrapper.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -92,6 +90,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -99,9 +98,13 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\EricIsAMAZING\ROS_C-Sharp.csproj">
+    <ProjectReference Include="..\..\ROS_Comm\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\XmlRpc_Wrapper\XmlRpc_Wrapper.csproj">
+      <Project>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</Project>
+      <Name>XmlRpc_Wrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
