@@ -690,6 +690,7 @@ namespace FauxMessages
                     type = MsgsFile.resolver[type];
                 }
                 Const = isconst;
+                bool wantsconstructor = false;
                 if (otherstuff.Contains("="))
                 {
                     string[] chunks = otherstuff.Split('=');
@@ -699,7 +700,11 @@ namespace FauxMessages
                         otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
                     }
                 }
-                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + ";";
+                else if (!type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    wantsconstructor = true;
+                }
+                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new "+type+"()" : "")+";";
             }
             else
             {
