@@ -133,6 +133,7 @@
     <Content Include="ROS_MESSAGES\baxter_core_msgs\EndpoingState.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="ROS_MESSAGES\InterfaceCommand.msg" />
     <None Include="ROS_MESSAGES\rock_publisher\imgData.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -163,6 +164,7 @@
     <None Include="ROS_MESSAGES\roscpp_tutorials\TwoInts.srv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ROS_MESSAGES\RunDescription.msg" />
     <None Include="ROS_MESSAGES\sample_acquisition\ArmMovement.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -200,6 +202,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ROS_MESSAGES\uvc_camera\camera_sliders.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="ROS_MESSAGES\trust_msgs\RunDescription.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="ROS_MESSAGES\trust_msgs\InterfaceCommand.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TemplateProject\PubSubTest._cs" />
