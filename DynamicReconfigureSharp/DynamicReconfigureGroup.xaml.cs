@@ -36,6 +36,11 @@ namespace DynamicReconfigureSharp
         private int _parent;
         private DynamicReconfigureInterface dynamic;
 
+        public DynamicReconfigureInterface ParameterInterface
+        {
+            get { return dynamic; }
+        }
+
         public int id
         {
             get { return _id; }
@@ -49,6 +54,36 @@ namespace DynamicReconfigureSharp
         public DynamicReconfigureGroup()
         {
             InitializeComponent();
+        }
+
+        public string[] GetCheckboxNames()
+        {
+            return checkboxes.Keys.ToArray();
+        }
+
+        public string[] GetDropdownNames()
+        {
+            return dropdowns.Keys.ToArray();
+        }
+
+        public string[] GetBoxNames()
+        {
+            return boxes.Keys.ToArray();
+        }
+
+        public string[] GetSliderNames()
+        {
+            return sliders.Keys.ToArray();
+        }
+
+        public string[] GetNames()
+        {
+            List<string> names = new List<string>();
+            names.AddRange(GetCheckboxNames());
+            names.AddRange(GetDropdownNames());
+            names.AddRange(GetBoxNames());
+            names.AddRange(GetSliderNames());
+            return names.ToArray();
         }
 
         private Dictionary<string, DynamicReconfigureCheckbox> checkboxes = new Dictionary<string, DynamicReconfigureCheckbox>();
