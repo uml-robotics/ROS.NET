@@ -186,7 +186,8 @@ namespace Ros_CSharp
         /// </summary>
         public static void FREAKOUT()
         {
-            throw new Exception("ROS IS FREAKING OUT!");
+            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName != "devenv")
+                throw new Exception("ROS IS FREAKING OUT!");
         }
 
         /// <summary>
