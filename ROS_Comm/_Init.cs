@@ -268,6 +268,31 @@ namespace Ros_CSharp
         }
 
         /// <summary>
+        ///     ROS_WARN(...)
+        /// </summary>
+        /// <param name="o"> ... </param>
+        [DebuggerStepThrough]
+        public static void Warn(object o)
+        {
+            Console.WriteLine("[Warn] " + o);
+            if (initialized && rosoutappender == null)
+                rosoutappender = new RosOutAppender();
+            if (initialized)
+                rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.WARN);
+        }
+
+        /// <summary>
+        ///     ROS_WARN(...) (formatted)
+        /// </summary>
+        /// <param name="format"> format string </param>
+        /// <param name="args"> ... </param>
+        [DebuggerStepThrough]
+        public static void Warn(string format, params object[] args)
+        {
+            Warn((object)string.Format(format, args));
+        }
+
+        /// <summary>
         ///     Initializes ROS so nodehandles and nodes can exist
         /// </summary>
         /// <param name="args"> argv - parsed for remapping args (AND PARAMS??) </param>
