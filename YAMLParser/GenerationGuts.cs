@@ -1,4 +1,4 @@
-﻿#region Using
+#region Using
 
 using System;
 using System.Collections;
@@ -47,7 +47,7 @@ namespace FauxMessages
             //Parse for the Namespace
             Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            
+
             //split up Namespace and put it back together without the last part, aka. classname
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -61,7 +61,7 @@ namespace FauxMessages
             Name = Name.TrimStart('.');
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
-           
+
             //def is the list of all lines in the file
             def = new List<string>(lines);
             int mid = 0;
@@ -70,6 +70,15 @@ namespace FauxMessages
             //Search through for the "---" separator between request and response
             for (; mid < lines.Length; mid++)
             {
+                lines[mid] = lines[mid].Replace("\"", "\\\"");
+                if (lines[mid].Contains('#'))
+                {
+                    lines[mid] = lines[mid].Substring(0, lines[mid].IndexOf('#'));
+                }
+                if (lines[mid].Trim().Length == 0)
+                {
+                    continue;
+                }
                 if (lines[mid].Contains("---"))
                 {
                     found = true;
@@ -118,7 +127,7 @@ namespace FauxMessages
                     if (lines[i].Contains("namespace"))
                     {
                         //requestfronthalf +=
-                          //  "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
+                        //  "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
                         requestfronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -136,12 +145,12 @@ namespace FauxMessages
                 }
             }
 
-            GUTS = requestfronthalf + Request.GetSrvHalf() + requestbackhalf + Response.GetSrvHalf() +"\n" +
+            GUTS = requestfronthalf + Request.GetSrvHalf() + requestbackhalf + Response.GetSrvHalf() + "\n" +
                    responsebackhalf;
             /***********************************/
             /*       CODE BLOCK DUMP           */
             /***********************************/
-            
+
             #region definitions
             for (int i = 0; i < def.Count; i++)
             {
@@ -153,12 +162,13 @@ namespace FauxMessages
                 while (def[i].Contains("  "))
                     def[i] = def[i].Replace("  ", " ");
                 def[i] = def[i].Replace(" = ", "=");
+                def[i] = def[i].Replace("\"", "\"\"");
             }
-            StringBuilder md=new StringBuilder();
+            StringBuilder md = new StringBuilder();
             StringBuilder reqd = new StringBuilder();
             StringBuilder resd = null;
-            foreach(string s in def)
-            {                
+            foreach (string s in def)
+            {
                 if (s == "---")
                 {
                     //only put this string in md, because the subclass defs don't contain it
@@ -186,15 +196,15 @@ namespace FauxMessages
             #region THE SERVICE
             GUTS = GUTS.Replace("$WHATAMI", classname);
             GUTS = GUTS.Replace("$MYSRVTYPE", "SrvTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
-            GUTS = GUTS.Replace("$MYSERVICEDEFINITION", "@\""+MessageDefinition+"\"");
-            #endregion            
+            GUTS = GUTS.Replace("$MYSERVICEDEFINITION", "@\"" + MessageDefinition + "\"");
+            #endregion
 
             #region request
             string RequestDict = Request.GenFields();
             meta = Request.meta;
             GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
             GUTS = GUTS.Replace("$REQUESTMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
-            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" +RequestDefinition +"\"");
+            GUTS = GUTS.Replace("$REQUESTMYMESSAGEDEFINITION", "@\"" + RequestDefinition + "\"");
             GUTS = GUTS.Replace("$REQUESTMYHASHEADER", Request.HasHeader.ToString().ToLower());
             GUTS = GUTS.Replace("$REQUESTMYFIELDS", RequestDict.Length > 5 ? "{{" + RequestDict + "}}" : "()");
             GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "");
@@ -210,7 +220,7 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEMYFIELDS", ResponseDict.Length > 5 ? "{{" + ResponseDict + "}}" : "()");
             GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
             GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
-            #endregion 
+            #endregion
             /********END BLOCK**********/
 
             return GUTS;
@@ -235,10 +245,10 @@ namespace FauxMessages
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
         public static Dictionary<string, string> resolver;
         public MsgsFile(string filename, bool isrequest, List<string> lines)
-        :this(filename, isrequest,lines,  "")
-        {}
+            : this(filename, isrequest, lines, "")
+        { }
 
-        public 
+        public
             MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
         {
             if (resolver == null) resolver = new Dictionary<string, string>();
@@ -265,6 +275,10 @@ namespace FauxMessages
             def = new List<string>();
             for (int i = 0; i < lines.Count; i++)
             {
+                if (lines[i].Trim().Length == 0)
+                {
+                    continue;
+                }
                 def.Add(lines[i]);
                 if (Name.ToLower() == "string")
                     lines[i].Replace("String", "string");
@@ -275,11 +289,11 @@ namespace FauxMessages
         }
 
         public MsgsFile(string filename)
-        :this(filename,"")
+            : this(filename, "")
         {
         }
-        
-        public MsgsFile(string filename, string extraindent )
+
+        public MsgsFile(string filename, string extraindent)
         {
             if (resolver == null) resolver = new Dictionary<string, string>();
             if (!filename.Contains(".msg"))
@@ -300,7 +314,7 @@ namespace FauxMessages
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
             if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
-                resolver.Add(classname, Namespace+"."+classname);
+                resolver.Add(classname, Namespace + "." + classname);
             List<string> lines = new List<string>(File.ReadAllLines(filename));
             lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
@@ -337,7 +351,7 @@ namespace FauxMessages
             {
                 memoizedcontent = "";
                 for (int i = 0; i < Stuff.Count; i++)
-                { 
+                {
                     SingleType thisthing = Stuff[i];
                     if (thisthing.Type == "Header")
                     {
@@ -489,37 +503,37 @@ namespace FauxMessages
                 for (int i = 0; i < Stuff.Count; i++)
                     GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
             }
-                GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
-                       (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
-                if (classname.ToLower() == "string")
-                {
-                    GUTS = GUTS.Replace("$NULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
-                    GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-                }
-                else if (classname == "Time" || classname == "Duration")
-                {
-                    GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
-                }
-                GUTS = GUTS.Replace("$WHATAMI", classname);
-                GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
-                GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
-                for (int i = 0; i < def.Count; i++)
-                {
-                    while (def[i].Contains("\t"))
-                        def[i] = def[i].Replace("\t", " ");
-                    while (def[i].Contains("\n\n"))
-                        def[i] = def[i].Replace("\n\n", "\n");
-                    def[i] = def[i].Replace('\t', ' ');
-                    while (def[i].Contains("  "))
-                        def[i] = def[i].Replace("  ", " ");
-                    def[i] = def[i].Replace(" = ", "=");
-                }
-                GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
-                GUTS = GUTS.Replace("$MYHASHEADER", HasHeader.ToString().ToLower());
-                GUTS = GUTS.Replace("$MYFIELDS", GeneratedDictHelper.Length > 5 ? "{{" + GeneratedDictHelper + "}}" : "()");
-                GUTS = GUTS.Replace("$NULLCONSTBODY", "");
-                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "");
-            
+            GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
+                   (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
+            if (classname.ToLower() == "string")
+            {
+                GUTS = GUTS.Replace("$NULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            else if (classname == "Time" || classname == "Duration")
+            {
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+            }
+            GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
+            GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
+            for (int i = 0; i < def.Count; i++)
+            {
+                while (def[i].Contains("\t"))
+                    def[i] = def[i].Replace("\t", " ");
+                while (def[i].Contains("\n\n"))
+                    def[i] = def[i].Replace("\n\n", "\n");
+                def[i] = def[i].Replace('\t', ' ');
+                while (def[i].Contains("  "))
+                    def[i] = def[i].Replace("  ", " ");
+                def[i] = def[i].Replace(" = ", "=");
+            }
+            GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
+            GUTS = GUTS.Replace("$MYHASHEADER", HasHeader.ToString().ToLower());
+            GUTS = GUTS.Replace("$MYFIELDS", GeneratedDictHelper.Length > 5 ? "{{" + GeneratedDictHelper + "}}" : "()");
+            GUTS = GUTS.Replace("$NULLCONSTBODY", "");
+            GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "");
+
             return GUTS;
         }
 
@@ -552,6 +566,7 @@ namespace FauxMessages
 
     public static class KnownStuff
     {
+        private static char[] spliter = new char[] { ' ' };
         public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
                                                                   {
                                                                       {"float64", "double"},
@@ -571,6 +586,31 @@ namespace FauxMessages
                                                                       {"string", "String"},
                                                                       {"duration", "Duration"}
                                                                   };
+
+        public static string GetConstTypesAffix(string type)
+        {
+            switch (type.ToLower())
+            {
+                case "decimal": 
+                    return "m"; 
+                    break;
+                case "single":
+                case "float":
+                    return "f";
+                    break;
+                case "long":
+                    return "l";
+                    break;
+                case "ulong":
+                    return "ul";
+                    break;
+                case "uint":
+                    return "ui";
+                    break;
+                default:
+                    return "";
+            }
+        }
 
         public static SingleType WhatItIs(string s, string extraindent)
         {
@@ -592,7 +632,7 @@ namespace FauxMessages
                     return t.Finalize(test);
                 }
             }
-            return t.Finalize(t.input.Split(' '), false);
+            return t.Finalize(t.input.Split(spliter, StringSplitOptions.RemoveEmptyEntries), false);
         }
     }
 
@@ -613,8 +653,8 @@ namespace FauxMessages
         public string lowestindent = "\t\t";
 
         public SingleType(string s)
-        :this( s,  "")
-        {}
+            : this(s, "")
+        { }
 
         public SingleType(string s, string extraindent)
         {
@@ -675,7 +715,7 @@ namespace FauxMessages
                     otherstuff = otherstuff.Replace("\\", "\\\\");
                     otherstuff = otherstuff.Replace("\"", "\\\"");
                     string[] split = otherstuff.Split('=');
-                    otherstuff = split[0] + " = "+split[1].Trim() + "";
+                    otherstuff = split[0] + " = " + split[1].Trim() + "";
                 }
                 if (otherstuff.Contains('=') && type == "bool")
                 {
@@ -704,7 +744,7 @@ namespace FauxMessages
                 {
                     wantsconstructor = true;
                 }
-                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new "+type+"()" : "")+";";
+                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new " + type + "()" : KnownStuff.GetConstTypesAffix(type)) + ";";
             }
             else
             {
@@ -724,6 +764,10 @@ namespace FauxMessages
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
             Name = name.Length == 0 ? otherstuff.Trim() : name;
+            if (Name.Contains('='))
+            {
+                Name = Name.Substring(0, Name.IndexOf("=")).Trim();
+            }
             return this;
         }
 
@@ -779,7 +823,7 @@ namespace FauxMessages
                 {
                     wantsconstructor = true;
                 }
-                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new "+type+"()" : "")+ ";";
+                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new " + type + "()" : KnownStuff.GetConstTypesAffix(type)) + ";";
             }
             else
             {
@@ -813,10 +857,10 @@ namespace FauxMessages
                  ("typeof(" + members.Type + ")"),
                  members.Const.ToString().ToLower(),
                  members.ConstValue.TrimStart('"').TrimEnd('"'),
-                 //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),
+                //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),
                  members.IsArray.ToString().ToLower(),
                  members.length,
-                 //FIX MEEEEEEEE
+                //FIX MEEEEEEEE
                  members.meta.ToString().ToLower());
         }
     }
