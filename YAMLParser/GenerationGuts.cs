@@ -222,7 +222,6 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
             #endregion
             /********END BLOCK**********/
-
             return GUTS;
         }
     }
@@ -591,8 +590,8 @@ namespace FauxMessages
         {
             switch (type.ToLower())
             {
-                case "decimal": 
-                    return "m"; 
+                case "decimal":
+                    return "m";
                     break;
                 case "single":
                 case "float":
@@ -708,6 +707,10 @@ namespace FauxMessages
             for (int i = 2; i < s.Length; i++)
                 otherstuff += " " + s[i];
             if (otherstuff.Contains('=')) isconst = true;
+            if (MsgsFile.resolver.Keys.Contains(type))
+            {
+                type = MsgsFile.resolver[type];
+            }
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
@@ -724,10 +727,6 @@ namespace FauxMessages
                 if (otherstuff.Contains('=') && type == "byte")
                 {
                     otherstuff = otherstuff.Replace("-1", "255");
-                }
-                if (MsgsFile.resolver.Keys.Contains(type))
-                {
-                    type = MsgsFile.resolver[type];
                 }
                 Const = isconst;
                 bool wantsconstructor = false;
@@ -787,6 +786,10 @@ namespace FauxMessages
             for (int i = 2; i < backup.Length; i++)
                 otherstuff += " " + backup[i];
             if (otherstuff.Contains('=')) isconst = true;
+            if (MsgsFile.resolver.Keys.Contains(type))
+            {
+                type = MsgsFile.resolver[type];
+            }
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
@@ -803,10 +806,6 @@ namespace FauxMessages
                 if (otherstuff.Contains('=') && type == "byte")
                 {
                     otherstuff = otherstuff.Replace("-1", "255");
-                }
-                if (MsgsFile.resolver.Keys.Contains(type))
-                {
-                    type = MsgsFile.resolver[type];
                 }
                 Const = isconst;
                 bool wantsconstructor = false;
