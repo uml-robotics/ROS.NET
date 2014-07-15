@@ -8,14 +8,14 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 03/04/2013
-// Updated: 07/26/2013
+// Updated: 15/07/2014
 
 namespace Ros_CSharp
 {
     public class TopicInfo
     {
-        public string data_type;
-        public string name;
+        public string data_type { get; set; }
+        public string name { get; set; }
 
         public TopicInfo(string name, string data_type)
         {
