@@ -16,7 +16,7 @@ namespace Ros_CSharp
             {
                 if (args[i].Contains(":="))
                 {
-                    string[] chunks = args[i].Split(':');
+                    string[] chunks = args[i].Split(new Char[]{':'},2); // Handles master URIs with semi-columns such as http://IP
                     chunks[1] = chunks[1].TrimStart('=').Trim();
                     chunks[0] = chunks[0].Trim();
                     remapping.Add(chunks[0], chunks[1]);
