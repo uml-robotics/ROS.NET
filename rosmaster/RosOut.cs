@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using Messages.rosgraph_msgs;
 using Ros_CSharp;
 using XmlRpc_Wrapper;
 using Messages;
@@ -26,8 +26,6 @@ namespace rosmaster
 
         public static void start()
         {
-            ROS.ROS_MASTER_URI = "http://10.0.2.226:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.226";
             ROS.Init(new string[0], "rosout");
 
             nh = new NodeHandle();
@@ -47,10 +45,28 @@ namespace rosmaster
 
         public static void rosoutCallback(Messages.rosgraph_msgs.Log msg)
         {
-
+            string pfx = "[?]";
+            switch (msg.level)
+            {
+                case Log.DEBUG:
+                    pfx = "[DEBUG]";
+                    break;
+                case Log.ERROR:
+                    pfx = "[ERROR]";
+                    break;
+                case Log.FATAL:
+                    pfx = "[FATAL]";
+                    break;
+                case Log.INFO:
+                    pfx = "[INFO]";
+                    break;
+                case Log.WARN:
+                    pfx = "[WARN]";
+                    break;
+            }
+            TimeData td = ROS.GetTime().data;
+            Console.WriteLine("["+td.sec+"."+td.nsec+"]: "+pfx+": "+msg.msg+" ("+msg.file+" ("+msg.function+" @"+msg.line+"))");
+            pub.publish(msg);
         }
-
-
-
     }
 }
