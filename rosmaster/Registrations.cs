@@ -157,9 +157,8 @@ namespace rosmaster
                     providers.Add(tmplist); //CHANGEING ID || API FOR EXISTING TOPIC? IF SOMETHING BREAKS, THIS IS IT
                 }
             }
-            else
+            else if (service_api == null)
             {
-
                  map[key] = providers = new List<List<String>>();
                  map[key].Add(tmplist);
                  //map.Add(key,providers.First());
@@ -167,6 +166,7 @@ namespace rosmaster
 
             if(service_api != null)
             {
+                tmplist[1] = service_api;
                 if (service_api_map == null)
                 {
                     service_api_map = new Dictionary<string,List<String>>();
@@ -194,7 +194,7 @@ namespace rosmaster
                 }
                 List<String> tmplist = new List<string>();
                 tmplist.Add(caller_id);
-                tmplist.Add(caller_api);
+                tmplist.Add(service_api);
                 if (service_api_map[key] != tmplist)
                 {
                     msg = String.Format("[{0}] is no longer the current service api handle for [{1}]", service_api, key);

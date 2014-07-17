@@ -17,7 +17,6 @@ namespace rosmaster
     {
         private int _port=-1;
         private string _host="";
-        private XmlRpcManager master_node;
         private Master_API.ROSMasterHandler handler;
 
         public Master()
@@ -46,12 +45,10 @@ namespace rosmaster
             Console.WriteLine("Creating XmlRpc server");
             
             handler = new Master_API.ROSMasterHandler();
-            
-            master_node = new XmlRpcManager();
 
             bindings();
             
-            master_node.Start(_port);
+            XmlRpcManager.Instance.Start(_port);
             //Process proc = Process.GetCurrentProcess();
 
             //handler.setParam("master", "/run_id", new XmlRpcValue());
@@ -64,51 +61,44 @@ namespace rosmaster
 
         public void stop()
         {
-            if (master_node != null)
-            {
-                //master_node.shutdown();
-                master_node = null;
-            }
+            XmlRpcManager.Instance.Dispose();
         }
 
         public bool ok()
         {
-            if (master_node != null)
-                return true;
-            else 
-                return false;
+            return ! XmlRpcManager.Instance.shutting_down;
         }
 
 
         public void bindings()
         {
-            master_node.bind("registerPublisher", tobind(new Func< String,String,String,String, XmlRpcValue>(registerPublisher)));
-            master_node.bind("unregisterPublisher", tobind(new Func<String, String, String, XmlRpcValue>(unregisterPublisher)));
-            master_node.bind("registerSubscriber", tobind(new Func<String, String, String, String, XmlRpcValue>(registerSubscriber)));
-            master_node.bind("unregisterSubscriber", tobind(new Func<String, String, String, XmlRpcValue>(unregisterSubscriber)));
-            master_node.bind("getPublications", tobind(new Func<XmlRpcValue>(getPublications)));
-            master_node.bind("getSubscriptions", getSubscriptions);
-            master_node.bind("getPublishedTopics", tobind(new Func<XmlRpcValue>(getPublishedTopics)));
-            master_node.bind("publisherUpdate", pubUpdate);
-            master_node.bind("requestTopic", requestTopic);
-            master_node.bind("getTopicTypes", tobind(new Func<String, String, XmlRpcValue>(getTopicTypes)));
-            master_node.bind("getSystemState", tobind(new Func<XmlRpcValue>(getSystemState)));
+            XmlRpcManager.Instance.bind("registerPublisher", tobind(new Func< String,String,String,String, XmlRpcValue>(registerPublisher)));
+            XmlRpcManager.Instance.bind("unregisterPublisher", tobind(new Func<String, String, String, XmlRpcValue>(unregisterPublisher)));
+            XmlRpcManager.Instance.bind("registerSubscriber", tobind(new Func<String, String, String, String, XmlRpcValue>(registerSubscriber)));
+            XmlRpcManager.Instance.bind("unregisterSubscriber", tobind(new Func<String, String, String, XmlRpcValue>(unregisterSubscriber)));
+            XmlRpcManager.Instance.bind("getPublications", tobind(new Func<XmlRpcValue>(getPublications)));
+            XmlRpcManager.Instance.bind("getSubscriptions", getSubscriptions);
+            XmlRpcManager.Instance.bind("getPublishedTopics", tobind(new Func<XmlRpcValue>(getPublishedTopics)));
+            XmlRpcManager.Instance.bind("publisherUpdate", pubUpdate);
+            XmlRpcManager.Instance.bind("requestTopic", requestTopic);
+            XmlRpcManager.Instance.bind("getTopicTypes", tobind(new Func<String, String, XmlRpcValue>(getTopicTypes)));
+            XmlRpcManager.Instance.bind("getSystemState", tobind(new Func<XmlRpcValue>(getSystemState)));
             //master_node.
 
-            master_node.bind("lookupService", tobind(new Func<String, String, XmlRpcValue>(lookupService)));
-            master_node.bind("unregisterService", tobind(new Func<String, String, String, XmlRpcValue>(unregisterService)));
-            master_node.bind("registerService", tobind(new Func<String, String, String, String, XmlRpcValue>(registerService)));
+            XmlRpcManager.Instance.bind("lookupService", tobind(new Func<String, String, XmlRpcValue>(lookupService)));
+            XmlRpcManager.Instance.bind("unregisterService", tobind(new Func<String, String, String, XmlRpcValue>(unregisterService)));
+            XmlRpcManager.Instance.bind("registerService", tobind(new Func<String, String, String, String, XmlRpcValue>(registerService)));
 
 
-            master_node.bind("hasParam", tobind(new Func<String, String, XmlRpcValue>(hasParam)));
-            master_node.bind("setParam", tobind(new Func<String, String,XmlRpcValue, XmlRpcValue>(setParam)));
-            master_node.bind("getParam", tobind(new Func<String, String, XmlRpcValue>(getParam)));
+            XmlRpcManager.Instance.bind("hasParam", tobind(new Func<String, String, XmlRpcValue>(hasParam)));
+            XmlRpcManager.Instance.bind("setParam", tobind(new Func<String, String, XmlRpcValue, XmlRpcValue>(setParam)));
+            XmlRpcManager.Instance.bind("getParam", tobind(new Func<String, String, XmlRpcValue>(getParam)));
            // master_node.bind("deleteParam", tobind(new Func<XmlRpcValue>(deleteParam)));
-            master_node.bind("paramUpdate", paramUpdate);
+            XmlRpcManager.Instance.bind("paramUpdate", paramUpdate);
             //master_node.bind("subscribeParam", tobind(new Func<String, String, String, String, XmlRpcValue>(subscribeParam)));
-            master_node.bind("getParamNames", tobind(new Func<String, XmlRpcValue>(getParamNames)));
+            XmlRpcManager.Instance.bind("getParamNames", tobind(new Func<String, XmlRpcValue>(getParamNames)));
 
-            master_node.bind("lookupNode", tobind(new Func<String, String, XmlRpcValue>(lookupNode)));
+            XmlRpcManager.Instance.bind("lookupNode", tobind(new Func<String, String, XmlRpcValue>(lookupNode)));
             //master_node.bind("getBusStats", tobind(new Func<String, String, String, String, XmlRpcValue>(getBusStats)));
             //master_node.bind("getBusInfo", tobind(new Func<String, String, String, String, XmlRpcValue>(getBusInfo)));
 
@@ -221,7 +211,8 @@ namespace rosmaster
 
             res.Set(0, r.statusCode);
             res.Set(1, r.statusMessage);
-            res.Set(2, r.value);
+            if (r.value != null)
+                res.Set(2, r.value);
             return res;
         }
 

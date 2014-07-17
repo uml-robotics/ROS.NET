@@ -57,7 +57,6 @@ namespace rosmaster
             Master master = new Master();
             master.start();
 
-
             while (master.ok())
             {
                 Thread.Sleep(10);
