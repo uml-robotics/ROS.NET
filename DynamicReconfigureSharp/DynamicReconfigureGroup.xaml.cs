@@ -86,6 +86,13 @@ namespace DynamicReconfigureSharp
             return names.ToArray();
         }
 
+        public event Action<string, bool> BoolChanged;
+        public event Action<string, string> StringChanged;
+        public event Action<string, int> IntChanged;
+        public event Action<string, double> DoubleChanged;
+
+
+
         private Dictionary<string, DynamicReconfigureCheckbox> checkboxes = new Dictionary<string, DynamicReconfigureCheckbox>();
         private Dictionary<string, DynamicReconfigureStringDropdown> dropdowns = new Dictionary<string, DynamicReconfigureStringDropdown>();
         private Dictionary<string, DynamicReconfigureStringBox> boxes = new Dictionary<string, DynamicReconfigureStringBox>();
@@ -132,6 +139,7 @@ namespace DynamicReconfigureSharp
             {
                 foreach (ParamDescription s in g.parameters)
                 {
+                    string _name = s.name.data;
                     switch (TYPE_DICT[s.type.data])
                     {
                         case DYN_RECFG_TYPE.type_bool:
@@ -144,12 +152,22 @@ namespace DynamicReconfigureSharp
                                 var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
                                 paramsHolder.Children.Add(d);
                                 dropdowns.Add(s.name.data, d);
+                                d.Instrument(new Action<int>((S) =>
+                                {
+                                    if (IntChanged != null) 
+                                        IntChanged(_name, S);
+                                }));
                             }
                             else
                             {
                                 var d = new DynamicReconfigureCheckbox(dynamic, s, pdef.value);
                                 paramsHolder.Children.Add(d);
                                 checkboxes.Add(s.name.data, d);
+                                d.Instrument(new Action<bool>((S) =>
+                                {
+                                    if (BoolChanged != null) 
+                                        BoolChanged(_name, S);
+                                }));
                             }
                         }
                             break;
@@ -163,12 +181,22 @@ namespace DynamicReconfigureSharp
                                 var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
                                 paramsHolder.Children.Add(d);
                                 dropdowns.Add(s.name.data, d);
+                                d.Instrument(new Action<int>((S) =>
+                                {
+                                    if (IntChanged != null) 
+                                        IntChanged(_name, S);
+                                }));
                             }
                             else
                             {
                                 var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, true);
                                 paramsHolder.Children.Add(d);
                                 sliders.Add(s.name.data, d);
+                                d.Instrument(new Action<double>((S) =>
+                                {
+                                    if (DoubleChanged != null) 
+                                        DoubleChanged(_name, S);
+                                }));
                             }
                         }
                             break;
@@ -182,12 +210,22 @@ namespace DynamicReconfigureSharp
                                 var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
                                 paramsHolder.Children.Add(d);
                                 dropdowns.Add(s.name.data, d);
+                                d.Instrument(new Action<int>((S) =>
+                                {
+                                    if (IntChanged != null) 
+                                        IntChanged(_name, S);
+                                }));
                             }
                             else
                             {
                                 var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, false);
                                 paramsHolder.Children.Add(d);
                                 sliders.Add(s.name.data, d);
+                                d.Instrument(new Action<double>((S) =>
+                                {
+                                    if (DoubleChanged != null) 
+                                        DoubleChanged(_name, S);
+                                }));
                             }
                         }
                             break;
@@ -201,12 +239,22 @@ namespace DynamicReconfigureSharp
                                 var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value.data, pmax.value.data, pmin.value.data, s.edit_method.data);
                                 paramsHolder.Children.Add(d);
                                 dropdowns.Add(s.name.data, d);
+                                d.Instrument(new Action<int>((S) =>
+                                {
+                                    if (IntChanged != null) 
+                                        IntChanged(_name, S);
+                                }));
                             }
                             else
                             {
                                 var d = new DynamicReconfigureStringBox(dynamic, s, pdef.value.data);
                                 paramsHolder.Children.Add(d);
                                 boxes.Add(s.name.data, d);
+                                d.Instrument(new Action<string>((S) =>
+                                {
+                                    if (StringChanged != null) 
+                                        StringChanged(_name, S);
+                                }));
                             }
                         }
                             break;
