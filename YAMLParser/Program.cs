@@ -1,17 +1,17 @@
 ﻿//#define NO_SRVS_RIGHT_NOW
 //#define SINGLE_PASS
 //#define NOT_ON_TOP_OF_ITSELF
-#region Using
+
+#region USINGZ
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using FauxMessages;
 
-#endregion 
+#endregion
 
 namespace YAMLParser
 {
@@ -117,7 +117,7 @@ namespace YAMLParser
                     Console.WriteLine("\t" + path.Replace(".\\", ""));
                     msgsFiles.Add(new MsgsFile(path));
                 }
-            }            
+            }
 #if !NO_SRVS_RIGHT_NOW
             if (pathssrv.Count > 0)
             {
@@ -169,25 +169,44 @@ namespace YAMLParser
                         File.Delete(s);
                         Thread.Sleep(100);
                     }
-                    catch (Exception e) { Console.WriteLine(e); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 foreach (string s in Directory.GetDirectories(outputdir))
                     if (s != "Properties")
-                        try { Directory.Delete(s, true); }
-                        catch (Exception e) { Console.WriteLine(e); }
+                        try
+                        {
+                            Directory.Delete(s, true);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
             }
             if (!Directory.Exists(outputdir_firstpass)) Directory.CreateDirectory(outputdir_firstpass);
             else
             {
-                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs")) try
+                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs"))
+                    try
                     {
                         File.Delete(s);
                         Thread.Sleep(100);
                     }
-                        catch (Exception e) { Console.WriteLine(e); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 foreach (string s in Directory.GetDirectories(outputdir_firstpass))
                     if (s != "Properties")
-                        try { Directory.Delete(s, true); }
-                        catch (Exception e) { Console.WriteLine(e); }
+                        try
+                        {
+                            Directory.Delete(s, true);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
             }
         }
 
@@ -196,7 +215,7 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
-                #if !!NOT_ON_TOP_OF_ITSELF
+#if !!NOT_ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
 #endif
                 Thread.Sleep(10);
@@ -204,28 +223,28 @@ namespace YAMLParser
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
-                #if !!NOT_ON_TOP_OF_ITSELF
+#if !!NOT_ON_TOP_OF_ITSELF
                 file.Write(outputdir_firstpass);
 #endif
                 Thread.Sleep(10);
             }
-            #if !!NOT_ON_TOP_OF_ITSELF
+#if !!NOT_ON_TOP_OF_ITSELF
             File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString().Replace("FauxMessages",""));
 #endif
-            File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages","Messages"));
+            File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages", "Messages"));
             Thread.Sleep(100);
         }
 
         public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
         {
-            if (!Directory.Exists((istemp?outputdir_firstpass:outputdir) + "\\Properties"))
+            if (!Directory.Exists((istemp ? outputdir_firstpass : outputdir) + "\\Properties"))
                 Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
-                Thread.Sleep(10);
+            Thread.Sleep(10);
             string[] l = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs");
             Thread.Sleep(10);
-            File.WriteAllLines((istemp?outputdir_firstpass:outputdir) + "\\Properties\\AssemblyInfo.cs",l);
+            File.WriteAllLines((istemp ? outputdir_firstpass : outputdir) + "\\Properties\\AssemblyInfo.cs", l);
             Thread.Sleep(100);
-            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\" +(istemp ? name_firstpass : name) + "._csproj");
+            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\" + (istemp ? name_firstpass : name) + "._csproj");
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -247,19 +266,20 @@ namespace YAMLParser
             }
             File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
             File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
-            File.WriteAllText((istemp ? (outputdir_firstpass + "\\"+(istemp?name_firstpass:name)+".csproj") : (outputdir+"\\"+(istemp?name_firstpass:name)+".csproj")), output);
+            File.WriteAllText((istemp ? (outputdir_firstpass + "\\" + (istemp ? name_firstpass : name) + ".csproj") : (outputdir + "\\" + (istemp ? name_firstpass : name) + ".csproj")), output);
             Thread.Sleep(100);
         }
 
         private static string __where_be_at_my_vc____is;
+
         public static string VCDir
         {
             get
             {
                 if (__where_be_at_my_vc____is != null) return __where_be_at_my_vc____is;
-                foreach (string possibledir in new string[] { "\\Microsoft.NET\\Framework64\\", "\\Microsoft.NET\\Framework" })
+                foreach (string possibledir in new[] {"\\Microsoft.NET\\Framework64\\", "\\Microsoft.NET\\Framework"})
                 {
-                    foreach (string possibleversion in new string[] { "v3.5", "v4.0" })
+                    foreach (string possibleversion in new[] {"v3.5", "v4.0"})
                     {
                         if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir)) continue;
                         foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\.." + possibledir))
@@ -269,10 +289,10 @@ namespace YAMLParser
                             if (tmp[tmp.Length - 1].Contains(possibleversion))
                             {
                                 __where_be_at_my_vc____is = dir;
-                                return __where_be_at_my_vc____is;                            
+                                return __where_be_at_my_vc____is;
                             }
                         }
-                    }             
+                    }
                 }
                 return __where_be_at_my_vc____is;
             }
@@ -282,16 +302,17 @@ namespace YAMLParser
         {
             BuildProject("BUILDING GENERATED PROJECT WITH MSBUILD!");
         }
+
         public static void BuildProject(string spam)
-        {   
+        {
             string F = VCDir + "\\msbuild.exe";
             if (!File.Exists(F))
             {
-                Exception up = new Exception("ALL OVER YOUR FACE\n"+F);
+                Exception up = new Exception("ALL OVER YOUR FACE\n" + F);
                 throw up;
             }
-            Console.WriteLine("\n\n"+spam);
-            string args = "/nologo \"" +outputdir_firstpass+"\\"+name_firstpass+".csproj\"";
+            Console.WriteLine("\n\n" + spam);
+            string args = "/nologo \"" + outputdir_firstpass + "\\" + name_firstpass + ".csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
@@ -319,7 +340,7 @@ namespace YAMLParser
         }
 
         public static void Finalize()
-        {            
+        {
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING A PROJECT THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
@@ -333,7 +354,7 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            string output2="", error2="";
+            string output2 = "", error2 = "";
 #if !SINGLE_PASS
             if (File.Exists(outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe"))
             {
@@ -349,7 +370,7 @@ namespace YAMLParser
                 proc2.Start();
                 output2 = proc2.StandardOutput.ReadToEnd();
                 error2 = proc2.StandardError.ReadToEnd();
-                BuildProject("REBUILDING THE REFINED GENERATED CODE!");                
+                BuildProject("REBUILDING THE REFINED GENERATED CODE!");
             }
             else
             {
@@ -364,7 +385,7 @@ namespace YAMLParser
             if (error2.Length > 0)
                 Console.WriteLine(error2);
             Console.WriteLine("DO SOMETHING HERE TO CHANGE THE FILES IN: outputdir\\Messages.csproj !!!!");
-            proc = new Process { StartInfo = { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true, FileName = F, Arguments = "/nologo \"" + outputdir + "\\Messages.csproj\"" } };
+            proc = new Process {StartInfo = {RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true, FileName = F, Arguments = "/nologo \"" + outputdir + "\\Messages.csproj\""}};
             proc.Start();
             string output3 = proc.StandardOutput.ReadToEnd();
             string error3 = proc.StandardError.ReadToEnd();
@@ -377,6 +398,7 @@ namespace YAMLParser
         }
 
         private static string uberpwnage;
+
         public new static string ToString()
         {
             if (uberpwnage == null)
@@ -387,7 +409,7 @@ namespace YAMLParser
                     backhalf = "\n}";
                 }
 
-                List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);                
+                List<MsgsFile> everything = new List<MsgsFile>(msgsFiles);
                 foreach (SrvsFile sf in srvFiles)
                 {
                     everything.Add(sf.Request);
@@ -403,11 +425,11 @@ namespace YAMLParser
                     {
                         if (everything[i].classname == "Request")
                         {
-                            srvs += "\n\t\t"+everything[i].Name.Replace(".","__") + ",";
+                            srvs += "\n\t\t" + everything[i].Name.Replace(".", "__") + ",";
                         }
                         everything[i].Name += "." + everything[i].classname;
-                    }                    
-                    fronthalf += everything[i].Name.Replace(".", "__");                    
+                    }
+                    fronthalf += everything[i].Name.Replace(".", "__");
                     if (i < everything.Count - 1)
                         fronthalf += ",";
                 }
@@ -421,13 +443,13 @@ namespace YAMLParser
         }
 
         public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
-             Func<int, string> genKey)
+            Func<int, string> genKey)
         {
-             GenDict(dictname,keytype,valuetype,ref appendto,start, end, genKey, null, null);
+            GenDict(dictname, keytype, valuetype, ref appendto, start, end, genKey, null, null);
         }
 
         public static void GenDict(string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
-                  Func<int, string> genKey, Func<int, string> genVal)
+            Func<int, string> genKey, Func<int, string> genVal)
         {
             GenDict(dictname, keytype, valuetype, ref appendto, start, end, genKey, genVal, null);
         }
@@ -435,11 +457,11 @@ namespace YAMLParser
 
         public static void GenDict
             (string dictname, string keytype, string valuetype, ref string appendto, int start, int end,
-             Func<int, string> genKey, Func<int, string> genVal, string DEFAULT)
+                Func<int, string> genKey, Func<int, string> genVal, string DEFAULT)
         {
             appendto +=
                 string.Format("\n\t\tpublic static Dictionary<{1}, {2}> {0} = new Dictionary<{1}, {2}>()\n\t\t{{",
-                              dictname, keytype, valuetype);
+                    dictname, keytype, valuetype);
             if (DEFAULT != null)
                 appendto += "\n\t\t\t{" + DEFAULT + ",\n";
             for (int i = start; i < end; i++)

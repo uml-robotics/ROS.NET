@@ -1,15 +1,13 @@
-#region Using
+#region USINGZ
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using YAMLParser;
 
 #endregion
 
@@ -22,30 +20,30 @@ namespace FauxMessages
         public bool HasHeader;
         public string Name;
         public string Namespace = "Messages";
+        public MsgsFile Request, Response;
         public List<SingleType> Stuff = new List<SingleType>();
-        public string requestbackhalf;
-        public string responsebackhalf;
         public string backhalf;
         public string classname;
         private List<string> def = new List<string>();
         public string dimensions = "";
-        public string requestfronthalf;
-        public string resposonebackhalf;
         public string fronthalf;
         private string memoizedcontent;
         private bool meta;
-        public MsgsFile Request, Response;
+        public string requestbackhalf;
+        public string requestfronthalf;
+        public string responsebackhalf;
+        public string resposonebackhalf;
 
         public SrvsFile(string filename)
         {
             //read in srv file
             string[] lines = File.ReadAllLines(filename);
 
-            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "").Split('\\');
+            string[] sp = filename.Replace(Program.inputdir, "").Replace(".srv", "").Split('\\');
             //Parse The file name to get the classname;
             classname = sp[sp.Length - 1];
             //Parse for the Namespace
-            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".srv", "");
+            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".srv", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
 
             //split up Namespace and put it back together without the last part, aka. classname
@@ -140,9 +138,15 @@ namespace FauxMessages
                     }
                     switch (section)
                     {
-                        case 0: requestfronthalf += lines[i] + "\n"; break;
-                        case 1: requestbackhalf += lines[i] + "\n"; break;
-                        case 2: responsebackhalf += lines[i] + "\n"; break;
+                        case 0:
+                            requestfronthalf += lines[i] + "\n";
+                            break;
+                        case 1:
+                            requestbackhalf += lines[i] + "\n";
+                            break;
+                        case 2:
+                            responsebackhalf += lines[i] + "\n";
+                            break;
                     }
                 }
             }
@@ -154,6 +158,7 @@ namespace FauxMessages
             /***********************************/
 
             #region definitions
+
             for (int i = 0; i < def.Count; i++)
             {
                 while (def[i].Contains("\t"))
@@ -193,15 +198,19 @@ namespace FauxMessages
             string MessageDefinition = md.ToString().Trim();
             string RequestDefinition = reqd.ToString().Trim();
             string ResponseDefinition = resd.ToString().Trim();
+
             #endregion
 
             #region THE SERVICE
+
             GUTS = GUTS.Replace("$WHATAMI", classname);
             GUTS = GUTS.Replace("$MYSRVTYPE", "SrvTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
             GUTS = GUTS.Replace("$MYSERVICEDEFINITION", "@\"" + MessageDefinition + "\"");
+
             #endregion
 
             #region request
+
             string RequestDict = Request.GenFields();
             meta = Request.meta;
             GUTS = GUTS.Replace("$REQUESTMYISMETA", meta.ToString().ToLower());
@@ -211,9 +220,11 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$REQUESTMYFIELDS", RequestDict.Length > 5 ? "{{" + RequestDict + "}}" : "()");
             GUTS = GUTS.Replace("$REQUESTNULLCONSTBODY", "");
             GUTS = GUTS.Replace("$REQUESTEXTRACONSTRUCTOR", "");
+
             #endregion
 
             #region response
+
             string ResponseDict = Response.GenFields();
             GUTS = GUTS.Replace("$RESPONSEMYISMETA", Response.meta.ToString().ToLower());
             GUTS = GUTS.Replace("$RESPONSEMYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
@@ -222,7 +233,9 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEMYFIELDS", ResponseDict.Length > 5 ? "{{" + ResponseDict + "}}" : "()");
             GUTS = GUTS.Replace("$RESPONSENULLCONSTBODY", "");
             GUTS = GUTS.Replace("$RESPONSEEXTRACONSTRUCTOR", "");
+
             #endregion
+
             /********END BLOCK**********/
             return GUTS;
         }
@@ -230,6 +243,8 @@ namespace FauxMessages
 
     public class MsgsFile
     {
+        private const string stfmat = "name: {0}\n\ttype: {1}\n\trostype: {2}\n\tisliteral: {3}\n\tisconst: {4}\n\tconstvalue: {5}\n\tisarray: {6}\n\tlength: {7}\n\tismeta: {8}\n";
+        public static Dictionary<string, string> resolver;
         private string GUTS;
         public string GeneratedDictHelper;
         public bool HasHeader;
@@ -244,10 +259,11 @@ namespace FauxMessages
         private string memoizedcontent;
         public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
-        public static Dictionary<string, string> resolver;
+
         public MsgsFile(string filename, bool isrequest, List<string> lines)
             : this(filename, isrequest, lines, "")
-        { }
+        {
+        }
 
         public
             MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
@@ -257,9 +273,9 @@ namespace FauxMessages
             filename = filename.Replace(".srv", ".msg");
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID SRV FILE!");
-            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "").Split('\\');
+            string[] sp = filename.Replace(Program.inputdir, "").Replace(".msg", "").Split('\\');
             classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "");
+            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".msg", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -299,9 +315,9 @@ namespace FauxMessages
             if (resolver == null) resolver = new Dictionary<string, string>();
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
-            string[] sp = filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "").Split('\\');
+            string[] sp = filename.Replace(Program.inputdir, "").Replace(".msg", "").Split('\\');
             classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace(YAMLParser.Program.inputdir, "").Replace(".msg", "");
+            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".msg", "");
             Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
             string[] sp2 = Namespace.Split('.');
             Namespace = "";
@@ -317,19 +333,19 @@ namespace FauxMessages
             if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
                 resolver.Add(classname, Namespace + "." + classname);
             List<string> lines = new List<string>(File.ReadAllLines(filename));
-            lines = lines.Where((st) => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
+            lines = lines.Where(st => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
                 lines[i] = lines[i].Split('#')[0].Trim();
             //lines = lines.Where((st) => (st.Length > 0)).ToList();
 
-            lines.ForEach(new Action<string>((s) =>
+            lines.ForEach(s =>
             {
                 if (s.Contains('#') && s.Split('#')[0].Length != 0)
                     s = s.Split('#')[0];
                 if (s.Contains('#'))
                     s = "";
-            }));
-            lines = lines.Where((st) => (st.Length > 0)).ToList();
+            });
+            lines = lines.Where(st => (st.Length > 0)).ToList();
 
 
             def = new List<string>();
@@ -538,7 +554,6 @@ namespace FauxMessages
             return GUTS;
         }
 
-        const string stfmat = "name: {0}\n\ttype: {1}\n\trostype: {2}\n\tisliteral: {3}\n\tisconst: {4}\n\tconstvalue: {5}\n\tisarray: {6}\n\tlength: {7}\n\tismeta: {8}\n";
         public string GenerateDeserializationCode(SingleType st)
         {
             //Console.WriteLine(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta);
@@ -567,26 +582,27 @@ namespace FauxMessages
 
     public static class KnownStuff
     {
-        private static char[] spliter = new char[] { ' ' };
+        private static char[] spliter = {' '};
+
         public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
-                                                                  {
-                                                                      {"float64", "double"},
-                                                                      {"float32", "Single"},
-                                                                      {"uint64", "ulong"},
-                                                                      {"uint32", "uint"},
-                                                                      {"uint16", "ushort"},
-                                                                      {"uint8", "byte"},
-                                                                      {"int64", "long"},
-                                                                      {"int32", "int"},
-                                                                      {"int16", "short"},
-                                                                      {"int8", "sbyte"},
-                                                                      {"byte", "byte"},
-                                                                      {"bool", "bool"},
-                                                                      {"char", "char"},
-                                                                      {"time", "Time"},
-                                                                      {"string", "String"},
-                                                                      {"duration", "Duration"}
-                                                                  };
+        {
+            {"float64", "double"},
+            {"float32", "Single"},
+            {"uint64", "ulong"},
+            {"uint32", "uint"},
+            {"uint16", "ushort"},
+            {"uint8", "byte"},
+            {"int64", "long"},
+            {"int32", "int"},
+            {"int16", "short"},
+            {"int8", "sbyte"},
+            {"byte", "byte"},
+            {"bool", "bool"},
+            {"char", "char"},
+            {"time", "Time"},
+            {"string", "String"},
+            {"duration", "Duration"}
+        };
 
         public static string GetConstTypesAffix(string type)
         {
@@ -648,14 +664,15 @@ namespace FauxMessages
         private string[] backup;
         public string input;
         public string length = "";
+        public string lowestindent = "\t\t";
         public bool meta;
         public string output;
         public string rostype = "";
-        public string lowestindent = "\t\t";
 
         public SingleType(string s)
             : this(s, "")
-        { }
+        {
+        }
 
         public SingleType(string s, string extraindent)
         {
@@ -851,18 +868,18 @@ namespace FauxMessages
     {
         public static string Generate(SingleType members)
         {
-            return System.String.Format
+            return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
-                 members.Name,
-                 members.IsLiteral.ToString().ToLower(),
-                 ("typeof(" + members.Type + ")"),
-                 members.Const.ToString().ToLower(),
-                 members.ConstValue.TrimStart('"').TrimEnd('"'),
-                //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),
-                 members.IsArray.ToString().ToLower(),
-                 members.length,
-                //FIX MEEEEEEEE
-                 members.meta.ToString().ToLower());
+                    members.Name,
+                    members.IsLiteral.ToString().ToLower(),
+                    ("typeof(" + members.Type + ")"),
+                    members.Const.ToString().ToLower(),
+                    members.ConstValue.TrimStart('"').TrimEnd('"'),
+                    //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),
+                    members.IsArray.ToString().ToLower(),
+                    members.length,
+                    //FIX MEEEEEEEE
+                    members.meta.ToString().ToLower());
         }
     }
 
@@ -876,9 +893,10 @@ namespace FauxMessages
         public int Length = -1;
         public string Name;
         public Type Type;
+
         [DebuggerStepThrough]
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
-                            string lengths, bool meta)
+            string lengths, bool meta)
         {
             Name = name;
             IsArray = isarray;
@@ -894,7 +912,6 @@ namespace FauxMessages
             }
         }
     }
-
 
 
     public enum ServiceMessageType
