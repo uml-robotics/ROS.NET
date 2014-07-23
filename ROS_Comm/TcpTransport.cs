@@ -1,4 +1,4 @@
-﻿// File: TcpTransport.cs
+// File: TcpTransport.cs
 // Project: ROS_C-Sharp
 // 
 // ROS#
@@ -160,6 +160,8 @@ namespace Ros_CSharp
 
         public void enableRead()
         {
+        	if (sock == null)
+        		throw new Exception("TcpTransport: Attempted to enable read before setSocket called");
             if (!sock.Connected) close();
             lock (close_mutex)
             {
@@ -587,6 +589,8 @@ namespace Ros_CSharp
                     {
                         Console.WriteLine("Failed to get sock options! (error: " + error + ")" + e);
                     }
+                    if (error != 0)
+                    	Console.WriteLine("SOCKET ERROR = " + error);
                     close();
                 }
             }
