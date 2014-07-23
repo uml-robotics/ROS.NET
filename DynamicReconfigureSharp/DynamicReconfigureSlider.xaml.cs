@@ -1,36 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Interactivity;
 using DynamicReconfigure;
 using Messages.dynamic_reconfigure;
-using System.Windows.Interactivity;
+
+#endregion
 
 namespace DynamicReconfigureSharp
 {
     /// <summary>
-    /// Interaction logic for DynamicReconfigureSlider.xaml
+    ///     Interaction logic for DynamicReconfigureSlider.xaml
     /// </summary>
     public partial class DynamicReconfigureSlider : UserControl, IDynamicReconfigureLayout
     {
-        private DynamicReconfigureInterface dynamic;
-        private string name;
         private double def;
+        private DynamicReconfigureInterface dynamic;
+        private bool ignore = true;
+        private bool isDouble;
         private double max;
         private double min;
-        private bool isDouble;
-        private bool ignore = true;
+        private string name;
 
         public DynamicReconfigureSlider(DynamicReconfigureInterface dynamic, ParamDescription pd, double def, double max, double min, bool isDouble)
         {
@@ -67,8 +61,8 @@ namespace DynamicReconfigureSharp
                 textBehavior.RegularExpression = @"^[\-0-9][0-9]*$";
                 value.TickFrequency = 1;
                 value.IsSnapToTickEnabled = true;
-                minlabel.Content = ""+(int)value.Minimum;
-                maxlabel.Content = "" + (int)value.Maximum;
+                minlabel.Content = "" + (int) value.Minimum;
+                maxlabel.Content = "" + (int) value.Maximum;
                 value.Value = this.def = def;
                 dynamic.Subscribe(name, new Action<int>(changed));
                 ignore = false;
@@ -87,6 +81,7 @@ namespace DynamicReconfigureSharp
                 ignore = false;
             }));
         }
+
         private void changed(double newstate)
         {
             ignore = true;
@@ -147,10 +142,33 @@ namespace DynamicReconfigureSharp
             }
             else
             {
-                box.Text = "" + (int)value.Value;
+                box.Text = "" + (int) value.Value;
                 if (!ignore)
-                    dynamic.Set(name, (int)value.Value);
+                    dynamic.Set(name, (int) value.Value);
             }
+        }
+
+        private event Action<int> intchanged;
+        private event Action<double> doublechanged;
+
+        internal Action<int> Instrument(Action<int> cb)
+        {
+            intchanged += cb;
+            return d =>
+            {
+                ignore = false;
+                value.Value = d;
+            };
+        }
+
+        internal Action<double> Instrument(Action<double> cb)
+        {
+            doublechanged += cb;
+            return d =>
+            {
+                ignore = false;
+                value.Value = d;
+            };
         }
 
         #region IDynamicReconfigureLayout Members
@@ -166,59 +184,28 @@ namespace DynamicReconfigureSharp
         }
 
         #endregion
-
-        private event Action<int> intchanged;
-        private event Action<double> doublechanged;
-        internal Action<int> Instrument(Action<int> cb)
-        {
-            intchanged += cb;
-            return (d) =>
-            {
-                ignore = false;
-                value.Value = d;
-            };
-        }
-        internal Action<double> Instrument(Action<double> cb)
-        {
-            doublechanged += cb;
-            return (d) =>
-            {
-                ignore = false;
-                value.Value = d;
-            };
-        }
     }
 
     public class AllowableCharactersTextBoxBehavior : Behavior<TextBox>
     {
         public static readonly DependencyProperty RegularExpressionProperty =
-             DependencyProperty.Register("RegularExpression", typeof(string), typeof(AllowableCharactersTextBoxBehavior),
-             new FrameworkPropertyMetadata("*"));
-        public string RegularExpression
-        {
-            get
-            {
-                return (string)base.GetValue(RegularExpressionProperty);
-            }
-            set
-            {
-                base.SetValue(RegularExpressionProperty, value);
-            }
-        }
+            DependencyProperty.Register("RegularExpression", typeof (string), typeof (AllowableCharactersTextBoxBehavior),
+                new FrameworkPropertyMetadata("*"));
 
         public static readonly DependencyProperty MaxLengthProperty =
-            DependencyProperty.Register("MaxLength", typeof(int), typeof(AllowableCharactersTextBoxBehavior),
-            new FrameworkPropertyMetadata(int.MinValue));
+            DependencyProperty.Register("MaxLength", typeof (int), typeof (AllowableCharactersTextBoxBehavior),
+                new FrameworkPropertyMetadata(int.MinValue));
+
+        public string RegularExpression
+        {
+            get { return (string) base.GetValue(RegularExpressionProperty); }
+            set { base.SetValue(RegularExpressionProperty, value); }
+        }
+
         public int MaxLength
         {
-            get
-            {
-                return (int)base.GetValue(MaxLengthProperty);
-            }
-            set
-            {
-                base.SetValue(MaxLengthProperty, value);
-            }
+            get { return (int) base.GetValue(MaxLengthProperty); }
+            set { base.SetValue(MaxLengthProperty, value); }
         }
 
         protected override void OnAttached()
@@ -245,7 +232,7 @@ namespace DynamicReconfigureSharp
             }
         }
 
-        void OnPreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        private void OnPreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             e.Handled = !IsValid(e.Text, false);
         }
@@ -271,21 +258,18 @@ namespace DynamicReconfigureSharp
 
         private int LengthOfModifiedText(string newText, bool paste)
         {
-            var countOfSelectedChars = this.AssociatedObject.SelectedText.Length;
-            var caretIndex = this.AssociatedObject.CaretIndex;
-            string text = this.AssociatedObject.Text;
+            var countOfSelectedChars = AssociatedObject.SelectedText.Length;
+            var caretIndex = AssociatedObject.CaretIndex;
+            string text = AssociatedObject.Text;
 
             if (countOfSelectedChars > 0 || paste)
             {
                 text = text.Remove(caretIndex, countOfSelectedChars);
                 return text.Length + newText.Length;
             }
-            else
-            {
-                var insert = Keyboard.IsKeyToggled(Key.Insert);
+            var insert = Keyboard.IsKeyToggled(Key.Insert);
 
-                return insert && caretIndex < text.Length ? text.Length : text.Length + newText.Length;
-            }
+            return insert && caretIndex < text.Length ? text.Length : text.Length + newText.Length;
         }
     }
 }

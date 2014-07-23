@@ -1,24 +1,35 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Messages.dynamic_reconfigure;
-using Messages.std_msgs;
 using Ros_CSharp;
+using String = Messages.std_msgs.String;
+
+#endregion
 
 namespace DynamicReconfigure
 {
     public class DynamicReconfigureInterface
     {
-        private string name;
-        private int timeout = 0;
-        private ServiceServer setServer;
+        private Dictionary<string, List<Action<bool>>> boolcbs = new Dictionary<string, List<Action<bool>>>();
         private Subscriber<Config> configSub;
         private Subscriber<ConfigDescription> descSub;
-        private NodeHandle nh;
-        private ConfigDescription latestDescription;
         private Action<ConfigDescription> descriptionCallback;
+
+        private Dictionary<string, List<Action<double>>> doublecbs = new Dictionary<string, List<Action<double>>>();
+        private Dictionary<string, List<Action<int>>> intcbs = new Dictionary<string, List<Action<int>>>();
+        private Dictionary<string, bool> lastbool = new Dictionary<string, bool>();
+        private Dictionary<string, double> lastdouble = new Dictionary<string, double>();
+        private Dictionary<string, int> lastint = new Dictionary<string, int>();
+        private Dictionary<string, string> laststring = new Dictionary<string, string>();
+        private ConfigDescription latestDescription;
+        private string name;
+        private NodeHandle nh;
+        private object padlock = new object();
+        private ServiceServer setServer;
+        private Dictionary<string, List<Action<string>>> strcbs = new Dictionary<string, List<Action<string>>>();
+        private int timeout;
 
         public DynamicReconfigureInterface(NodeHandle n, string name, int timeout = 0)
         {
@@ -27,14 +38,6 @@ namespace DynamicReconfigure
             this.timeout = timeout;
         }
 
-        private Dictionary<string, List<Action<int>>> intcbs = new Dictionary<string, List<Action<int>>>();
-        private Dictionary<string, List<Action<bool>>> boolcbs = new Dictionary<string, List<Action<bool>>>();
-        private Dictionary<string, List<Action<string>>> strcbs = new Dictionary<string, List<Action<string>>>();
-        private Dictionary<string, List<Action<double>>> doublecbs = new Dictionary<string, List<Action<double>>>();
-        private Dictionary<string, int> lastint = new Dictionary<string, int>();
-        private Dictionary<string, bool> lastbool = new Dictionary<string, bool>();
-        private Dictionary<string, string> laststring = new Dictionary<string, string>();
-        private Dictionary<string, double> lastdouble = new Dictionary<string, double>();
         public void Subscribe(string paramname, Action<int> act)
         {
             lock (this)
@@ -46,6 +49,7 @@ namespace DynamicReconfigure
                 intcbs[paramname].Add(act);
             }
         }
+
         public void Subscribe(string paramname, Action<bool> act)
         {
             lock (this)
@@ -57,6 +61,7 @@ namespace DynamicReconfigure
                 boolcbs[paramname].Add(act);
             }
         }
+
         public void Subscribe(string paramname, Action<string> act)
         {
             lock (this)
@@ -68,6 +73,7 @@ namespace DynamicReconfigure
                 strcbs[paramname].Add(act);
             }
         }
+
         public void Subscribe(string paramname, Action<double> act)
         {
             lock (this)
@@ -89,7 +95,7 @@ namespace DynamicReconfigure
                     lastbool[bp.name.data] = bp.value;
                     if (boolcbs.ContainsKey(bp.name.data))
                     {
-                        boolcbs[bp.name.data].ForEach((a) => a(bp.value));
+                        boolcbs[bp.name.data].ForEach(a => a(bp.value));
                     }
                 }
                 foreach (IntParameter ip in m.ints)
@@ -97,7 +103,7 @@ namespace DynamicReconfigure
                     lastint[ip.name.data] = ip.value;
                     if (intcbs.ContainsKey(ip.name.data))
                     {
-                        intcbs[ip.name.data].ForEach((a) => a(ip.value));
+                        intcbs[ip.name.data].ForEach(a => a(ip.value));
                     }
                 }
                 foreach (DoubleParameter dp in m.doubles)
@@ -105,7 +111,7 @@ namespace DynamicReconfigure
                     lastdouble[dp.name.data] = dp.value;
                     if (doublecbs.ContainsKey(dp.name.data))
                     {
-                        doublecbs[dp.name.data].ForEach((a) => a(dp.value));
+                        doublecbs[dp.name.data].ForEach(a => a(dp.value));
                     }
                 }
                 foreach (StrParameter sp in m.strs)
@@ -113,7 +119,7 @@ namespace DynamicReconfigure
                     laststring[sp.name.data] = sp.value.data;
                     if (strcbs.ContainsKey(sp.name.data))
                     {
-                        strcbs[sp.name.data].ForEach((a) => a(sp.value.data));
+                        strcbs[sp.name.data].ForEach(a => a(sp.value.data));
                     }
                 }
             }
@@ -170,14 +176,12 @@ namespace DynamicReconfigure
             {
                 Service.waitForService(sn, timeout);
             }
-            setServer = nh.advertiseService(sn, (Reconfigure.Request req, ref Reconfigure.Request res) => 
+            setServer = nh.advertiseService(sn, (Reconfigure.Request req, ref Reconfigure.Request res) =>
             {
                 res.config = req.config;
                 return true;
             });
         }
-
-        private object padlock = new object();
 
         public void Set(string key, string value)
         {
@@ -185,12 +189,12 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config() {strs = new[] {new StrParameter {name = new Messages.std_msgs.String(key), value = new Messages.std_msgs.String(value)}}}};
+                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                         Console.WriteLine("SET FAILED!");
                 }
-            }).BeginInvoke((iar) => { }, null);
+            }).BeginInvoke(iar => { }, null);
         }
 
         public void Set(string key, int value)
@@ -199,12 +203,12 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config() {ints = new[] {new IntParameter {name = new Messages.std_msgs.String(key), value = value}}}};
+                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                         throw new Exception("PARAMETER SET FAILED!");
                 }
-            }).BeginInvoke((iar) => { }, null);
+            }).BeginInvoke(iar => { }, null);
         }
 
         public void Set(string key, double value)
@@ -213,12 +217,12 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config() {doubles = new[] {new DoubleParameter {name = new Messages.std_msgs.String(key), value = value}}}};
+                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                         throw new Exception("PARAMETER SET FAILED!");
                 }
-            }).BeginInvoke((iar) => { }, null);
+            }).BeginInvoke(iar => { }, null);
         }
 
         public void Set(string key, bool value)
@@ -227,12 +231,12 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config() {bools = new[] {new BoolParameter {name = new Messages.std_msgs.String(key), value = value}}}};
+                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
                         throw new Exception("PARAMETER SET FAILED!");
                 }
-            }).BeginInvoke((iar) => { }, null);
+            }).BeginInvoke(iar => { }, null);
         }
     }
 }

@@ -1,31 +1,26 @@
-﻿using System;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using DynamicReconfigure;
 using Messages.dynamic_reconfigure;
 using Ros_CSharp;
 
+#endregion
+
 namespace DynamicReconfigureSharp
 {
     /// <summary>
-    /// Interaction logic for DynamicReconfigurePage.xaml
+    ///     Interaction logic for DynamicReconfigurePage.xaml
     /// </summary>
     public partial class DynamicReconfigurePage : UserControl
     {
-        private NodeHandle nh = null;
+        private Config def;
         private DynamicReconfigureInterface dynamic;
-        private Config def, max, min;
+        private Config max, min;
         private string name;
+        private NodeHandle nh;
 
         public DynamicReconfigurePage()
         {

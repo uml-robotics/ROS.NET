@@ -7,24 +7,24 @@
              xmlns:DynamicReconfigureSharp="clr-namespace:DynamicReconfigureSharp"
              mc:Ignorable="d" d:DesignWidth="300">
     <UserControl.ToolTip>
-        <ToolTip Name="JustTheTip"></ToolTip>
+        <ToolTip Name="JustTheTip" />
     </UserControl.ToolTip>
     <Grid Height="auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="70"></ColumnDefinition>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="70" />
         </Grid.ColumnDefinitions>
         <Label Name="description" Grid.Column="0" HorizontalAlignment="Right">Description</Label>
         <Grid Name="numberline" Grid.Column="1" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Label Name="maxlabel" Grid.Column="2"></Label>
-            <Label Name="minlabel" Grid.Column="0"></Label>
-            <Slider Name="value" Grid.Column="1" VerticalAlignment="Center" ValueChanged="Value_OnValueChanged"> </Slider>
+            <Label Name="maxlabel" Grid.Column="2" />
+            <Label Name="minlabel" Grid.Column="0" />
+            <Slider Name="value" Grid.Column="1" VerticalAlignment="Center" ValueChanged="Value_OnValueChanged" />
         </Grid>
         <TextBox Name="box" VerticalAlignment="Center" Grid.Column="2" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus">
             <i:Interaction.Behaviors>

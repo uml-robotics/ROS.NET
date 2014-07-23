@@ -4,12 +4,12 @@
         Title="Dynamic Reconfigure #" Height="200" Width="300">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ComboBox Name="TargetBox" Grid.Row="0" SelectionChanged="TargetBox_OnSelectionChanged" SelectedIndex="0">
             None
         </ComboBox>
-        <Grid Name="PageContainer" Grid.Row="1"></Grid>
+        <Grid Name="PageContainer" Grid.Row="1" />
     </Grid>
 </Window>

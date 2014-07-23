@@ -1,40 +1,27 @@
-﻿using System;
-using System.Collections;
+﻿#region USINGZ
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using DynamicReconfigure;
 using DynamicReconfigureSharp;
-using Messages.dynamic_reconfigure;
 using Ros_CSharp;
+
+#endregion
 
 namespace DynamicReconfigureTest
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Dictionary<string, DynamicReconfigurePage> knownConfigurations = new Dictionary<string, DynamicReconfigurePage>();
         private NodeHandle nh;
         private Thread topicPoller;
-        private Dictionary<string, DynamicReconfigurePage> knownConfigurations = new Dictionary<string, DynamicReconfigurePage>();
 
-        protected override void OnClosed(EventArgs e)
-        {
-            ROS.shutdown();
-            topicPoller.Join();
-            base.OnClosed(e);
-        }
         public MainWindow()
         {
             ROS.Init(new string[0], "dynamic_reconfigure_sharp_" + Environment.MachineName);
@@ -119,6 +106,13 @@ namespace DynamicReconfigureTest
             topicPoller.Start();
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            ROS.shutdown();
+            topicPoller.Join();
+            base.OnClosed(e);
+        }
+
         private void TargetBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             lock (this)
@@ -127,7 +121,7 @@ namespace DynamicReconfigureTest
                 IEnumerable<string> news = e.AddedItems.OfType<string>();
                 if (prevs.Count() != 1 || news.Count() != 1) return;
                 PageContainer.Children.Clear();
-                string newprefix = news.ElementAt(0) as string;
+                string newprefix = news.ElementAt(0);
                 if (newprefix != null)
                 {
                     if (knownConfigurations.ContainsKey(newprefix))

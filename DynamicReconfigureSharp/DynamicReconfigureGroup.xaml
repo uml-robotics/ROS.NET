@@ -6,6 +6,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Width="Auto" Height="Auto" Margin="2">
         <!--<GroupBox Header="Group" Name="container" Margin="5" >-->
-            <StackPanel Name="paramsHolder"></StackPanel>
-        <!--</GroupBox>-->
+            <StackPanel Name="paramsHolder" />
+    <!--</GroupBox>-->
 </UserControl>

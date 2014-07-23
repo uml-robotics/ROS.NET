@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿#region USINGZ
+
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using DynamicReconfigure;
 using Messages.dynamic_reconfigure;
+
+#endregion
 
 namespace DynamicReconfigureSharp
 {
     /// <summary>
-    /// Interaction logic for DynamicReconfigureStringDropdown.xaml
+    ///     Interaction logic for DynamicReconfigureStringDropdown.xaml
     /// </summary>
     public partial class DynamicReconfigureStringBox : UserControl, IDynamicReconfigureLayout
     {
-        private DynamicReconfigureInterface dynamic;
-        private string name;
         private string def;
+        private DynamicReconfigureInterface dynamic;
         private bool ignore = true;
+        private string name;
 
         public DynamicReconfigureStringBox(DynamicReconfigureInterface dynamic, ParamDescription pd, string def)
         {
@@ -67,10 +62,11 @@ namespace DynamicReconfigureSharp
         }
 
         private event Action<string> stringchanged;
+
         internal Action<string> Instrument(Action<string> cb)
         {
             stringchanged += cb;
-            return (d) =>
+            return d =>
             {
                 Box.Text = d;
                 commit();

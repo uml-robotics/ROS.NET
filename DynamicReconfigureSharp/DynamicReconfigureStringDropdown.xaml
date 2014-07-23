@@ -5,16 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d">
     <UserControl.ToolTip>
-        <ToolTip Name="JustTheTip"></ToolTip>
+        <ToolTip Name="JustTheTip" />
     </UserControl.ToolTip>
     <Grid Height="auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Label Name="description" HorizontalAlignment="Right">Description</Label>
-        <ComboBox Name="enum" Grid.Column="1" SelectionChanged="Enum_OnSelectionChanged" SelectedValuePath="Tag">
-        </ComboBox>
+        <ComboBox Name="enum" Grid.Column="1" SelectionChanged="Enum_OnSelectionChanged" SelectedValuePath="Tag" />
     </Grid>
 </UserControl>
