@@ -29,16 +29,15 @@ namespace Ros_CSharp
     [DebuggerStepThrough]
     public class NodeHandle : IDisposable
     {
-        public string Namespace = "", UnresolvedNamespace = "";
+        private string Namespace = "", UnresolvedNamespace = "";
         private CallbackQueue _callback;
         private bool _ok = true;
-        private nhparam _param;
-        public NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
-        public int nh_refcount;
-        public object nh_refcount_mutex = new object();
-        public bool no_validate;
-        public bool node_started_by_nh;
-        public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
+        private NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
+        private int nh_refcount;
+        private object nh_refcount_mutex = new object();
+        private bool no_validate;
+        private bool node_started_by_nh;
+        private IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
         /// <summary>
         ///     Creates a new node
@@ -55,6 +54,10 @@ namespace Ros_CSharp
             initRemappings(remappings);
         }
 
+        /// <summary>
+        /// Create a new nodehandle that is a partial deep copy of another
+        /// </summary>
+        /// <param name="rhs">The nodehandle this new one aspires to be</param>
         public NodeHandle(NodeHandle rhs)
         {
             if (Process.GetCurrentProcess().ProcessName == "devenv")
@@ -99,23 +102,15 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///     Creates a new node
+        ///     Creates a new nodehandle
         /// </summary>
         public NodeHandle() : this(this_node.Namespace, null)
         {
         }
 
-        public nhparam param
-        {
-            get
-            {
-                if (_param == null) _param = new nhparam(this);
-                return _param;
-            }
-        }
-
         /// <summary>
-        ///     Current callbacks in callback queue
+        /// gets/sets this nodehandle's callbackqueue
+        /// get : if the private _callback is null, a new one is created and enabled
         /// </summary>
         public CallbackQueue Callback
         {
@@ -133,7 +128,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///     Management boolean, if ros is still running
+        ///  The conjunction of ROS.ok, and the ok-ness of this nodehandle
         /// </summary>
         public bool ok
         {
@@ -143,6 +138,9 @@ namespace Ros_CSharp
 
         #region IDisposable Members
 
+        /// <summary>
+        /// Like a piece of trash
+        /// </summary>
         public void Dispose()
         {
             destruct();
@@ -354,7 +352,14 @@ namespace Ros_CSharp
             return new Subscriber<M>();
         }
 
-
+        /// <summary>
+        /// Advertises a named ServiceServer
+        /// </summary>
+        /// <typeparam name="MReq">Request sub-srv type</typeparam>
+        /// <typeparam name="MRes">Response sub-srv type</typeparam>
+        /// <param name="service">The name of the service to advertise</param>
+        /// <param name="srv_func">The handler for the service</param>
+        /// <returns>The ServiceServer that will call the ServiceFunction on behalf of ServiceClients</returns>
         public ServiceServer advertiseService<MReq, MRes>(string service, ServiceFunction<MReq, MRes> srv_func)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
@@ -362,6 +367,13 @@ namespace Ros_CSharp
             return advertiseService(new AdvertiseServiceOptions<MReq, MRes>(service, srv_func));
         }
 
+        /// <summary>
+        /// Advertises a ServiceServer with specified OPTIONS
+        /// </summary>
+        /// <typeparam name="MReq">Request sub-srv type</typeparam>
+        /// <typeparam name="MRes">Response sub-srv type</typeparam>
+        /// <param name="ops">isn't it obvious?</param>
+        /// <returns>The ServiceServer that will call the ServiceFunction on behalf of ServiceClients</returns>
         public ServiceServer advertiseService<MReq, MRes>(AdvertiseServiceOptions<MReq, MRes> ops)
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
@@ -414,7 +426,7 @@ namespace Ros_CSharp
             return new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
-        public void construct(string ns, bool validate_name)
+        private void construct(string ns, bool validate_name)
         {
             if (!ROS.initialized)
                 ROS.FREAKOUT();
@@ -434,7 +446,7 @@ namespace Ros_CSharp
             }
         }
 
-        public void destruct()
+        private void destruct()
         {
             collection.Dispose();
             collection = null;
@@ -448,7 +460,7 @@ namespace Ros_CSharp
         }
 
         [DebuggerStepThrough]
-        public void initRemappings(IDictionary rms)
+        private void initRemappings(IDictionary rms)
         {
             foreach (object k in remappings.Keys)
             {
@@ -465,7 +477,7 @@ namespace Ros_CSharp
         }
 
         [DebuggerStepThrough]
-        public string remapName(string name)
+        private string remapName(string name)
         {
             string resolved = resolveName(name, false);
             if (resolved == null)
@@ -476,13 +488,13 @@ namespace Ros_CSharp
         }
 
         [DebuggerStepThrough]
-        public string resolveName(string name)
+        private string resolveName(string name)
         {
             return resolveName(name, true);
         }
 
         [DebuggerStepThrough]
-        public string resolveName(string name, bool remap)
+        private string resolveName(string name, bool remap)
         {
             string error = "";
             if (!names.validate(name, ref error))
@@ -491,7 +503,7 @@ namespace Ros_CSharp
         }
 
         [DebuggerStepThrough]
-        public string resolveName(string name, bool remap, bool novalidate)
+        private string resolveName(string name, bool remap, bool novalidate)
         {
             //EDB.WriteLine("resolveName(" + name + ")");
             if (name == "") return Namespace;
@@ -510,17 +522,12 @@ namespace Ros_CSharp
             return names.resolve(final, false);
         }
 
-        public Timer createTimer(TimeSpan period, TimerCallback tcb, bool oneshot)
-        {
-            return new Timer(tcb, null, 0, (int) Math.Floor(period.TotalMilliseconds));
-        }
-
         #region Nested type: NodeHandleBackingCollection
 
         [DebuggerStepThrough]
         public class NodeHandleBackingCollection : IDisposable
         {
-            public object mutex = new object();
+            public readonly object mutex = new object();
             public List<IPublisher> publishers = new List<IPublisher>();
 
             public List<IServiceClient> serviceclients = new List<IServiceClient>();
@@ -542,74 +549,5 @@ namespace Ros_CSharp
         }
 
         #endregion
-
-        public class nhparam
-        {
-            private NodeHandle parent;
-
-            public nhparam(NodeHandle p)
-            {
-                parent = p;
-            }
-
-            public void get(string key, ref bool dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref bool dest, bool def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public void get(string key, ref int dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref int dest, int def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public void get(string key, ref double dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref double dest, double def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public void get(string key, ref string dest, string def = null)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public bool has(string key)
-            {
-                return Param.has(names.resolve(parent.Namespace, key));
-            }
-
-            public bool del(string key)
-            {
-                return Param.del(names.resolve(parent.Namespace, key));
-            }
-
-            public void set<T>(string key, T value)
-            {
-                string resolved = names.resolve(parent.Namespace, key);
-                T t = default(T);
-                if (t is string)
-                {
-                    Param.set(resolved, value as string);
-                }
-                else
-                {
-                    Param.set(resolved, "" + value);
-                }
-            }
-        }
     }
 }
