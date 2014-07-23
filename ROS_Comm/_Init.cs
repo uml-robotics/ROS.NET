@@ -138,6 +138,9 @@ namespace Ros_CSharp
 
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
+        /// <summary>
+        /// True if ROS is ok, false if not
+        /// </summary>
         public static bool ok
         {
             get { return _ok; }
