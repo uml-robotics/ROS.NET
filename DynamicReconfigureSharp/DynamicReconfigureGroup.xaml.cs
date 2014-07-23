@@ -221,10 +221,10 @@ namespace DynamicReconfigureSharp
                                 var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, false);
                                 paramsHolder.Children.Add(d);
                                 sliders.Add(s.name.data, d);
-                                d.Instrument(new Action<double>((S) =>
+                                d.Instrument(new Action<int>((S) =>
                                 {
-                                    if (DoubleChanged != null) 
-                                        DoubleChanged(_name, S);
+                                    if (IntChanged != null)
+                                        IntChanged(_name, S);
                                 }));
                             }
                         }
