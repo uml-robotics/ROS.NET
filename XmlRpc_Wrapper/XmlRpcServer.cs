@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: XmlRpcServer.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 //#define REFDEBUG
 using System;
@@ -109,7 +121,6 @@ namespace XmlRpc_Wrapper
                         shutdown(ptr);
                         ptr = IntPtr.Zero;
                     }
-                    return;
                 }
             }
         }
@@ -217,7 +228,7 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName",
             CallingConvention = CallingConvention.Cdecl)]
         private static extern void removemethodbyname(IntPtr target,
-                                                      [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
+            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod",
             CallingConvention = CallingConvention.Cdecl)]
@@ -264,7 +275,7 @@ namespace XmlRpc_Wrapper
             SegFault();
             removemethodbyname(instance, name);
         }
-                
+
         public void Work(double msTime)
         {
             SegFault();
@@ -287,7 +298,7 @@ namespace XmlRpc_Wrapper
 
         public bool BindAndListen(int port)
         {
-                return BindAndListen(port,5);
+            return BindAndListen(port, 5);
         }
 
         public bool BindAndListen(int port, int backlog)

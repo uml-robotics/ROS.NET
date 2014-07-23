@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: XMLRPCCallWrapper.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 //#define REFDEBUGWrapper
 using System;
@@ -112,15 +124,13 @@ namespace XmlRpc_Wrapper
                         new XMLRPCCallWrapper(ptr).FUNC = null;
                         ptr = IntPtr.Zero;
                     }
-                    return;
                 }
             }
         }
 
         public IntPtr instance
         {
-            [DebuggerStepThrough]
-            get { return __instance; }
+            [DebuggerStepThrough] get { return __instance; }
             [DebuggerStepThrough]
             set
             {
@@ -160,10 +170,8 @@ namespace XmlRpc_Wrapper
 
         public XMLRPCFunc FUNC
         {
-            [DebuggerStepThrough]
-            get { return _FUNC; }
-            [DebuggerStepThrough]
-            set { SetFunc((_FUNC = value)); }
+            [DebuggerStepThrough] get { return _FUNC; }
+            [DebuggerStepThrough] set { SetFunc((_FUNC = value)); }
         }
 
         #region IDisposable Members

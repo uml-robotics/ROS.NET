@@ -1,5 +1,21 @@
-﻿using System;
+﻿// File: XmlRpcUtil.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
+
+using System;
 using System.Runtime.InteropServices;
+
+#endregion
 
 namespace XmlRpc_Wrapper
 {
@@ -10,7 +26,7 @@ namespace XmlRpc_Wrapper
 
         private static void thisishowawesomeyouare(string s)
         {
-            Console.WriteLine("XMLRPC NATIVE OUT: "+s);
+            Console.WriteLine("XMLRPC NATIVE OUT: " + s);
         }
 
         public static void ShowOutputFromXmlRpcPInvoke(printstr handler = null)
@@ -25,11 +41,12 @@ namespace XmlRpc_Wrapper
         }
 
         #region bad voodoo
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void printstr(string s);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void printint(int val);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void printstr(string s);
 
         [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int IntegerEcho(int val);
@@ -47,6 +64,7 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
         private static extern void StringTest([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string str);
+
         #endregion
     }
 }

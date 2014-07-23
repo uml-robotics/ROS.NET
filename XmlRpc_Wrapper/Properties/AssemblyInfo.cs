@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: AssemblyInfo.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 using System.Reflection;
 using System.Runtime.InteropServices;

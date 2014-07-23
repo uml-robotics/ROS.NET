@@ -1,4 +1,16 @@
-﻿#region Using
+﻿// File: XmlRpcClient.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 //#define REFDEBUG
 using System;
@@ -14,7 +26,7 @@ namespace XmlRpc_Wrapper
     public class XmlRpcClient : XmlRpcSource, IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
-                
+
         public new void Dispose()
         {
             Shutdown();
@@ -110,11 +122,10 @@ namespace XmlRpc_Wrapper
                         close(ptr);
                         ptr = IntPtr.Zero;
                     }
-                    return;
                 }
             }
         }
-        
+
         public void Shutdown()
         {
             if (Shutdown(__instance)) Dispose();
@@ -166,85 +177,73 @@ namespace XmlRpc_Wrapper
 
         public bool IsConnected
         {
-            [DebuggerStepThrough]
-            get { return isconnected(instance); }
+            [DebuggerStepThrough] get { return isconnected(instance); }
         }
 
         public string Host
         {
-            [DebuggerStepThrough]
-            get { return Marshal.PtrToStringAnsi(gethost(instance)); }
+            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(gethost(instance)); }
         }
 
         public string Uri
         {
-            [DebuggerStepThrough]
-            get { return Marshal.PtrToStringAnsi(geturi(instance)); }            
+            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(geturi(instance)); }
         }
 
         public int Port
         {
-            [DebuggerStepThrough]
-            get { return getport(instance); }
+            [DebuggerStepThrough] get { return getport(instance); }
         }
 
         public string Request
         {
-            [DebuggerStepThrough]
-            get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
+            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
         }
 
         public string Header
         {
-            [DebuggerStepThrough]
-            get { return Marshal.PtrToStringAnsi(getheader(instance)); }
+            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getheader(instance)); }
         }
 
         public string Response
         {
-            [DebuggerStepThrough]
-            get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
+            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
         }
 
         public int SendAttempts
         {
-            [DebuggerStepThrough]
-            get { return getsendattempts(instance); }
+            [DebuggerStepThrough] get { return getsendattempts(instance); }
         }
 
         public int BytesWritten
         {
-            [DebuggerStepThrough]
-            get { return getbyteswritten(instance); }
+            [DebuggerStepThrough] get { return getbyteswritten(instance); }
         }
 
         public bool Executing
         {
-            [DebuggerStepThrough]
-            get { return getexecuting(instance); }
+            [DebuggerStepThrough] get { return getexecuting(instance); }
         }
 
         public bool EOF
         {
-            [DebuggerStepThrough]
-            get { return geteof(instance); }
+            [DebuggerStepThrough] get { return geteof(instance); }
         }
 
         public int ContentLength
         {
-            [DebuggerStepThrough]
-            get { return getcontentlength(instance); }
+            [DebuggerStepThrough] get { return getcontentlength(instance); }
         }
 
         public IntPtr XmlRpcDispatch
         {
-            [DebuggerStepThrough]
-            get { return getxmlrpcdispatch(instance); }
+            [DebuggerStepThrough] get { return getxmlrpcdispatch(instance); }
         }
 
         #endregion
 
         #region public function passthroughs
+
         public bool CheckIdentity(string host, int port, string uri)
         {
             return checkident(instance, host, port, uri);
@@ -289,16 +288,16 @@ namespace XmlRpc_Wrapper
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool execute
             (IntPtr target,
-             [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method,
-             IntPtr parameters,
-             IntPtr result);
+                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method,
+                IntPtr parameters,
+                IntPtr result);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock",
             CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool executenonblock
             (IntPtr target,
-             [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
+                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone",
             CallingConvention = CallingConvention.Cdecl)]

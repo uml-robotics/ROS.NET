@@ -1,11 +1,22 @@
-﻿#region Using
+﻿// File: XmlRpcValue.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #endregion
 
@@ -15,20 +26,17 @@ namespace XmlRpc_Wrapper
     public class XmlRpcValue : IDisposable
     {
         #region Reference Tracking + unmanaged pointer management
+
         public XmlRpcValue this[int key]
         {
-            [DebuggerStepThrough]
-            get { return Get(key); }
-            [DebuggerStepThrough]
-            set { Set(key, value); }
+            [DebuggerStepThrough] get { return Get(key); }
+            [DebuggerStepThrough] set { Set(key, value); }
         }
 
         public XmlRpcValue this[string key]
         {
-            [DebuggerStepThrough]
-            get { return Get(key); }
-            [DebuggerStepThrough]
-            set { Set(key, value); }
+            [DebuggerStepThrough] get { return Get(key); }
+            [DebuggerStepThrough] set { Set(key, value); }
         }
 
         private IntPtr __instance;
@@ -183,8 +191,8 @@ namespace XmlRpc_Wrapper
                 double dres = 0;
                 bool bres = false;
                 if (initialvalues[i] == null)
-                    Set(i, "");                    
-                else if (initialvalues[i] is string)                
+                    Set(i, "");
+                else if (initialvalues[i] is string)
                     Set(i, initialvalues[i].ToString());
                 else if (initialvalues[i] is int && int.TryParse(initialvalues[i].ToString(), out ires))
                     Set(i, ires);
@@ -564,19 +572,19 @@ namespace XmlRpc_Wrapper
     [DebuggerStepThrough]
     public static class ValueTypeHelper
     {
-        public static TypeEnum[] _typearray = new[]
-                                                  {
-                                                      TypeEnum.TypeInvalid,
-                                                      TypeEnum.TypeBoolean,
-                                                      TypeEnum.TypeInt,
-                                                      TypeEnum.TypeDouble,
-                                                      TypeEnum.TypeString,
-                                                      TypeEnum.TypeDateTime,
-                                                      TypeEnum.TypeBase64,
-                                                      TypeEnum.TypeArray,
-                                                      TypeEnum.TypeStruct,
-                                                      TypeEnum.TypeIDFK
-                                                  };
+        public static TypeEnum[] _typearray =
+        {
+            TypeEnum.TypeInvalid,
+            TypeEnum.TypeBoolean,
+            TypeEnum.TypeInt,
+            TypeEnum.TypeDouble,
+            TypeEnum.TypeString,
+            TypeEnum.TypeDateTime,
+            TypeEnum.TypeBase64,
+            TypeEnum.TypeArray,
+            TypeEnum.TypeStruct,
+            TypeEnum.TypeIDFK
+        };
     }
 
     public enum TypeEnum

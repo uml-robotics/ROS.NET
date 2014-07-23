@@ -1,8 +1,21 @@
-﻿#region Using
+﻿// File: XmlRpcSource.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 using System;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 #endregion
 
 namespace XmlRpc_Wrapper
@@ -14,8 +27,7 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
-            [DebuggerStepThrough]
-            get { return __instance; }
+            [DebuggerStepThrough] get { return __instance; }
             [DebuggerStepThrough]
             set
             {
@@ -29,22 +41,6 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public virtual void RmRef(ref IntPtr i)
-        {
-        }
-
-        public virtual void AddRef(IntPtr i)
-        {
-        }
-
-        public void SegFault()
-        {
-            if (__instance == IntPtr.Zero)
-            {
-                throw new Exception("BOOM");
-            }
-        }
-
         public int FD
         {
             get { return getfd(instance); }
@@ -53,7 +49,7 @@ namespace XmlRpc_Wrapper
 
         public bool KeepOpen
         {
-            get { return getkeepopen(instance)!=0; }
+            get { return getkeepopen(instance) != 0; }
             set { setkeepopen(instance, value); }
         }
 
@@ -88,6 +84,22 @@ namespace XmlRpc_Wrapper
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
 
         #endregion
+
+        public virtual void RmRef(ref IntPtr i)
+        {
+        }
+
+        public virtual void AddRef(IntPtr i)
+        {
+        }
+
+        public void SegFault()
+        {
+            if (__instance == IntPtr.Zero)
+            {
+                throw new Exception("BOOM");
+            }
+        }
 
         internal virtual void Close()
         {
