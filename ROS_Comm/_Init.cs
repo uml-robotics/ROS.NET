@@ -61,7 +61,8 @@ namespace Ros_CSharp
 
 #if DEBUG
 #else
-        #endif
+#endif
+
         /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
@@ -75,7 +76,8 @@ namespace Ros_CSharp
 
 #if DEBUG
 #else
-        #endif
+#endif
+
         /// Writes a formatted something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
         ///     Writes a formatted something to System.Debug, and fires an optional OtherOutput event for use in the node
@@ -107,20 +109,20 @@ namespace Ros_CSharp
         internal static int init_options;
 
         /// <summary>
-        /// Means of setting ROS_MASTER_URI programatically before Init is called
-        /// Order of precedence: __master:=... > this variable > User Environment Variable > System Environment Variable
+        ///     Means of setting ROS_MASTER_URI programatically before Init is called
+        ///     Order of precedence: __master:=... > this variable > User Environment Variable > System Environment Variable
         /// </summary>
         public static string ROS_MASTER_URI;
 
         /// <summary>
-        /// Means of setting ROS_HOSTNAME directly before Init is called
-        /// Order of precedence: __hostname:=... > this variable > User Environment Variable > System Environment Variable
+        ///     Means of setting ROS_HOSTNAME directly before Init is called
+        ///     Order of precedence: __hostname:=... > this variable > User Environment Variable > System Environment Variable
         /// </summary>
         public static string ROS_HOSTNAME;
 
         /// <summary>
-        /// Means of setting ROS_IP directly before Init is called
-        /// Order of precedence: __ip:=... > this variable > User Environment Variable > System Environment Variable
+        ///     Means of setting ROS_IP directly before Init is called
+        ///     Order of precedence: __ip:=... > this variable > User Environment Variable > System Environment Variable
         /// </summary>
         public static string ROS_IP;
 
@@ -139,7 +141,7 @@ namespace Ros_CSharp
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
         /// <summary>
-        /// True if ROS is ok, false if not
+        ///     True if ROS is ok, false if not
         /// </summary>
         public static bool ok
         {

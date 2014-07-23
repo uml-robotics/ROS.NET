@@ -16,7 +16,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -55,7 +54,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Create a new nodehandle that is a partial deep copy of another
+        ///     Create a new nodehandle that is a partial deep copy of another
         /// </summary>
         /// <param name="rhs">The nodehandle this new one aspires to be</param>
         public NodeHandle(NodeHandle rhs)
@@ -109,8 +108,8 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// gets/sets this nodehandle's callbackqueue
-        /// get : if the private _callback is null, a new one is created and enabled
+        ///     gets/sets this nodehandle's callbackqueue
+        ///     get : if the private _callback is null, a new one is created and enabled
         /// </summary>
         public CallbackQueue Callback
         {
@@ -128,7 +127,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///  The conjunction of ROS.ok, and the ok-ness of this nodehandle
+        ///     The conjunction of ROS.ok, and the ok-ness of this nodehandle
         /// </summary>
         public bool ok
         {
@@ -139,7 +138,7 @@ namespace Ros_CSharp
         #region IDisposable Members
 
         /// <summary>
-        /// Like a piece of trash
+        ///     Like a piece of trash
         /// </summary>
         public void Dispose()
         {
@@ -353,7 +352,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Advertises a named ServiceServer
+        ///     Advertises a named ServiceServer
         /// </summary>
         /// <typeparam name="MReq">Request sub-srv type</typeparam>
         /// <typeparam name="MRes">Response sub-srv type</typeparam>
@@ -368,7 +367,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Advertises a ServiceServer with specified OPTIONS
+        ///     Advertises a ServiceServer with specified OPTIONS
         /// </summary>
         /// <typeparam name="MReq">Request sub-srv type</typeparam>
         /// <typeparam name="MRes">Response sub-srv type</typeparam>
