@@ -188,70 +188,60 @@ namespace Ros_CSharp
                 payload = null;
             return payload;
         }
-        
-        public static void get(string key, ref bool dest)
-        {
-            bool b = getParam(key).GetBool();
-            dest = b;
-        }
 
-        public static void get(string key, ref bool dest, bool def)
+        private static bool safeGet<T>(string key, ref T dest, object def = null)
         {
             try
             {
-                get(key, ref dest);
+                XmlRpcValue v = getParam(key);
+                if (v == null)
+                {
+                    if (def == null)
+                        return false;
+                    dest = (T)def;
+                    return true;
+                }
+                dest = v.Get<T>();
+                return true;
             }
             catch
             {
-                dest = def;
+                return false;
             }
         }
 
-        public static void get(string key, ref int dest)
+        public static bool get(string key, ref bool dest)
         {
-            int i = getParam(key).GetInt();
-            dest = i;
+            return safeGet(key, ref dest);
         }
 
-        public static void get(string key, ref int dest, int def)
+        public static bool get(string key, ref bool dest, bool def)
         {
-            try
-            {
-                get(key, ref dest);
-            }
-            catch
-            {
-                dest = def;
-            }
+            return safeGet(key, ref dest, def);
         }
 
-        public static void get(string key, ref double dest)
+        public static bool get(string key, ref int dest)
         {
-            double d = getParam(key).GetDouble();
-            dest = d;
+            return safeGet(key, ref dest);
         }
 
-        public static void get(string key, ref double dest, double def)
+        public static bool get(string key, ref int dest, int def)
         {
-            try
-            {
-                get(key, ref dest);
-            }
-            catch
-            {
-                dest = def;
-            }
+            return safeGet(key, ref dest, def);
         }
-        public static void get(string key, ref string dest, string def = null)
+
+        public static bool get(string key, ref double dest)
         {
-            try
-            {
-                dest = getParam(key).GetString();
-            }
-            catch
-            {
-                dest = def;
-            }
+            return safeGet(key, ref dest);
+        }
+
+        public static bool get(string key, ref double dest, double def)
+        {
+            return safeGet(key, ref dest, def);
+        }
+        public static bool get(string key, ref string dest, string def = null)
+        {
+            return safeGet(key, ref dest, dest);
         }
 
         public static List<string> list()
