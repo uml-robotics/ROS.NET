@@ -1,24 +1,29 @@
 ﻿// File: tf_node.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 07/01/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using Messages;
 using Messages.std_msgs;
 using Messages.tf;
 using gm = Messages.geometry_msgs;
+using Int64 = System.Int64;
 using String = Messages.std_msgs.String;
+
+#endregion
 
 namespace Ros_CSharp
 {
@@ -77,10 +82,10 @@ namespace Ros_CSharp
             }
             tfhandle.subscribe<tfMessage>("/tf", 100, tfCallback);
         }
-        
+
         public static tf_node instance
         {
-            [System.Diagnostics.DebuggerStepThrough]
+            [DebuggerStepThrough]
             get
             {
                 if (_instance == null)
@@ -142,15 +147,32 @@ namespace Ros_CSharp
 
     public enum TF_STATUS
     {
-        NO_ERROR, LOOKUP_ERROR, CONNECTIVITY_ERROR, EXTRAPOLATION_ERROR
+        NO_ERROR,
+        LOOKUP_ERROR,
+        CONNECTIVITY_ERROR,
+        EXTRAPOLATION_ERROR
     }
 
     public class Transformer
     {
-        const string tf_prefix = "/";
-        const uint MAX_GRAPH_DEPTH = 100;
-        const double DEFAULT_CACHE_TIME = 1000000000;
-        const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
+        private const string tf_prefix = "/";
+        private const uint MAX_GRAPH_DEPTH = 100;
+        private const double DEFAULT_CACHE_TIME = 1000000000;
+        private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
+        private ulong cache_time;
+
+        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> {{"NO_PARENT", 0}};
+        private Dictionary<uint, string> frameids_reverse = new Dictionary<uint, string> {{0, "NO_PARENT"}};
+        private object framemutex = new object();
+        private SortedList<uint, TimeCache> frames = new SortedList<uint, TimeCache>();
+
+        private bool interpolating;
+
+        public Transformer(bool i = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
+        {
+            interpolating = i;
+            cache_time = ct;
+        }
 
         public static string resolve(string prefix, string frame_name)
         {
@@ -166,21 +188,6 @@ namespace Ros_CSharp
                 return "/" + prefix + "/" + frame_name;
             }
             return "/" + frame_name;
-        }
-
-        //autobots, roll out
-        private object framemutex = new object();
-        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> {{"NO_PARENT", 0}};
-        Dictionary<uint,string> frameids_reverse = new Dictionary<uint,string>() {{0, "NO_PARENT" }};
-        SortedList<uint,TimeCache> frames = new SortedList<uint,TimeCache>();
-
-        private ulong cache_time;
-        private bool interpolating;
-
-        public Transformer(bool i=true, ulong ct = (ulong)DEFAULT_CACHE_TIME)
-        {
-            interpolating = i;
-            cache_time = ct;
         }
 
         public void clear()
@@ -250,16 +257,22 @@ namespace Ros_CSharp
                 {
                     switch (retval)
                     {
-                        case TF_STATUS.CONNECTIVITY_ERROR: ROS.Error("NO CONNECTIONSZSZ: " + error_string); break;
-                        case TF_STATUS.EXTRAPOLATION_ERROR: ROS.Error("EXTRAPOLATION: " + error_string); break;
-                        case TF_STATUS.LOOKUP_ERROR: ROS.Error("LOOKUP: " + error_string); break;
+                        case TF_STATUS.CONNECTIVITY_ERROR:
+                            ROS.Error("NO CONNECTIONSZSZ: " + error_string);
+                            break;
+                        case TF_STATUS.EXTRAPOLATION_ERROR:
+                            ROS.Error("EXTRAPOLATION: " + error_string);
+                            break;
+                        case TF_STATUS.LOOKUP_ERROR:
+                            ROS.Error("LOOKUP: " + error_string);
+                            break;
                     }
                 }
                 transform.translation = accum.result_vec;
                 transform.rotation = accum.result_quat;
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
-                transform.stamp = new Time { data = new TimeData { sec = (uint)(accum.time >> 32), nsec = (uint)(accum.time & 0xFFFFFFFF) } };
+                transform.stamp = new Time {data = new TimeData {sec = (uint) (accum.time >> 32), nsec = (uint) (accum.time & 0xFFFFFFFF)}};
             }
         }
 
@@ -476,8 +489,8 @@ namespace Ros_CSharp
         {
             if (!frameIDs.ContainsKey(frame))
             {
-                frameIDs.Add(frame, (uint)(frameIDs.Count + 1));
-                frameids_reverse.Add((uint)frameids_reverse.Count+1, frame);
+                frameIDs.Add(frame, (uint) (frameIDs.Count + 1));
+                frameids_reverse.Add((uint) frameids_reverse.Count + 1, frame);
             }
             return frameIDs[frame];
         }
@@ -518,8 +531,9 @@ namespace Ros_CSharp
 
     public struct TimeAndFrameID
     {
-        public ulong time;
         public uint frame_id;
+        public ulong time;
+
         public TimeAndFrameID(ulong t, uint f)
         {
             time = t;
@@ -529,16 +543,28 @@ namespace Ros_CSharp
 
     public class TimeCache
     {
+        private const int MIN_INTERPOLATION_DISTANCE = 5;
+        private const uint MAX_LENGTH_LINKED_LIST = 10000000;
+        private const Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
+
+        private ulong max_storage_time;
+        private volatile DLL<TransformStorage> storage = new DLL<TransformStorage>();
+
+        public TimeCache()
+            : this(DEFAULT_MAX_STORAGE_TIME)
+        {
+        }
+
+        public TimeCache(ulong max_storage_time)
+        {
+            this.max_storage_time = max_storage_time;
+        }
+
         public static ulong toLong(TimeData td)
         {
-            return (((ulong)td.sec) << 32) | td.nsec;
+            return (((ulong) td.sec) << 32) | td.nsec;
         }
-        const int MIN_INTERPOLATION_DISTANCE = 5;
-        const uint MAX_LENGTH_LINKED_LIST = 10000000;
-        const System.Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
 
-        private volatile DLL<TransformStorage> storage = new DLL<TransformStorage>();
-        private ulong max_storage_time;
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
         {
             if (storage.Count == 0)
@@ -561,11 +587,8 @@ namespace Ros_CSharp
                     one = ts;
                     return 1;
                 }
-                else
-                {
-                    createExtrapolationException1(target_time, ts.stamp, ref error_str);
-                    return 0;
-                }
+                createExtrapolationException1(target_time, ts.stamp, ref error_str);
+                return 0;
             }
 
             ulong latest_time = storage.Back.stamp;
@@ -575,26 +598,28 @@ namespace Ros_CSharp
                 one = storage.Back;
                 return 1;
             }
-            else if (target_time == earliest_time)
+            if (target_time == earliest_time)
             {
                 one = storage.Front;
                 return 1;
             }
-            else if (target_time > latest_time)
+            if (target_time > latest_time)
             {
                 createExtrapolationException2(target_time, latest_time, ref error_str);
                 return 0;
             }
-            else if (target_time < earliest_time)
+            if (target_time < earliest_time)
             {
                 createExtrapolationException3(target_time, earliest_time, ref error_str);
                 return 0;
             }
 
             ulong i;
-            for (i = 0; i < storage.Count; i++) {
-            if (storage[i].stamp <= target_time) break;}
-            one = storage[i+1];
+            for (i = 0; i < storage.Count; i++)
+            {
+                if (storage[i].stamp <= target_time) break;
+            }
+            one = storage[i + 1];
             two = storage[i];
             return 2;
         }
@@ -610,7 +635,7 @@ namespace Ros_CSharp
             if (output == null)
                 output = new TransformStorage();
 
-            double ratio = (time - one.stamp) / (two.stamp - one.stamp);
+            double ratio = (time - one.stamp)/(two.stamp - one.stamp);
             output.translation.setInterpolate3(one.translation, two.translation, ratio);
             output.rotation = slerp(one.rotation, two.rotation, ratio);
             output.stamp = one.stamp;
@@ -626,27 +651,17 @@ namespace Ros_CSharp
         private void pruneList()
         {
             ulong latest_time = storage.Back.stamp;
-            ulong preprune = storage.Count,postprune=0;
+            ulong preprune = storage.Count, postprune = 0;
             while ((postprune = storage.Count) > 0 && storage.Front.stamp + max_storage_time < latest_time)
                 storage.popFront();
             //Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
-        }
-
-        public TimeCache()
-            : this(DEFAULT_MAX_STORAGE_TIME)
-        {
-
-        }
-
-        public TimeCache(ulong max_storage_time)
-        {
-            this.max_storage_time = max_storage_time;
         }
 
         public bool getData(TimeData time_, ref TransformStorage data_out, ref string error_str)
         {
             return getData(toLong(time_), ref data_out, ref error_str);
         }
+
         public bool getData(ulong time_, ref TransformStorage data_out, ref string error_str)
         {
             TransformStorage temp1 = null, temp2 = null;
@@ -681,7 +696,7 @@ namespace Ros_CSharp
             if (storage.Count > 0 && storage.Front.stamp > new_data.stamp + max_storage_time)
                 return false;
 
-            storage.insert(new_data, (a,b)=> a.stamp > new_data.stamp);
+            storage.insert(new_data, (a, b) => a.stamp > new_data.stamp);
             pruneList();
             return true;
         }
@@ -696,10 +711,11 @@ namespace Ros_CSharp
             TransformStorage temp1 = null, temp2 = null;
 
             int num_nodes;
-            num_nodes = findClosest(ref temp1,ref temp2, time, ref error_str);
+            num_nodes = findClosest(ref temp1, ref temp2, time, ref error_str);
             if (num_nodes == 0) return 0;
             return temp1.frame_id;
         }
+
         public uint getParent(TimeData time_, ref string error_str)
         {
             return getParent(toLong(time_), ref error_str);
@@ -717,7 +733,7 @@ namespace Ros_CSharp
 
         public uint getListLength()
         {
-            return (uint)storage.Count;
+            return (uint) storage.Count;
         }
 
         public ulong getLatestTimeStamp()
@@ -733,37 +749,42 @@ namespace Ros_CSharp
         }
 
         #region ERROR THROWERS
-        void createEmptyException(ref string error_str)
+
+        private void createEmptyException(ref string error_str)
         {
             if (error_str != null) error_str = "Cache is empty!";
         }
-        void createExtrapolationException1(ulong t0, ulong t1, ref string error_str)
+
+        private void createExtrapolationException1(ulong t0, ulong t1, ref string error_str)
         {
-            if (error_str != null) error_str = "Lookup would require extrapolation at time \n"+t0+", but only time \n"+t1+" is in the buffer";
+            if (error_str != null) error_str = "Lookup would require extrapolation at time \n" + t0 + ", but only time \n" + t1 + " is in the buffer";
         }
-        void createExtrapolationException2(ulong t0, ulong t1, ref string error_str)
+
+        private void createExtrapolationException2(ulong t0, ulong t1, ref string error_str)
         {
-            if (error_str != null) error_str = "Lookup would require extrapolation into the future. Requested time \n"+t0+" but the latest data is at the time \n"+t1;
+            if (error_str != null) error_str = "Lookup would require extrapolation into the future. Requested time \n" + t0 + " but the latest data is at the time \n" + t1;
         }
-        void createExtrapolationException3(ulong t0, ulong t1, ref string error_str)
+
+        private void createExtrapolationException3(ulong t0, ulong t1, ref string error_str)
         {
-            if (error_str != null) error_str = "Lookup would require extrapolation into the past. Requested time \n"+t0+" but the earliest data is at the time \n"+t1;
+            if (error_str != null) error_str = "Lookup would require extrapolation into the past. Requested time \n" + t0 + " but the earliest data is at the time \n" + t1;
         }
+
         #endregion
     }
 
     public class TransformStorage
     {
-        public emQuaternion rotation;
-        public emVector3 translation;
-        public ulong stamp;
-        public uint frame_id;
         public uint child_frame_id;
+        public uint frame_id;
+        public emQuaternion rotation;
+        public ulong stamp;
+        public emVector3 translation;
 
         public TransformStorage()
-        { 
+        {
             rotation = new emQuaternion();
-        
+
             translation = new emVector3();
         }
 
@@ -775,10 +796,9 @@ namespace Ros_CSharp
             this.frame_id = frame_id;
             this.child_frame_id = child_frame_id;
         }
-
     }
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public class emMatrix3x3
     {
         public emVector3[] m_el = new emVector3[3];
@@ -822,10 +842,6 @@ namespace Ros_CSharp
                 xy + wz, 1.0 - (xx + zz), yz - wx,
                 xz - wy, yz + wx, 1.0 - (xx + yy));
         }
-        public struct Euler
-        {
-            public double roll, pitch, yaw;
-        }
 
         internal emVector3 getYPR(uint solution_number = 1)
         {
@@ -842,17 +858,17 @@ namespace Ros_CSharp
 
                 // From difference of angles formula
                 double delta = Math.Atan2(m_el[2].y, m_el[2].z);
-                if (m_el[2].x < 0)  //gimbal locked down
+                if (m_el[2].x < 0) //gimbal locked down
                 {
-                    euler_out.pitch = Math.PI / 2.0d;
-                    euler_out2.pitch = Math.PI / 2.0d;
+                    euler_out.pitch = Math.PI/2.0d;
+                    euler_out2.pitch = Math.PI/2.0d;
                     euler_out.roll = delta;
                     euler_out2.roll = delta;
                 }
                 else // gimbal locked up
                 {
-                    euler_out.pitch = -Math.PI / 2.0d;
-                    euler_out2.pitch = -Math.PI / 2.0d;
+                    euler_out.pitch = -Math.PI/2.0d;
+                    euler_out2.pitch = -Math.PI/2.0d;
                     euler_out.roll = delta;
                     euler_out2.roll = delta;
                 }
@@ -862,15 +878,15 @@ namespace Ros_CSharp
                 euler_out.pitch = -Math.Asin(m_el[2].x);
                 euler_out2.pitch = Math.PI - euler_out.pitch;
 
-                euler_out.roll = Math.Atan2(m_el[2].y / Math.Cos(euler_out.pitch),
-                        m_el[2].z / Math.Cos(euler_out.pitch));
-                euler_out2.roll = Math.Atan2(m_el[2].y / Math.Cos(euler_out2.pitch),
-                        m_el[2].z / Math.Cos(euler_out2.pitch));
+                euler_out.roll = Math.Atan2(m_el[2].y/Math.Cos(euler_out.pitch),
+                    m_el[2].z/Math.Cos(euler_out.pitch));
+                euler_out2.roll = Math.Atan2(m_el[2].y/Math.Cos(euler_out2.pitch),
+                    m_el[2].z/Math.Cos(euler_out2.pitch));
 
-                euler_out.yaw = Math.Atan2(m_el[1].x / Math.Cos(euler_out.pitch),
-                        m_el[0].x / Math.Cos(euler_out.pitch));
-                euler_out2.yaw = Math.Atan2(m_el[1].x / Math.Cos(euler_out2.pitch),
-                        m_el[0].x / Math.Cos(euler_out2.pitch));
+                euler_out.yaw = Math.Atan2(m_el[1].x/Math.Cos(euler_out.pitch),
+                    m_el[0].x/Math.Cos(euler_out.pitch));
+                euler_out2.yaw = Math.Atan2(m_el[1].x/Math.Cos(euler_out2.pitch),
+                    m_el[0].x/Math.Cos(euler_out2.pitch));
             }
 
             if (solution_number == 1)
@@ -881,9 +897,16 @@ namespace Ros_CSharp
                 return new emVector3(euler_out.yaw, euler_out.pitch, euler_out.roll);
             }
             return new emVector3(euler_out2.yaw, euler_out2.pitch, euler_out2.roll);
+        }
 
+        public struct Euler
+        {
+            public double pitch;
+            public double roll;
+            public double yaw;
         }
     }
+
     public enum WalkEnding
     {
         Identity,
@@ -891,6 +914,7 @@ namespace Ros_CSharp
         SourceParentOfTarget,
         FullPath
     }
+
     public abstract class ATransformAccum
     {
         public TransformStorage st;
@@ -917,7 +941,6 @@ namespace Ros_CSharp
 
     public class TransformAccum : ATransformAccum
     {
-
         public emQuaternion result_quat;
         public emVector3 result_vec;
         public emQuaternion source_to_top_quat = new emQuaternion();
@@ -944,20 +967,20 @@ namespace Ros_CSharp
                     result_quat = source_to_top_quat;
                     break;
                 case WalkEnding.SourceParentOfTarget:
-                    {
-                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                        emVector3 inv_target_vec = quatRotate(inv_target_quat, -1 * target_to_top_vec);
-                        result_quat = inv_target_quat;
-                        result_vec = inv_target_vec;
-                    }
+                {
+                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                    emVector3 inv_target_vec = quatRotate(inv_target_quat, -1*target_to_top_vec);
+                    result_quat = inv_target_quat;
+                    result_vec = inv_target_vec;
+                }
                     break;
                 case WalkEnding.FullPath:
-                    {
-                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                        emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
-                        result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
-                        result_quat = inv_target_quat * source_to_top_quat;
-                    }
+                {
+                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
+                    result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
+                    result_quat = inv_target_quat*source_to_top_quat;
+                }
                     break;
             }
             time = _time;
@@ -977,7 +1000,7 @@ namespace Ros_CSharp
             }
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
+        [DebuggerStepThrough]
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
             emQuaternion q = rotation*v;
@@ -986,15 +1009,15 @@ namespace Ros_CSharp
         }
     }
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public class emTransform
     {
         public string child_frame_id;
         public string frame_id;
 
         public emQuaternion rotation;
-        public emVector3 translation;
         public Time stamp;
+        public emVector3 translation;
 
         public emTransform() : this(new emQuaternion(), new emVector3(), new Time(new TimeData()), "", "")
         {
@@ -1015,7 +1038,7 @@ namespace Ros_CSharp
         }
     }
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public class emQuaternion
     {
         public double w;
@@ -1065,19 +1088,20 @@ namespace Ros_CSharp
         {
             return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
         }
+
         public static emQuaternion operator *(float d, emQuaternion v1)
         {
-            return v1 * ((double)d);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(int d, emQuaternion v1)
         {
-            return v1 * ((double)d);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(double d, emQuaternion v1)
         {
-            return new emQuaternion(v1.x * d, v1.y * d, v1.z * d, v1.w * d);
+            return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
@@ -1149,42 +1173,42 @@ namespace Ros_CSharp
             emVector3 tmp = new emMatrix3x3(this).getYPR();
             return new emVector3(tmp.z, tmp.y, tmp.x);
             emVector3 ret = new emVector3();
-            double w2 = w * w;
-            double x2 = x * x;
-            double y2 = y * y;
-            double z2 = z * z;
-            double unitLength = length();    // Normalized == 1, otherwise correction divisor.
-            double abcd = w * x + y * z;
+            double w2 = w*w;
+            double x2 = x*x;
+            double y2 = y*y;
+            double z2 = z*z;
+            double unitLength = length(); // Normalized == 1, otherwise correction divisor.
+            double abcd = w*x + y*z;
             double eps = Math.E;
             double pi = Math.PI;
-            if (abcd > (0.5 - eps) * unitLength)
+            if (abcd > (0.5 - eps)*unitLength)
             {
-                ret.z = 2 * Math.Atan2(y, w);
+                ret.z = 2*Math.Atan2(y, w);
                 ret.y = pi;
                 ret.x = 0;
             }
-            else if (abcd < (-0.5 + eps) * unitLength)
+            else if (abcd < (-0.5 + eps)*unitLength)
             {
-                ret.z = -2 * Math.Atan2(y, w);
+                ret.z = -2*Math.Atan2(y, w);
                 ret.y = -pi;
                 ret.x = 0;
             }
             else
             {
-                double adbc = w * z - x * y;
-                double acbd = w * y - x * z;
-                ret.z = Math.Atan2(2 * adbc, 1 - 2 * (z2 + x2));
-                ret.y = Math.Asin(2 * abcd / unitLength);
-                ret.x = Math.Atan2(2 * acbd, 1 - 2 * (y2 + x2));
+                double adbc = w*z - x*y;
+                double acbd = w*y - x*z;
+                ret.z = Math.Atan2(2*adbc, 1 - 2*(z2 + x2));
+                ret.y = Math.Asin(2*abcd/unitLength);
+                ret.x = Math.Atan2(2*acbd, 1 - 2*(y2 + x2));
             }
             return ret;
         }
 
         public static emQuaternion FromRPY(emVector3 rpy)
         {
-            double halfroll = rpy.x / 2;
-            double halfpitch = rpy.y / 2;
-            double halfyaw = rpy.z / 2;
+            double halfroll = rpy.x/2;
+            double halfpitch = rpy.y/2;
+            double halfyaw = rpy.z/2;
 
             double sin_r2 = Math.Sin(halfroll);
             double sin_p2 = Math.Sin(halfpitch);
@@ -1195,19 +1219,19 @@ namespace Ros_CSharp
             double cos_y2 = Math.Cos(halfyaw);
 
             return new emQuaternion(
-                cos_r2 * cos_p2 * cos_y2 + sin_r2 * sin_p2 * sin_y2,
-                sin_r2 * cos_p2 * cos_y2 - cos_r2 * sin_p2 * sin_y2,
-                cos_r2 * sin_p2 * cos_y2 + sin_r2 * cos_p2 * sin_y2,
-                cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
+                cos_r2*cos_p2*cos_y2 + sin_r2*sin_p2*sin_y2,
+                sin_r2*cos_p2*cos_y2 - cos_r2*sin_p2*sin_y2,
+                cos_r2*sin_p2*cos_y2 + sin_r2*cos_p2*sin_y2,
+                cos_r2*cos_p2*sin_y2 - sin_r2*sin_p2*cos_y2
                 );
         }
 
         public double angleShortestPath(emQuaternion q)
         {
-            double s = Math.Sqrt(length2() * q.length2());
+            double s = Math.Sqrt(length2()*q.length2());
             if (dot(q) < 0)
-                return Math.Acos(dot(-1 * q) / s) * 2.0;
-            return Math.Acos(dot(q) / s) * 2.0;
+                return Math.Acos(dot(-1*q)/s)*2.0;
+            return Math.Acos(dot(q)/s)*2.0;
         }
 
         public emQuaternion slerp(emQuaternion q, double t)
@@ -1215,26 +1239,26 @@ namespace Ros_CSharp
             double theta = angleShortestPath(q);
             if (theta != 0)
             {
-                double d = 1.0 / Math.Sin(theta);
-                double s0 = Math.Sin(1.0 - t) * theta;
-                double s1 = Math.Sin(t * theta);
+                double d = 1.0/Math.Sin(theta);
+                double s0 = Math.Sin(1.0 - t)*theta;
+                double s1 = Math.Sin(t*theta);
                 if (dot(q) < 0)
                 {
-                    return new emQuaternion((x * s0 + -1 * q.x * s1) * d,
-                        (y * s0 + -1 * q.y * s1) * d,
-                        (z * s0 + -1 * q.z * s1) * d,
-                        (w * s0 + -1 * q.w * s1) * d);
+                    return new emQuaternion((x*s0 + -1*q.x*s1)*d,
+                        (y*s0 + -1*q.y*s1)*d,
+                        (z*s0 + -1*q.z*s1)*d,
+                        (w*s0 + -1*q.w*s1)*d);
                 }
-                return new emQuaternion((x * s0 + q.x * s1) * d,
-                        (y * s0 + q.y * s1) * d,
-                        (z * s0 + q.z * s1) * d,
-                        (w * s0 + q.w * s1) * d);
+                return new emQuaternion((x*s0 + q.x*s1)*d,
+                    (y*s0 + q.y*s1)*d,
+                    (z*s0 + q.z*s1)*d,
+                    (w*s0 + q.w*s1)*d);
             }
             return new emQuaternion(this);
         }
     }
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public class emVector3
     {
         public double x, y, z;
@@ -1290,17 +1314,17 @@ namespace Ros_CSharp
 
         public static emVector3 operator *(float d, emVector3 v1)
         {
-            return v1 * ((double)d);
+            return v1*((double) d);
         }
 
         public static emVector3 operator *(int d, emVector3 v1)
         {
-            return v1 * ((double)d);
+            return v1*((double) d);
         }
 
         public static emVector3 operator *(double d, emVector3 v1)
         {
-            return new emVector3(v1.x * d, v1.y * d, v1.z * d);
+            return new emVector3(v1.x*d, v1.y*d, v1.z*d);
         }
 
         public override string ToString()
@@ -1311,9 +1335,9 @@ namespace Ros_CSharp
         public void setInterpolate3(emVector3 v0, emVector3 v1, double rt)
         {
             double s = 1.0 - rt;
-            x = s * v0.x + rt * v1.x;
-            y = s * v0.y + rt * v1.y;
-            z = s * v0.z + rt * v1.z;
+            x = s*v0.x + rt*v1.x;
+            y = s*v0.y + rt*v1.y;
+            z = s*v0.z + rt*v1.z;
         }
     }
 }

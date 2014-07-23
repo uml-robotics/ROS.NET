@@ -1,16 +1,16 @@
 ﻿// File: XmlRpcManager.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
-#region Using
+#region USINGZ
 
 #if DEBUG
 //#define XMLRPC_DEBUG
@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
@@ -114,7 +113,7 @@ namespace Ros_CSharp
                     Thread.Sleep(10);
                 }
 
-                if (shutting_down) 
+                if (shutting_down)
                     return;
 
                 foreach (AsyncXmlRpcConnection con in connections)

@@ -1,16 +1,16 @@
 ﻿// File: TransportPublisherLink.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
-#region Using
+#region USINGZ
 
 using System;
 using System.Collections;
@@ -96,7 +96,7 @@ namespace Ros_CSharp
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
-            EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- " + reason.ToString());
+            EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- " + reason);
             if (dropping || conn != connection)
                 return;
             lock (parent)
@@ -124,7 +124,7 @@ namespace Ros_CSharp
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
-            if (conn != connection) 
+            if (conn != connection)
                 return false;
             if (!setHeader(header))
             {

@@ -1,14 +1,14 @@
 ﻿// File: CallbackQueue.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
 #region USINGZ
 
@@ -29,9 +29,9 @@ namespace Ros_CSharp
     [DebuggerStepThrough]
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
+        private int Count;
         public List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public int calling;
-        private int Count;
         private Thread cbthread;
         private bool enabled;
         public Dictionary<UInt64, IDInfo> id_info = new Dictionary<UInt64, IDInfo>();
@@ -42,10 +42,7 @@ namespace Ros_CSharp
 
         public bool IsEmpty
         {
-            get
-            {
-                return Count == 0;
-            }
+            get { return Count == 0; }
         }
 
         public bool IsEnabled
@@ -140,7 +137,7 @@ namespace Ros_CSharp
         {
             lock (mutex)
             {
-                callbacks.RemoveAll((ici) => ici.removal_id == owner_id);
+                callbacks.RemoveAll(ici => ici.removal_id == owner_id);
                 Count = callbacks.Count;
             }
         }
@@ -323,7 +320,7 @@ namespace Ros_CSharp
     public class TLS
     {
         private volatile Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
-        private UInt64 _count = 0;
+        private UInt64 _count;
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
 #if SAFE
         private object mut = new object();
@@ -331,25 +328,31 @@ namespace Ros_CSharp
 
         public int Count
         {
-            get { return (int)_count; }
+            get { return (int) _count; }
         }
 
         public CallbackQueueInterface.ICallbackInfo head
         {
-            get { if (Count == 0) return null; 
+            get
+            {
+                if (Count == 0) return null;
 #if SAFE
                 lock (mut) 
 #endif
-                    return _queue.Peek(); }
+                return _queue.Peek();
+            }
         }
 
         public CallbackQueueInterface.ICallbackInfo tail
         {
-            get { if (Count == 0) return null; 
+            get
+            {
+                if (Count == 0) return null;
 #if SAFE
                 lock(mut) 
 #endif
-                    return _queue.Last(); }
+                return _queue.Last();
+            }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
@@ -392,7 +395,7 @@ namespace Ros_CSharp
                 if (!_queue.Contains(info))
                     return null;
                 stop = Count;
-                _queue = new Queue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[]{info}));
+                _queue = new Queue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[] {info}));
                 _count--;
                 return info;
             }

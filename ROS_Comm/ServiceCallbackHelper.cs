@@ -1,17 +1,21 @@
 ﻿// File: ServiceCallbackHelper.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 using System.Collections;
 using Messages;
+
+#endregion
 
 namespace Ros_CSharp
 {

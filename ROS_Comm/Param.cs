@@ -1,16 +1,16 @@
 ﻿// File: Param.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
-#region Using
+#region USINGZ
 
 using System;
 using System.Collections;
@@ -22,8 +22,11 @@ using XmlRpc_Wrapper;
 namespace Ros_CSharp
 {
     public delegate void ParamStringDelegate(string key, string value);
+
     public delegate void ParamDoubleDelegate(string key, double value);
+
     public delegate void ParamIntDelegate(string key, int value);
+
     public delegate void ParamBoolDelegate(string key, bool value);
 
     public static class Param
@@ -43,6 +46,7 @@ namespace Ros_CSharp
             BoolCallbacks[key].Add(del);
             update(key, getParam(key, true));
         }
+
         public static void Subscribe(string key, ParamIntDelegate del)
         {
             if (!IntCallbacks.ContainsKey(key))
@@ -50,6 +54,7 @@ namespace Ros_CSharp
             IntCallbacks[key].Add(del);
             update(key, getParam(key, true));
         }
+
         public static void Subscribe(string key, ParamDoubleDelegate del)
         {
             if (!DoubleCallbacks.ContainsKey(key))
@@ -57,6 +62,7 @@ namespace Ros_CSharp
             DoubleCallbacks[key].Add(del);
             update(key, getParam(key, true));
         }
+
         public static void Subscribe(string key, ParamStringDelegate del)
         {
             if (!StringCallbacks.ContainsKey(key))
@@ -198,7 +204,7 @@ namespace Ros_CSharp
                 {
                     if (def == null)
                         return false;
-                    dest = (T)def;
+                    dest = (T) def;
                     return true;
                 }
                 dest = v.Get<T>();
@@ -239,6 +245,7 @@ namespace Ros_CSharp
         {
             return safeGet(key, ref dest, def);
         }
+
         public static bool get(string key, ref string dest, string def = null)
         {
             return safeGet(key, ref dest, dest);

@@ -1,18 +1,17 @@
 ﻿// File: ServiceManager.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
-#region Using
+#region USINGZ
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,7 +45,7 @@ namespace Ros_CSharp
             [DebuggerStepThrough]
             get
             {
-                if (_instance == null) 
+                if (_instance == null)
                     lock (singleton_instance)
                         if (_instance == null)
                             _instance = new ServiceManager();

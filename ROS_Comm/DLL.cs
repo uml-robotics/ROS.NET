@@ -1,7 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// File: DLL.cs
+// Project: ROS_C-Sharp
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 01/14/2014
+// Updated: 07/23/2014
+
+#region USINGZ
+
+using System;
+
+#endregion
 
 //Generic double-linked list
 //Eric McCann 2014
@@ -9,27 +22,36 @@ using System.Text;
 namespace Ros_CSharp
 {
     public delegate bool DLLInsertionPoint<T>(T newNode, T toInsertAfter);
+
     public delegate DLLNode<T> DLLClosestNode<T>(DLLNode<T> candidateOne, DLLNode<T> candidateTwo);
 
     public class DLL<T>
     {
-        DLLNode<T> _first, _last;
-        private UInt64 count = 0;
-        public UInt64 Count { get { return count; } }
+        private DLLNode<T> _first, _last;
+        private UInt64 count;
 
-        private DLLNode<T> walk(bool forwards, DLLNode<T> node)
+        public DLL()
         {
-            return forwards ? node.next : node.previous;
+            _first = new DLLNode<T>();
+            _last = new DLLNode<T>();
+            _first.next = _last;
+            _last.previous = _first;
         }
+
+        public UInt64 Count
+        {
+            get { return count; }
+        }
+
         public T this[UInt64 key]
         {
             get
             {
                 if (key >= count || key < 0)
                     throw new Exception("WTF?!");
-                bool forwards = (key - (count / 2) > 0);
+                bool forwards = (key - (count/2) > 0);
                 UInt64 c = forwards ? 0 : count - 1;
-                lock(this)
+                lock (this)
                     for (DLLNode<T> curr = forwards ? _first.next : _last.previous; forwards ? curr != _last : curr != _first; curr = walk(forwards, curr))
                     {
                         if (c == key)
@@ -47,8 +69,8 @@ namespace Ros_CSharp
             {
                 if (key >= count || key < 0)
                     throw new Exception("WTF?!");
-                bool forwards = (key - (count / 2) < 0);
-                UInt64 c = forwards ? 0 : count-1;
+                bool forwards = (key - (count/2) < 0);
+                UInt64 c = forwards ? 0 : count - 1;
                 DLLNode<T> newnode;
                 lock (this)
                 {
@@ -79,17 +101,21 @@ namespace Ros_CSharp
             }
         }
 
-        public DLL()
+        public T Front
         {
-            _first = new DLLNode<T>();
-            _last = new DLLNode<T>();
-            _first.next = _last;
-            _last.previous = _first;
+            get { return _first.next.element; }
         }
 
-        public T Front { get { return _first.next.element; } }
-        public T Back { get { return _last.previous.element; } }
-        
+        public T Back
+        {
+            get { return _last.previous.element; }
+        }
+
+        private DLLNode<T> walk(bool forwards, DLLNode<T> node)
+        {
+            return forwards ? node.next : node.previous;
+        }
+
         public void pushFront(T t)
         {
             lock (this)
@@ -210,19 +236,23 @@ namespace Ros_CSharp
 
         public void Clear()
         {
-            lock(this)
-                while (_popFront() != null) { }
+            lock (this)
+                while (_popFront() != null)
+                {
+                }
         }
     }
 
     public class DLLNode<T>
     {
         public T element = default(T);
-        public DLLNode<T> previous;
         public DLLNode<T> next;
+        public DLLNode<T> previous;
+
         public DLLNode()
         {
         }
+
         public DLLNode(T t)
         {
             element = t;

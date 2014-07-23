@@ -1,8 +1,23 @@
-﻿using System;
+﻿// File: RemappingHelper.cs
+// Project: ROS_C-Sharp
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 01/24/2014
+// Updated: 07/23/2014
+
+#region USINGZ
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
+#endregion
 
 namespace Ros_CSharp
 {
@@ -16,7 +31,7 @@ namespace Ros_CSharp
             {
                 if (args[i].Contains(":="))
                 {
-                    string[] chunks = args[i].Split(new Char[]{':'},2); // Handles master URIs with semi-columns such as http://IP
+                    string[] chunks = args[i].Split(new[] {':'}, 2); // Handles master URIs with semi-columns such as http://IP
                     chunks[1] = chunks[1].TrimStart('=').Trim();
                     chunks[0] = chunks[0].Trim();
                     remapping.Add(chunks[0], chunks[1]);
@@ -43,7 +58,7 @@ namespace Ros_CSharp
                 //check user env first, then machine if user doesn't have uri defined.
                 if ((_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User)).Contains("ROS_MASTER_URI")
                     || (_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine)).Contains("ROS_MASTER_URI"))
-                    ROS.ROS_MASTER_URI = (string)_vars["ROS_MASTER_URI"];
+                    ROS.ROS_MASTER_URI = (string) _vars["ROS_MASTER_URI"];
             }
 
             //If ROS.ROS_HOSTNAME was not explicitely set by the program calling Init, check the environment.
@@ -54,7 +69,7 @@ namespace Ros_CSharp
                 //check user env first, then machine if user doesn't have uri defined.
                 if ((_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User)).Contains("ROS_HOSTNAME")
                     || (_vars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine)).Contains("ROS_HOSTNAME"))
-                    ROS.ROS_HOSTNAME = (string)_vars["ROS_HOSTNAME"];
+                    ROS.ROS_HOSTNAME = (string) _vars["ROS_HOSTNAME"];
             }
 
             //if defined NOW, then add to remapping, or replace remapping (in the case it was explicitly set by program AND was passed as remapping arg)

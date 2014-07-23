@@ -1,14 +1,14 @@
 ﻿// File: _Init.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
 #region USINGZ
 
@@ -61,9 +61,8 @@ namespace Ros_CSharp
 
 #if DEBUG
 #else
-    /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
-#endif
-
+        #endif
+        /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
         /// </summary>
@@ -76,9 +75,8 @@ namespace Ros_CSharp
 
 #if DEBUG
 #else
-    /// Writes a formatted something to System.Console, and fires an optional OtherOutput event for use in the node
-#endif
-
+        #endif
+        /// Writes a formatted something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
         ///     Writes a formatted something to System.Debug, and fires an optional OtherOutput event for use in the node
         /// </summary>
@@ -136,7 +134,7 @@ namespace Ros_CSharp
         public static UInt64 getPID()
         {
             return (UInt64)
-                Process.GetCurrentProcess().Id;//Thread.CurrentThread.ManagedThreadId;
+                Process.GetCurrentProcess().Id; //Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>
@@ -186,7 +184,7 @@ namespace Ros_CSharp
         /// </summary>
         public static void FREAKOUT()
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName != "devenv")
+            if (Process.GetCurrentProcess().ProcessName != "devenv")
                 throw new Exception("ROS IS FREAKING OUT!");
         }
 
@@ -253,7 +251,7 @@ namespace Ros_CSharp
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-            rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.ERROR);
+                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
         /// <summary>
@@ -278,7 +276,7 @@ namespace Ros_CSharp
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append((string)o, RosOutAppender.ROSOUT_LEVEL.WARN);
+                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.WARN);
         }
 
         /// <summary>
@@ -289,7 +287,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Warn(string format, params object[] args)
         {
-            Warn((object)string.Format(format, args));
+            Warn((object) string.Format(format, args));
         }
 
         /// <summary>
@@ -311,7 +309,7 @@ namespace Ros_CSharp
         /// <param name="options"> options? </param>
         public static void Init(string[] args, string name, int options)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             // ROS_MASTER_URI/ROS_HOSTNAME definition precedence:
             // 1. explicitely set by program

@@ -1,14 +1,14 @@
 ﻿// File: NodeHandle.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
 #region USINGZ
 
@@ -32,6 +32,7 @@ namespace Ros_CSharp
         public string Namespace = "", UnresolvedNamespace = "";
         private CallbackQueue _callback;
         private bool _ok = true;
+        private nhparam _param;
         public NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
         public int nh_refcount;
         public object nh_refcount_mutex = new object();
@@ -39,92 +40,14 @@ namespace Ros_CSharp
         public bool node_started_by_nh;
         public IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
-        public class nhparam
-        {
-            private NodeHandle parent;
-
-            public nhparam(NodeHandle p)
-            {
-                parent = p;
-            }
-
-            public void get(string key, ref bool dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref bool dest, bool def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public void get(string key, ref int dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref int dest, int def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public void get(string key, ref double dest)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest);
-            }
-
-            public void get(string key, ref double dest, double def)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-            public void get(string key, ref string dest, string def = null)
-            {
-                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
-            }
-
-            public bool has(string key)
-            {
-                return Param.has(names.resolve(parent.Namespace, key));
-            }
-
-            public bool del(string key)
-            {
-                return Param.del(names.resolve(parent.Namespace, key));
-            }
-
-            public void set<T>(string key, T value)
-            {
-                string resolved = names.resolve(parent.Namespace, key);
-                T t = default(T);
-                if (t is string)
-                {
-                    Param.set(resolved, value as string);
-                }
-                else
-                {
-                    Param.set(resolved, "" + value);
-                }
-            }
-        }
-
-        private nhparam _param;
-
-        public nhparam param
-        {
-            get
-            {
-                if (_param == null) _param = new nhparam(this); return _param;
-            }
-        }
-
         /// <summary>
         ///     Creates a new node
         /// </summary>
         /// <param name="ns">Namespace of node</param>
         /// <param name="remappings">any remappings</param>
-        public NodeHandle(string ns, IDictionary remappings=null)
+        public NodeHandle(string ns, IDictionary remappings = null)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
@@ -134,7 +57,7 @@ namespace Ros_CSharp
 
         public NodeHandle(NodeHandle rhs)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             Callback = rhs.Callback;
             remappings = new Hashtable(rhs.remappings);
@@ -150,7 +73,7 @@ namespace Ros_CSharp
         /// <param name="ns">Namespace of new node</param>
         public NodeHandle(NodeHandle parent, string ns)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
@@ -167,7 +90,7 @@ namespace Ros_CSharp
         /// <param name="remappings">Remappings</param>
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
@@ -180,6 +103,15 @@ namespace Ros_CSharp
         /// </summary>
         public NodeHandle() : this(this_node.Namespace, null)
         {
+        }
+
+        public nhparam param
+        {
+            get
+            {
+                if (_param == null) _param = new nhparam(this);
+                return _param;
+            }
         }
 
         /// <summary>
@@ -308,7 +240,7 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified options</returns>
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
@@ -325,7 +257,7 @@ namespace Ros_CSharp
                 }
                 return pub;
             }
-            else Console.WriteLine("ADVERTISE FAILED!!!!");
+            Console.WriteLine("ADVERTISE FAILED!!!!");
             return null;
         }
 
@@ -403,7 +335,7 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
@@ -610,5 +542,74 @@ namespace Ros_CSharp
         }
 
         #endregion
+
+        public class nhparam
+        {
+            private NodeHandle parent;
+
+            public nhparam(NodeHandle p)
+            {
+                parent = p;
+            }
+
+            public void get(string key, ref bool dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref bool dest, bool def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public void get(string key, ref int dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref int dest, int def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public void get(string key, ref double dest)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest);
+            }
+
+            public void get(string key, ref double dest, double def)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public void get(string key, ref string dest, string def = null)
+            {
+                Param.get(names.resolve(parent.Namespace, key), ref dest, def);
+            }
+
+            public bool has(string key)
+            {
+                return Param.has(names.resolve(parent.Namespace, key));
+            }
+
+            public bool del(string key)
+            {
+                return Param.del(names.resolve(parent.Namespace, key));
+            }
+
+            public void set<T>(string key, T value)
+            {
+                string resolved = names.resolve(parent.Namespace, key);
+                T t = default(T);
+                if (t is string)
+                {
+                    Param.set(resolved, value as string);
+                }
+                else
+                {
+                    Param.set(resolved, "" + value);
+                }
+            }
+        }
     }
 }

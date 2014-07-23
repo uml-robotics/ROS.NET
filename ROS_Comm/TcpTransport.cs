@@ -1,16 +1,16 @@
 // File: TcpTransport.cs
 // Project: ROS_C-Sharp
 // 
-// ROS#
+// ROS.NET
 // Eric McCann <emccann@cs.uml.edu>
 // UMass Lowell Robotics Laboratory
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 03/04/2013
-// Updated: 07/26/2013
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
-#region Using
+#region USINGZ
 
 using System;
 using System.Diagnostics;
@@ -160,8 +160,8 @@ namespace Ros_CSharp
 
         public void enableRead()
         {
-        	if (sock == null)
-        		throw new Exception("TcpTransport: Attempted to enable read before setSocket called");
+            if (sock == null)
+                throw new Exception("TcpTransport: Attempted to enable read before setSocket called");
             if (!sock.Connected) close();
             lock (close_mutex)
             {
@@ -322,7 +322,6 @@ namespace Ros_CSharp
             }
             catch (Exception)
             {
-                return;
             }
         }
 
@@ -590,7 +589,7 @@ namespace Ros_CSharp
                         Console.WriteLine("Failed to get sock options! (error: " + error + ")" + e);
                     }
                     if (error != 0)
-                    	Console.WriteLine("SOCKET ERROR = " + error);
+                        Console.WriteLine("SOCKET ERROR = " + error);
                     close();
                 }
             }
