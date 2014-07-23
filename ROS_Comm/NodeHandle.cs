@@ -462,10 +462,11 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         private void initRemappings(IDictionary rms)
         {
-            foreach (object k in remappings.Keys)
+            if (rms == null) return;
+            foreach (object k in rms.Keys)
             {
                 string left = (string) k;
-                string right = (string) remappings[k];
+                string right = (string) rms[k];
                 if (left != "" && left[0] != '_')
                 {
                     string resolved_left = resolveName(left, false);
