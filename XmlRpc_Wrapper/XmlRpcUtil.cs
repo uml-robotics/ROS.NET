@@ -10,12 +10,14 @@ namespace XmlRpc_Wrapper
 
         private static void thisishowawesomeyouare(string s)
         {
-            Console.WriteLine(s);
+            Console.WriteLine("XMLRPC NATIVE OUT: "+s);
         }
 
-        public static void ShowOutputFromXmlRpcPInvoke()
+        public static void ShowOutputFromXmlRpcPInvoke(printstr handler = null)
         {
-            if (_PRINTSTR == null)
+            if (handler == null)
+                handler = thisishowawesomeyouare;
+            if (handler != _PRINTSTR)
             {
                 _PRINTSTR = thisishowawesomeyouare;
                 SetAwesomeFunctionPtr(_PRINTSTR);
@@ -24,10 +26,10 @@ namespace XmlRpc_Wrapper
 
         #region bad voodoo
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void printstr(string s);
+        public delegate void printstr(string s);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void printint(int val);
+        public delegate void printint(int val);
 
         [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int IntegerEcho(int val);
