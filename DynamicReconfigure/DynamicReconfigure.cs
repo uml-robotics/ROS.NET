@@ -202,7 +202,7 @@ namespace DynamicReconfigure
                     Reconfigure.Request req = new Reconfigure.Request {config = new Config() {ints = new[] {new IntParameter {name = new Messages.std_msgs.String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        Console.WriteLine("SET FAILED!");
+                        throw new Exception("PARAMETER SET FAILED!");
                 }
             }).BeginInvoke((iar) => { }, null);
         }
@@ -216,7 +216,7 @@ namespace DynamicReconfigure
                     Reconfigure.Request req = new Reconfigure.Request {config = new Config() {doubles = new[] {new DoubleParameter {name = new Messages.std_msgs.String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        Console.WriteLine("SET FAILED!");
+                        throw new Exception("PARAMETER SET FAILED!");
                 }
             }).BeginInvoke((iar) => { }, null);
         }
@@ -230,7 +230,7 @@ namespace DynamicReconfigure
                     Reconfigure.Request req = new Reconfigure.Request {config = new Config() {bools = new[] {new BoolParameter {name = new Messages.std_msgs.String(key), value = value}}}};
                     Reconfigure.Response resp = new Reconfigure.Response();
                     if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        Console.WriteLine("SET FAILED!");
+                        throw new Exception("PARAMETER SET FAILED!");
                 }
             }).BeginInvoke((iar) => { }, null);
         }
