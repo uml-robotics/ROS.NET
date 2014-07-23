@@ -178,7 +178,7 @@ namespace Ros_CSharp
                             client.client.Shutdown();
                             zombies.Add(client);
                         }
-                        else if (client.client.CheckIdentity(host, port, uri)) //client.client.Host == host && client.client.Port == port && client.client.Uri == uri)
+                        else if (client.client.CheckIdentity(host, port, uri))
                         {
                             c = client.client;
                             client.in_use = true;
@@ -187,8 +187,11 @@ namespace Ros_CSharp
                         }
                     }
                 }
-                zombies.Add(null);
-                clients = clients.Except(zombies).ToList();
+                foreach (CachedXmlRpcClient C in zombies)
+                {
+                    clients.Remove(C);
+                    C.client.Dispose();
+                }
                 if (c == null)
                 {
                     c = new XmlRpcClient(host, port, uri);
