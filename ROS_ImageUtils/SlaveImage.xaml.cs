@@ -1,60 +1,93 @@
-﻿#region
+﻿// File: SlaveImage.xaml.cs
+// Project: ROS_ImageWPF
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
+
+#region USINGZ
 
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Point = System.Drawing.Point;
-using Size = System.Windows.Size;
+using System.Windows.Shapes;
 using d = System.Drawing;
-using Messages;
-using Messages.custom_msgs;
-using Ros_CSharp;
-using XmlRpc_Wrapper;
-using Int32 = Messages.std_msgs.Int32;
-using PixelFormat = System.Windows.Media.PixelFormat;
-using String = Messages.std_msgs.String;
-using Brushes = System.Windows.Media.Brushes;
-using Color = System.Windows.Media.Color;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using System.Linq;
+
 #endregion
 
 namespace ROS_ImageWPF
 {
     /// <summary>
-    ///   A general Surface WPF control for the displaying of bitmaps
+    ///     A general Surface WPF control for the displaying of bitmaps
     /// </summary>
-    /// 
-
     public partial class SlaveImage : UserControl
     {
-        public SolidColorBrush ColorConverter(Messages.std_msgs.ColorRGBA c)
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="ImageControl" /> class.
+        ///     constructor... nothing fancy
+        /// </summary>
+        public SlaveImage()
         {
-            return new SolidColorBrush(Color.FromArgb(128, (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
+            InitializeComponent();
         }
-        public System.Windows.Shapes.Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight, Messages.std_msgs.ColorRGBA color)
+
+        #region Events
+
+        private const double _scalex = -1;
+        private const double _scaley = 1;
+
+        /// <summary>
+        ///     when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a
+        ///     BitmapImage with a MemoryStream,
+        ///     the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects
+        ///     that inversion
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            System.Windows.Point tl = new System.Windows.Point(topleft.X * ActualWidth / imgwidth, topleft.Y * ActualHeight / imgheight);
-            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * ActualWidth / imgwidth, (topleft.Y + height) * ActualHeight / imgheight); ;
-            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.White, Fill = ColorConverter(color), StrokeThickness = 1, Opacity = 1.0 };
-            r.SetValue(Canvas.LeftProperty, (object)tl.X);
-            r.SetValue(Canvas.TopProperty, (object)tl.Y);
+            Transform(_scalex, _scaley);
+        }
+
+        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Transform(_scalex, _scaley);
+        }
+
+        #endregion
+
+        public SolidColorBrush ColorConverter(m.ColorRGBA c)
+        {
+            return new SolidColorBrush(Color.FromArgb(128, (byte) Math.Round(c.r), (byte) Math.Round(c.g), (byte) Math.Round(c.b)));
+        }
+
+        public Rectangle DrawABox(Point topleft, double width, double height, double imgwidth, double imgheight, m.ColorRGBA color)
+        {
+            Point tl = new Point(topleft.X*ActualWidth/imgwidth, topleft.Y*ActualHeight/imgheight);
+            Point br = new Point((topleft.X + width)*ActualWidth/imgwidth, (topleft.Y + height)*ActualHeight/imgheight);
+            ;
+            Rectangle r = new Rectangle {Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.White, Fill = ColorConverter(color), StrokeThickness = 1, Opacity = 1.0};
+            r.SetValue(Canvas.LeftProperty, tl.X);
+            r.SetValue(Canvas.TopProperty, tl.Y);
             ROI_Container.Children.Add(r);
             return r;
         }
 
-        public bool EraseABox(System.Windows.Shapes.Rectangle r)
+        public bool EraseABox(Rectangle r)
         {
             if (ROI_Container.Children.Contains(r))
             {
@@ -68,42 +101,6 @@ namespace ROS_ImageWPF
         {
             guts.UpdateImage(ref data);
         }
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
-        ///   constructor... nothing fancy
-        /// </summary>
-        public SlaveImage()
-        {
-            InitializeComponent();
-        }
-
-        #region Events
-
-        private const double _scalex = -1;
-        private const double _scaley = 1;
-
-        /// <summary>
-        ///   when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a BitmapImage with a MemoryStream,
-        ///   the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects that inversion
-        /// </summary>
-        /// <param name = "sender">
-        ///   The sender.
-        /// </param>
-        /// <param name = "e">
-        ///   The e.
-        /// </param>
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            Transform(_scalex, _scaley);
-        }
-
-        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            Transform(_scalex, _scaley);
-        }
-
-        #endregion
 
         public void Transform(double scalex, double scaley)
         {

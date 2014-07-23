@@ -1,70 +1,111 @@
-﻿#region
+﻿// File: CompressedImageControl.xaml.cs
+// Project: ROS_ImageWPF
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 11/06/2013
+// Updated: 07/23/2014
 
+#region USINGZ
+
+//using System.Drawing;
 using System;
 using System.Collections.Generic;
-//using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Point = System.Drawing.Point;
-using Size = System.Windows.Size;
-using d = System.Drawing;
-using Messages;
-using Messages.custom_msgs;
 using Ros_CSharp;
-using XmlRpc_Wrapper;
-using Int32 = Messages.std_msgs.Int32;
-using PixelFormat = System.Windows.Media.PixelFormat;
-using String = Messages.std_msgs.String;
+using d = System.Drawing;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
-using System.Linq;
+
 #endregion
 
 namespace ROS_ImageWPF
 {
     /// <summary>
-    ///   A general Surface WPF control for the displaying of bitmaps
+    ///     A general Surface WPF control for the displaying of bitmaps
     /// </summary>
-    /// 
-
     public partial class CompressedImageControl : UserControl
     {
+        public delegate void ImageReceivedHandler(CompressedImageControl sender);
+
+        public static string newTopicName;
+
+        public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
+            "Topic",
+            typeof (string),
+            typeof (CompressedImageControl),
+            new FrameworkPropertyMetadata(null,
+                FrameworkPropertyMetadataOptions.None, (obj, args) =>
+                {
+                    try
+                    {
+                        if (obj is CompressedImageControl)
+                        {
+                            CompressedImageControl target = obj as CompressedImageControl;
+                            target.Topic = (string) args.NewValue;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }));
+
+        private List<SlaveImage> _slaves = new List<SlaveImage>();
+        private NodeHandle imagehandle;
+        private Subscriber<sm.CompressedImage> imgsub;
+        private Thread waitforinit;
+
         /// <summary>
-        ///   Initializes a new instance of the <see cref = "ImageControl" /> class. 
-        ///   constructor... nothing fancy
+        ///     Initializes a new instance of the <see cref="ImageControl" /> class.
+        ///     constructor... nothing fancy
         /// </summary>
         public CompressedImageControl()
         {
             InitializeComponent();
         }
 
-        public SolidColorBrush ColorConverter(Messages.std_msgs.ColorRGBA c)
+        public string Topic
         {
-            return new SolidColorBrush(Color.FromArgb(128, (byte)Math.Round((double)c.r), (byte)Math.Round((double)c.g), (byte)Math.Round((double)c.b)));
+            get { return GetValue(TopicProperty) as string; }
+            set
+            {
+                Console.WriteLine("CHANGING TOPIC FROM " + Topic + " to " + value);
+                SetValue(TopicProperty, value);
+                Init();
+            }
         }
 
-        public Rectangle DrawABox(System.Windows.Point topleft, double width, double height, double imgwidth, double imgheight, Messages.std_msgs.ColorRGBA color)
+        public SolidColorBrush ColorConverter(m.ColorRGBA c)
+        {
+            return new SolidColorBrush(Color.FromArgb(128, (byte) Math.Round(c.r), (byte) Math.Round(c.g), (byte) Math.Round(c.b)));
+        }
+
+        public Rectangle DrawABox(Point topleft, double width, double height, double imgwidth, double imgheight, m.ColorRGBA color)
         {
             if (ActualWidth < 1 || ActualHeight < 1) return null;
-            System.Windows.Point tl = new System.Windows.Point(topleft.X * imgwidth / ActualWidth, topleft.Y * imgheight / ActualHeight);
-            System.Windows.Point br = new System.Windows.Point((topleft.X + width) * imgwidth / ActualWidth, (topleft.Y + height) * imgheight / ActualHeight); ;
-            System.Windows.Shapes.Rectangle r = new System.Windows.Shapes.Rectangle() { Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.White, Fill = ColorConverter(color), StrokeThickness = 1, Opacity = 1.0 };
-            r.SetValue(Canvas.LeftProperty, (object)tl.X);
-            r.SetValue(Canvas.TopProperty, (object)tl.Y);
+            Point tl = new Point(topleft.X*imgwidth/ActualWidth, topleft.Y*imgheight/ActualHeight);
+            Point br = new Point((topleft.X + width)*imgwidth/ActualWidth, (topleft.Y + height)*imgheight/ActualHeight);
+            ;
+            Rectangle r = new Rectangle {Width = br.X - tl.X, Height = br.Y - tl.Y, Stroke = Brushes.White, Fill = ColorConverter(color), StrokeThickness = 1, Opacity = 1.0};
+            r.SetValue(Canvas.LeftProperty, tl.X);
+            r.SetValue(Canvas.TopProperty, tl.Y);
             ROI_Container.Children.Add(r);
             return r;
         }
 
-        public bool EraseABox(System.Windows.Shapes.Rectangle r)
+        public bool EraseABox(Rectangle r)
         {
             if (ROI_Container.Children.Contains(r))
             {
@@ -74,22 +115,13 @@ namespace ROS_ImageWPF
             return false;
         }
 
-        public delegate void ImageReceivedHandler(CompressedImageControl sender);
         public event ImageReceivedHandler ImageReceivedEvent;
-        private List<SlaveImage> _slaves = new List<SlaveImage>();
+
         public void AddSlave(SlaveImage s)
         {
             _slaves.Add(s);
         }
-        public static string newTopicName;
-        public string Topic
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { Console.WriteLine("CHANGING TOPIC FROM " + Topic + " to " + value); SetValue(TopicProperty, value); Init();}
-        }
-        private Thread waitforinit;
-        private NodeHandle imagehandle;
-        private Subscriber<sm.CompressedImage> imgsub;
+
         public void shutdown()
         {
             if (imgsub != null)
@@ -123,24 +155,6 @@ namespace ROS_ImageWPF
         }
 
 
-        public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
-            "Topic",
-            typeof(string),
-            typeof(CompressedImageControl),
-            new FrameworkPropertyMetadata(null,
-                FrameworkPropertyMetadataOptions.None, (obj, args) =>
-                {
-                    try
-                    {
-                        if (obj is CompressedImageControl)
-                        {
-                            CompressedImageControl target = obj as CompressedImageControl;
-                            target.Topic = (string)args.NewValue;
-                        }
-                    }
-                    catch (Exception e) { Console.WriteLine(e); }
-                }));
-
         private void waitfunc(string TopicName)
         {
             while (!ROS.isStarted())
@@ -149,9 +163,10 @@ namespace ROS_ImageWPF
             }
             SetupTopic(TopicName);
         }
+
         private void SetupTopic(string TopicName)
         {
-            if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
                 return;
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
@@ -163,20 +178,21 @@ namespace ROS_ImageWPF
             Console.WriteLine("IMG TOPIC " + TopicName);
             if (imgsub != null)
                 return;
-            imgsub = imagehandle.subscribe<sm.CompressedImage>(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, (i) => Dispatcher.Invoke(new Action(() =>
+            imgsub = imagehandle.subscribe(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, i => Dispatcher.Invoke(new Action(() =>
             {
                 UpdateImage(ref i.data);
                 foreach (SlaveImage si in _slaves)
                     si.UpdateImage(ref i.data);
                 if (ImageReceivedEvent != null)
                     ImageReceivedEvent(this);
-            }))) { allow_concurrent_callbacks = true });
+            }))) {allow_concurrent_callbacks = true});
         }
 
         /// <summary>
-        ///   Uses a memory stream to turn a byte array into a BitmapImage via helper method, BytesToImage, then passes the image to UpdateImage(BitmapImage)
+        ///     Uses a memory stream to turn a byte array into a BitmapImage via helper method, BytesToImage, then passes the image
+        ///     to UpdateImage(BitmapImage)
         /// </summary>
-        /// <param name = "data">
+        /// <param name="data">
         /// </param>
         public void UpdateImage(ref byte[] data)
         {
@@ -189,14 +205,16 @@ namespace ROS_ImageWPF
         private const double _scaley = 1;
 
         /// <summary>
-        ///   when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a BitmapImage with a MemoryStream,
-        ///   the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects that inversion
+        ///     when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a
+        ///     BitmapImage with a MemoryStream,
+        ///     the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects
+        ///     that inversion
         /// </summary>
-        /// <param name = "sender">
-        ///   The sender.
+        /// <param name="sender">
+        ///     The sender.
         /// </param>
-        /// <param name = "e">
-        ///   The e.
+        /// <param name="e">
+        ///     The e.
         /// </param>
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {

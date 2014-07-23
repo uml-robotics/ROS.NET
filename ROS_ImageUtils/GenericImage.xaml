@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle SnapsToDevicePixels="True" Stretch="Fill" RenderTransformOrigin="0.5,0.5">
             <Rectangle.RenderTransform>
-                <ScaleTransform ScaleX="-1"></ScaleTransform>
+                <ScaleTransform ScaleX="-1" />
             </Rectangle.RenderTransform>
             <Rectangle.Fill>
                 <ImageBrush x:Name="image" />
