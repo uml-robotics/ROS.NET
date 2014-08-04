@@ -63,7 +63,7 @@ namespace FauxMessages
             Namespace = Namespace.Trim('.');
 
             //def is the list of all lines in the file
-            def = new List<string>(lines);
+            def = new List<string>();
             int mid = 0;
             bool found = false;
             List<string> request = new List<string>(), response = new List<string>();
@@ -75,10 +75,12 @@ namespace FauxMessages
                 {
                     lines[mid] = lines[mid].Substring(0, lines[mid].IndexOf('#'));
                 }
-                if (lines[mid].Trim().Length == 0)
+                lines[mid] = lines[mid].Trim();
+                if (lines[mid].Length == 0)
                 {
                     continue;
                 }
+                def.Add(lines[mid]);
                 if (lines[mid].Contains("---"))
                 {
                     found = true;
