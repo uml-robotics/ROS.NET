@@ -260,14 +260,33 @@ namespace FauxMessages
         public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
 
-        public static void resolve(ref string type)
+        public void resolve(string package, ref string type)
         {
             if (resolver.Keys.Contains(type))
             {
-                for (int i = 0; i < resolver[type].Count; i++)
-                    Console.WriteLine(resolver[type][i]);
+                string same_pkg = null;
+
                 if (resolver[type].Count > 1)
-                    throw new Exception("TYPE "+type+" IS AMBIGUOUS");
+                {
+                    for (int i = 0; i < resolver[type].Count; i++)
+                    {
+                        if (package.Length > 0 && resolver[type][i].Contains(package))
+                        {
+                            type = resolver[type][i];
+                            return;
+                        }
+                        if (resolver[type][i].Contains(Namespace))
+                        {
+                            same_pkg = resolver[type][i];
+                        }
+                    }
+                    if (same_pkg != null)
+                    {
+                        type = same_pkg;
+                        return;
+                    }
+                    throw new Exception("Could not resolve " + type);
+                }
                 type = resolver[type][0];
             }
         }
@@ -311,7 +330,7 @@ namespace FauxMessages
                 def.Add(lines[i]);
                 if (Name.ToLower() == "string")
                     lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i], extraindent);
+                SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
             }
@@ -368,7 +387,7 @@ namespace FauxMessages
                 def.Add(lines[i]);
                 if (Name.ToLower() == "string")
                     lines[i].Replace("String", "string");
-                SingleType test = KnownStuff.WhatItIs(lines[i], extraindent);
+                SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
             }
@@ -443,7 +462,7 @@ namespace FauxMessages
             string ret = "\n\t\t\t\t";
             for (int i = 0; i < Stuff.Count; i++)
             {
-                Stuff[i].refinalize(Stuff[i].Type);
+                Stuff[i].refinalize(this, Stuff[i].Type);
                 ret += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);
             }
             return ret;
@@ -642,27 +661,34 @@ namespace FauxMessages
             }
         }
 
-        public static SingleType WhatItIs(string s, string extraindent)
+        public static SingleType WhatItIs(MsgsFile parent, string s, string extraindent)
         {
             string[] pieces = s.Split('/');
+            string package = "";
             if (pieces.Length > 1)
             {
+                for (int i = 0; i < pieces.Length - 1; i++)
+                {
+                    if (i > 0 && i < pieces.Length - 2)
+                        package += "/";
+                    package += pieces[i];
+                }
                 s = pieces[pieces.Length - 1];
             }
-            return WhatItIs(new SingleType(s, extraindent));
+            return WhatItIs(parent, new SingleType(package, s, extraindent));
         }
 
-        public static SingleType WhatItIs(SingleType t)
+        public static SingleType WhatItIs(MsgsFile parent, SingleType t)
         {
             foreach (KeyValuePair<string, string> test in KnownTypes)
             {
                 if (t.Test(test))
                 {
                     t.rostype = t.Type;
-                    return t.Finalize(test);
+                    return t.Finalize(parent,test);
                 }
             }
-            return t.Finalize(t.input.Split(spliter, StringSplitOptions.RemoveEmptyEntries), false);
+            return t.Finalize(parent, t.input.Split(spliter, StringSplitOptions.RemoveEmptyEntries), false);
         }
     }
 
@@ -681,14 +707,16 @@ namespace FauxMessages
         public bool meta;
         public string output;
         public string rostype = "";
+        public string Package;
 
         public SingleType(string s)
-            : this(s, "")
+            : this("", s, "")
         {
         }
 
-        public SingleType(string s, string extraindent)
+        public SingleType(string package, string s, string extraindent)
         {
+            Package = package;
             lowestindent += extraindent;
             if (s.Contains('[') && s.Contains(']'))
             {
@@ -710,17 +738,17 @@ namespace FauxMessages
             return (input.Split(' ')[0].ToLower().Equals(candidate.Key));
         }
 
-        public SingleType Finalize(KeyValuePair<string, string> csharptype)
+        public SingleType Finalize(MsgsFile parent, KeyValuePair<string, string> csharptype)
         {
             string[] PARTS = input.Split(' ');
             rostype = PARTS[0];
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
             PARTS[0] = csharptype.Value;
-            return Finalize(PARTS, true);
+            return Finalize(parent, PARTS, true);
         }
 
-        public SingleType Finalize(string[] s, bool isliteral)
+        public SingleType Finalize(MsgsFile parent, string[] s, bool isliteral)
         {
             backup = new string[s.Length];
             Array.Copy(s, backup, s.Length);
@@ -739,7 +767,7 @@ namespace FauxMessages
             for (int i = 2; i < s.Length; i++)
                 otherstuff += " " + s[i];
             if (otherstuff.Contains('=')) isconst = true;
-            MsgsFile.resolve(ref type);
+            parent.resolve(Package, ref type);
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
@@ -811,7 +839,7 @@ namespace FauxMessages
             return this;
         }
 
-        public void refinalize(string REALTYPE)
+        public void refinalize(MsgsFile parent, string REALTYPE)
         {
             bool isconst = false;
             string type = REALTYPE;
@@ -827,7 +855,7 @@ namespace FauxMessages
             for (int i = 2; i < backup.Length; i++)
                 otherstuff += " " + backup[i];
             if (otherstuff.Contains('=')) isconst = true;
-            MsgsFile.resolve(ref type);
+            parent.resolve(Package, ref type);
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))

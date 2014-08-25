@@ -137,6 +137,12 @@
     <Content Include="ROS_MESSAGES\experiment\SimonSays.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\JointState.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ROS_MESSAGES\custom_msgs\AmbiguousJointStates.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="ROS_MESSAGES\rock_publisher\imgData.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

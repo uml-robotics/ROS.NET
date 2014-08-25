@@ -140,7 +140,7 @@ namespace YAMLParser
                 {
                     foreach (SingleType s in m.Stuff)
                     {
-                        s.refinalize(s.Type);
+                        s.refinalize(m, s.Type);
                     }
                 }
                 GenerateFiles(msgsFiles, srvFiles);
