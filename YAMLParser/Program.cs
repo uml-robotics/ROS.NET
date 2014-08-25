@@ -140,10 +140,7 @@ namespace YAMLParser
                 {
                     foreach (SingleType s in m.Stuff)
                     {
-                        if (MsgsFile.resolver.ContainsKey(s.Type))
-                        {
-                            s.refinalize(MsgsFile.resolver[s.Type]);
-                        }
+                        s.refinalize(s.Type);
                     }
                 }
                 GenerateFiles(msgsFiles, srvFiles);

@@ -244,7 +244,7 @@ namespace FauxMessages
     public class MsgsFile
     {
         private const string stfmat = "name: {0}\n\ttype: {1}\n\trostype: {2}\n\tisliteral: {3}\n\tisconst: {4}\n\tconstvalue: {5}\n\tisarray: {6}\n\tlength: {7}\n\tismeta: {8}\n";
-        public static Dictionary<string, string> resolver;
+        public static Dictionary<string, List<string>> resolver;
         private string GUTS;
         public string GeneratedDictHelper;
         public bool HasHeader;
@@ -260,6 +260,18 @@ namespace FauxMessages
         public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
 
+        public static void resolve(ref string type)
+        {
+            if (resolver.Keys.Contains(type))
+            {
+                for (int i = 0; i < resolver[type].Count; i++)
+                    Console.WriteLine(resolver[type][i]);
+                if (resolver[type].Count > 1)
+                    throw new Exception("WIP");
+                type = resolver[type][0];
+            }
+        }
+
         public MsgsFile(string filename, bool isrequest, List<string> lines)
             : this(filename, isrequest, lines, "")
         {
@@ -268,7 +280,7 @@ namespace FauxMessages
         public
             MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
         {
-            if (resolver == null) resolver = new Dictionary<string, string>();
+            if (resolver == null) resolver = new Dictionary<string, List<string>>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
             filename = filename.Replace(".srv", ".msg");
             if (!filename.Contains(".msg"))
@@ -312,7 +324,7 @@ namespace FauxMessages
 
         public MsgsFile(string filename, string extraindent)
         {
-            if (resolver == null) resolver = new Dictionary<string, string>();
+            if (resolver == null) resolver = new Dictionary<string, List<string>>();
             if (!filename.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
             string[] sp = filename.Replace(Program.inputdir, "").Replace(".msg", "").Split('\\');
@@ -331,7 +343,9 @@ namespace FauxMessages
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
             if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
-                resolver.Add(classname, Namespace + "." + classname);
+                resolver.Add(classname, new List<string>(){Namespace + "." + classname});
+            else if (Namespace != "Messages.std_msgs")
+                resolver[classname].Add(Namespace + "." + classname);
             List<string> lines = new List<string>(File.ReadAllLines(filename));
             lines = lines.Where(st => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
@@ -429,8 +443,7 @@ namespace FauxMessages
             string ret = "\n\t\t\t\t";
             for (int i = 0; i < Stuff.Count; i++)
             {
-                if (resolver.ContainsKey(Stuff[i].Type))
-                    Stuff[i].refinalize(resolver[Stuff[i].Type]);
+                Stuff[i].refinalize(Stuff[i].Type);
                 ret += ((i > 0) ? "}, \n\t\t\t\t{" : "") + MessageFieldHelper.Generate(Stuff[i]);
             }
             return ret;
@@ -726,10 +739,7 @@ namespace FauxMessages
             for (int i = 2; i < s.Length; i++)
                 otherstuff += " " + s[i];
             if (otherstuff.Contains('=')) isconst = true;
-            if (MsgsFile.resolver.Keys.Contains(type))
-            {
-                type = MsgsFile.resolver[type];
-            }
+            MsgsFile.resolve(ref type);
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
@@ -758,11 +768,23 @@ namespace FauxMessages
                         otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
                     }
                 }
-                else if (!type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                string prefix = "", suffix = "";
+                if (isconst)
                 {
-                    wantsconstructor = true;
+                    if (!type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        prefix = "const ";
+                    }
                 }
-                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new " + type + "()" : KnownStuff.GetConstTypesAffix(type)) + ";";
+                if (otherstuff.Contains('='))
+                    if (wantsconstructor)
+                        if (type == "string")
+                            suffix = " = \"\"";
+                        else
+                            suffix = " = new " + type + "()";
+                    else
+                        suffix = KnownStuff.GetConstTypesAffix(type);
+                output = lowestindent + "public " + prefix + type + " " + name + otherstuff + suffix + ";";
             }
             else
             {
@@ -805,10 +827,7 @@ namespace FauxMessages
             for (int i = 2; i < backup.Length; i++)
                 otherstuff += " " + backup[i];
             if (otherstuff.Contains('=')) isconst = true;
-            if (MsgsFile.resolver.Keys.Contains(type))
-            {
-                type = MsgsFile.resolver[type];
-            }
+            MsgsFile.resolve(ref type);
             if (!IsArray)
             {
                 if (otherstuff.Contains('=') && type.Equals("string", StringComparison.CurrentCultureIgnoreCase))
@@ -834,14 +853,30 @@ namespace FauxMessages
                     ConstValue = chunks[chunks.Length - 1].Trim();
                     if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
+                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim().Replace("\"","") + "\")";
                     }
                 }
-                else
+                else if (!type.Equals("String"))
                 {
                     wantsconstructor = true;
                 }
-                output = lowestindent + "public " + (isconst && !type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? "const " : "") + type + " " + name + otherstuff + (wantsconstructor ? " = new " + type + "()" : KnownStuff.GetConstTypesAffix(type)) + ";";
+                string prefix = "",suffix="";
+                if (isconst)
+                {
+                    if (!type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        prefix = "const ";
+                    }
+                }
+                if (otherstuff.Contains('='))
+                    if (wantsconstructor)
+                        if (type == "string")
+                            suffix = " = \"\"";
+                        else
+                            suffix = " = new " + type + "()";
+                    else
+                        suffix = KnownStuff.GetConstTypesAffix(type);
+                output = lowestindent + "public " + prefix + type + " " + name + otherstuff + suffix + ";";
             }
             else
             {
@@ -853,7 +888,7 @@ namespace FauxMessages
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
                 }
                 if (length.Length != 0)
-                    output = lowestindent + "public " + type + "[" + length + "] " + name + otherstuff + " = new " + type + "[" + length + "];";
+                    output = lowestindent + "public " + type + "[] " + name + otherstuff + " = new " + type + "[" + length + "];";
                 else
                     output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
             }
