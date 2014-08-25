@@ -253,9 +253,12 @@ namespace ROS_ImageWPF
             try
             {
                 BitmapImage img = BytesToImage(ref data);
-                if (img.DecodePixelWidth != -1)
-                    UpdateImage(ref img);
-                img = null;
+                if (img != null)
+                {
+                    if (img.DecodePixelWidth != -1)
+                        UpdateImage(ref img);
+                    img = null;
+                }
             }
             catch (Exception e)
             {
@@ -296,24 +299,28 @@ namespace ROS_ImageWPF
 
         public static BitmapImage BytesToImage(ref byte[] data)
         {
-            // makes a memory stream with the data
-            MemoryStream ms = new MemoryStream(data);
-            // makes an image
-            BitmapImage img = new BitmapImage();
-
-            try
+            if (data.Length > 0)
             {
-                // tries to turn the memory stream into an image
-                img.BeginInit();
-                img.StreamSource = ms;
-                img.EndInit();
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
+                // makes a memory stream with the data
+                MemoryStream ms = new MemoryStream(data);
+                // makes an image
+                BitmapImage img = new BitmapImage();
 
-            return img;
+                try
+                {
+                    // tries to turn the memory stream into an image
+                    img.BeginInit();
+                    img.StreamSource = ms;
+                    img.EndInit();
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+
+                return img;
+            }
+            return null;
         }
 
         #endregion
