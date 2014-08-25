@@ -20,3 +20,5 @@ XmlRpc_Wrapper/XmlRpcWin32.instr.pdb
 XmlRpcWin32/Release
 Release/*.dll
 Release/*.pdb
+*.testsettings
+*.vsmdi
