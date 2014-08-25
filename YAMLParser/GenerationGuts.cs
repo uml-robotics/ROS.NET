@@ -267,7 +267,7 @@ namespace FauxMessages
                 for (int i = 0; i < resolver[type].Count; i++)
                     Console.WriteLine(resolver[type][i]);
                 if (resolver[type].Count > 1)
-                    throw new Exception("WIP");
+                    throw new Exception("TYPE "+type+" IS AMBIGUOUS");
                 type = resolver[type][0];
             }
         }
