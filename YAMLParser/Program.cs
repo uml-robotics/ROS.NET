@@ -21,10 +21,10 @@ namespace YAMLParser
         public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
-        public static string inputdir = "ROS_MESSAGES";
-        public static string outputdir = "..\\..\\..\\Messages";
+        public static string inputdir = Environment.GetEnvironmentVariable("TMP")+"\\msgs_flat";
+        public static string outputdir = "Messages";
         public static string name = "Messages";
-        public static string outputdir_secondpass = "..\\..\\..\\SecondPass";
+        public static string outputdir_secondpass = "SecondPass";
 #if !NOT_ON_TOP_OF_ITSELF
         public static string outputdir_firstpass = outputdir;
         public static string name_firstpass = name;
@@ -35,10 +35,27 @@ namespace YAMLParser
 
         private static void Main(string[] args)
         {
+            string solutiondir;
             if (args.Length >= 1)
-                outputdir = args[0];
-            if (args.Length >= 2)
-                inputdir = args[1];
+            {
+                args[0] = args[0].Trim('"');
+                solutiondir = args[0];
+            }
+            else
+            {
+                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+                while (di.Name != "YAMLParser")
+                {
+                    Console.WriteLine(di.FullName);
+                    di = Directory.GetParent(di.FullName);
+                }
+                di = Directory.GetParent(di.FullName);
+                solutiondir = di.FullName;
+            }
+
+            outputdir = solutiondir + "\\" + outputdir;
+            outputdir_firstpass = solutiondir + "\\" + outputdir_firstpass;
+            outputdir_secondpass = solutiondir + "\\" + outputdir_secondpass;
 #if TRACE
             if (Directory.Exists("testmsgs"))
                 inputdir = "testmsgs";
