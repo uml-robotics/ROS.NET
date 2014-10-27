@@ -68,7 +68,11 @@ namespace msg_gen
                 if (File.Exists(arg + "\\ROS_MESSAGES_ROOT.txt"))
                 {
                     foreach (string path in File.ReadAllLines(arg + "\\ROS_MESSAGES_ROOT.txt"))
-                        explode(ref msgs, ref srvs, new DirectoryInfo(arg+"\\"+path).FullName);
+                        explode(ref msgs, ref srvs, new DirectoryInfo(arg + "\\" + path).FullName);
+                }
+                else
+                {
+                    explode(ref msgs, ref srvs, new DirectoryInfo(arg).FullName);
                 }
             }
             foreach (string s in msgs.Concat(srvs))
