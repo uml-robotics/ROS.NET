@@ -30,21 +30,18 @@ namespace videoView
             ROS.Init(args, "Talker");
             NodeHandle node = new NodeHandle();
             Publisher<m.String> Talker = node.advertise<m.String>("/Chatter", 1);
-            Subscriber<m.String> Subscriber = node.subscribe<m.String>("/Chatter", 1, chatterCallback);
+            //Subscriber<m.String> Subscriber = node.subscribe<m.String>("/Chatter", 1, chatterCallback);
             int count = 0;
-            Console.WriteLine("PRESS ENTER TO QUIT!");
-            new Thread(() =>
+            
+            while (ROS.ok)
             {
-                while (ROS.ok)
-                {
-                    ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
-                    String pow = new String("Blah blah blah " + (count++));
+                ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
+                String pow = new String("Blah blah blah " + (count++));
 
-                    Talker.publish(pow);
-                    Thread.Sleep(1000);
-                }
-            }).Start();
-            Console.ReadLine();
+                Talker.publish(pow);
+                Thread.Sleep(1000);
+            }
+            
             ROS.shutdown();
         }
     }
