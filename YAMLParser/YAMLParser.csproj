@@ -114,7 +114,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cleanup.bat" />
     <None Include="Faux\Interfaces.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -133,7 +132,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
-    <None Include="prep.bat" />
     <None Include="TemplateProject\PubSubTest._cs" />
     <Content Include="TemplateProject\Time.cs" />
     <Content Include="TemplateProject\SerializationHelper.cs">

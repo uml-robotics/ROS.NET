@@ -14,11 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_C-Sharp", "ROS_Comm\ROS
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62BF0BBD-313B-448C-A434-B1DD5FEFF10C}"
-	ProjectSection(SolutionItems) = preProject
-		Local.testsettings = Local.testsettings
-		ROS_dotNET.vsmdi = ROS_dotNET.vsmdi
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_ImageWPF", "ROS_ImageUtils\ROS_ImageWPF.csproj", "{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}"
 EndProject
@@ -67,6 +62,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Talker", "Talker\Talker.csproj", "{0A642FA3-58AB-4DBD-94DD-87948062F559}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MD5SumTest", "MD5SumTest\MD5SumTest.csproj", "{D15B296F-7EBC-43AA-BD2B-0292AA5F9A38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msg_gen", "msg_gen\msg_gen.csproj", "{B0B3F899-DE04-4792-9FCF-0A62D435392B}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -292,6 +289,13 @@ Global
 		{D15B296F-7EBC-43AA-BD2B-0292AA5F9A38}.Release|x64.Build.0 = Release|x64
 		{D15B296F-7EBC-43AA-BD2B-0292AA5F9A38}.Release|x86.ActiveCfg = Release|x86
 		{D15B296F-7EBC-43AA-BD2B-0292AA5F9A38}.Release|x86.Build.0 = Release|x86
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x64.ActiveCfg = Debug|x64
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x64.Build.0 = Debug|x64
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x86.ActiveCfg = Debug|x86
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x86.Build.0 = Debug|x86
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Release|x64.ActiveCfg = Release|x86
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Release|x86.ActiveCfg = Release|x86
+		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
