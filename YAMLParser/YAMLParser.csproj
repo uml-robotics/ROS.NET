@@ -200,10 +200,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd $(TargetDir)
-YAMLParser.exe "$(SolutionDir)"</PostBuildEvent>
+YAMLParser.exe "$(SolutionDir)"
+$(ProjectDir)cleanup.bat "$(SolutionDir)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)prep.bat $(SolutionDir)</PreBuildEvent>
+    <PreBuildEvent>$(ProjectDir)prep.bat "$(SolutionDir)"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
