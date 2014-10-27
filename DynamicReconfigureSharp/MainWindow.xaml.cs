@@ -24,8 +24,12 @@ namespace DynamicReconfigureTest
 
         public MainWindow()
         {
-            ROS.Init(new string[0], "dynamic_reconfigure_sharp_" + Environment.MachineName);
-            nh = new NodeHandle();
+            new Thread(() =>
+            {
+                ROS.Init(new string[0], "dynamic_reconfigure_sharp_" + Environment.MachineName);
+                nh = new NodeHandle();
+                Dispatcher.Invoke(new Action(() => { ConnecitonLabel.Content = "Connected"; }));
+            }).Start();
             try
             {
                 InitializeComponent();
