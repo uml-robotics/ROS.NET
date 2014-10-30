@@ -12,7 +12,9 @@
 
 #region USINGZ
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Messages;
 using Messages.rosgraph_msgs;
@@ -58,14 +60,15 @@ namespace Ros_CSharp
             }
         }
 
-        public void Append(string m)
+        public void Append(string m, int level=1)
         {
-            Append(m, ROSOUT_LEVEL.INFO);
+            Append(m, ROSOUT_LEVEL.INFO, level+1);
         }
 
-        public void Append(string m, ROSOUT_LEVEL lvl)
+        public void Append(string m, ROSOUT_LEVEL lvl, int level=1)
         {
-            Log l = new Log {msg = new m.String(m), level = ((byte) ((int) lvl)), name = new m.String(this_node.Name), file = new m.String("*.cs"), function = new m.String("main"), line = 28};
+            StackFrame sf = new StackTrace(new StackFrame(level,true)).GetFrame(0);
+            Log l = new Log {msg = new m.String(m), level = ((byte) ((int) lvl)), name = new m.String(this_node.Name), file = new m.String(sf.GetFileName()), function = new m.String(sf.GetMethod().Name), line = (uint)sf.GetFileLineNumber()};
             string[] advert = this_node.AdvertisedTopics().ToArray();
             l.topics = new m.String[advert.Length];
             for (int i = 0; i < advert.Length; i++)
