@@ -931,8 +931,18 @@ namespace FauxMessages
     {
         public static string Generate(SingleType members)
         {
+            string mt = "MsgTypes.Unknown";
+            if (members.meta)
+            {
+                string t = members.Type.Replace("Messages.", "");
+                if (!t.Contains('.'))
+                    t = "std_msgs." + t;
+                mt = "MsgTypes."+t.Replace(".", "__");
+                if (mt.Contains("ColorRGBA"))
+                    Console.WriteLine(mt);
+            }
             return String.Format
-                ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7})",
+                ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
                     members.Name,
                     members.IsLiteral.ToString().ToLower(),
                     ("typeof(" + members.Type + ")"),
@@ -942,7 +952,8 @@ namespace FauxMessages
                     members.IsArray.ToString().ToLower(),
                     members.length,
                     //FIX MEEEEEEEE
-                    members.meta.ToString().ToLower());
+                    members.meta.ToString().ToLower(),
+                    mt);
         }
     }
 
@@ -956,10 +967,11 @@ namespace FauxMessages
         public int Length = -1;
         public string Name;
         public Type Type;
+        public MsgTypes message_type;
 
         [DebuggerStepThrough]
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
-            string lengths, bool meta)
+            string lengths, bool meta, MsgTypes mt)
         {
             Name = name;
             IsArray = isarray;
@@ -973,6 +985,7 @@ namespace FauxMessages
             {
                 Length = int.Parse(lengths);
             }
+            message_type = mt;
         }
     }
 

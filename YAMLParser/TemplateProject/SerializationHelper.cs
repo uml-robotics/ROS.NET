@@ -704,9 +704,11 @@ Console.WriteLine("//deserialize: " + T.FullName);
         public int Length = -1;
         public string Name;
         public Type Type;
+        public MsgTypes message_type;
+
         [DebuggerStepThrough]
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
-                            string lengths, bool meta)
+            string lengths, bool meta, MsgTypes mt)
         {
             Name = name;
             IsArray = isarray;
@@ -720,6 +722,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
             {
                 Length = int.Parse(lengths);
             }
+            message_type = mt;
         }
     }
 
