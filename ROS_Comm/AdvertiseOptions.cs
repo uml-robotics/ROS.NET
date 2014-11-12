@@ -12,6 +12,8 @@
 
 #region USINGZ
 
+using System;
+using System.Collections.Generic;
 using Messages;
 
 #endregion
@@ -65,6 +67,27 @@ namespace Ros_CSharp
                 message_definition = tt.MessageDefinition;
             else
                 message_definition = message_def;
+            List<Type> visited = new List<Type>();
+            Queue<IRosMessage> frontier = new Queue<IRosMessage>();
+            IRosMessage current = tt;
+            do
+            {
+                if (frontier.Count > 0)
+                {
+                    current = frontier.Dequeue();
+                    message_definition += "\n================================================================================\nMSG: " + current.msgtype.ToString().Replace("__", "/") + "\n" + current.MessageDefinition;
+                }
+                foreach (MsgFieldInfo fi in current.Fields.Values)
+                {
+                    if (fi.message_type == MsgTypes.Unknown) continue;
+                    IRosMessage field = IRosMessage.generate(fi.message_type);
+                    if (field != null && fi.IsMetaType && !visited.Contains(fi.Type))
+                    {
+                        frontier.Enqueue(field);
+                        visited.Add(fi.Type);
+                    }
+                }
+            } while (frontier.Count > 0);
             has_header = tt.HasHeader;
             connectCB = connectcallback;
             disconnectCB = disconnectcallback;
