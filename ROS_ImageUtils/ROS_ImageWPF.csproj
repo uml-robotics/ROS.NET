@@ -163,6 +163,7 @@
     <Compile Include="SlaveImage.xaml.cs">
       <DependentUpon>SlaveImage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WindowScraper.cs" />
     <Page Include="CompressedImageControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
