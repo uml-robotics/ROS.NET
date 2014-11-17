@@ -114,11 +114,8 @@ namespace Ros_CSharp
             {
                 if (max_queue > 0 && outbox.Count >= max_queue)
                 {
-                    if (!queue_full)
-                    {
-                        outbox.Dequeue();
-                        queue_full = true;
-                    }
+                    outbox.Dequeue();
+                    queue_full = true;
                 }
                 else
                     queue_full = false;
@@ -169,10 +166,13 @@ namespace Ros_CSharp
                     writing_message = true;
                     holder = outbox.Dequeue();
                 }
+                if (outbox.Count < max_queue)
+                    queue_full = false;
             }
             if (holder != null)
             {
-                holder.msg.Serialized = holder.serfunc();
+                if (holder.msg.Serialized == null)
+                    holder.msg.Serialized = holder.serfunc();
                 stats.messages_sent++;
                 //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
                 stats.bytes_sent += holder.msg.Serialized.Length;
