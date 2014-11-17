@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Messages.sensor_msgs;
+using Microsoft.Win32.SafeHandles;
 using Ros_CSharp;
 
 namespace ROS_ImageWPF
@@ -47,7 +48,7 @@ namespace ROS_ImageWPF
                 Console.WriteLine("APPENDING /compressed TO TOPIC NAME TO MAKE IMAGE TRANSPORT HAPPY");
                 topic += "/compressed";
             }
-            pub = nh.advertise<CompressedImage>(topic, 1, false);
+            pub = nh.advertise<CompressedImage>(topic, 100);
             queueworker = new Thread(() =>
             {
                 Queue<CompressedImage> localqueue = new Queue<CompressedImage>();
@@ -148,7 +149,15 @@ namespace ROS_ImageWPF
             lock (outboundqueue)
                 outboundqueue.Enqueue(cm);
 
-            queuesem.Release(1);
+            queuesem.WaitOne(0);
+            try
+            {
+                queuesem.Release();
+            }
+            catch (SemaphoreFullException ex)
+            {
+                //noop
+            }
         }
     }
 }
