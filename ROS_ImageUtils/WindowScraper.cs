@@ -25,6 +25,7 @@ namespace ROS_ImageWPF
         private double dpiX, dpiY;
         private double WIDTH, HEIGHT;
         private bool enabled = false;
+        private Semaphore queuesem = new Semaphore(0, 1);
 
         public WindowScraper(string topic, Window w, int hz = 1) : this(topic, w, TimeSpan.FromSeconds(1.0/((double)hz)))
         {
@@ -52,6 +53,7 @@ namespace ROS_ImageWPF
                 Queue<CompressedImage> localqueue = new Queue<CompressedImage>();
                 while (ROS.ok)
                 {
+                    queuesem.WaitOne();
                     lock (outboundqueue)
                     {
                         while (outboundqueue.Count > 0)
@@ -62,7 +64,6 @@ namespace ROS_ImageWPF
                     {
                         pub.publish(cm);
                     }
-                    Thread.Sleep(10);
                 }
             });
             queueworker.Start();
@@ -146,6 +147,8 @@ namespace ROS_ImageWPF
 
             lock (outboundqueue)
                 outboundqueue.Enqueue(cm);
+
+            queuesem.Release(1);
         }
     }
 }
