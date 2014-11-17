@@ -29,11 +29,12 @@ namespace Ros_CSharp
     {
         public Connection connection;
         private bool header_written;
-        private Queue<IRosMessage> outbox = new Queue<IRosMessage>();
+        private Queue<MessageAndSerializerFunc> outbox = new Queue<MessageAndSerializerFunc>();
         private object outbox_mutex = new object();
         private new Publication parent;
         private bool queue_full;
         private bool writing_message;
+        private int max_queue = 0;
 
         public TransportSubscriberLink()
         {
@@ -91,7 +92,10 @@ namespace Ros_CSharp
             connection_id = ConnectionManager.Instance.GetNewConnectionID();
             name = pt.Name;
             parent = pt;
-
+            lock (parent)
+            {
+                max_queue = parent.MaxQueue;
+            }
             IDictionary m = new Hashtable();
             m["type"] = pt.DataType;
             m["md5sum"] = pt.Md5sum;
@@ -104,16 +108,10 @@ namespace Ros_CSharp
             return true;
         }
 
-        public override void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
+        internal override void enqueueMessage(MessageAndSerializerFunc holder)
         {
             lock (outbox_mutex)
             {
-                int max_queue = 0;
-                if (parent != null)
-                    lock (parent)
-                    {
-                        max_queue = parent.MaxQueue;
-                    }
                 if (max_queue > 0 && outbox.Count >= max_queue)
                 {
                     if (!queue_full)
@@ -124,7 +122,7 @@ namespace Ros_CSharp
                 }
                 else
                     queue_full = false;
-                outbox.Enqueue(msg);
+                outbox.Enqueue(holder);
             }
 
             startMessageWrite(false);
@@ -161,7 +159,7 @@ namespace Ros_CSharp
 
         private void startMessageWrite(bool immediate_write)
         {
-            IRosMessage m = null;
+            MessageAndSerializerFunc holder = null;
             lock (outbox_mutex)
             {
                 if (writing_message || !header_written)
@@ -169,17 +167,17 @@ namespace Ros_CSharp
                 if (outbox.Count > 0)
                 {
                     writing_message = true;
-                    m = outbox.Dequeue();
+                    holder = outbox.Dequeue();
                 }
             }
-            if (m != null)
+            if (holder != null)
             {
-                byte[] M = m.Serialize();
+                holder.msg.Serialized = holder.serfunc();
                 stats.messages_sent++;
                 //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
-                stats.bytes_sent += M.Length;
-                stats.message_data_sent += M.Length;
-                connection.write(M, (uint) M.Length, onMessageWritten, immediate_write);
+                stats.bytes_sent += holder.msg.Serialized.Length;
+                stats.message_data_sent += holder.msg.Serialized.Length;
+                connection.write(holder.msg.Serialized, (uint) holder.msg.Serialized.Length, onMessageWritten, immediate_write);
             }
         }
 

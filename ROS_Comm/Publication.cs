@@ -39,8 +39,8 @@ namespace Ros_CSharp
         public List<SubscriberCallbacks> callbacks = new List<SubscriberCallbacks>();
         public object callbacks_mutex = new object();
         public Header connection_header;
-        public IRosMessage last_message;
-        public Queue<IRosMessage> publish_queue = new Queue<IRosMessage>();
+        internal MessageAndSerializerFunc last_message;
+        internal Queue<MessageAndSerializerFunc> publish_queue = new Queue<MessageAndSerializerFunc>();
         public object publish_queue_mutex = new object();
         public object seq_mutex = new object();
         public List<SubscriberLink> subscriber_links = new List<SubscriberLink>();
@@ -130,7 +130,7 @@ namespace Ros_CSharp
 
             if (Latch && last_message != null)
             {
-                link.enqueueMessage(last_message, true, true);
+                link.enqueueMessage(last_message);
             }
 
             peerConnect(link);
@@ -153,7 +153,7 @@ namespace Ros_CSharp
                 peerDisconnect(lnk);
         }
 
-        public void publish(IRosMessage msg)
+        internal void publish(MessageAndSerializerFunc msg)
         {
             lock (publish_queue_mutex)
             {
@@ -249,7 +249,7 @@ namespace Ros_CSharp
             return test.Aggregate("", (current, t) => current + ((t < 16 ? "0" : "") + t.ToString("x") + " "));
         }
 
-        public bool EnqueueMessage(IRosMessage msg)
+        internal bool EnqueueMessage(MessageAndSerializerFunc holder)
         {
             lock (subscriber_links_mutex)
             {
@@ -260,27 +260,35 @@ namespace Ros_CSharp
 
             if (HasHeader)
             {
-                object h = msg.GetType().GetField("header").GetValue(msg);
+                object h = holder.msg.GetType().GetField("header").GetValue(holder.msg);
                 m.Header header;
                 if (h == null)
                     header = new m.Header();
                 else
                     header = (m.Header) h;
                 header.seq = seq;
-                header.stamp = ROS.GetTime();
-                header.frame_id = new m.String();
-                msg.GetType().GetField("header").SetValue(msg, header);
+                if (header.stamp == null)
+                {
+                    header.stamp = ROS.GetTime();
+                }
+                if (header.frame_id == null)
+                {
+                    header.frame_id = new m.String();
+                }
+                holder.msg.GetType().GetField("header").SetValue(holder.msg, header);
             }
-            msg.connection_header = connection_header.Values;
+            holder.msg.connection_header = connection_header.Values;
 
             lock (subscriber_links_mutex)
                 foreach (SubscriberLink sub_link in subscriber_links)
                 {
-                    sub_link.enqueueMessage(msg, true, false);
+                    sub_link.enqueueMessage(holder);
                 }
 
             if (Latch)
-                last_message = msg;
+            {
+                last_message = new MessageAndSerializerFunc(holder.msg, holder.serfunc, false, true);
+            }
             return true;
         }
 
@@ -337,17 +345,13 @@ namespace Ros_CSharp
 
         public void processPublishQueue()
         {
-            Queue<IRosMessage> queue = null;
             lock (publish_queue_mutex)
             {
                 if (Dropped) return;
-                queue = new Queue<IRosMessage>(publish_queue);
-                publish_queue.Clear();
-            }
-            if (queue.Count != 0)
-            {
-                foreach (IRosMessage msg in queue)
-                    EnqueueMessage(msg);
+                while (publish_queue.Count > 0)
+                {
+                    EnqueueMessage(publish_queue.Dequeue());
+                }
             }
         }
 

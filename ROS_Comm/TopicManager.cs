@@ -367,39 +367,37 @@ namespace Ros_CSharp
         public void publish(string topic, SerializeFunc serfunc, IRosMessage msg)
         {
             if (msg == null) return;
+            Publication p;
             lock (advertised_topics_mutex)
             {
-                Publication p;
                 if ((p = lookupPublicationWithoutLock(topic)) == null || !ROS.ok || shutting_down) return;
-                p.connection_header = new Header {Values = new Hashtable()};
-                p.connection_header.Values["type"] = p.DataType;
-                p.connection_header.Values["md5sum"] = p.Md5sum;
-                p.connection_header.Values["message_definition"] = p.MessageDefinition;
-                p.connection_header.Values["callerid"] = this_node.Name;
-                p.connection_header.Values["latching"] = p.Latch;
+            }
+            p.connection_header = new Header {Values = new Hashtable()};
+            p.connection_header.Values["type"] = p.DataType;
+            p.connection_header.Values["md5sum"] = p.Md5sum;
+            p.connection_header.Values["message_definition"] = p.MessageDefinition;
+            p.connection_header.Values["callerid"] = this_node.Name;
+            p.connection_header.Values["latching"] = p.Latch;
 
-                if (p == null) return;
-                if (p.HasSubscribers || p.Latch)
+            if (p == null) return;
+            if (p.HasSubscribers || p.Latch)
+            {
+                bool nocopy = false;
+                bool serialize = false;
+                if (msg != null && msg.msgtype != MsgTypes.Unknown)
                 {
-                    bool nocopy = false;
-                    bool serialize = false;
-                    if (msg != null && msg.msgtype != MsgTypes.Unknown)
-                    {
-                        p.getPublishTypes(ref serialize, ref nocopy, ref msg.msgtype);
-                    }
-                    else
-                        serialize = true;
-                    msg.Serialized = serfunc();
-
-
-                    p.publish(msg);
-
-                    if (serialize)
-                        PollManager.Instance.poll_set.signal();
+                    p.getPublishTypes(ref serialize, ref nocopy, ref msg.msgtype);
                 }
                 else
-                    p.incrementSequence();
+                    serialize = true;
+
+                p.publish(new MessageAndSerializerFunc(msg, serfunc, serialize, nocopy));
+
+                if (serialize)
+                    PollManager.Instance.poll_set.signal();
             }
+            else
+                p.incrementSequence();
         }
 
         public void incrementSequence(string topic)

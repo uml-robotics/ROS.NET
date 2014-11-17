@@ -42,7 +42,7 @@ namespace Ros_CSharp
 
         public void publish<M>(M message) where M : IRosMessage, new()
         {
-            link.enqueueMessage(message, true, true);
+            link.enqueueMessage(new MessageAndSerializerFunc(message, message.Serialize, true, true));
         }
     }
 }

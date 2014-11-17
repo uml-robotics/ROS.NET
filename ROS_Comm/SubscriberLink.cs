@@ -63,7 +63,7 @@ namespace Ros_CSharp
             }
         }
 
-        public virtual void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
+        internal virtual void enqueueMessage(MessageAndSerializerFunc holder)
         {
             throw new NotImplementedException();
         }

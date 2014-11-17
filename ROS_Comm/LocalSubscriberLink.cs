@@ -54,7 +54,7 @@ namespace Ros_CSharp
             destination_caller_id = this_node.Name;
         }
 
-        public override void enqueueMessage(IRosMessage msg, bool ser, bool nocopy)
+        internal override void enqueueMessage(MessageAndSerializerFunc holder)
         {
             lock (drop_mutex)
             {
@@ -62,7 +62,7 @@ namespace Ros_CSharp
             }
 
             if (subscriber != null)
-                subscriber.handleMessage(msg, ser, nocopy);
+                subscriber.handleMessage(holder.msg, holder.serialize, holder.nocopy);
         }
 
 
