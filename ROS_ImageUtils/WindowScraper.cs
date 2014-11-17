@@ -100,6 +100,8 @@ namespace ROS_ImageWPF
             pub.shutdown();
             ROS.shutdown();
             ROS.waitForShutdown();
+            queuesem.WaitOne(0);
+            queuesem.Release();
             queueworker.Join();
         }
 
