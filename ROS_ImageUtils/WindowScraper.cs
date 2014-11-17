@@ -48,7 +48,7 @@ namespace ROS_ImageWPF
                 Console.WriteLine("APPENDING /compressed TO TOPIC NAME TO MAKE IMAGE TRANSPORT HAPPY");
                 topic += "/compressed";
             }
-            pub = nh.advertise<CompressedImage>(topic, 100);
+            pub = nh.advertise<CompressedImage>(topic, 1);
             queueworker = new Thread(() =>
             {
                 Queue<CompressedImage> localqueue = new Queue<CompressedImage>();
