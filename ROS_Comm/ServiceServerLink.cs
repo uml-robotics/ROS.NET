@@ -321,7 +321,10 @@ namespace Ros_CSharp
         {
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
-            resp = (MRes) resp.Deserialize(iresp.Serialized);
+            if (iresp != null)
+                resp = (MRes)resp.Deserialize(iresp.Serialized);
+            else
+                resp = null; //std_servs.Empty, I hope?
             return r;
         }
     }
@@ -340,7 +343,10 @@ namespace Ros_CSharp
         {
             IRosMessage iresp = srv.ResponseMessage;
             bool r = call(srv.RequestMessage, ref iresp);
-            srv.ResponseMessage = srv.ResponseMessage.Deserialize(iresp.Serialized);
+            if (iresp != null)
+                srv.ResponseMessage = srv.ResponseMessage.Deserialize(iresp.Serialized);
+            else
+                srv.ResponseMessage = null; //std_servs.Empty, I hope?
             return r;
         }
     }
