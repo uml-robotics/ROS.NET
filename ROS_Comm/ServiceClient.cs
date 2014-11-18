@@ -84,6 +84,69 @@ namespace Ros_CSharp
         }
     }
 
+    public class ServiceClient<MSrv> : IServiceClient
+        where MSrv : IRosService, new()
+    {
+        internal ServiceClient(string service, bool persistent, IDictionary header_values, string md5sum)
+        {
+            this.service = service;
+            this.persistent = persistent;
+            this.header_values = header_values;
+            this.md5sum = md5sum;
+            if (persistent)
+            {
+                server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, md5sum, md5sum, header_values);
+            }
+        }
+
+        public bool call(MSrv srv)
+        {
+            string md5 = srv.RequestMessage.MD5Sum;
+            return call(srv, md5);
+        }
+
+        public bool call(MSrv srv, string service_md5sum)
+        {
+            if (service_md5sum != md5sum)
+            {
+                EDB.WriteLine("Call to service [{0} with md5sum [{1} does not match md5sum when the handle was created([{2}])", service, service_md5sum, md5sum);
+                return false;
+            }
+            if (persistent)
+            {
+                if (server_link == null)
+                {
+                    server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, service_md5sum, service_md5sum, header_values);
+                    if (server_link == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, service_md5sum, service_md5sum, header_values);
+            }
+            if (server_link == null)
+            {
+                shutdown();
+                return false;
+            }
+            var serviceServerLink = server_link as ServiceServerLink<MSrv>;
+            bool ret = serviceServerLink != null && serviceServerLink.call(srv.RequestMessage, ref srv.ResponseMessage);
+            serviceServerLink = null;
+            while (ROS.shutting_down && ROS.ok)
+            {
+                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
+            }
+            if (!persistent)
+            {
+                server_link.connection.drop(Connection.DropReason.Destructing);
+            }
+            return ret;
+        }
+    }
+
     public class IServiceClient
     {
         internal double constructed =

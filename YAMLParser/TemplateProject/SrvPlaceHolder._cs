@@ -27,6 +27,9 @@ namespace Messages
 			};
 			return (Response)GeneralInvoke(rsd, (IRosMessage)req);
 		}
+		
+		public Request req { get { return (Request)RequestMessage; } set { RequestMessage = (IRosMessage)value; } }
+		public Response resp { get { return (Response)ResponseMessage; } set { ResponseMessage = (IRosMessage)value; } }
 	
 		public class Request : IRosMessage
 		{

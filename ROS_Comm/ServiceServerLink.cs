@@ -52,6 +52,16 @@ namespace Ros_CSharp
             this.header_values = header_values;
         }
 
+        public void initialize<MSrv>()
+            where MSrv : IRosService, new()
+        {
+            MSrv srv = new MSrv();
+            RequestMd5Sum = srv.RequestMessage.MD5Sum;
+            ResponseMd5Sum = srv.ResponseMessage.MD5Sum;
+            RequestType = srv.RequestMessage.msgtype;
+            ResponseType = srv.ResponseMessage.msgtype;
+        }
+
         public void initialize<MReq, MRes>() where MReq : IRosMessage, new() where MRes : IRosMessage, new()
         {
             MReq req = new MReq();
@@ -253,6 +263,11 @@ namespace Ros_CSharp
             callFinished();
         }
 
+        public bool call(IRosService srv)
+        {
+            return call(srv.RequestMessage, ref srv.ResponseMessage);
+        }
+
         public bool call(IRosMessage req, ref IRosMessage resp)
         {
             CallInfo info = new CallInfo {req = req, resp = resp, success = false, finished = false, call_finished = false, caller_thread_id = ROS.getPID()};
@@ -307,6 +322,25 @@ namespace Ros_CSharp
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
             resp = (MRes) resp.Deserialize(iresp.Serialized);
+            return r;
+        }
+    }
+
+    public class ServiceServerLink<MSrv> : IServiceServerLink
+        where MSrv : IRosService, new()
+    {
+        public ServiceServerLink(string name, bool persistent, string requestMd5Sum, string responseMd5Sum,
+            IDictionary header_values)
+            : base(name, persistent, requestMd5Sum, responseMd5Sum, header_values)
+        {
+            initialize<MSrv>();
+        }
+
+        public bool call(MSrv srv)
+        {
+            IRosMessage iresp = srv.ResponseMessage;
+            bool r = call(srv.RequestMessage, ref iresp);
+            srv.ResponseMessage = srv.ResponseMessage.Deserialize(iresp.Serialized);
             return r;
         }
     }

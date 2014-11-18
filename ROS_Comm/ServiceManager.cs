@@ -71,6 +71,34 @@ namespace Ros_CSharp
             return null;
         }
 
+        internal ServiceServerLink<S> createServiceServerLink<S>(string service, bool persistent, string request_md5sum, string response_md5sum, IDictionary header_values)
+            where S : IRosService, new()
+        {
+            lock (shutting_down_mutex)
+            {
+                if (shutting_down)
+                    return null;
+            }
+
+            int serv_port = -1;
+            string serv_host = "";
+            if (!lookupService(service, ref serv_host, ref serv_port))
+                return null;
+            TcpTransport transport = new TcpTransport(poll_manager.poll_set);
+            if (transport.connect(serv_host, serv_port))
+            {
+                Connection connection = new Connection();
+                connection_manager.addConnection(connection);
+                ServiceServerLink<S> client = new ServiceServerLink<S>(service, persistent, request_md5sum, response_md5sum, header_values);
+                lock (service_server_links_mutex)
+                    service_server_links.Add(client);
+                connection.initialize(transport, false, null);
+                client.initialize(connection);
+                return client;
+            }
+            return null;
+        }
+
         internal ServiceServerLink<M, T> createServiceServerLink<M, T>(string service, bool persistent, string request_md5sum, string response_md5sum, IDictionary header_values)
             where M : IRosMessage, new()
             where T : IRosMessage, new()
@@ -105,6 +133,12 @@ namespace Ros_CSharp
             where T : IRosMessage, new()
         {
             removeServiceServerLink((IServiceServerLink) issl);
+        }
+
+        internal void removeServiceServerLink<S>(ServiceServerLink<S> issl)
+            where S : IRosService, new()
+        {
+            removeServiceServerLink((IServiceServerLink)issl);
         }
 
         internal void removeServiceServerLink(IServiceServerLink issl)

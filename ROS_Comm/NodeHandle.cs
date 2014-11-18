@@ -425,6 +425,37 @@ namespace Ros_CSharp
             return new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
+        public ServiceClient<MSrv> serviceClient<MSrv>(string service_name)
+            where MSrv : IRosService, new()
+            
+        {
+            return serviceClient<MSrv>(new ServiceClientOptions(service_name, false, null));
+        }
+
+        public ServiceClient<MSrv> serviceClient<MSrv>(string service_name, bool persistent)
+            where MSrv : IRosService, new()
+            
+        {
+            return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, null));
+        }
+
+        public ServiceClient<MSrv> serviceClient<MSrv>(string service_name, bool persistent,
+            IDictionary header_values)
+            where MSrv : IRosService, new()
+            
+        {
+            return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, header_values));
+        }
+
+        public ServiceClient<MSrv> serviceClient<MSrv>(ServiceClientOptions ops)
+            where MSrv : IRosService, new()
+            
+        {
+            ops.service = resolveName(ops.service);
+            ops.md5sum = new MSrv().RequestMessage.MD5Sum;
+            return new ServiceClient<MSrv>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
+        }
+
         private void construct(string ns, bool validate_name)
         {
             if (!ROS.initialized)
