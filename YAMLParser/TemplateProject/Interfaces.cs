@@ -66,6 +66,7 @@ namespace Messages
         public Dictionary<string, MsgFieldInfo> Fields;
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage()
             : this(MsgTypes.Unknown, "", false, false, null)
         {
@@ -95,7 +96,7 @@ namespace Messages
             MD5Sum = ms5;
             IsServiceComponent = isservicemessage;
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
@@ -109,13 +110,13 @@ namespace Messages
         {
             throw new NotImplementedException();
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize()
         {
             return Serialize(false);
         }
-
+        [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize(bool partofsomethingelse)
         {
@@ -125,7 +126,7 @@ namespace Messages
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public delegate IRosMessage RosServiceDelegate(IRosMessage request);
-
+    [System.Diagnostics.DebuggerStepThrough]
     public class IRosService
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

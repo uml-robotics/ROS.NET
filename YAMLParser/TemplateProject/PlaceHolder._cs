@@ -8,6 +8,7 @@ using uint8 = System.Byte;
 
 namespace Messages
 {
+	[System.Diagnostics.DebuggerStepThrough]
 	public class $WHATAMI : IRosMessage
 	{
 		$$DOLLADOLLABILLS

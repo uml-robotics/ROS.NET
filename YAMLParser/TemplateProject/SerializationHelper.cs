@@ -15,6 +15,7 @@ using String = Messages.std_msgs.String;
 
 namespace Messages
 {
+    [System.Diagnostics.DebuggerStepThrough]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class SerializationHelper
     {
@@ -693,7 +694,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
             return thischunk;
         }
     }
-
+    [System.Diagnostics.DebuggerStepThrough]
     public class MsgFieldInfo
     {
         public string ConstVal;
@@ -734,7 +735,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
         Request,
         Response
     }
-
+    [System.Diagnostics.DebuggerStepThrough]
     public struct TimeData
     {
         public uint sec;
