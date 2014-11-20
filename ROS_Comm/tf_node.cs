@@ -32,19 +32,22 @@ namespace Ros_CSharp
     // provide translation from 2 frames, user requests from /map to /base_link for example, must identify route
     // base_link.child = odom, odom.child = map
     // map-> odom + odom->base_link
-    public class tf_node
+    internal class tf_node
     {
         private static tf_node _instance;
         private static object singleton_mutex = new object();
 
         private Queue<tfMessage> additions;
-        public object addlock = new object();
-        public object frameslock = new object();
+        private object addlock = new object();
+        private object frameslock = new object();
         private NodeHandle tfhandle;
-        public Transformer transformer = new Transformer();
-        public Thread updateThread;
+        private Thread updateThread;
 
-        public tf_node()
+        internal delegate void TFUpdate(gm.TransformStamped msg);
+
+        internal event TFUpdate TFsUpdated;
+
+        private tf_node()
         {
             if (additions == null)
                 additions = new Queue<tfMessage>();
@@ -71,16 +74,19 @@ namespace Ros_CSharp
                                 tfMessage msg = local.Dequeue();
                                 foreach (gm.TransformStamped t in msg.transforms)
                                 {
-                                    transformer.setTransform(new emTransform(t));
+                                    if (TFsUpdated != null)
+                                    {
+                                        TFsUpdated(t);
+                                    }
                                 }
                             }
                         }
-                        Thread.Sleep(10);
+                        Thread.Sleep(1);
                     }
                 });
                 updateThread.Start();
             }
-            tfhandle.subscribe<tfMessage>("/tf", 100, tfCallback);
+            tfhandle.subscribe<tfMessage>("/tf", 0, tfCallback);
         }
 
         public static tf_node instance
@@ -104,44 +110,6 @@ namespace Ros_CSharp
         {
             lock (addlock)
                 additions.Enqueue(msg);
-        }
-
-        public emTransform transformFrame(string source, string target, out gm.Vector3 vec, out gm.Quaternion quat)
-        {
-            emTransform trans = new emTransform();
-            try
-            {
-                transformer.lookupTransform(target, source, new Time(new TimeData()), out trans);
-            }
-            catch (Exception e)
-            {
-                ROS.Error(e.ToString());
-                trans = null;
-            }
-            if (trans != null)
-            {
-                vec = trans.translation != null ? trans.translation.ToMsg() : new emVector3().ToMsg();
-                quat = trans.rotation != null ? trans.rotation.ToMsg() : new emQuaternion().ToMsg();
-            }
-            else
-            {
-                vec = null;
-                quat = null;
-            }
-            return trans;
-        }
-
-        public List<emTransform> link(string source, string target)
-        {
-            lock (frameslock)
-            {
-                return link_unlocked(source, target);
-            }
-        }
-
-        private List<emTransform> link_unlocked(string source, string target)
-        {
-            return null;
         }
     }
 
@@ -168,10 +136,17 @@ namespace Ros_CSharp
 
         private bool interpolating;
 
-        public Transformer(bool i = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
+        public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
-            interpolating = i;
+            tf_node.instance.TFsUpdated += Update;
+            this.interpolating = interpolating;
             cache_time = ct;
+        }
+
+        private void Update(gm.TransformStamped msg)
+        {
+            if (!setTransform(new emTransform(msg)))
+                ROS.Warn("Failed to setTransform in transformer update function");
         }
 
         public static string resolve(string prefix, string frame_name)
@@ -183,7 +158,9 @@ namespace Ros_CSharp
             }
             if (prefix.Length > 0)
             {
-                if (prefix[0] == '/')
+                if (prefix[0] == '/' && prefix.Length == 1)
+                    return "/" + frame_name;
+                else if (prefix[0] == '/')
                     return prefix + "/" + frame_name;
                 return "/" + prefix + "/" + frame_name;
             }
@@ -222,13 +199,13 @@ namespace Ros_CSharp
             return 0;
         }
 
-        public void lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform)
+        public bool lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform)
         {
             string error_string = null;
-            lookupTransform(target_frame, source_frame, time, out transform, ref error_string);
+            return lookupTransform(target_frame, source_frame, time, out transform, ref error_string);
         }
 
-        public void lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform, ref string error_string)
+        public bool lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform, ref string error_string)
         {
             transform = new emTransform();
 
@@ -242,9 +219,10 @@ namespace Ros_CSharp
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
                 transform.stamp = ROS.GetTime(DateTime.Now);
-                return;
+                return true;
             }
 
+            TF_STATUS retval;
             lock (framemutex)
             {
                 uint target_id = getFrameID(mapped_tgt);
@@ -252,7 +230,7 @@ namespace Ros_CSharp
 
                 TransformAccum accum = new TransformAccum();
 
-                TF_STATUS retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
+                retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
                 if (error_string != null && retval != TF_STATUS.NO_ERROR)
                 {
                     switch (retval)
@@ -274,6 +252,7 @@ namespace Ros_CSharp
                 transform.frame_id = mapped_tgt;
                 transform.stamp = new Time {data = new TimeData {sec = (uint) (accum.time >> 32), nsec = (uint) (accum.time & 0xFFFFFFFF)}};
             }
+            return retval == TF_STATUS.NO_ERROR;
         }
 
         public TF_STATUS walkToTopParent<F>(F f, ulong time, uint target_id, uint source_id, ref string error_str) where F : ATransformAccum
@@ -1003,7 +982,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
-            emQuaternion q = rotation*v;
+            emQuaternion q = v * rotation;
             q = q*rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
         }
@@ -1294,7 +1273,7 @@ namespace Ros_CSharp
 
         public static emVector3 operator -(emVector3 v1, emVector3 v2)
         {
-            return new emVector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+            return v1 + (-1*v2);
         }
 
         public static emVector3 operator *(emVector3 v1, float d)
@@ -1314,17 +1293,17 @@ namespace Ros_CSharp
 
         public static emVector3 operator *(float d, emVector3 v1)
         {
-            return v1*((double) d);
+            return v1 * d;
         }
 
         public static emVector3 operator *(int d, emVector3 v1)
         {
-            return v1*((double) d);
+            return v1 * d;
         }
 
         public static emVector3 operator *(double d, emVector3 v1)
         {
-            return new emVector3(v1.x*d, v1.y*d, v1.z*d);
+            return v1 * d;
         }
 
         public override string ToString()
