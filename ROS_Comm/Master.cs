@@ -109,6 +109,41 @@ namespace Ros_CSharp
             return true;
         }
 
+        internal static XmlRpcClient clientForNode(string nodename)
+        {
+            XmlRpcValue args = new XmlRpcValue();
+            args.Set(0, this_node.Name);
+            args.Set(1, nodename);
+            XmlRpcValue resp = new XmlRpcValue();
+            XmlRpcValue payl = new XmlRpcValue();
+            if (!execute("lookupNode", args, ref resp, ref payl, true))
+                return null;
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+                return null;
+            string nodeuri = payl.GetString();
+            string nodehost=null;
+            int nodeport=0;
+            if (!network.splitURI(nodeuri, ref nodehost, ref nodeport) || nodehost == null || nodeport <= 0)
+                return null;
+            return XmlRpcManager.Instance.getXMLRPCClient(nodehost, nodeport, nodeuri);
+        }
+
+
+        public static bool kill(string node)
+        {
+            XmlRpcClient cl = clientForNode(node);
+            if (cl == null)
+                return false;
+            XmlRpcValue req = new XmlRpcValue(), resp = new XmlRpcValue(), payl = new XmlRpcValue();
+            req.Set(0, this_node.Name);
+            req.Set(1, "Out of respect for Mrs. " + this_node.Name);
+            if (!cl.Execute("shutdown", req, resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+                return false;
+            payl.Dump();
+            XmlRpcManager.Instance.releaseXMLRPCClient(cl);
+            return true;
+        }
+
         /// <summary>
         /// </summary>
         /// <param name="method"></param>
