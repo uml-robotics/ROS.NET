@@ -356,30 +356,36 @@ namespace Ros_CSharp
 
         public void publish<M>(string topic, M message) where M : IRosMessage, new()
         {
-            publish(topic, message.Serialize, message);
+            Publication p = null;
+            publish(topic, message.Serialize, message, ref p);
         }
 
         public void publish(string topic, IRosMessage message)
         {
-            publish(topic, message.Serialize, message);
+            Publication p = null;
+            publish(topic, message.Serialize, message, ref p);
         }
 
-        public void publish(string topic, SerializeFunc serfunc, IRosMessage msg)
+        public void publish(string topic, IRosMessage message, ref Publication p)
+        {
+            publish(topic, message.Serialize, message, ref p);
+        }
+
+        public void publish(string topic, SerializeFunc serfunc, IRosMessage msg, ref Publication p)
         {
             if (msg == null) return;
-            Publication p;
-            lock (advertised_topics_mutex)
+            if (p == null)
+                p = lookupPublication(topic);
+            if (p != null)
             {
-                if ((p = lookupPublicationWithoutLock(topic)) == null || !ROS.ok || shutting_down) return;
+                p.connection_header = new Header { Values = new Hashtable() };
+                p.connection_header.Values["type"] = p.DataType;
+                p.connection_header.Values["md5sum"] = p.Md5sum;
+                p.connection_header.Values["message_definition"] = p.MessageDefinition;
+                p.connection_header.Values["callerid"] = this_node.Name;
+                p.connection_header.Values["latching"] = p.Latch;
             }
-            p.connection_header = new Header {Values = new Hashtable()};
-            p.connection_header.Values["type"] = p.DataType;
-            p.connection_header.Values["md5sum"] = p.Md5sum;
-            p.connection_header.Values["message_definition"] = p.MessageDefinition;
-            p.connection_header.Values["callerid"] = this_node.Name;
-            p.connection_header.Values["latching"] = p.Latch;
-
-            if (p == null) return;
+            if (p == null || !ROS.ok || shutting_down) return;
             if (p.HasSubscribers || p.Latch)
             {
                 bool nocopy = false;

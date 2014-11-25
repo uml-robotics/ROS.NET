@@ -25,6 +25,8 @@ namespace Ros_CSharp
 {
     public class Publisher<M> : IPublisher where M : IRosMessage, new()
     {
+        Publication p = null;
+
         /// <summary>
         ///     Creates a ros publisher
         /// </summary>
@@ -47,7 +49,7 @@ namespace Ros_CSharp
         public void publish(M msg)
         {
             msg.Serialized = null;
-            TopicManager.Instance.publish(topic, msg);
+            TopicManager.Instance.publish(topic, msg, ref p);
         }
     }
 
