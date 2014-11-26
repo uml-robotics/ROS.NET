@@ -31,16 +31,22 @@ namespace Messages
         {
             MsgTypes mt;
             //gross, but it gets the job done   
+            if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
+                lock (GetMessageTypeMemo)
+                {
+                    if (!GetMessageTypeMemo.ContainsKey(t))
+                        GetMessageTypeMemo.Add(t, (MsgTypes) Enum.Parse(typeof (MsgTypes), "std_msgs__Bool")); //ERIC
+                }
+            if (GetMessageTypeMemo.ContainsKey(t))
+                return GetMessageTypeMemo[t];
             lock (GetMessageTypeMemo)
             {
-                if (t == typeof(Boolean) && !GetMessageTypeMemo.ContainsKey(t))  //ERIC
-                    GetMessageTypeMemo.Add(t, (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
                 if (GetMessageTypeMemo.ContainsKey(t))
                     return GetMessageTypeMemo[t];
                 mt = GetMessageType(t.FullName);
                 GetMessageTypeMemo.Add(t, mt);
+                return mt;
             }
-            return mt;
         }
 
         //[DebuggerStepThrough]
