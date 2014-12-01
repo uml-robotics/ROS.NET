@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using XmlRpc_Wrapper;
 
 #endregion
@@ -29,6 +30,7 @@ namespace Ros_CSharp
 
     public delegate void ParamBoolDelegate(string key, bool value);
 
+    [DebuggerStepThrough]
     public static class Param
     {
         public static Dictionary<string, XmlRpcValue> parms = new Dictionary<string, XmlRpcValue>();

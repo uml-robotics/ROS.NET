@@ -28,6 +28,7 @@ namespace Ros_CSharp
         }
     }
 
+    [DebuggerStepThrough]
     public static class names
     {
         public static IDictionary resolved_remappings = new Hashtable();
