@@ -220,7 +220,7 @@ namespace Ros_CSharp
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.INFO, level+1);
+                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.INFO, level+1);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace Ros_CSharp
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.DEBUG,level+1);
+                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.DEBUG,level+1);
         }
 
         /// <summary>
