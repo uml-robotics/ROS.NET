@@ -401,7 +401,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         }
                         if (TT == null)
                             throw new Exception("LENGTHLESS ARRAY FAIL -- ELEMENT TYPE IS NULL!");
-                        if (TT == typeof(string) || TT.FullName.Contains("Message."))
+                        if (TT.FullName.Contains("Message."))
                             throw new Exception("NOT YET, YOUNG PATAWAN");
                         MsgTypes mt = GetMessageType(TT);
                         if (mt == MsgTypes.std_msgs__Byte || mt == MsgTypes.std_msgs__UInt8 || mt == MsgTypes.std_msgs__Int8)
@@ -425,6 +425,23 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                 object data = _deserialize(TT, T, chunk, out len,
                                                             IsSizeKnown(TT, false));
                                 val.SetValue(data, i);
+                                currpos += len;
+                            }
+                            infos[currinfo].SetValue(thestructure, val);
+                        }
+                        else if (TT == typeof (string))
+                        {
+                            for (int i = 0; i < chunklen; i++)
+                            {
+                                int len = 0;
+                                if (currpos + 4 <= bytes.Length)
+                                    len = BitConverter.ToInt32(bytes, currpos);
+                                byte[] piece = new byte[len];
+                                currpos += 4;
+                                if (currpos + len <= bytes.Length)
+                                    Array.Copy(bytes, currpos, piece, 0, len);
+                                string str = Encoding.ASCII.GetString(piece);
+                                val.SetValue(str, i);
                                 currpos += len;
                             }
                             infos[currinfo].SetValue(thestructure, val);
