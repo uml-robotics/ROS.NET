@@ -298,6 +298,8 @@ namespace Ros_CSharp
                 info.call_finished = true;
             }
 
+            resp = resp.Deserialize(resp.Serialized);
+
             if (info.exception.Length > 0)
             {
                 ROS.Error("Service call failes: service [{0}] responded with an error: {1}", name, info.exception);
