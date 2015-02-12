@@ -1,4 +1,4 @@
-﻿#region Using
+#region Using
 
 using System;
 using System.Collections;
@@ -276,6 +276,25 @@ Console.WriteLine("//deserialize: " + T.FullName);
                     }
                     PWNED = new byte[num];
                     Array.Copy(bytes, currpos, PWNED, 0, num);
+                    currpos += PWNED.Length;
+                    infos[currinfo].SetValue(thestructure, PWNED);
+                    PWNED = null;
+                }
+                else if (realtype == typeof(Boolean[]))
+                {
+                    bool[] PWNED;
+                    MsgFieldInfo mfi = MSG.Fields[infos[currinfo].Name];
+                    int num = mfi.Length;
+                    if (mfi.Length == -1) //if -1, then array length not in definition
+                    {
+                        num = BitConverter.ToInt32(bytes, currpos);
+                        currpos += 4;
+                    }
+                    PWNED = new bool[num];
+                    for (int i = 0; i < num; i++ )
+                    {
+                        PWNED[i] = bytes[i + currpos] > 0;
+                    }
                     currpos += PWNED.Length;
                     infos[currinfo].SetValue(thestructure, PWNED);
                     PWNED = null;
