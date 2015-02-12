@@ -1,3 +1,6 @@
 [submodule "lib_3mtouchdrivers"]
 	path = lib_3mtouchdrivers
 	url = git@code.cs.uml.edu:multitouch/lib_3mtouchdrivers.git
+[submodule "mathnet-spatial"]
+	path = mathnet-spatial
+	url = https://github.com/uml-robotics/mathnet-spatial
