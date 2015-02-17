@@ -163,6 +163,8 @@ namespace ROS_ImageWPF
             {
                 PInvoke.CaptureWindow(window, ms, ImageFormat.Jpeg);
                 cm.data = ms.GetBuffer();
+                ms.Flush();
+                ms.Close();
             }
 
             lock (outboundqueue)
@@ -254,11 +256,7 @@ namespace ROS_ImageWPF
 
             private static void SaveImageAs(int hBitmap, Stream str, ImageFormat imageFormat)
             {
-                Bitmap image =
-                    new Bitmap(System.Drawing.Image.FromHbitmap(new IntPtr(hBitmap)),
-                        System.Drawing.Image.FromHbitmap(new IntPtr(hBitmap)).Width,
-                        System.Drawing.Image.FromHbitmap(new IntPtr(hBitmap)).Height);
-                image.Save(str, imageFormat);
+                System.Drawing.Image.FromHbitmap(new IntPtr(hBitmap)).Save(str, imageFormat);
             }
         }
     }
