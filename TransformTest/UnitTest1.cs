@@ -2,10 +2,8 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Messages;
-using Messages.std_msgs;
+using TransformTestLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Ros_CSharp;
 
 namespace TransformTest
 {
@@ -15,18 +13,14 @@ namespace TransformTest
     [TestClass]
     public class UnitTest1
     {
-        private Transformer transformer;
-        private Time when;
+        private TestContext testContextInstance;
+
+        private TransformTestLib.TransformTest transformtest;
+
         public UnitTest1()
         {
-            when = ROS.GetTime();
-            //
-            // TODO: Add constructor logic here
-            //
-            transformer = new Transformer(false);
+            transformtest = new TransformTestLib.TransformTest();
         }
-
-        private TestContext testContextInstance;
 
         /// <summary>
         ///Gets or sets the test context which provides
@@ -69,46 +63,7 @@ namespace TransformTest
         [TestMethod]
         public void TestMethod1()
         {
-            //
-            // TODO: Add test logic here
-            //
-            emTransform a2b = new emTransform(
-                new emQuaternion(),
-                new emVector3(1.0, 0.0, 0.5),
-                when,
-                "a",
-                "b");
-            emTransform b2c = new emTransform(
-                new emQuaternion(),
-                new emVector3(-1.0, -0.5, 1.0),
-                when,
-                "b",
-                "c");
-            emTransform c2d = new emTransform(
-                new emQuaternion(0.14644660940672619, 0.35355339059327373, 0.35355339059327373, 0.8535533905932738),
-                new emVector3(1.0,0.0,0.0),
-                when,
-                "c",
-                "d");
-            Assert.IsTrue(transformer.setTransform(a2b));
-            Assert.IsTrue(transformer.setTransform(b2c));
-            Assert.IsTrue(transformer.setTransform(c2d));
-            emTransform forward = new emTransform();
-            emTransform backward = new emTransform();
-            transformer.lookupTransform("c", "a", when, out forward);
-            transformer.lookupTransform("a", "c", when, out backward);
-            backward.rotation = backward.rotation.inverse();
-            backward.translation = backward.translation * -1;
-            Assert.AreEqual(forward.translation.ToString(), backward.translation.ToString());
-            Assert.AreEqual(forward.rotation.ToString(), backward.rotation.ToString());
-            forward = new emTransform();
-            backward = new emTransform();
-            transformer.lookupTransform("d", "a", when, out forward);
-            transformer.lookupTransform("a", "d", when, out backward);
-            backward.rotation = backward.rotation.inverse();
-            backward.translation = backward.translation * -1;
-            Assert.AreEqual(forward.rotation.ToString(), backward.rotation.ToString());
-            Assert.AreEqual(forward.translation.ToString(), backward.translation.ToString());
+            transformtest.TestMethod1();
         }
     }
 }

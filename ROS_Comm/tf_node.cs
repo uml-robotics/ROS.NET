@@ -28,6 +28,24 @@ using Vector3 = MathNet.Spatial.Vector3D;
 
 namespace Ros_CSharp
 {
+    public class Stamped<T>
+    {
+        public Time stamp;
+        public string frame_id;
+        public T data;
+
+        public Stamped()
+        {
+        }
+
+        public Stamped(Time t, string f, T d)
+        {
+            stamp = t;
+            frame_id = f;
+            data = d;
+        }
+    }
+
     // Listenes to the /tf topic, need subscriber
     // for each Transform in /tf, create a new frame. Frame has a (frame)child and (frame)id
     // provide translation from 2 frames, user requests from /map to /base_link for example, must identify route
@@ -222,8 +240,8 @@ namespace Ros_CSharp
 
             if (mapped_tgt == mapped_src)
             {
-                transform.translation = new emVector3();
-                transform.rotation = new emQuaternion();
+                transform.origin = new emVector3();
+                transform.basis = new emQuaternion();
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
                 transform.stamp = ROS.GetTime(DateTime.Now);
@@ -254,13 +272,59 @@ namespace Ros_CSharp
                             break;
                     }
                 }
-                transform.translation = accum.result_vec;
-                transform.rotation = accum.result_quat;
+                transform.origin = accum.result_vec;
+                transform.basis = accum.result_quat;
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
                 transform.stamp = new Time {data = new TimeData {sec = (uint) (accum.time >> 32), nsec = (uint) (accum.time & 0xFFFFFFFF)}};
             }
             return retval == TF_STATUS.NO_ERROR;
+        }
+
+        public void transformQuaternion(string target_frame, Stamped<emQuaternion> stamped_in, ref Stamped<emQuaternion> stamped_out)
+        {
+            emTransform trans = new emTransform();
+            lookupTransform(target_frame, stamped_in.frame_id, stamped_in.stamp, out trans);
+            stamped_out.data = trans * stamped_in.data;
+            stamped_out.stamp = trans.stamp;
+            stamped_out.frame_id = target_frame;
+        }
+
+        public void transformQuaternion(string target_frame, Stamped<gm.Quaternion> stamped_in, ref Stamped<gm.Quaternion> stamped_out)
+        {
+            Stamped<emQuaternion> quatin = new Stamped<emQuaternion>(stamped_in.stamp, stamped_in.frame_id, new emQuaternion(stamped_in.data));
+            Stamped<emQuaternion> quatout = new Stamped<emQuaternion>(stamped_out.stamp, stamped_out.frame_id, new emQuaternion(stamped_out.data));
+            transformQuaternion(target_frame, quatin, ref quatout);
+            stamped_out.stamp = quatout.stamp;
+            stamped_out.data = quatout.data.ToMsg();
+            stamped_out.frame_id = quatout.frame_id;
+        }
+
+        public void transformVector(string target_frame, Stamped<emVector3> stamped_in, ref Stamped<emVector3> stamped_out)
+        {
+            emTransform trans = new emTransform();
+            lookupTransform(target_frame, stamped_in.frame_id, stamped_in.stamp, out trans);
+            emVector3 end = stamped_in.data;
+            emVector3 origin = new emVector3(0, 0, 0);
+            emVector3 output = (trans*end) - (trans*origin);
+            stamped_out.data = output;
+            stamped_out.stamp = trans.stamp;
+            stamped_out.frame_id = target_frame;
+        }
+
+        public void transformVector(string target_frame, Stamped<gm.Vector3> stamped_in, ref Stamped<gm.Vector3> stamped_out)
+        {
+            Stamped<emVector3> vecin = new Stamped<emVector3>(stamped_in.stamp, stamped_in.frame_id, new emVector3(stamped_in.data));
+            Stamped<emVector3> vecout = new Stamped<emVector3>(stamped_out.stamp, stamped_out.frame_id, new emVector3(stamped_out.data));
+            transformVector(target_frame, vecin, ref vecout);
+            stamped_out.stamp = vecout.stamp;
+            stamped_out.data = vecout.data.ToMsg();
+            stamped_out.frame_id = vecout.frame_id;
+        }
+
+        public void transformPoint(string target_frame, Stamped<gm.Point> stamped_in, ref Stamped<gm.Point> stamped_out)
+        {
+
         }
 
         public TF_STATUS walkToTopParent<F>(F f, ulong time, uint target_id, uint source_id, ref string error_str) where F : ATransformAccum
@@ -484,7 +548,7 @@ namespace Ros_CSharp
 
         public bool setTransform(emTransform transform)
         {
-            emTransform mapped_transform = new emTransform(transform.rotation, transform.translation, transform.stamp, transform.frame_id, transform.child_frame_id);
+            emTransform mapped_transform = new emTransform(transform.basis, transform.origin, transform.stamp, transform.frame_id, transform.child_frame_id);
             mapped_transform.child_frame_id = resolve(tf_prefix, transform.child_frame_id);
             mapped_transform.frame_id = resolve(tf_prefix, transform.frame_id);
 
@@ -760,6 +824,7 @@ namespace Ros_CSharp
         #endregion
     }
 
+    [DebuggerStepThrough]
     public class TransformStorage
     {
         public uint child_frame_id;
@@ -777,14 +842,15 @@ namespace Ros_CSharp
 
         public TransformStorage(emTransform data, uint frame_id, uint child_frame_id)
         {
-            rotation = data.rotation;
-            translation = data.translation;
+            rotation = data.basis;
+            translation = data.origin;
             stamp = TimeCache.toLong(data.stamp.data);
             this.frame_id = frame_id;
             this.child_frame_id = child_frame_id;
         }
     }
-    
+
+    [DebuggerStepThrough]
     public class emMatrix3x3
     {
         public emVector3[] m_el = new emVector3[3];
@@ -963,9 +1029,9 @@ namespace Ros_CSharp
                 case WalkEnding.FullPath:
                 {
                     emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                    emVector3 inv_target_vec = quatRotate(inv_target_quat, new emVector3(-target_to_top_vec.x, -target_to_top_vec.y, -target_to_top_vec.z));
+                    emVector3 inv_target_vec = quatRotate(inv_target_quat, -1*target_to_top_vec);
                     result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
-                    result_quat = inv_target_quat*source_to_top_quat;
+                    result_quat = inv_target_quat * source_to_top_quat;
                 }
                     break;
             }
@@ -978,6 +1044,7 @@ namespace Ros_CSharp
             {
                 source_to_top_vec = quatRotate(st.rotation, source_to_top_vec) + st.translation;
                 source_to_top_quat = st.rotation*source_to_top_quat;
+
             }
             else
             {
@@ -988,7 +1055,7 @@ namespace Ros_CSharp
 
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
-            emQuaternion q = new emQuaternion(rotation * new emQuaternion(v.x,v.y,v.z,1.0));
+            emQuaternion q = new emQuaternion(rotation * new emQuaternion(1.0,v.x,v.y,v.z));
             q = q*rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
         }
@@ -1000,9 +1067,9 @@ namespace Ros_CSharp
         public string child_frame_id;
         public string frame_id;
 
-        public emQuaternion rotation;
+        public emQuaternion basis;
         public Time stamp;
-        public emVector3 translation;
+        public emVector3 origin;
 
         public emTransform() : this(new emQuaternion(), new emVector3(), new Time(new TimeData()), "", "")
         {
@@ -1012,17 +1079,41 @@ namespace Ros_CSharp
         {
         }
 
+        public emTransform(emQuaternion q, emVector3 v) : this(q,v,null,null,null)
+        {
+        }
         public emTransform(emQuaternion q, emVector3 v, Time t, string fid, string cfi)
         {
-            rotation = q;
-            translation = v;
+            basis = q;
+            origin = v;
             stamp = t;
 
             frame_id = fid;
             child_frame_id = cfi;
         }
+
+
+
+        public static emTransform operator *(emTransform t, emTransform v)
+        {
+            return new emTransform(t.basis * v.basis, t * v.origin);
+        }
+
+        public static emVector3 operator *(emTransform t, emVector3 v)
+        {
+            emMatrix3x3 mat = new emMatrix3x3(t.basis);
+            return new emVector3(mat.m_el[0].vec.DotProduct(v.vec) + t.origin.x,
+                mat.m_el[1].vec.DotProduct(v.vec) + t.origin.y,
+                mat.m_el[2].vec.DotProduct(v.vec) + t.origin.z);
+        }
+        
+        public static emQuaternion operator *(emTransform t, emQuaternion q)
+        {
+            return t.basis * q;
+        }
     }
 
+    [DebuggerStepThrough]
     public class emQuaternion
     {
         internal Quaternion quat;
@@ -1060,16 +1151,18 @@ namespace Ros_CSharp
             quat = q;
         }
 
-        public emQuaternion(double X, double Y, double Z, double W)
+        public emQuaternion(double W, double X, double Y, double Z)
         {
             quat = new Quaternion(W, X, Y, Z);
         }
 
-        public emQuaternion(emQuaternion shallow) : this(shallow.x, shallow.y, shallow.z, shallow.w)
+        public emQuaternion(emQuaternion shallow)
+            : this(shallow.w,shallow.x, shallow.y, shallow.z)
         {
         }
 
-        public emQuaternion(gm.Quaternion shallow) : this(shallow.x, shallow.y, shallow.z, shallow.w)
+        public emQuaternion(gm.Quaternion shallow)
+            : this(shallow.w,shallow.x, shallow.y, shallow.z)
         {
         }
 
@@ -1155,13 +1248,13 @@ namespace Ros_CSharp
 
         public override string ToString()
         {
-            return string.Format("({0},{1},{2},{3})", x, y, z, w);
+            return string.Format("({0},{1},{2},{3})", w, x, y, z);
         }
 
         public emVector3 getRPY()
         {
-            //emVector3 tmp = new emMatrix3x3(this).getYPR();
-            //return new emVector3(tmp.z, tmp.y, tmp.x);
+            emVector3 tmp = new emMatrix3x3(this).getYPR();
+            return new emVector3(tmp.z, tmp.y, tmp.x);
             emVector3 ret = new emVector3();
             double w2 = w*w;
             double x2 = x*x;
@@ -1209,10 +1302,10 @@ namespace Ros_CSharp
             double cos_y2 = Math.Cos(halfyaw);
 
             return new emQuaternion(
-                cos_r2*cos_p2*cos_y2 + sin_r2*sin_p2*sin_y2,
-                sin_r2*cos_p2*cos_y2 - cos_r2*sin_p2*sin_y2,
-                cos_r2*sin_p2*cos_y2 + sin_r2*cos_p2*sin_y2,
-                cos_r2*cos_p2*sin_y2 - sin_r2*sin_p2*cos_y2
+                cos_r2 * cos_p2 * cos_y2 + sin_r2 * sin_p2 * sin_y2,
+                sin_r2 * cos_p2 * cos_y2 - cos_r2 * sin_p2 * sin_y2,
+                cos_r2 * sin_p2 * cos_y2 + sin_r2 * cos_p2 * sin_y2,
+                cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
                 );
         }
 
@@ -1231,20 +1324,21 @@ namespace Ros_CSharp
                 double s1 = Math.Sin(t*theta);
                 if (dot(q) < 0)
                 {
-                    return new emQuaternion((x*s0 + -1*q.x*s1)*d,
+                    return new emQuaternion(
+                        (w*s0 + -1*q.w*s1)*d,
+                        (x*s0 + -1*q.x*s1)*d,
                         (y*s0 + -1*q.y*s1)*d,
-                        (z*s0 + -1*q.z*s1)*d,
-                        (w*s0 + -1*q.w*s1)*d);
+                        (z*s0 + -1*q.z*s1)*d);
                 }
-                return new emQuaternion((x*s0 + q.x*s1)*d,
+                return new emQuaternion((w * s0 + q.w * s1) * d,
+                    (x * s0 + q.x * s1) * d,
                     (y*s0 + q.y*s1)*d,
-                    (z*s0 + q.z*s1)*d,
-                    (w*s0 + q.w*s1)*d);
+                    (z*s0 + q.z*s1)*d);
             }
             return new emQuaternion(this);
         }
     }
-
+    [DebuggerStepThrough]
     public class emVector3
     {
         internal Vector3 vec;
