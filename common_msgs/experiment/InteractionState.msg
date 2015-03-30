@@ -1,0 +1,8 @@
+uint8 DEFAULT=0
+uint8 IDENTIFIED=1
+uint8 BEFORE_PLANT=2
+uint8 CHECK_ROOM=3
+uint8 CHECK_ARROW=4
+uint8 PLANT=5
+
+uint8 state
