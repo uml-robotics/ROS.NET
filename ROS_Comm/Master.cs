@@ -165,7 +165,7 @@ namespace Ros_CSharp
                 XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 bool printed = false;
                 bool ok = true;
-                while (!client.IsConnected && !ROS.shutting_down && !XmlRpcManager.Instance.shutting_down ||
+                while (!client.IsConnected && !ROS._shutting_down && !XmlRpcManager.Instance.shutting_down ||
                        !(ok = client.Execute(method, request, response) && XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload)))
                 {
                     if (!wait_for_master)

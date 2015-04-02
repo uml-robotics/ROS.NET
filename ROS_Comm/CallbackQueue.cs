@@ -144,7 +144,7 @@ namespace Ros_CSharp
 
         private void threadFunc()
         {
-            while (ROS.ok && !ROS.shutting_down && enabled)
+            while (ROS.ok && !ROS._shutting_down && enabled)
             {
                 callAvailable();
                 Thread.Sleep(ROS.WallDuration);

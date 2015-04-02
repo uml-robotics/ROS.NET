@@ -105,7 +105,7 @@ namespace Ros_CSharp
         public static CallbackQueue GlobalCallbackQueue;
         internal static bool initialized, started, atexit_registered, _ok;
 
-        internal static bool shutting_down, shutdown_requested;
+        internal static bool _shutting_down, shutdown_requested;
         internal static int init_options;
 
         /// <summary>
@@ -137,6 +137,11 @@ namespace Ros_CSharp
         public static NodeHandle GlobalNodeHandle;
         private static object shutting_down_mutex = new object();
         private static bool dictinit;
+
+        public static bool shutting_down
+        {
+            get { return _shutting_down; }
+        }
 
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
 
@@ -398,7 +403,7 @@ namespace Ros_CSharp
         {
             lock (shutting_down_mutex)
             {
-                if (!shutdown_requested || shutting_down)
+                if (!shutdown_requested || _shutting_down)
                     return;
             }
             _shutdown();
@@ -465,7 +470,7 @@ namespace Ros_CSharp
                 GlobalCallbackQueue.Enable();
 
                 shutdown_requested = false;
-                shutting_down = false;
+                _shutting_down = false;
                 started = true;
                 _ok = true;
             }
@@ -495,9 +500,9 @@ namespace Ros_CSharp
         {
             lock (shutting_down_mutex)
             {
-                if (shutting_down)
+                if (_shutting_down)
                     return;
-                shutting_down = true;
+                _shutting_down = true;
                 _ok = false;
 
                 EDB.WriteLine("ROS is shutting down.");

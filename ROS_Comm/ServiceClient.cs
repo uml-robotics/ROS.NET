@@ -72,7 +72,7 @@ namespace Ros_CSharp
             var serviceServerLink = server_link as ServiceServerLink<MReq, MRes>;
             bool ret = serviceServerLink != null && serviceServerLink.call(request, ref response);
             serviceServerLink = null;
-            while (ROS.shutting_down && ROS.ok)
+            while (ROS._shutting_down && ROS.ok)
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
             }
@@ -135,7 +135,7 @@ namespace Ros_CSharp
             var serviceServerLink = server_link as ServiceServerLink<MSrv>;
             bool ret = serviceServerLink != null && serviceServerLink.call(srv.RequestMessage, ref srv.ResponseMessage);
             serviceServerLink = null;
-            while (ROS.shutting_down && ROS.ok)
+            while (ROS._shutting_down && ROS.ok)
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
             }
