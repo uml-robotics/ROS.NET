@@ -118,31 +118,37 @@ namespace Ros_CSharp.CustomSocket
         {
             if (!disposed)
             {
-                EDB.WriteLine("Killing socket w/ FD=" + FD + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
-                if (Get(FD) != null)
+                lock (this)
                 {
-                    _socklist.Remove(FD);
+                    EDB.WriteLine("Killing socket w/ FD=" + FD + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
+                    if (Get(FD) != null)
+                    {
+                        _socklist.Remove(FD);
+                    }
+                    disposed = true;
+                    _freelist.Add(FD);
+                    base.Dispose(disposing);
                 }
-                disposed = true;
-                _freelist.Add(FD);
-                base.Dispose(disposing);
             }
         }
 
         public bool SafePoll(int timeout, ns.SelectMode sm)
         {
             if (disposed) return false;
-            bool res = false;
-            try
+            lock (this)
             {
-                res = Poll(timeout, sm);
+                bool res = false;
+                try
+                {
+                    res = Poll(timeout, sm);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    res = sm == ns.SelectMode.SelectError;
+                }
+                return res;
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                res = sm == ns.SelectMode.SelectError;
-            }
-            return res;
         }
 
         [DebuggerStepThrough]
