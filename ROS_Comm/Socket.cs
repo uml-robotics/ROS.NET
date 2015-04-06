@@ -116,9 +116,9 @@ namespace Ros_CSharp.CustomSocket
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposed)
+            lock (this)
             {
-                lock (this)
+                if (!disposed)
                 {
                     EDB.WriteLine("Killing socket w/ FD=" + FD + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
                     if (Get(FD) != null)
@@ -134,9 +134,9 @@ namespace Ros_CSharp.CustomSocket
 
         public bool SafePoll(int timeout, ns.SelectMode sm)
         {
-            if (disposed) return false;
             lock (this)
             {
+                if (disposed) return false; 
                 bool res = false;
                 try
                 {
