@@ -33,6 +33,8 @@
 # include <string>
 #endif
 
+#include <sstream>
+
 
 #include "EricRulz.h"
 #include "XmlRpcClient.h"

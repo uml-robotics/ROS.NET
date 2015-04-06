@@ -513,8 +513,8 @@ namespace XmlRpc_Wrapper
         public override string ToString()
         {
             if (__instance == IntPtr.Zero)
-                return "this XmlRpcValue == (NULL)";
-            string s = "XmlRpcValue ( " + Type + " ) -- size = " + Size + " -- data = " + Marshal.PtrToStringAnsi(tostring(instance));
+                return "(NULL)";
+            string s = Marshal.PtrToStringAnsi(tostring(instance));
             return s;
         }
 

@@ -580,9 +580,10 @@ extern "C" XMLRPC_API void XmlRpcValue_Dump(XmlRpcValue* instance)
 
 extern "C" XMLRPC_API const char* XmlRpcValue_ToString(XmlRpcValue* instance)
 {
-	static char buff[512];
-	sprintf(buff,"%s", ((*instance).getType() != XmlRpcValue::TypeInvalid ? (*instance).toXml().c_str() : "INVALID"));
-	return buff;
+  static char buf[2048];
+  memset(buf, 0, 2048);
+  sprintf(buf, "%s", (*instance).toXml().c_str());
+	return buf;
 }
 
 //dispatch

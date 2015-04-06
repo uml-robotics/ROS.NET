@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -26,7 +27,7 @@ namespace XmlRpc_Wrapper
 
         private static void thisishowawesomeyouare(string s)
         {
-            Console.WriteLine("XMLRPC NATIVE OUT: " + s);
+            Debug.WriteLine("XMLRPC NATIVE OUT: " + s);
         }
 
         public static void ShowOutputFromXmlRpcPInvoke(printstr handler = null)
