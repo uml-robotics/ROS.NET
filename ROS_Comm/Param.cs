@@ -22,6 +22,8 @@ using XmlRpc_Wrapper;
 
 namespace Ros_CSharp
 {
+    public delegate void ParamDelegate(string key, XmlRpcValue value);
+
     public delegate void ParamStringDelegate(string key, string value);
 
     public delegate void ParamDoubleDelegate(string key, double value);
@@ -40,6 +42,7 @@ namespace Ros_CSharp
         private static Dictionary<string, List<ParamIntDelegate>> IntCallbacks = new Dictionary<string, List<ParamIntDelegate>>();
         private static Dictionary<string, List<ParamDoubleDelegate>> DoubleCallbacks = new Dictionary<string, List<ParamDoubleDelegate>>();
         private static Dictionary<string, List<ParamBoolDelegate>> BoolCallbacks = new Dictionary<string, List<ParamBoolDelegate>>();
+        private static Dictionary<string, List<ParamDelegate>> Callbacks = new Dictionary<string, List<ParamDelegate>>();
 
         public static void Subscribe(string key, ParamBoolDelegate del)
         {
@@ -70,6 +73,14 @@ namespace Ros_CSharp
             if (!StringCallbacks.ContainsKey(key))
                 StringCallbacks.Add(key, new List<ParamStringDelegate>());
             StringCallbacks[key].Add(del);
+            update(key, getParam(key, true));
+        }
+
+        public static void Subscribe(string key, ParamDelegate del)
+        {
+            if (!Callbacks.ContainsKey(key))
+                Callbacks.Add(key, new List<ParamDelegate>());
+            Callbacks[key].Add(del);
             update(key, getParam(key, true));
         }
 
@@ -218,6 +229,11 @@ namespace Ros_CSharp
             }
         }
 
+        public static bool get(string key, ref XmlRpcValue dest)
+        {
+            return safeGet(key, ref dest);
+        }
+
         public static bool get(string key, ref bool dest)
         {
             return safeGet(key, ref dest);
@@ -362,7 +378,6 @@ namespace Ros_CSharp
             string clean_key = names.clean(key);
             lock (parms_mutex)
             {
-                Console.WriteLine("RECEIVED PARAMETER UPDATE FOR " + clean_key + " = " + v);
                 if (!parms.ContainsKey(clean_key))
                     parms.Add(clean_key, v);
                 else
@@ -387,6 +402,11 @@ namespace Ros_CSharp
                     foreach (ParamStringDelegate b in StringCallbacks[clean_key])
                         b.Invoke(clean_key, new XmlRpcValue(v).GetString());
                 }
+                if (Callbacks.ContainsKey(clean_key))
+                {
+                    foreach (ParamDelegate b in Callbacks[clean_key])
+                        b.Invoke(clean_key, new XmlRpcValue(v));
+                }
             }
         }
 
@@ -398,9 +418,9 @@ namespace Ros_CSharp
         public static void paramUpdateCallback(IntPtr parm, IntPtr result)
         {
             XmlRpcValue val = XmlRpcValue.LookUp(parm);
-            /*val.Set(0, 1);
+            val.Set(0, 1);
             val.Set(1, "");
-            val.Set(2, 0);*/
+            val.Set(2, 0);
             update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
         }
 
