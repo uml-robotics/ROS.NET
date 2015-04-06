@@ -607,9 +607,9 @@ namespace Ros_CSharp
                         closed = true;
                         if (poll_set != null)
                             poll_set.delSocket(sock);
-                        //if (sock.Connected)
-                        //    sock.Shutdown(SocketShutdown.Both);
-                        //sock.Close();
+                        if (sock.Connected)
+                            sock.Shutdown(SocketShutdown.Both);
+                        sock.Close();
                         sock = null;
                         disconnect_cb = this.disconnect_cb;
                         this.disconnect_cb = null;
