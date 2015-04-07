@@ -192,7 +192,7 @@ XmlRpcSocket::connect(int fd, std::string& host, int port)
   if (result != 0 ) {
 	  int error = getError();
 	  if ( (error != EINPROGRESS) && error != EWOULDBLOCK) { // actually, should probably do a platform check here, EWOULDBLOCK on WIN32 and EINPROGRESS otherwise
-		    printf("::connect error = %d\n", getError());
+		    printf("::connect error = %d\n", error);
 	  }
   }
 

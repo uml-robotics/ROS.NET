@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Messages.dynamic_reconfigure;
 using Ros_CSharp;
 using String = Messages.std_msgs.String;
@@ -25,6 +26,7 @@ namespace DynamicReconfigure
         private Dictionary<string, string> laststring = new Dictionary<string, string>();
         private ConfigDescription latestDescription;
         private string name;
+        private string set_service_name;
         private NodeHandle nh;
         private object padlock = new object();
         private ServiceServer setServer;
@@ -35,6 +37,7 @@ namespace DynamicReconfigure
         {
             nh = n;
             this.name = name;
+            this.set_service_name = names.resolve(name, "set_parameters");
             this.timeout = timeout;
         }
 
@@ -160,27 +163,58 @@ namespace DynamicReconfigure
 
         public void AdvertiseReconfigureService()
         {
-            string sn = names.resolve(name, "set_parameters");
             if (timeout == 0)
             {
                 try
                 {
-                    Service.waitForService(sn, 1);
+                    Service.waitForService(set_service_name, 1);
                 }
                 catch
                 {
-                    Service.waitForService(sn, timeout);
+                    Service.waitForService(set_service_name, timeout);
                 }
             }
             else
             {
-                Service.waitForService(sn, timeout);
+                Service.waitForService(set_service_name, timeout);
             }
-            setServer = nh.advertiseService(sn, (Reconfigure.Request req, ref Reconfigure.Request res) =>
+            setServer = nh.advertiseService(set_service_name, (Reconfigure.Request req, ref Reconfigure.Request res) =>
             {
                 res.config = req.config;
                 return true;
             });
+        }
+
+        private bool wait()
+        {
+            return Service.waitForService(set_service_name, TimeSpan.FromSeconds(5.0));
+        }
+
+        private bool set(Config conf, ref string deets)
+        {
+        	if (!wait())
+        	{
+        		if (deets != null)
+        			deets = "Service was not available within 2 seconds";
+        		return false;
+       		}
+            Reconfigure.Request req = new Reconfigure.Request {config = conf};
+            Reconfigure.Response resp = new Reconfigure.Response();
+            ServiceClient<Reconfigure.Request, Reconfigure.Response> cli = nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(set_service_name, false);
+            if (!cli.IsValid)
+            {
+                if (deets != null)
+                    deets = "Client is INVALID!";
+                cli.shutdown();
+                cli = null;
+                return false;
+            }
+            bool result = cli.call(req, ref resp);
+            if (!result && deets != null)
+                deets = "call failed!";
+            cli.shutdown();
+            cli = null;
+            return result;
         }
 
         public void Set(string key, string value)
@@ -189,10 +223,9 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}};
-                    Reconfigure.Response resp = new Reconfigure.Response();
-                    if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        Console.WriteLine("SET FAILED!");
+                    string reason = "";
+                    if (!set(new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}, ref reason))
+                        Console.WriteLine("SET FAILED\n" + reason);
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -203,10 +236,9 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}};
-                    Reconfigure.Response resp = new Reconfigure.Response();
-                    if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        throw new Exception("PARAMETER SET FAILED!");
+                    string reason = "";
+                    if (!set(new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}, ref reason))
+                        Console.WriteLine("SET FAILED\n" + reason);
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -217,10 +249,9 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}};
-                    Reconfigure.Response resp = new Reconfigure.Response();
-                    if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        throw new Exception("PARAMETER SET FAILED!");
+                    string reason = "";
+                    if (!set(new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}, ref reason))
+                        Console.WriteLine("SET FAILED\n" + reason);
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -231,10 +262,9 @@ namespace DynamicReconfigure
             {
                 lock (padlock)
                 {
-                    Reconfigure.Request req = new Reconfigure.Request {config = new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}};
-                    Reconfigure.Response resp = new Reconfigure.Response();
-                    if (!nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(names.resolve(name, "set_parameters")).call(req, ref resp))
-                        throw new Exception("PARAMETER SET FAILED!");
+                    string reason = "";
+                    if (!set(new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}, ref reason))
+                        Console.WriteLine("SET FAILED\n" + reason);
                 }
             }).BeginInvoke(iar => { }, null);
         }

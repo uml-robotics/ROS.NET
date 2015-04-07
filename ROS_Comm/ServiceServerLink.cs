@@ -254,6 +254,8 @@ namespace Ros_CSharp
             {
                 if (current_call.success)
                 {
+                    if (current_call.resp == null)
+                        throw new Exception("HAUUU?!");
                     current_call.resp.Serialized = buf;
                 }
                 else
@@ -302,7 +304,7 @@ namespace Ros_CSharp
 
             if (!string.IsNullOrEmpty(info.exception))
             {
-                ROS.Error("Service call failes: service [{0}] responded with an error: {1}", name, info.exception);
+                ROS.Error("Service call failed: service [{0}] responded with an error: {1}", name, info.exception);
             }
             return info.success;
         }
@@ -324,9 +326,12 @@ namespace Ros_CSharp
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
             if (iresp != null)
-                resp = (MRes)resp.Deserialize(iresp.Serialized);
+                resp = (MRes) resp.Deserialize(iresp.Serialized);
             else
-                resp = null; //std_servs.Empty, I hope?
+            {
+                //std_servs.Empty, I hope?
+                // or un-set?
+            }
             return r;
         }
     }
