@@ -78,6 +78,30 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
+        public new void BeginConnect(n.EndPoint endpoint, AsyncCallback ac, object st)
+        {
+            n.IPEndPoint ipep = endpoint as n.IPEndPoint;
+            if (endpoint == null)
+                throw new Exception("Sorry, guy... but this isn't in the scope of this class's purpose.");
+            attemptedConnectionEndpoint = ipep.Address.ToString();
+            base.BeginConnect(endpoint, ac, st);
+        }
+        public new void BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
+        {
+            attemptedConnectionEndpoint = address.ToString();
+            base.BeginConnect(address, port, ac, st);
+        }
+        public new void BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
+        {
+            attemptedConnectionEndpoint = addresses[0].ToString();
+            base.BeginConnect(addresses, port, ac, st);
+        }
+        public new void BeginConnect(string host, int port, AsyncCallback ac, object st)
+        {
+            attemptedConnectionEndpoint = host;
+            base.BeginConnect(host, port, ac, st);
+        }
+
         public new void Connect(n.IPAddress[] address, int port)
         {
             attemptedConnectionEndpoint = address[0].ToString();
@@ -97,7 +121,7 @@ namespace Ros_CSharp.CustomSocket
         }
 
         public new bool ConnectAsync(ns.SocketAsyncEventArgs e)
-        {
+        {   
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
             return base.ConnectAsync(e);
         }

@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
@@ -251,18 +252,31 @@ namespace Ros_CSharp
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
             LocalEndPoint = ipep;
-            if (!sock.ConnectAsync(new SocketAsyncEventArgs {RemoteEndPoint = ipep}))
-                return false;
+            ManualResetEvent connectDone = new ManualResetEvent(false);
 
-            cached_remote_host = "" + host + ":" + port + " on socket " + sock;
-
-
-            while (ROS.ok && !sock.Connected)
+            sock.BeginConnect(ipep, (iar) =>
             {
+                try
+                {
+                    sock.EndConnect(iar);
+                    connectDone.Set();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }, null);
+            bool completed = false;
+            while (ROS.ok && !ROS.shutting_down)
+            {
+#pragma warning disable 665
+                if ((completed = connectDone.WaitOne(10)))
+#pragma warning restore 665
+                    break;
             }
-            if (!ROS.ok || !initializeSocket())
+            if (!completed || !sock.Connected)
                 return false;
-            return true;
+            return ROS.ok && initializeSocket();
         }
 
         public bool listen(int port, int backlog, AcceptCallback accept_cb)
