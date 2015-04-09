@@ -22,18 +22,31 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc_Wrapper
 {
-    public class XmlRpcServer : XmlRpcSource, IDisposable
+    public class XmlRpcServer : IDisposable
     {
-        #region Reference Tracking + unmanaged pointer management
+        protected IntPtr __instance;
 
-        public new void Dispose()
+        public IntPtr instance
         {
-            Shutdown();
+            [DebuggerStepThrough]
+            get { return __instance; }
+            [DebuggerStepThrough]
+            set
+            {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
+                if (value != IntPtr.Zero)
+                    AddRef(value);
+                __instance = value;
+            }
         }
 
-        ~XmlRpcServer()
+        #region Reference Tracking + unmanaged pointer management
+
+        public void Dispose()
         {
             Shutdown();
+            RmRef(ref __instance);
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -119,41 +132,16 @@ namespace XmlRpc_Wrapper
 #endif
                         _refs.Remove(ptr);
                         shutdown(ptr);
+                        XmlRpcUtil.Free(ptr);
                         ptr = IntPtr.Zero;
                     }
                 }
             }
         }
 
-        public new IntPtr instance
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                if (__instance == IntPtr.Zero)
-                {
-                    Console.WriteLine("UH OH MAKING A NEW INSTANCE IN instance.get!");
-                    __instance = create();
-                    AddRef(__instance);
-                }
-                return __instance;
-            }
-            [DebuggerStepThrough]
-            set
-            {
-                if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
-                    AddRef(value);
-                    __instance = value;
-                }
-            }
-        }
-
         public void Shutdown()
         {
-            if (Shutdown(__instance)) Dispose();
+            Shutdown(__instance);
         }
 
         public static bool Shutdown(IntPtr ptr)

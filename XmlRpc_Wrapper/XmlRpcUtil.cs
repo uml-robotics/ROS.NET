@@ -66,6 +66,10 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
         private static extern void StringTest([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string str);
 
+
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcGiblets_Free", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Free(IntPtr val);
+
         #endregion
     }
 }

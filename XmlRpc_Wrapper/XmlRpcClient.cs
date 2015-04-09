@@ -23,18 +23,40 @@ using System.Runtime.InteropServices;
 namespace XmlRpc_Wrapper
 {
     [DebuggerStepThrough]
-    public class XmlRpcClient : XmlRpcSource, IDisposable
+    public class XmlRpcClient : IDisposable
     {
-        #region Reference Tracking + unmanaged pointer management
 
-        public new void Dispose()
+        protected IntPtr __instance;
+
+        public IntPtr instance
         {
-            Shutdown();
+            [DebuggerStepThrough]
+            get { return __instance; }
+            [DebuggerStepThrough]
+            set
+            {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
+                if (value != IntPtr.Zero)
+                    AddRef(value);
+                __instance = value;
+            }
         }
 
-        ~XmlRpcClient()
+        public void SegFault()
+        {
+            if (__instance == IntPtr.Zero)
+            {
+                throw new Exception("BOOM");
+            }
+        }
+
+        #region Reference Tracking + unmanaged pointer management
+
+        public void Dispose()
         {
             Shutdown();
+            RmRef(ref __instance);
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -120,6 +142,7 @@ namespace XmlRpc_Wrapper
 #endif
                         _refs.Remove(ptr);
                         close(ptr);
+                        XmlRpcUtil.Free(ptr);
                         ptr = IntPtr.Zero;
                     }
                 }
@@ -128,7 +151,7 @@ namespace XmlRpc_Wrapper
 
         public void Shutdown()
         {
-            if (Shutdown(__instance)) Dispose();
+            Shutdown(__instance);
         }
 
         public static bool Shutdown(IntPtr ptr)

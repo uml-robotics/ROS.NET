@@ -31,13 +31,11 @@ namespace XmlRpc_Wrapper
             [DebuggerStepThrough]
             set
             {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
                 if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
                     AddRef(value);
-                    __instance = value;
-                }
+                __instance = value;
             }
         }
 

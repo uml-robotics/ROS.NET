@@ -77,11 +77,6 @@ namespace XmlRpc_Wrapper
             Shutdown();
         }
 
-        ~XmlRpcDispatch()
-        {
-            Shutdown();
-        }
-
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
         private static object reflock = new object();
 #if REFDEBUG
@@ -165,6 +160,7 @@ namespace XmlRpc_Wrapper
 #endif
                         _refs.Remove(ptr);
                         close(ptr);
+                        XmlRpcUtil.Free(ptr);
                         ptr = IntPtr.Zero;
                     }
                 }
@@ -187,13 +183,11 @@ namespace XmlRpc_Wrapper
             [DebuggerStepThrough]
             set
             {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
                 if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
                     AddRef(value);
-                    __instance = value;
-                }
+                __instance = value;
             }
         }
 

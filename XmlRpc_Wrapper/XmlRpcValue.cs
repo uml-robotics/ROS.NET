@@ -44,13 +44,7 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public void Dispose()
         {
-            Clear();
-        }
-
-        [DebuggerStepThrough]
-        ~XmlRpcValue()
-        {
-            Clear();
+            RmRef(ref __instance);
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -114,6 +108,8 @@ namespace XmlRpc_Wrapper
 #if REFDEBUG
                     Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
 #endif
+                    if (_refs[ptr] <= 0)
+                        throw new Exception("OHHH NOOOO!!!");
                     _refs[ptr]++;
                 }
             }
@@ -138,11 +134,12 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S DEAD!");
 #endif
                         _refs.Remove(ptr);
+                        XmlRpcUtil.Free(ptr);
                         ptr = IntPtr.Zero;
                     }
                     return;
                 }
-                ptr = IntPtr.Zero;
+                throw new Exception("OHHH NOOOO!!!");
             }
         }
 
@@ -162,13 +159,11 @@ namespace XmlRpc_Wrapper
             [DebuggerStepThrough]
             set
             {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
                 if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
                     AddRef(value);
-                    __instance = value;
-                }
+                __instance = value;
             }
         }
 
@@ -372,7 +367,6 @@ namespace XmlRpc_Wrapper
                 SegFault();
                 if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
                 {
-                    Clear();
                     return 0;
                 }
                 if (Type != TypeEnum.TypeString && Type != TypeEnum.TypeStruct && Type != TypeEnum.TypeArray)
@@ -543,20 +537,6 @@ namespace XmlRpc_Wrapper
         {
             SegFault();
             dump(__instance);
-        }
-
-        [DebuggerStepThrough]
-        public void Clear()
-        {
-            SegFault();
-            Clear(__instance);
-        }
-
-        [DebuggerStepThrough]
-        public static bool Clear(IntPtr ptr)
-        {
-            RmRef(ref ptr);
-            return (ptr == IntPtr.Zero);
         }
 
         [DebuggerStepThrough]

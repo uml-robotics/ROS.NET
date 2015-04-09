@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #endregion
 
@@ -30,13 +31,11 @@ namespace XmlRpc_Wrapper
 
         public void Dispose()
         {
-            if (__instance != IntPtr.Zero && FUNC != null)
+            RmRef(ref __instance);
+            if (__instance == IntPtr.Zero)
+            {
                 FUNC = null;
-        }
-
-        ~XMLRPCCallWrapper()
-        {
-            Dispose();
+            }
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -121,7 +120,7 @@ namespace XmlRpc_Wrapper
                         Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S NOT VERY NICE!");
 #endif
                         _refs.Remove(ptr);
-                        new XMLRPCCallWrapper(ptr).FUNC = null;
+                        XmlRpcUtil.Free(ptr);
                         ptr = IntPtr.Zero;
                     }
                 }
@@ -134,13 +133,11 @@ namespace XmlRpc_Wrapper
             [DebuggerStepThrough]
             set
             {
+                if (__instance != IntPtr.Zero)
+                    RmRef(ref __instance);
                 if (value != IntPtr.Zero)
-                {
-                    if (__instance != IntPtr.Zero)
-                        RmRef(ref __instance);
                     AddRef(value);
-                    __instance = value;
-                }
+                __instance = value;
             }
         }
 
