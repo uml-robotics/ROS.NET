@@ -14,6 +14,9 @@ extern "C" XMLRPC_API void IntegerEchoFunctionPtr(FuncPtr ptr)
 {
 	CBREF = ptr;
 }
+extern "C" XMLRPC_API void XmlRpcGiblets_Free(void *ptr) {
+  free(ptr);
+}
 extern "C" XMLRPC_API unsigned char IntegerEchoRepeat(int val)
 {
 	if (!CBREF)

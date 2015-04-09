@@ -41,6 +41,8 @@ extern "C" {
 	extern XMLRPC_API int XmlRpcClient_GetContentLength(XmlRpcClient* instance);
 	extern XMLRPC_API XmlRpcDispatch* XmlRpcClient_GetXmlRpcDispatch(XmlRpcClient* instance);
 
+  extern XMLRPC_API void XmlRpcGiblets_Free(void *instance);
+
 	//XmlRpcValue	
 	extern XMLRPC_API XmlRpcValue *XmlRpcValue_Create1();
 	extern XMLRPC_API XmlRpcValue *XmlRpcValue_Create2(bool value);
