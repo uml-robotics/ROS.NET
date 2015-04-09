@@ -24,7 +24,7 @@ namespace Ros_CSharp.CustomSocket
 {
     public class Socket : ns.Socket
     {
-        private static SortedList<uint, Socket> _socklist;
+        private static SortedList<uint, Socket> _socklist = new SortedList<uint, Socket>();
         private static uint nextfakefd = 1;
         private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
@@ -40,18 +40,20 @@ namespace Ros_CSharp.CustomSocket
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
-            if (_socklist == null)
-                _socklist = new SortedList<uint, Socket>();
-            _socklist.Add(FD, this);
+            lock (_socklist)
+            {
+                _socklist.Add(FD, this);
+            }
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
         public Socket(ns.SocketInformation socketInformation)
             : base(socketInformation)
         {
-            if (_socklist == null)
-                _socklist = new SortedList<uint, Socket>();
-            _socklist.Add(FD, this);
+            lock (_socklist)
+            {
+                _socklist.Add(FD, this);
+            }
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
@@ -66,13 +68,16 @@ namespace Ros_CSharp.CustomSocket
             {
                 if (_fakefd == 0)
                 {
-                    if (_freelist.Count > 0)
+                    lock (_freelist)
                     {
-                        _fakefd = _freelist[0];
-                        _freelist.RemoveAt(0);
+                        if (_freelist.Count > 0)
+                        {
+                            _fakefd = _freelist[0];
+                            _freelist.RemoveAt(0);
+                        }
+                        else
+                            _fakefd = (nextfakefd++);
                     }
-                    else
-                        _fakefd = (nextfakefd++);
                 }
                 return _fakefd;
             }
@@ -128,14 +133,22 @@ namespace Ros_CSharp.CustomSocket
 
         public static Socket Get(uint fd)
         {
-            if (_socklist == null || !_socklist.ContainsKey(fd))
-                return null;
-            return _socklist[fd];
+            lock (_socklist)
+            {
+                if (_socklist == null || !_socklist.ContainsKey(fd))
+                    return null;
+                return _socklist[fd];
+            }
         }
 
-        ~Socket()
+        private static void remove(uint fd)
         {
-            Dispose(true);
+            lock (_socklist)
+            {
+                if (_socklist == null || !_socklist.ContainsKey(fd))
+                    return;
+                _socklist.Remove(fd);
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -144,13 +157,11 @@ namespace Ros_CSharp.CustomSocket
             {
                 if (!disposed)
                 {
-                    EDB.WriteLine("Killing socket w/ FD=" + FD + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
-                    if (Get(FD) != null)
-                    {
-                        _socklist.Remove(FD);
-                    }
+                    EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
+                    remove(_fakefd);
                     disposed = true;
-                    _freelist.Add(FD);
+                    _freelist.Add(_fakefd);
+                    _fakefd = 0;
                     base.Dispose(disposing);
                 }
             }
@@ -189,7 +200,7 @@ namespace Ros_CSharp.CustomSocket
                         attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
                 }
             }
-            return "" + FD + " -- " + attemptedConnectionEndpoint;
+            return "" + _fakefd + " -- " + attemptedConnectionEndpoint;
         }
     }
 }
