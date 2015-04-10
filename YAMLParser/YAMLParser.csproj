@@ -198,7 +198,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd $(TargetDir)
-$(ProjectDir)..\msg_gen\msg_gen.exe $(SolutionDir)
+$(ProjectDir)..\msg_gen\msg_gen.exe $(SolutionDir) $(ProjectDir)..
 YAMLParser.exe</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
