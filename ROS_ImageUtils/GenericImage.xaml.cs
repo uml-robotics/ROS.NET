@@ -32,6 +32,8 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class GenericImage : UserControl
     {
+        public event FPSEvent fpsevent;
+
         public GenericImage()
         {
             InitializeComponent();
@@ -267,7 +269,10 @@ namespace ROS_ImageWPF
             frames = (frames + 1)%10;
             if (frames == 0)
             {
-                fps.Content = "" + Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2);
+                if (fps.Visibility == System.Windows.Visibility.Visible)
+                    fps.Content = "" + Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2);
+                if (fpsevent != null)
+                    fpsevent(Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2));
                 lastFrame = DateTime.Now;
             }
         }
@@ -453,4 +458,6 @@ namespace ROS_ImageWPF
             image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth/2, ActualHeight/2);
         }
     }
+
+    public delegate void FPSEvent(double fps);
 }

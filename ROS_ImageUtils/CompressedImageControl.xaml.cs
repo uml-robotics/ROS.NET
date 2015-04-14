@@ -37,6 +37,8 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class CompressedImageControl : UserControl
     {
+        public event FPSEvent fpsevent;
+
         public delegate void ImageReceivedHandler(CompressedImageControl sender);
 
         public static string newTopicName;
@@ -74,6 +76,7 @@ namespace ROS_ImageWPF
         public CompressedImageControl()
         {
             InitializeComponent();
+            guts.fpsevent += (fps) => { if (fpsevent != null) fpsevent(fps); };
         }
 
         public string Topic

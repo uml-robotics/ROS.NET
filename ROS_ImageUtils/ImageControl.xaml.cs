@@ -33,6 +33,8 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class ImageControl : UserControl
     {
+        public event FPSEvent fpsevent;
+
         public delegate void ImageReceivedHandler(ImageControl sender);
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
@@ -67,6 +69,7 @@ namespace ROS_ImageWPF
         public ImageControl()
         {
             InitializeComponent();
+            guts.fpsevent += (fps) => { if (fpsevent != null) fpsevent(fps); };
         }
 
         public string Topic
