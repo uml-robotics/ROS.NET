@@ -21,30 +21,33 @@ namespace Messages
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosMessage generate(MsgTypes t)
         {
-            if (constructors.ContainsKey(t))
-                return constructors[t].Invoke(t);
-            Type thistype = typeof(IRosMessage);
-            foreach (Type othertype in thistype.Assembly.GetTypes())
+            lock (constructors)
             {
-                if (thistype == othertype || !othertype.IsSubclassOf(thistype))
+                if (constructors.ContainsKey(t))
+                    return constructors[t].Invoke(t);
+                Type thistype = typeof (IRosMessage);
+                foreach (Type othertype in thistype.Assembly.GetTypes())
                 {
-                    continue;
+                    if (thistype == othertype || !othertype.IsSubclassOf(thistype))
+                    {
+                        continue;
+                    }
+                    IRosMessage msg = Activator.CreateInstance(othertype) as IRosMessage;
+                    if (msg != null)
+                    {
+                        if (msg.msgtype == MsgTypes.Unknown)
+                            throw new Exception("OH NOES IRosMessage.generate is borked!");
+                        if (!_typeregistry.ContainsKey(msg.msgtype))
+                            _typeregistry.Add(msg.msgtype, msg.GetType());
+                        if (!constructors.ContainsKey(msg.msgtype))
+                            constructors.Add(msg.msgtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosMessage);
+                    }
                 }
-                IRosMessage msg = Activator.CreateInstance(othertype) as IRosMessage;
-                if (msg != null)
-                {
-                    if (msg.msgtype == MsgTypes.Unknown)
-                        throw new Exception("OH NOES IRosMessage.generate is borked!");
-                    if (!_typeregistry.ContainsKey(msg.msgtype))
-                        _typeregistry.Add(msg.msgtype, msg.GetType());
-                    if (!constructors.ContainsKey(msg.msgtype))
-                        constructors.Add(msg.msgtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosMessage);
-                }
+                if (constructors.ContainsKey(t))
+                    return constructors[t].Invoke(t);
+                else
+                    throw new Exception("OH NOES IRosMessage.generate is borked!");
             }
-            if (constructors.ContainsKey(t))
-                return constructors[t].Invoke(t);
-            else
-                throw new Exception("OH NOES IRosMessage.generate is borked!");
         }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string MD5Sum;
