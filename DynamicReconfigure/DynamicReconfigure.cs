@@ -190,30 +190,33 @@ namespace DynamicReconfigure
             return Service.waitForService(set_service_name, TimeSpan.FromSeconds(5.0));
         }
 
+        private ServiceClient<Reconfigure.Request, Reconfigure.Response> _cli;
+        private ServiceClient<Reconfigure.Request, Reconfigure.Response> cli {
+            get {
+                lock (this)
+                {
+                    if (_cli == null)
+                    {
+                        if (!wait())
+                        {
+                            return null;
+                        }
+                        _cli = nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(set_service_name, true);
+                    }
+                }
+                return _cli;
+            }
+        }
+
         private bool set(Config conf, ref string deets)
         {
-        	if (!wait())
-        	{
-        		if (deets != null)
-        			deets = "Service was not available within 2 seconds";
-        		return false;
-       		}
             Reconfigure.Request req = new Reconfigure.Request {config = conf};
             Reconfigure.Response resp = new Reconfigure.Response();
-            ServiceClient<Reconfigure.Request, Reconfigure.Response> cli = nh.serviceClient<Reconfigure.Request, Reconfigure.Response>(set_service_name, false);
-            if (!cli.IsValid)
-            {
-                if (deets != null)
-                    deets = "Client is INVALID!";
-                cli.shutdown();
-                cli = null;
+            if (cli == null)
                 return false;
-            }
             bool result = cli.call(req, ref resp);
             if (!result && deets != null)
                 deets = "call failed!";
-            cli.shutdown();
-            cli = null;
             return result;
         }
 
