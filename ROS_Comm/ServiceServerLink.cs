@@ -23,7 +23,7 @@ using String = Messages.std_msgs.String;
 
 namespace Ros_CSharp
 {
-    public class IServiceServerLink
+    public class IServiceServerLink : IDisposable
     {
         public bool IsValid;
         public string RequestMd5Sum;
@@ -98,6 +98,8 @@ namespace Ros_CSharp
             clearCalls();
 
             ServiceManager.Instance.removeServiceServerLink(this);
+
+            IsValid = false;
         }
 
         private bool onHeaderReceived(Connection conn, Header header)
@@ -119,6 +121,8 @@ namespace Ros_CSharp
                 if (empty)
                     header_read = true;
             }
+
+            IsValid = true;
 
             if (!empty)
             {
@@ -166,8 +170,8 @@ namespace Ros_CSharp
             }
             if (empty)
             {
-                if (persistent)
-                    connection.drop(Connection.DropReason.Destructing);
+                //if (persistent)
+                //    connection.drop(Connection.DropReason.Destructing);
             }
             else
             {
@@ -307,6 +311,18 @@ namespace Ros_CSharp
                 ROS.Error("Service call failed: service [{0}] responded with an error: {1}", name, info.exception);
             }
             return info.success;
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            if (connection != null && !connection.dropped)
+            {
+                connection.drop(Connection.DropReason.Destructing);
+                connection = null;
+            }
         }
     }
 

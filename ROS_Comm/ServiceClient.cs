@@ -70,14 +70,18 @@ namespace Ros_CSharp
                 return false;
             }
             var serviceServerLink = server_link as ServiceServerLink<MReq, MRes>;
-            bool ret = serviceServerLink != null && serviceServerLink.call(request, ref response);
-            serviceServerLink = null;
+            if (serviceServerLink == null)
+            {
+                return false;
+            }
+            bool ret = serviceServerLink.call(request, ref response);
             while (ROS._shutting_down && ROS.ok)
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
             }
             if (!persistent)
             {
+                serviceServerLink = null;
                 server_link.connection.drop(Connection.DropReason.Destructing);
             }
             return ret;
@@ -112,6 +116,10 @@ namespace Ros_CSharp
                 EDB.WriteLine("Call to service [{0} with md5sum [{1} does not match md5sum when the handle was created([{2}])", service, service_md5sum, md5sum);
                 return false;
             }
+            if (server_link != null && server_link.connection.dropped)
+            {
+                server_link = null;
+            }
             if (persistent)
             {
                 if (server_link == null)
@@ -134,13 +142,13 @@ namespace Ros_CSharp
             }
             var serviceServerLink = server_link as ServiceServerLink<MSrv>;
             bool ret = serviceServerLink != null && serviceServerLink.call(srv.RequestMessage, ref srv.ResponseMessage);
-            serviceServerLink = null;
             while (ROS._shutting_down && ROS.ok)
             {
                 Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
             }
             if (!persistent)
             {
+                serviceServerLink = null;
                 server_link.connection.drop(Connection.DropReason.Destructing);
             }
             return ret;
