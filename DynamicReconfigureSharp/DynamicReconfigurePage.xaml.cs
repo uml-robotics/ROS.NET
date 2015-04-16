@@ -51,6 +51,7 @@ namespace DynamicReconfigureSharp
             min = cd.min;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                GroupHolder.Children.Clear();
                 SortedList<int, DynamicReconfigureGroup> hierarchy = new SortedList<int, DynamicReconfigureGroup>();
                 foreach (Group g in cd.groups)
                 {

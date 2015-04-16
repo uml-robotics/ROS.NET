@@ -241,7 +241,7 @@ namespace DynamicReconfigure
                                 _cli.shutdown();
                                 _cli = null;
                             }
-                        if (!set(new Config { strs = new[] { new StrParameter { name = new String(key), value = value } } }, ref reason))
+                        if (!set(new Config { strs = new[] { new StrParameter { name = new String(key), value = new String(value) } } }, ref reason))
                             Console.WriteLine("SET FAILED\n" + reason);
                     }
                 }
