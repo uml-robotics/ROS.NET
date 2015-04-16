@@ -234,7 +234,16 @@ namespace DynamicReconfigure
                 {
                     string reason = "";
                     if (!set(new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}, ref reason))
-                        Console.WriteLine("SET FAILED\n" + reason);
+                    {
+                        lock (this)
+                            if (_cli != null)
+                            {
+                                _cli.shutdown();
+                                _cli = null;
+                            }
+                        if (!set(new Config { strs = new[] { new StrParameter { name = new String(key), value = value } } }, ref reason))
+                            Console.WriteLine("SET FAILED\n" + reason);
+                    }
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -247,7 +256,16 @@ namespace DynamicReconfigure
                 {
                     string reason = "";
                     if (!set(new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}, ref reason))
-                        Console.WriteLine("SET FAILED\n" + reason);
+                    {
+                        lock(this)
+                            if (_cli != null)
+                            {
+                                _cli.shutdown();
+                                _cli = null;
+                            }
+                        if (!set(new Config { ints = new[] { new IntParameter { name = new String(key), value = value } } }, ref reason))
+                            Console.WriteLine("SET FAILED\n" + reason);
+                    }
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -260,7 +278,16 @@ namespace DynamicReconfigure
                 {
                     string reason = "";
                     if (!set(new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}, ref reason))
-                        Console.WriteLine("SET FAILED\n" + reason);
+                    {
+                        lock (this)
+                            if (_cli != null)
+                            {
+                                _cli.shutdown();
+                                _cli = null;
+                            }
+                        if (!set(new Config { doubles = new[] { new DoubleParameter { name = new String(key), value = value } } }, ref reason))
+                            Console.WriteLine("SET FAILED\n" + reason);
+                    }
                 }
             }).BeginInvoke(iar => { }, null);
         }
@@ -273,7 +300,16 @@ namespace DynamicReconfigure
                 {
                     string reason = "";
                     if (!set(new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}, ref reason))
-                        Console.WriteLine("SET FAILED\n" + reason);
+                    {
+                        lock (this)
+                            if (_cli != null)
+                            {
+                                _cli.shutdown();
+                                _cli = null;
+                            }
+                        if (!set(new Config { bools = new[] { new BoolParameter { name = new String(key), value = value } } }, ref reason))
+                            Console.WriteLine("SET FAILED\n" + reason);
+                    }
                 }
             }).BeginInvoke(iar => { }, null);
         }
