@@ -11,7 +11,7 @@ using String = Messages.std_msgs.String;
 
 namespace DynamicReconfigure
 {
-    public class DynamicReconfigureInterface
+    public class DynamicReconfigureInterface : IDisposable
     {
         private Dictionary<string, List<Action<bool>>> boolcbs = new Dictionary<string, List<Action<bool>>>();
         private Subscriber<Config> configSub;
@@ -26,10 +26,16 @@ namespace DynamicReconfigure
         private Dictionary<string, string> laststring = new Dictionary<string, string>();
         private ConfigDescription latestDescription;
         private string name;
+
+        public string Namespace
+        {
+            get { return name; }
+        }
+
         private string set_service_name;
         private NodeHandle nh;
         private object padlock = new object();
-        private ServiceServer setServer;
+        private ServiceServer setServer; //TODO: implement configuration parsing, giblet generation, and implement a dynamic_reconfigure server interface
         private Dictionary<string, List<Action<string>>> strcbs = new Dictionary<string, List<Action<string>>>();
         private int timeout;
 
@@ -271,5 +277,23 @@ namespace DynamicReconfigure
                 }
             }).BeginInvoke(iar => { }, null);
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (_cli != null)
+            {
+                _cli.shutdown();
+                _cli = null;
+            }
+            if (setServer != null)
+            {
+                setServer.shutdown();
+                setServer = null;
+            }
+        }
+
+        #endregion
     }
 }
