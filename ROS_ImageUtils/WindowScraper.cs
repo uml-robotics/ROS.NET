@@ -23,13 +23,14 @@ namespace ROS_ImageWPF
     {
         private Timer timer;
         private Publisher<CompressedImage> pub;
-        private Window window;
+        private Dispatcher Dispatcher;
         private int period_ms = Timeout.Infinite;
         private bool running = false;
         private double dpiX, dpiY;
         private double WIDTH, HEIGHT;
         private bool enabled = false;
         private NodeHandle nh;
+        private IntPtr hwnd;
 
         public WindowScraper(string topic, Window w, int hz = 1) : this(topic, w, TimeSpan.FromSeconds(1.0/((double) hz)))
         {
@@ -37,8 +38,9 @@ namespace ROS_ImageWPF
 
         public WindowScraper(string topic, Window w, TimeSpan period)
         {
-            window = w;
-            window.Dispatcher.Invoke(new Action(() =>
+            Dispatcher = w.Dispatcher;
+            hwnd = new WindowInteropHelper(w).Handle;
+            Dispatcher.Invoke(new Action(() =>
             {
                 w.SizeChanged += new SizeChangedEventHandler(w_SizeChanged);
                 WIDTH = w.RenderSize.Width;
@@ -89,49 +91,88 @@ namespace ROS_ImageWPF
 
         private void callback(object o)
         {
-            if (dpiX <= 0 || dpiY <= 0)
+            CompressedImage cm = new CompressedImage { format = new Messages.std_msgs.String("jpeg"), header = new Messages.std_msgs.Header { stamp = ROS.GetTime() } };
+            using (MemoryStream ms = new MemoryStream())
             {
-                window.Dispatcher.Invoke(new Action(() =>
-                {
-                    PresentationSource source = PresentationSource.FromVisual(window);
+                PInvoke.CaptureWindow(hwnd, ms, ImageFormat.Jpeg);
+                cm.data = ms.GetBuffer();
+            }
+            pub.publish(cm);
+        }
 
-                    if (source != null)
-                    {
-                        dpiX = 96.0*source.CompositionTarget.TransformToDevice.M11;
-                        dpiY = 96.0*source.CompositionTarget.TransformToDevice.M22;
-                    }
-                }));
+        private static class PInvoke
+        {
+            /* Author: Perry Lee
+            * Submission: Capture Screen (Add Screenshot Capability to Programs)
+            * Date of Submission: 12/29/03
+            */
+
+            private static class GDI32
+            {
+                [DllImport("GDI32.dll")]
+                public static extern bool BitBlt(int hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, int hdcSrc, int nXSrc, int nYSrc, int dwRop);
+
+                [DllImport("GDI32.dll")]
+                public static extern int CreateCompatibleBitmap(int hdc, int nWidth, int nHeight);
+
+                [DllImport("GDI32.dll")]
+                public static extern int CreateCompatibleDC(int hdc);
+
+                [DllImport("GDI32.dll")]
+                public static extern bool DeleteDC(int hdc);
+
+                [DllImport("GDI32.dll")]
+                public static extern bool DeleteObject(int hObject);
+
+                [DllImport("GDI32.dll")]
+                public static extern int GetDeviceCaps(int hdc, int nIndex);
+
+                [DllImport("GDI32.dll")]
+                public static extern int SelectObject(int hdc, int hgdiobj);
             }
 
-            window.Dispatcher.Invoke(new Action(() =>
+            private static class User32
             {
-                CompressedImage cm = new CompressedImage { format = new Messages.std_msgs.String("jpeg"), header = new Messages.std_msgs.Header { stamp = ROS.GetTime() } };
-                #region based on http://blogs.msdn.com/b/saveenr/archive/2008/09/18/wpf-xaml-saving-a-window-or-canvas-as-a-png-bitmap.aspx
+                [DllImport("User32.dll")]
+                public static extern int GetDesktopWindow();
 
-                RenderTargetBitmap rtb = new RenderTargetBitmap(
-                    (int) WIDTH, //width 
-                    (int) HEIGHT, //height 
-                    dpiX, //dpi x 
-                    dpiY, //dpi y 
-                    PixelFormats.Pbgra32 // pixelformat 
-                    );
-                rtb.Render(window);
+                [DllImport("User32.dll")]
+                public static extern int GetWindowDC(int hWnd);
 
-                JpegBitmapEncoder enc = new System.Windows.Media.Imaging.JpegBitmapEncoder();
-                enc.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(rtb));
+                [DllImport("User32.dll")]
+                public static extern int ReleaseDC(int hWnd, int hDC);
+            }
 
-                using (MemoryStream ms = new MemoryStream())
+            public static void CaptureWindow(IntPtr hwnd, Stream str, ImageFormat imageFormat)
+            {
+                int hdcSrc = 0;
+                Graphics g = Graphics.FromHwnd(hwnd);
+                hdcSrc = (int) g.GetHdc();
+                if (hdcSrc != 0)
                 {
-                    enc.Save(ms);
-                    ms.Flush();
-                    cm.data = ms.GetBuffer();
-                    ms.Close();
+                    int hdcDest = GDI32.CreateCompatibleDC(hdcSrc),
+                        hBitmap = GDI32.CreateCompatibleBitmap(hdcSrc,
+                            GDI32.GetDeviceCaps(hdcSrc, 8), GDI32.GetDeviceCaps(hdcSrc, 10));
+                    GDI32.SelectObject(hdcDest, hBitmap);
+                    GDI32.BitBlt(hdcDest, 0, 0, GDI32.GetDeviceCaps(hdcSrc, 8),
+                        GDI32.GetDeviceCaps(hdcSrc, 10), hdcSrc, 0, 0, 0x00CC0020);
+                    SaveImageAs(hBitmap, str, imageFormat);
+                    Cleanup(hBitmap, hdcSrc, hdcDest);
                 }
+                if (g != null)
+                    g.Dispose();
+            }
 
-                pub.publish(cm);
+            private static void Cleanup(int hBitmap, int hdcSrc, int hdcDest)
+            {
+                GDI32.DeleteDC(hdcDest);
+                GDI32.DeleteObject(hBitmap);
+            }
 
-                #endregion
-            }));
+            private static void SaveImageAs(int hBitmap, Stream str, ImageFormat imageFormat)
+            {
+                System.Drawing.Image.FromHbitmap(new IntPtr(hBitmap)).Save(str, imageFormat);
+            }
         }
     }
 }
