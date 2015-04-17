@@ -23,14 +23,11 @@ namespace ROS_ImageWPF
     {
         private Timer timer;
         private Publisher<CompressedImage> pub;
-        private Dispatcher Dispatcher;
         private int period_ms = Timeout.Infinite;
-        private bool running = false;
-        private double dpiX, dpiY;
-        private double WIDTH, HEIGHT;
         private bool enabled = false;
         private NodeHandle nh;
         private IntPtr hwnd;
+        private int window_left, window_top;
 
         public WindowScraper(string topic, Window w, int hz = 1) : this(topic, w, TimeSpan.FromSeconds(1.0/((double) hz)))
         {
@@ -38,14 +35,15 @@ namespace ROS_ImageWPF
 
         public WindowScraper(string topic, Window w, TimeSpan period)
         {
-            Dispatcher = w.Dispatcher;
-            hwnd = new WindowInteropHelper(w).Handle;
-            Dispatcher.Invoke(new Action(() =>
+
+            w.Dispatcher.Invoke(new Action(() =>
             {
-                w.SizeChanged += new SizeChangedEventHandler(w_SizeChanged);
-                WIDTH = w.RenderSize.Width;
-                HEIGHT = w.RenderSize.Height;
+                w.LocationChanged += (s, a) => {
+                    window_left = (int)w.Left;
+                    window_top = (int)w.Top;
+                };
             }));
+            hwnd = new WindowInteropHelper(w).Handle;
             period_ms = (int) Math.Floor(period.TotalMilliseconds);
             timer = new Timer(callback, null, Timeout.Infinite, period_ms);
             nh = new NodeHandle();
@@ -55,12 +53,6 @@ namespace ROS_ImageWPF
                 topic += "/compressed";
             }
             pub = nh.advertise<CompressedImage>(topic, 10);
-        }
-
-        private void w_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            WIDTH = e.NewSize.Width;
-            HEIGHT = e.NewSize.Height;
         }
 
         public void Start()
@@ -94,7 +86,7 @@ namespace ROS_ImageWPF
             CompressedImage cm = new CompressedImage { format = new Messages.std_msgs.String("jpeg"), header = new Messages.std_msgs.Header { stamp = ROS.GetTime() } };
             using (MemoryStream ms = new MemoryStream())
             {
-                PInvoke.CaptureWindow(hwnd, ms, ImageFormat.Jpeg);
+                PInvoke.CaptureWindow(hwnd, window_left, window_top, ms, ImageFormat.Jpeg);
                 cm.data = ms.GetBuffer();
             }
             pub.publish(cm);
@@ -131,19 +123,7 @@ namespace ROS_ImageWPF
                 public static extern int SelectObject(int hdc, int hgdiobj);
             }
 
-            private static class User32
-            {
-                [DllImport("User32.dll")]
-                public static extern int GetDesktopWindow();
-
-                [DllImport("User32.dll")]
-                public static extern int GetWindowDC(int hWnd);
-
-                [DllImport("User32.dll")]
-                public static extern int ReleaseDC(int hWnd, int hDC);
-            }
-
-            public static void CaptureWindow(IntPtr hwnd, Stream str, ImageFormat imageFormat)
+            public static void CaptureWindow(IntPtr hwnd, int winx, int winy, Stream str, ImageFormat imageFormat)
             {
                 int hdcSrc = 0;
                 Graphics g = Graphics.FromHwnd(hwnd);
@@ -155,7 +135,7 @@ namespace ROS_ImageWPF
                             GDI32.GetDeviceCaps(hdcSrc, 8), GDI32.GetDeviceCaps(hdcSrc, 10));
                     GDI32.SelectObject(hdcDest, hBitmap);
                     GDI32.BitBlt(hdcDest, 0, 0, GDI32.GetDeviceCaps(hdcSrc, 8),
-                        GDI32.GetDeviceCaps(hdcSrc, 10), hdcSrc, 0, 0, 0x00CC0020);
+                        GDI32.GetDeviceCaps(hdcSrc, 10), hdcSrc, winx, winy, 0x00CC0020);
                     SaveImageAs(hBitmap, str, imageFormat);
                     Cleanup(hBitmap, hdcSrc, hdcDest);
                 }
