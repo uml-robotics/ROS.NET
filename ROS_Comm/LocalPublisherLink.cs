@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections;
+using System.Runtime.InteropServices;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -72,11 +73,18 @@ namespace Ros_CSharp
 
         public void handleMessage<T>(T m, bool ser, bool nocopy) where T : IRosMessage, new()
         {
-            stats.bytes_received += (ulong) m.Serialized.Length;
             stats.messages_received++;
-            byte[] tmp = new byte[m.Serialized.Length - 4];
-            Array.Copy(m.Serialized, 4, tmp, 0, m.Serialized.Length - 4);
-            m.Serialized = tmp;
+            if (m.Serialized == null)
+            {
+                //ignore stats to avoid an unnecessary allocation
+            }
+            else
+            {
+                stats.bytes_received += (ulong)m.Serialized.Length;
+                byte[] tmp = new byte[m.Serialized.Length - 4];
+                Array.Copy(m.Serialized, 4, tmp, 0, m.Serialized.Length - 4);
+                m.Serialized = tmp;
+            }
             if (parent != null)
                 lock (parent)
                     stats.drops += parent.handleMessage(m, ser, nocopy, m.connection_header, this);
