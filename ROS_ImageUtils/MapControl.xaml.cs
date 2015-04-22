@@ -154,7 +154,7 @@ namespace ROS_ImageWPF
                 origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
                 Size s = new Size(i.info.width, i.info.height);
                 byte[] d = createRGBA(i.data);
-                guts.UpdateImage(ref d, s, false);
+                guts.UpdateImage(d, s, false);
                 d = null;
             })));
         }

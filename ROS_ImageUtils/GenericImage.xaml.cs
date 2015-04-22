@@ -16,6 +16,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net.Cache;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -83,7 +84,7 @@ namespace ROS_ImageWPF
                 bmp.UnlockBits(bData);
 
                 // starts the overload cluster-mess to show the image
-                UpdateImage(ref rgbData, SizeConverter(bmp.Size), false);
+                UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
                 // get that stuff out of memory so it doesn't mess our day up.
                 bmp.Dispose();
@@ -123,7 +124,7 @@ namespace ROS_ImageWPF
                     bmp.UnlockBits(bData);
 
                     // starts the overload cluster-mess to show the image
-                    UpdateImage(ref rgbData, SizeConverter(bmp.Size), false);
+                    UpdateImage(rgbData, SizeConverter(bmp.Size), false);
 
                     // get that stuff out of memory so it doesn't mess our day up.
                     bmp.Dispose();
@@ -135,12 +136,6 @@ namespace ROS_ImageWPF
             }
             else
                 Console.WriteLine("non-fatal BPP mismatch. If you see images, then you should go to vegas and bet your life savings on black.");
-        }
-
-
-        public void UpdateImage(ref byte[] data, Size size, bool hasHeader)
-        {
-            UpdateImage(ref data, size, hasHeader, null);
         }
 
         /// <summary>
@@ -158,13 +153,13 @@ namespace ROS_ImageWPF
         /// <param name="hasHeader">
         ///     whether or not a header needs to be concatinated
         /// </param>
-        public void UpdateImage(ref byte[] data, Size size, bool hasHeader, string encoding)
+        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding=null)
         {
             //Console.WriteLine(1 / DateTime.Now.Subtract(wtf).TotalSeconds);
             //wtf = DateTime.Now;
             if (hasHeader)
             {
-                UpdateImage(ref data);
+                UpdateImage(data);
                 return;
             }
 
@@ -229,11 +224,9 @@ namespace ROS_ImageWPF
                     MakeHeader(correcteddata, size);
 
                 // stick it on the bitmap data
-                byte[] wholearray = concat(header, correcteddata);
-
                 try
                 {
-                    UpdateImage(ref wholearray);
+                    UpdateImage(concat(header, correcteddata));
                 }
                 catch (Exception e)
                 {
@@ -250,21 +243,24 @@ namespace ROS_ImageWPF
         /// </summary>
         /// <param name="data">
         /// </param>
-        public void UpdateImage(ref byte[] data)
+        public void UpdateImage(byte[] data)
         {
+            BitmapImage img = new BitmapImage();
+            ImageSource target = image.ImageSource;
             try
             {
-                BitmapImage img = BytesToImage(ref data);
-                if (img != null)
+                if (BytesToImage(data, ref img) && img.DecodePixelWidth >= 0)
                 {
-                    if (img.DecodePixelWidth != -1)
-                        UpdateImage(ref img);
-                    img = null;
+                    target = img;
                 }
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
             }
+            image.ImageSource = target;
+            img = null;
+            target = null;
 
             frames = (frames + 1)%10;
             if (frames == 0)
@@ -274,19 +270,6 @@ namespace ROS_ImageWPF
                 if (fpsevent != null)
                     fpsevent(Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2));
                 lastFrame = DateTime.Now;
-            }
-        }
-
-        /// <summary>
-        ///     just throws the image into the ImageBrush's ImageSource
-        /// </summary>
-        /// <param name="img">
-        /// </param>
-        public void UpdateImage(ref BitmapImage img)
-        {
-            if (img != null)
-            {
-                image.ImageSource = img;
             }
         }
 
@@ -302,30 +285,34 @@ namespace ROS_ImageWPF
             return new Size(s.Width, s.Height);
         }
 
-        public static BitmapImage BytesToImage(ref byte[] data)
+        private static int identifier = 0;
+        public static bool BytesToImage(byte[] data, ref BitmapImage img)
         {
+            bool ret = false;
             if (data.Length > 0)
             {
                 // makes a memory stream with the data
-                MemoryStream ms = new MemoryStream(data);
-                // makes an image
-                BitmapImage img = new BitmapImage();
-
-                try
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    // tries to turn the memory stream into an image
-                    img.BeginInit();
-                    img.StreamSource = ms;
-                    img.EndInit();
+                    try
+                    {
+                        ms.Write(data, 0, data.Length);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        // tries to turn the memory stream into an image
+                        img.BeginInit();
+                        img.CacheOption = BitmapCacheOption.OnLoad; //stop being lazy. for serious.
+                        img.StreamSource = ms;
+                        img.EndInit();
+                        ret = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                    ms.Close();
                 }
-                catch (Exception e)
-                {
-                    return null;
-                }
-
-                return img;
             }
-            return null;
+            return ret;
         }
 
         #endregion

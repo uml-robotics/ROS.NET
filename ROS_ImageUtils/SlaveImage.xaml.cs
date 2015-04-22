@@ -97,9 +97,9 @@ namespace ROS_ImageWPF
             return false;
         }
 
-        public void UpdateImage(ref byte[] data)
+        public void UpdateImage(byte[] data)
         {
-            guts.UpdateImage(ref data);
+            guts.UpdateImage(data);
         }
 
         public void Transform(double scalex, double scaley)

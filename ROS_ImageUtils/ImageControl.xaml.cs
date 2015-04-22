@@ -150,7 +150,7 @@ namespace ROS_ImageWPF
             {
                 if (guts == null)
                     return;
-                guts.UpdateImage(ref i.data, new Size((int) i.width, (int) i.height), false, i.encoding.data);
+                guts.UpdateImage(i.data, new Size((int) i.width, (int) i.height), false, i.encoding.data);
                 if (ImageReceivedEvent != null) ImageReceivedEvent(this);
             }));
         }

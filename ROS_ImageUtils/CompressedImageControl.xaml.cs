@@ -190,7 +190,7 @@ namespace ROS_ImageWPF
             {
                 UpdateImage(ref i.data);
                 foreach (SlaveImage si in _slaves)
-                    si.UpdateImage(ref i.data);
+                    si.UpdateImage(i.data);
                 if (ImageReceivedEvent != null)
                     ImageReceivedEvent(this);
             }));
@@ -204,7 +204,7 @@ namespace ROS_ImageWPF
         /// </param>
         public void UpdateImage(ref byte[] data)
         {
-            guts.UpdateImage(ref data);
+            guts.UpdateImage(data);
         }
 
         #region Events
