@@ -2,17 +2,21 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             mc:Ignorable="d"
              d:DesignHeight="250" d:DesignWidth="480" Loaded="UserControl_Loaded">
-    
-       <DataGrid Name="abraCadabra" Visibility="Hidden" AutoGenerateColumns="False"  Height="auto" Width="auto" FontSize="16" Padding="1" >
+    <Grid>
+        <DataGrid Name="abraCadabra" AutoGenerateColumns="False" FontSize="16" Padding="1" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" Background="Black" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray">
           <DataGrid.Columns>
-              <DataGridTextColumn Header="Time Stamp" Binding="{Binding timestamp}"/>
-              <DataGridTextColumn Header="Level" Binding="{Binding level}"/>
-              <DataGridTextColumn Header="Message" Binding="{Binding msgdata}"/>
-              <DataGridTextColumn Header="Name" Binding="{Binding msgname}"/>
-          </DataGrid.Columns>
+            <DataGridTextColumn Header="Time" Binding="{Binding timestamp}" SortDirection="Descending" SortMemberPath="stamp" Width="auto"/>
+            <DataGridTextColumn Header="Level" Binding="{Binding level}" Width="auto"/>
+            <DataGridTextColumn Header="Name" Binding="{Binding msgname}" Width="auto"/>
+            <DataGridTextColumn Header="Message" Binding="{Binding msgdata}" Width="*"/>
+            <DataGridTextColumn Header="File" Binding="{Binding filename}" Width="auto"/>
+            <DataGridTextColumn Header="Function" Binding="{Binding functionname}" Width="auto"/>
+            <DataGridTextColumn Header="Line" Binding="{Binding lineno}" Width="auto"/>
+        </DataGrid.Columns>
       </DataGrid>
-    
+    </Grid>
 </UserControl>
