@@ -181,14 +181,19 @@ namespace ROS_ImageWPF
             Console.WriteLine("IMG TOPIC " + TopicName);
             if (imgsub != null)
                 return;
-            imgsub = imagehandle.subscribe(new SubscribeOptions<sm.CompressedImage>(TopicName, 1, i => Dispatcher.Invoke(new Action(() =>
+            imgsub = imagehandle.subscribe<sm.CompressedImage>(TopicName, 1, UpdateImage);
+        }
+
+        public void UpdateImage(sm.CompressedImage i)
+        {
+            Dispatcher.Invoke(new Action(() =>
             {
                 UpdateImage(ref i.data);
                 foreach (SlaveImage si in _slaves)
                     si.UpdateImage(ref i.data);
                 if (ImageReceivedEvent != null)
                     ImageReceivedEvent(this);
-            }))) {allow_concurrent_callbacks = true});
+            }));
         }
 
         /// <summary>

@@ -139,17 +139,21 @@ namespace ROS_ImageWPF
             }
             if (imgsub != null)
                 return;
-            imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, i =>
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    if (guts == null)
-                        return;
-                    guts.UpdateImage(ref i.data, new Size((int) i.width, (int) i.height), false, i.encoding.data);
-                    if (ImageReceivedEvent != null) ImageReceivedEvent(this);
-                })));
+            imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, UpdateImage);
         }
 
         #region Events
+
+        private void UpdateImage(sm.Image i)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                if (guts == null)
+                    return;
+                guts.UpdateImage(ref i.data, new Size((int) i.width, (int) i.height), false, i.encoding.data);
+                if (ImageReceivedEvent != null) ImageReceivedEvent(this);
+            }));
+        }
 
         private const double _scalex = 1;
         private const double _scaley = -1;
