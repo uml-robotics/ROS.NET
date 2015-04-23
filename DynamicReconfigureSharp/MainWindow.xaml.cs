@@ -33,6 +33,10 @@ namespace DynamicReconfigureTest
             try
             {
                 InitializeComponent();
+                TargetBox.Items.SortDescriptions.Clear();
+                TargetBox.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("", System.ComponentModel.ListSortDirection.Ascending));
+                TargetBox.ItemsSource = knownConfigurations.Keys;
+                knownConfigurations.Add("-", null);
             }
             catch (Exception e)
             {
@@ -42,69 +46,46 @@ namespace DynamicReconfigureTest
 
             topicPoller = new Thread(() =>
             {
-                while (ROS.ok)
+                while (ROS.ok && !ROS.shutting_down)
                 {
                     Dispatcher.Invoke(new Action(() =>
                     {
+                        TopicInfo[] topics = new TopicInfo[0];
+                        master.getTopics(ref topics);
+                        List<string> prevlist = new List<string>(knownConfigurations.Keys);
+                        List<string> additions = new List<string>();
+                        foreach (TopicInfo ti in topics)
+                        {
+                            if (ti.data_type == "dynamic_reconfigure/Config")
+                            {
+                                string prefix = ti.name.Replace("/parameter_updates", "");
+                                prevlist.Remove(prefix);
+                                if (!knownConfigurations.ContainsKey(prefix))
+                                {
+                                    additions.Add(prefix);
+                                }
+                            }
+                        }
                         lock (this)
                         {
-                            if (!ROS.ok)
+                            if (!ROS.ok || ROS.shutting_down)
                                 return;
-                            TopicInfo[] topics = new TopicInfo[0];
-                            master.getTopics(ref topics);
-                            List<string> prevlist = new List<string>(knownConfigurations.Keys);
-                            bool changed = false;
-                            foreach (TopicInfo ti in topics)
+                            foreach (string prefix in additions)
                             {
-                                if (ti.data_type == "dynamic_reconfigure/Config")
-                                {
-                                    string prefix = ti.name.Replace("/parameter_updates", "");
-                                    prevlist.Remove(prefix);
-                                    if (!knownConfigurations.ContainsKey(prefix))
-                                    {
-                                        DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, prefix);
-                                        TargetBox.Items.Add(prefix);
-                                        if (drp != null)
-                                            knownConfigurations.Add(prefix, drp);
-                                        changed = true;
-                                    }
-                                }
+                                DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, prefix);
+                                if (drp != null)
+                                    knownConfigurations.Add(prefix, drp);
                             }
                             foreach (string s in prevlist)
                             {
-                                foreach (string S in TargetBox.Items)
+                                if (!knownConfigurations.ContainsKey(s))
                                 {
-                                    if (S == s)
-                                    {
-                                        changed = true;
-                                        TargetBox.Items.Remove(s);
-                                        break;
-                                    }
-                                }
-                                knownConfigurations.Remove(s);
-                            }
-                            if (changed)
-                            {
-                                string sel = (TargetBox.SelectedItem as string);
-                                List<string> keys = knownConfigurations.Keys.ToList();
-                                keys.Sort();
-                                TargetBox.Items.Clear();
-                                string none = "None";
-                                TargetBox.Items.Add(none);
-                                if (string.Equals(sel, none))
-                                    TargetBox.SelectedIndex = TargetBox.Items.Count - 1;
-                                foreach (string k in keys)
-                                {
-                                    TargetBox.Items.Add(k);
-                                    if (string.Equals(sel, k))
-                                        TargetBox.SelectedIndex = TargetBox.Items.Count - 1;
+                                    knownConfigurations.Remove(s);
                                 }
                             }
                         }
                     }));
-                    if (!ROS.ok)
-                        return;
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
             });
             topicPoller.Start();
