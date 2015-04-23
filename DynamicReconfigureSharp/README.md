@@ -1,0 +1,1 @@
+This project references the Microsoft Expression Blend SDK ( https://www.microsoft.com/en-us/download/details.aspx?id=10801 )
