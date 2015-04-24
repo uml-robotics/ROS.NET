@@ -12,11 +12,13 @@
 
 #region USINGZ
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using Socket = Ros_CSharp.CustomSocket.Socket;
 
 #endregion
@@ -40,8 +42,7 @@ namespace Ros_CSharp
         public List<Socket> just_deleted = new List<Socket>();
         public object just_deleted_mutex = new object();
         private Socket[] localpipeevents = new Socket[2];
-        public bool signal_locked;
-        public object signal_mutex = new object();
+        public AutoResetEvent signal_mutex = new AutoResetEvent(true);
 
         public Dictionary<uint, SocketInfo> socket_info = new Dictionary<uint, SocketInfo>();
         public object socket_info_mutex = new object();
@@ -77,17 +78,15 @@ namespace Ros_CSharp
 
         public void signal()
         {
-            if (!signal_locked)
-                lock (signal_mutex)
+            if (signal_mutex.WaitOne(0))
+            {
+                byte[] b = {0};
+                if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
                 {
-                    signal_locked = true;
-                    byte[] b = {0};
-                    if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
-                    {
-                        localpipeevents[1].Send(b);
-                    }
-                    signal_locked = false;
+                    localpipeevents[1].Send(b);
                 }
+                signal_mutex.Set();
+            }
         }
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
