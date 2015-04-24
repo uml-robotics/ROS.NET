@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -38,10 +39,25 @@ namespace RosoutDebugUC
 
         ObservableCollection<rosoutString> rosoutdata = new ObservableCollection<rosoutString>();
         Subscriber<Messages.rosgraph_msgs.Log> sub;
+        private NodeHandle nh;
+        private Thread waitforinit;
+
+        //right now, these are split from a semicolon-delimited string, and matching is REALLY DUMB... just a containment check.
+        private List<string> ignoredStrings = new List<string>();
 
         public RosoutDebug()
         {
             InitializeComponent();
+        }
+
+        public RosoutDebug(NodeHandle n, string IgnoredStrings)
+            : this()
+        {
+            nh = n;
+            Loaded += (sender, args) =>
+                          {
+                              this.IgnoredStrings = IgnoredStrings;
+                          };
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -62,13 +78,108 @@ namespace RosoutDebugUC
             abraCadabra.Items.Refresh();
         }
 
-        public void startListening(NodeHandle nh)
+        /// <summary>
+        /// A DependencyProperty for setting a list of semicolon-delimited substrings to ignore when found in any rosout msg field
+        /// </summary>
+        public static readonly DependencyProperty IgnoredStringsProperty = DependencyProperty.Register(
+            "IgnoredStrings",
+            typeof(string),
+            typeof(RosoutDebug),
+            new FrameworkPropertyMetadata(null,
+                FrameworkPropertyMetadataOptions.None, (obj, args) =>
+                {
+                    try
+                    {
+                        if (obj is RosoutDebug)
+                        {
+                            RosoutDebug target = obj as RosoutDebug;
+                            target.IgnoredStrings = (string)args.NewValue;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }));
+
+        /// <summary>
+        /// A semicolon-delimited list of substrings that, when found in a concatenation of any rosout msgs fields, will not display that message
+        /// </summary>
+        public string IgnoredStrings
         {
-            sub = nh.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 100, callback);
+            get { return GetValue(IgnoredStringsProperty) as string; }
+            set
+            {
+                if (Process.GetCurrentProcess().ProcessName == "devenv")
+                    return;
+                ignoredStrings.Clear();
+                ignoredStrings.AddRange(IgnoredStrings.Split(';'));
+                SetValue(IgnoredStringsProperty, value);
+                Init();
+            }
+        }
+
+
+
+        public void shutdown()
+        {
+            if (sub != null)
+            {
+                sub.shutdown();
+                sub = null;
+            }
+            if (nh != null)
+            {
+                nh.shutdown();
+                nh = null;
+            }
+        }
+
+        private void Init()
+        {
+            lock (this)
+            {
+                if (!ROS.isStarted())
+                {
+                    if (waitforinit == null)
+                    {
+                        string workaround = IgnoredStrings;
+                        waitforinit = new Thread(() => waitfunc(workaround));
+                    }
+                    if (!waitforinit.IsAlive)
+                    {
+                        waitforinit.Start();
+                    }
+                }
+                else
+                    SetupIgnore(IgnoredStrings);
+            }
+        }
+
+        private void waitfunc(string ignored)
+        {
+            while (!ROS.isStarted())
+            {
+                Thread.Sleep(100);
+            }
+            SetupIgnore(ignored);
+        }
+
+        private void SetupIgnore(string ignored)
+        {
+            if (Process.GetCurrentProcess().ProcessName == "devenv")
+                return;
+            if (nh == null)
+                nh = new NodeHandle();
+            if (sub == null)
+                sub = nh.subscribe<Messages.rosgraph_msgs.Log>("/rosout_agg", 100, callback);
         }
 
         private void callback(Messages.rosgraph_msgs.Log msg)
         {
+            string teststring = string.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", msg.level, msg.msg.data, msg.name.data, msg.file.data, msg.function.data, msg.line);
+            if (ignoredStrings.Count > 0 && ignoredStrings.Any(teststring.Contains))
+                return;
             rosoutString rss = new rosoutString((1.0 * msg.header.stamp.data.sec + (1.0 * msg.header.stamp.data.nsec) / 1000000000.0),
                 msg.level,
                 msg.msg.data,
