@@ -218,100 +218,64 @@ namespace DynamicReconfigure
         {
             Reconfigure.Request req = new Reconfigure.Request {config = conf};
             Reconfigure.Response resp = new Reconfigure.Response();
-            if (cli == null)
-                return false;
-            bool result = cli.call(req, ref resp);
+            ServiceClient<Reconfigure.Request, Reconfigure.Response> localcli;
+            lock (this)
+            {
+                if (cli == null)
+                    return false;
+                localcli = cli;
+            }
+            bool result = localcli.call(req, ref resp);
             if (!result && deets != null)
                 deets = "call failed!";
+            localcli = null;
             return result;
         }
 
-        public void Set(string key, string value)
+        private void _set(Config config)
         {
-            new Action(() =>
+            string reason = "";
+            if (!set(config, ref reason))
             {
-                lock (padlock)
-                {
-                    string reason = "";
-                    if (!set(new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}, ref reason))
+                lock (this)
+                    if (_cli != null)
                     {
-                        lock (this)
-                            if (_cli != null)
-                            {
-                                _cli.shutdown();
-                                _cli = null;
-                            }
-                        if (!set(new Config { strs = new[] { new StrParameter { name = new String(key), value = new String(value) } } }, ref reason))
-                            Console.WriteLine("SET FAILED\n" + reason);
+                        _cli.shutdown();
+                        _cli = null;
                     }
-                }
-            }).BeginInvoke(iar => { }, null);
+                if (!set(config, ref reason))
+                    Console.WriteLine("SET FAILED\n" + reason);
+            }
         }
 
-        public void Set(string key, int value)
+        private void Set(Config config, bool synchronous = false)
         {
-            new Action(() =>
-            {
-                lock (padlock)
-                {
-                    string reason = "";
-                    if (!set(new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}, ref reason))
-                    {
-                        lock(this)
-                            if (_cli != null)
-                            {
-                                _cli.shutdown();
-                                _cli = null;
-                            }
-                        if (!set(new Config { ints = new[] { new IntParameter { name = new String(key), value = value } } }, ref reason))
-                            Console.WriteLine("SET FAILED\n" + reason);
-                    }
-                }
-            }).BeginInvoke(iar => { }, null);
+            ManualResetEvent are = new ManualResetEvent(!synchronous);
+            new Action<Config>(_set).BeginInvoke(config,(iar) => { 
+                               if (iar.IsCompleted) 
+                                   are.Set(); 
+                           }, null);
+            are.WaitOne();
         }
 
-        public void Set(string key, double value)
+        public void Set(string key, string value, bool synchronous = false)
         {
-            new Action(() =>
-            {
-                lock (padlock)
-                {
-                    string reason = "";
-                    if (!set(new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}, ref reason))
-                    {
-                        lock (this)
-                            if (_cli != null)
-                            {
-                                _cli.shutdown();
-                                _cli = null;
-                            }
-                        if (!set(new Config { doubles = new[] { new DoubleParameter { name = new String(key), value = value } } }, ref reason))
-                            Console.WriteLine("SET FAILED\n" + reason);
-                    }
-                }
-            }).BeginInvoke(iar => { }, null);
+            Set(new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}, synchronous);
         }
 
-        public void Set(string key, bool value)
+        public void Set(string key, int value, bool synchronous = false)
         {
-            new Action(() =>
-            {
-                lock (padlock)
-                {
-                    string reason = "";
-                    if (!set(new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}, ref reason))
-                    {
-                        lock (this)
-                            if (_cli != null)
-                            {
-                                _cli.shutdown();
-                                _cli = null;
-                            }
-                        if (!set(new Config { bools = new[] { new BoolParameter { name = new String(key), value = value } } }, ref reason))
-                            Console.WriteLine("SET FAILED\n" + reason);
-                    }
-                }
-            }).BeginInvoke(iar => { }, null);
+            Set(new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}, synchronous);
+        }
+
+        public void Set(string key, double value, bool synchronous = false)
+        {
+            Set(new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}, synchronous);
+        }
+
+        public void Set(string key, bool value, bool synchronous = false)
+        {
+            Set(new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}, synchronous);
         }
 
         #region IDisposable Members
