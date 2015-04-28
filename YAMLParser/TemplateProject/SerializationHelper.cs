@@ -706,32 +706,22 @@ Console.WriteLine("//deserialize: " + T.FullName);
             else
             {
                 int arraylength = 0;
-                object[] vals = (val as Array).Cast<object>().ToArray();
-                Queue<byte[]> arraychunks = new Queue<byte[]>();
-                for (int i = 0; i < vals.Length; i++)
+                Array valArray = val as Array;
+                List<byte> thechunk = new List<byte>();
+                for(int i=0;i<valArray.GetLength(0);i++)
                 {
-                    if (vals[i] == null)
-                        vals[i] = Activator.CreateInstance(T.GetElementType());
-                    Type TT = vals[i].GetType();
+                    if (valArray.GetValue(i) == null)
+                        valArray.SetValue(Activator.CreateInstance(T.GetElementType()),i);
+                    Type TT = valArray.GetValue(i).GetType();
                     MsgTypes mt = GetMessageType(TT);
                     bool piecelengthknown = mt != MsgTypes.std_msgs__String;
-                    byte[] chunk = NeedsMoreChunks(TT, vals[i], ref piecelengthknown);
-                    arraychunks.Enqueue(chunk);
-                    arraylength += chunk.Length;
+                    thechunk.AddRange(NeedsMoreChunks(TT, valArray.GetValue(i), ref piecelengthknown));
                 }
-                thischunk = new byte[knownlength ? arraylength : (arraylength + 4)];
                 if (!knownlength)
                 {
-                    byte[] bylen = BitConverter.GetBytes(vals.Length);
-                    Array.Copy(bylen, 0, thischunk, 0, 4);
+                    thechunk.InsertRange(0, BitConverter.GetBytes(valArray.GetLength(0)));
                 }
-                int arraypos = knownlength ? 0 : 4;
-                while (arraychunks.Count > 0)
-                {
-                    byte[] chunk = arraychunks.Dequeue();
-                    Array.Copy(chunk, 0, thischunk, arraypos, chunk.Length);
-                    arraypos += chunk.Length;
-                }
+                return thechunk.ToArray();
             }
             return thischunk;
         }
