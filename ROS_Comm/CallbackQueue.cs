@@ -10,6 +10,8 @@
 // Created: 11/06/2013
 // Updated: 07/23/2014
 
+
+//#define SAFE
 #region USINGZ
 
 using System;
@@ -147,7 +149,6 @@ namespace Ros_CSharp
             while (ROS.ok && !ROS._shutting_down && enabled)
             {
                 callAvailable();
-                Thread.Sleep(ROS.WallDuration);
             }
             Console.WriteLine("CallbackQueue thread broke out!");
         }
@@ -239,10 +240,12 @@ namespace Ros_CSharp
                 if (!enabled) return CallOneResult.Disabled;
                 if (Count == 0 && timeout != 0)
                 {
-                    sem.WaitOne(timeout, false);
+                    if (!sem.WaitOne(timeout, false))
+                    {
+                        if (Count == 0) return CallOneResult.Empty;
+                        if (!enabled) return CallOneResult.Disabled;
+                    }
                 }
-                if (Count == 0) return CallOneResult.Empty;
-                if (!enabled) return CallOneResult.Disabled;
                 for (int i = 0; i < callbacks.Count; i++)
                 {
                     ICallbackInfo info = callbacks[i];
@@ -291,7 +294,8 @@ namespace Ros_CSharp
             }
             if (Count == 0 && timeout != 0)
             {
-                sem.WaitOne(timeout);
+                if (!sem.WaitOne(timeout))
+                    return;
             }
             lock (mutex)
             {
