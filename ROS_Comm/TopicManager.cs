@@ -80,8 +80,6 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.bind("getBusInfo", getBusInfoCallback);
                 XmlRpcManager.Instance.bind("getSubscriptions", getSubscriptionsCallback);
                 XmlRpcManager.Instance.bind("getPublications", getPublicationsCallback);
-
-                PollManager.Instance.addPollThreadListener(processPublishQueues);
             }
         }
 
@@ -561,17 +559,6 @@ namespace Ros_CSharp
         public Publication lookupPublicationWithoutLock(string topic)
         {
             return advertised_topics.FirstOrDefault(p => p.Name == topic && !p.Dropped);
-        }
-
-        public void processPublishQueues()
-        {
-            lock (advertised_topics_mutex)
-            {
-                foreach (Publication pub in advertised_topics)
-                {
-                    pub.processPublishQueue();
-                }
-            }
         }
 
         public void getBusStats(ref XmlRpcValue stats)

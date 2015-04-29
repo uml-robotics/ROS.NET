@@ -126,6 +126,7 @@ namespace Ros_CSharp
             {
                 if (Dropped) return;
                 subscriber_links.Add(link);
+                PollManager.Instance.addPollThreadListener(processPublishQueue);
             }
 
             if (Latch && last_message != null)
@@ -147,6 +148,8 @@ namespace Ros_CSharp
                 {
                     lnk = link;
                     subscriber_links.Remove(lnk);
+                    if (subscriber_links.Count == 0)
+                        PollManager.Instance.removePollThreadListener(processPublishQueue);
                 }
             }
             if (lnk != null)
