@@ -139,7 +139,7 @@ namespace ROS_ImageWPF
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (mapsub != null || mapsub.topic != topic)
+            if (mapsub != null && mapsub.topic != topic)
             {
                 mapsub.shutdown();
                 mapsub = null;
