@@ -452,7 +452,9 @@ namespace Ros_CSharp
             lock (start_mutex)
             {
                 if (started) return;
+
                 PollManager.Instance.addPollThreadListener(checkForShutdown);
+
                 XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
                 //initInternalTimerManager();
                 TopicManager.Instance.Start();
@@ -505,7 +507,6 @@ namespace Ros_CSharp
                 if (_shutting_down)
                     return;
                 _shutting_down = true;
-                _ok = false;
 
                 EDB.WriteLine("ROS is shutting down.");
 
