@@ -193,7 +193,7 @@ namespace DynamicReconfigure
 
         private bool wait()
         {
-            return Service.waitForService(set_service_name, TimeSpan.FromSeconds(5.0));
+            return Service.waitForService(set_service_name, TimeSpan.FromSeconds(1.0));
         }
 
         private ServiceClient<Reconfigure.Request, Reconfigure.Response> _cli;
@@ -203,7 +203,7 @@ namespace DynamicReconfigure
                 {
                     if (_cli == null)
                     {
-                        if (!wait())
+                        if (!ROS.ok || ROS.shutting_down || !wait())
                         {
                             return null;
                         }
@@ -250,12 +250,10 @@ namespace DynamicReconfigure
 
         private void Set(Config config, bool synchronous = false)
         {
-            ManualResetEvent are = new ManualResetEvent(!synchronous);
-            new Action<Config>(_set).BeginInvoke(config,(iar) => { 
-                               if (iar.IsCompleted) 
-                                   are.Set(); 
-                           }, null);
-            are.WaitOne();
+            if (synchronous)
+                _set(config);
+            else
+                new Action<Config>(_set).BeginInvoke(config,(iar) => {}, null);
         }
 
         public void Set(string key, string value, bool synchronous = false)

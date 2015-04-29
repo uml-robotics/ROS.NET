@@ -93,7 +93,7 @@ namespace Ros_CSharp
                 if (shutting_down) return;
                 lock (subs_mutex)
                 {
-                    shutting_down = false;
+                    shutting_down = true;
                 }
                 XmlRpcManager.Instance.unbind("publisherUpdate");
                 XmlRpcManager.Instance.unbind("requestTopic");
