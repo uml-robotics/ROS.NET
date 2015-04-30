@@ -76,9 +76,6 @@ namespace ROS_ImageWPF
         public void Shutdown()
         {
             Stop();
-            pub.shutdown();
-            ROS.shutdown();
-            ROS.waitForShutdown();
         }
 
         private void callback(object o)
