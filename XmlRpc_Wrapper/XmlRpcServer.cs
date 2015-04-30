@@ -133,9 +133,9 @@ namespace XmlRpc_Wrapper
                         _refs.Remove(ptr);
                         shutdown(ptr);
                         XmlRpcUtil.Free(ptr);
-                        ptr = IntPtr.Zero;
                     }
                 }
+                ptr = IntPtr.Zero;
             }
         }
 

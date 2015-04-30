@@ -135,10 +135,10 @@ namespace XmlRpc_Wrapper
 #endif
                         _refs.Remove(ptr);
                         XmlRpcUtil.Free(ptr);
-                        ptr = IntPtr.Zero;
                     }
                     return;
                 }
+                ptr = IntPtr.Zero;
                 throw new Exception("OHHH NOOOO!!!");
             }
         }
