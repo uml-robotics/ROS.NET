@@ -25,7 +25,7 @@ using Socket = Ros_CSharp.CustomSocket.Socket;
 
 namespace Ros_CSharp
 {
-    public class PollSet
+    public class PollSet : IDisposable
     {
         #region Delegates
 
@@ -62,8 +62,12 @@ namespace Ros_CSharp
             addEvents(localpipeevents[0].FD, POLLIN);
         }
 
-        ~PollSet()
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
         {
+            signal_mutex.Reset();
             if (localpipeevents[0] != null)
             {
                 localpipeevents[0].Close();
@@ -81,6 +85,8 @@ namespace Ros_CSharp
             if (signal_mutex.WaitOne(0))
             {
                 byte[] b = {0};
+                if (localpipeevents[1] == null)
+                    return;
                 if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
                 {
                     localpipeevents[1].Send(b);

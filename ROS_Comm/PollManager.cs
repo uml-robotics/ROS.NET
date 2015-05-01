@@ -114,6 +114,7 @@ namespace Ros_CSharp
         public void shutdown()
         {
             shutting_down = true;
+            poll_set = null;
             thread.Join();
             poll_signal = null;
         }

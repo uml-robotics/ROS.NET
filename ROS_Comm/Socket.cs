@@ -171,16 +171,15 @@ namespace Ros_CSharp.CustomSocket
         {
             lock (this)
             {
-                if (disposed) return false; 
                 bool res = false;
                 try
                 {
-                    res = Poll(timeout, sm);
+                    res = !disposed && Poll(timeout, sm);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                    res = sm == ns.SelectMode.SelectError;
+                    res = !disposed && sm == ns.SelectMode.SelectError;
                 }
                 return res;
             }
