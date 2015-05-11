@@ -28,11 +28,17 @@ namespace RosParamClient
         private Program(string[] args)
         {
             op OP = op.list;
-            if (args.Length == 0 || !Enum.TryParse<op>(args[0], true, out OP))
-            {
-                ShowUsage(0);
-                return;
-            }
+			try
+			{
+				OP = (op)Enum.Parse(typeof(op), args[0], true);
+				if (args.Length == 0)
+				{
+					ShowUsage(0);
+					return;
+				}
+			}catch(Exception ex)
+				{
+				}
             if (args.Length == 1 && OP != op.list)
             {
                 ShowUsage(1);

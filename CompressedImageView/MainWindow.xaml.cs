@@ -46,6 +46,7 @@ namespace CompressedImageView
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+			ROS.ROS_MASTER_URI = "http://notemind02:11311";
             ROS.Init(new string[0], "Image_Test");
         }
 
