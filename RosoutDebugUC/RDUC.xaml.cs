@@ -187,7 +187,7 @@ namespace RosoutDebugUC
                 msg.file.data,
                 msg.function.data,
                 ""+msg.line);
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.Invoke(new Action(() =>
             {
                 rosoutdata.Add(rss);
                 if (rosoutdata.Count > 1000)

@@ -49,7 +49,7 @@ namespace DynamicReconfigureSharp
             def = cd.dflt;
             max = cd.max;
             min = cd.min;
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.Invoke(new Action(() =>
             {
                 GroupHolder.Children.Clear();
                 SortedList<int, DynamicReconfigureGroup> hierarchy = new SortedList<int, DynamicReconfigureGroup>();
