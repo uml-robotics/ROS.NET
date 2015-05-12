@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Messages.dynamic_reconfigure;
+using Messages.std_msgs;
 using Ros_CSharp;
 using String = Messages.std_msgs.String;
 
@@ -49,54 +50,70 @@ namespace DynamicReconfigure
 
         public void Subscribe(string paramname, Action<int> act)
         {
+            int? last = null;
             lock (this)
             {
                 if (!intcbs.ContainsKey(paramname))
                     intcbs[paramname] = new List<Action<int>>();
                 if (lastint.ContainsKey(paramname))
-                    act(lastint[paramname]);
+                    last = lastint[paramname];
                 intcbs[paramname].Add(act);
             }
+            if (last != null)
+                act((int)last);
         }
 
         public void Subscribe(string paramname, Action<bool> act)
         {
+            bool? last = null;
             lock (this)
             {
                 if (!boolcbs.ContainsKey(paramname))
                     boolcbs[paramname] = new List<Action<bool>>();
                 if (lastbool.ContainsKey(paramname))
-                    act(lastbool[paramname]);
+                    last = lastbool[paramname];
                 boolcbs[paramname].Add(act);
             }
+            if (last != null)
+                act((bool)last);
         }
 
         public void Subscribe(string paramname, Action<string> act)
         {
+            string last = null;
             lock (this)
             {
                 if (!strcbs.ContainsKey(paramname))
                     strcbs[paramname] = new List<Action<string>>();
                 if (laststring.ContainsKey(paramname))
-                    act(laststring[paramname]);
+                    last = laststring[paramname];
                 strcbs[paramname].Add(act);
             }
+            if (last != null)
+                act(last);
         }
 
         public void Subscribe(string paramname, Action<double> act)
         {
+            double? last = null;
             lock (this)
             {
                 if (!doublecbs.ContainsKey(paramname))
                     doublecbs[paramname] = new List<Action<double>>();
                 if (lastdouble.ContainsKey(paramname))
-                    act(lastdouble[paramname]);
+                    last = lastdouble[paramname];
                 doublecbs[paramname].Add(act);
             }
+            if (last != null)
+                act((double)last);
         }
 
         private void ConfigCallback(Config m)
         {
+            Dictionary<List<Action<bool>>, bool> lbcbs = new Dictionary<List<Action<bool>>,bool>();
+            Dictionary<List<Action<int>>, int> ibcbs = new Dictionary<List<Action<int>>,int>();
+            Dictionary<List<Action<double>>, double> dbcbs = new Dictionary<List<Action<double>>,double>();
+            Dictionary<List<Action<string>>, string> sbcbs = new Dictionary<List<Action<string>>,string>();
             lock (this)
             {
                 foreach (BoolParameter bp in m.bools)
@@ -104,7 +121,8 @@ namespace DynamicReconfigure
                     lastbool[bp.name.data] = bp.value;
                     if (boolcbs.ContainsKey(bp.name.data))
                     {
-                        boolcbs[bp.name.data].ForEach(a => a(bp.value));
+                        lbcbs.Add(boolcbs[bp.name.data], bp.value);
+                        //boolcbs[bp.name.data].ForEach(a => a(bp.value));
                     }
                 }
                 foreach (IntParameter ip in m.ints)
@@ -112,7 +130,8 @@ namespace DynamicReconfigure
                     lastint[ip.name.data] = ip.value;
                     if (intcbs.ContainsKey(ip.name.data))
                     {
-                        intcbs[ip.name.data].ForEach(a => a(ip.value));
+                        ibcbs.Add(intcbs[ip.name.data], ip.value);
+                        //intcbs[ip.name.data].ForEach(a => a(ip.value));
                     }
                 }
                 foreach (DoubleParameter dp in m.doubles)
@@ -120,7 +139,8 @@ namespace DynamicReconfigure
                     lastdouble[dp.name.data] = dp.value;
                     if (doublecbs.ContainsKey(dp.name.data))
                     {
-                        doublecbs[dp.name.data].ForEach(a => a(dp.value));
+                        dbcbs.Add(doublecbs[dp.name.data], dp.value);
+                        //doublecbs[dp.name.data].ForEach(a => a(dp.value));
                     }
                 }
                 foreach (StrParameter sp in m.strs)
@@ -128,10 +148,19 @@ namespace DynamicReconfigure
                     laststring[sp.name.data] = sp.value.data;
                     if (strcbs.ContainsKey(sp.name.data))
                     {
-                        strcbs[sp.name.data].ForEach(a => a(sp.value.data));
+                        sbcbs.Add(strcbs[sp.name.data], sp.value.data);
+                        //strcbs[sp.name.data].ForEach(a => a(sp.value.data));
                     }
                 }
             }
+            foreach (KeyValuePair<List<Action<bool>>, bool> kvp in lbcbs)
+                kvp.Key.ForEach((b) => b(kvp.Value));
+            foreach (KeyValuePair<List<Action<int>>, int> kvp in ibcbs)
+                kvp.Key.ForEach((b) => b(kvp.Value));
+            foreach (KeyValuePair<List<Action<double>>, double> kvp in dbcbs)
+                kvp.Key.ForEach((b) => b(kvp.Value));
+            foreach (KeyValuePair<List<Action<string>>, string> kvp in sbcbs)
+                kvp.Key.ForEach((b) => b(kvp.Value));
         }
 
         public void DescribeParameters(Action<ConfigDescription> pda)
