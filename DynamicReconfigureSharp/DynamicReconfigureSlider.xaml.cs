@@ -72,7 +72,7 @@ namespace DynamicReconfigureSharp
         private void changed(int newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 box.Text = "" + newstate;
                 value.Value = newstate;
@@ -85,7 +85,7 @@ namespace DynamicReconfigureSharp
         private void changed(double newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 box.Text = string.Format("{0:N2}", newstate);
                 value.Value = newstate;

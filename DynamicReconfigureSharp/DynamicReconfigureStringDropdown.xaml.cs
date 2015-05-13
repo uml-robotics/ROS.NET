@@ -225,7 +225,7 @@ namespace DynamicReconfigureSharp
         private void changed(string newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 @enum.SelectedValue = newstate;
                 if (stringchanged != null)
@@ -237,7 +237,7 @@ namespace DynamicReconfigureSharp
         private void changed(int newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 @enum.SelectedValue = newstate;
                 if (intchanged != null)
