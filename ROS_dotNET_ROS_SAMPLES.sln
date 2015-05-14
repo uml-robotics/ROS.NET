@@ -25,8 +25,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RosParamClient", "RosParamC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Talker", "Talker\Talker.csproj", "{0A642FA3-58AB-4DBD-94DD-87948062F559}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spatial", "mathnet-spatial\src\Spatial\Spatial.csproj", "{1F3364C6-9DA3-4006-B83F-6D1335099895}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msg_gen", "msg_gen\msg_gen.csproj", "{B0B3F899-DE04-4792-9FCF-0A62D435392B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompressedImageView", "CompressedImageView\CompressedImageView.csproj", "{684FFC24-B4C8-48B9-8195-1EE725F2312C}"
@@ -78,9 +76,6 @@ Global
 		{0A642FA3-58AB-4DBD-94DD-87948062F559}.Debug|x86.Build.0 = Debug|x86
 		{0A642FA3-58AB-4DBD-94DD-87948062F559}.Release|x86.ActiveCfg = Release|x86
 		{0A642FA3-58AB-4DBD-94DD-87948062F559}.Release|x86.Build.0 = Release|x86
-		{1F3364C6-9DA3-4006-B83F-6D1335099895}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1F3364C6-9DA3-4006-B83F-6D1335099895}.Debug|x86.Build.0 = Debug|Any CPU
-		{1F3364C6-9DA3-4006-B83F-6D1335099895}.Release|x86.ActiveCfg = Release|Any CPU
 		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x86.ActiveCfg = Debug|x86
 		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Debug|x86.Build.0 = Debug|x86
 		{B0B3F899-DE04-4792-9FCF-0A62D435392B}.Release|x86.ActiveCfg = Release|x86

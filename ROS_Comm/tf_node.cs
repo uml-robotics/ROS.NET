@@ -22,8 +22,7 @@ using Messages.tf;
 using gm = Messages.geometry_msgs;
 using Int64 = System.Int64;
 using String = Messages.std_msgs.String;
-using MathNet.Spatial;
-using Vector3 = MathNet.Spatial.Vector3D;
+
 #endregion
 
 namespace Ros_CSharp
@@ -1102,9 +1101,9 @@ namespace Ros_CSharp
         public static emVector3 operator *(emTransform t, emVector3 v)
         {
             emMatrix3x3 mat = new emMatrix3x3(t.basis);
-            return new emVector3(mat.m_el[0].vec.DotProduct(v.vec) + t.origin.x,
-                mat.m_el[1].vec.DotProduct(v.vec) + t.origin.y,
-                mat.m_el[2].vec.DotProduct(v.vec) + t.origin.z);
+            return new emVector3(mat.m_el[0].dot(v) + t.origin.x,
+                mat.m_el[1].dot(v) + t.origin.y,
+                mat.m_el[2].dot(v) + t.origin.z);
         }
         
         public static emQuaternion operator *(emTransform t, emQuaternion q)
@@ -1116,44 +1115,19 @@ namespace Ros_CSharp
     [DebuggerStepThrough]
     public class emQuaternion
     {
-        internal Quaternion quat;
+        public double w;
+        public double x, y, z;
 
-        public double w
+        public emQuaternion() : this(0, 0, 0, 1)
         {
-            set { quat = new Quaternion(value, x, y, z); }
-            get { return quat.Real; }
-        }
-
-        public double x
-        {
-            set { quat = new Quaternion(w, value, y, z); }
-            get { return quat.ImagX; }
-        }
-
-        public double y
-        {
-            set { quat = new Quaternion(w, x, value, z); }
-            get { return quat.ImagY; }
-        }
-
-        public double z
-        {
-            set { quat = new Quaternion(w, x, y, value); }
-            get { return quat.ImagZ; }
-        }
-
-        public emQuaternion() : this(new Quaternion(1,0,0,0))
-        {
-        }
-
-        public emQuaternion(Quaternion q)
-        {
-            quat = q;
         }
 
         public emQuaternion(double W, double X, double Y, double Z)
         {
-            quat = new Quaternion(W, X, Y, Z);
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
         }
 
         public emQuaternion(emQuaternion shallow)
@@ -1173,62 +1147,65 @@ namespace Ros_CSharp
 
         public static emQuaternion operator +(emQuaternion v1, emQuaternion v2)
         {
-            return new emQuaternion(v1.quat + v2.quat);
+            return new emQuaternion(v1.w + v2.w, v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
         }
 
         public static emQuaternion operator *(emQuaternion v1, float d)
         {
-            return new emQuaternion(v1.quat * d);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, int d)
         {
-            return new emQuaternion(v1.quat * d);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, double d)
         {
-            return new emQuaternion(v1.quat * d);
+            return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
         }
 
         public static emQuaternion operator *(float d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(int d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return v1*((double) d);
         }
 
         public static emQuaternion operator *(double d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
         {
-            return new emQuaternion(v1.quat * v2.quat);
+            return new emQuaternion(v1.w*v2.x + v1.x*v2.x + v1.y*v2.z - v1.z*v2.y,
+                v1.w*v2.y + v1.y*v2.w + v1.z*v2.x - v1.x*v2.z,
+                v1.w*v2.z + v1.z*v2.w + v1.x*v2.y - v1.y*v2.x,
+                v1.w*v2.w - v1.x*v2.x - v1.y*v2.y - v1.z*v2.z);
         }
 
         public static emQuaternion operator /(emQuaternion v1, float s)
         {
-            return new emQuaternion(v1.quat / s);
+            return v1/((double) s);
         }
 
         public static emQuaternion operator /(emQuaternion v1, int s)
         {
-            return new emQuaternion(v1.quat / s);
+            return v1/((double) s);
         }
 
         public static emQuaternion operator /(emQuaternion v1, double s)
         {
-            return new emQuaternion(v1.quat / s);
+            return v1*(1.0/s);
         }
 
         public emQuaternion inverse()
         {
-            return new emQuaternion(quat.Inverse());
+            return new emQuaternion(-x, -y, -z, w);
         }
 
         public double dot(emQuaternion q)
@@ -1238,12 +1215,12 @@ namespace Ros_CSharp
 
         public double length2()
         {
-            return quat.Abs * quat.Abs;
+            return dot(this);
         }
 
         public double length()
         {
-            return quat.Abs;
+            return Math.Sqrt(length2());
         }
 
         public override string ToString()
@@ -1311,7 +1288,10 @@ namespace Ros_CSharp
 
         public double angleShortestPath(emQuaternion q)
         {
-            return Quaternion.Distance(quat, q.quat);
+            double s = Math.Sqrt(length2()*q.length2());
+            if (dot(q) < 0)
+                return Math.Acos(dot(-1*q)/s)*2.0;
+            return Math.Acos(dot(q)/s)*2.0;
         }
 
         public emQuaternion slerp(emQuaternion q, double t)
@@ -1341,38 +1321,20 @@ namespace Ros_CSharp
     [DebuggerStepThrough]
     public class emVector3
     {
-        internal Vector3 vec;
+        public double x, y, z;
 
-        public double x
-        {
-            get { return vec.X; }
-            set { vec = new Vector3(value, y, z); }
-        }
-        public double y
-        {
-            get { return vec.Y; }
-            set { vec = new Vector3(x, value, z); }
-        }
-        public double z
-        {
-            get { return vec.Z; }
-            set { vec = new Vector3(x, y, value); }
-        }
-
-        public emVector3() : this(0,0,0)
+        public emVector3() : this(0, 0, 0)
         {
         }
 
-        public emVector3(Vector3 v)
+        public emVector3(double X, double Y, double Z)
         {
-            vec = v;
+            x = X;
+            y = Y;
+            z = Z;
         }
 
-        public emVector3(double X, double Y, double Z) : this(new Vector3(X,Y,Z))
-        {
-        }
-
-        public emVector3(emVector3 shallow) : this(shallow.vec)
+        public emVector3(emVector3 shallow) : this(shallow.x, shallow.y, shallow.z)
         {
         }
 
@@ -1387,42 +1349,47 @@ namespace Ros_CSharp
 
         public static emVector3 operator +(emVector3 v1, emVector3 v2)
         {
-            return new emVector3(v1.vec + v2.vec);
+            return new emVector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
         }
 
         public static emVector3 operator -(emVector3 v1, emVector3 v2)
         {
-            return new emVector3(v1.vec - v2.vec);
+            return new emVector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
         }
 
         public static emVector3 operator *(emVector3 v1, float d)
         {
-            return new emVector3(d*v1.vec);
+            return v1*((double) d);
         }
 
         public static emVector3 operator *(emVector3 v1, int d)
         {
-            return new emVector3(d * v1.vec);
+            return v1*((double) d);
         }
 
         public static emVector3 operator *(emVector3 v1, double d)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(v1.x*d, v1.y*d, v1.z*d);
         }
 
         public static emVector3 operator *(float d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return v1 * d;
         }
 
         public static emVector3 operator *(int d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return v1 * d;
         }
 
         public static emVector3 operator *(double d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return v1 * d;
+        }
+        
+        public double dot(emVector3 v2)
+        {
+            return x + v2.x + y * v2.y + z * v2.z;
         }
 
         public override string ToString()
