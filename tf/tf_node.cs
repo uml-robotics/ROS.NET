@@ -1,16 +1,4 @@
-﻿// File: tf_node.cs
-// Project: ROS_C-Sharp
-// 
-// ROS.NET
-// Eric McCann <emccann@cs.uml.edu>
-// UMass Lowell Robotics Laboratory
-// 
-// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
-// 
-// Created: 11/06/2013
-// Updated: 07/23/2014
-
-#region USINGZ
+﻿#region USINGZ
 
 using System;
 using System.Collections.Generic;
@@ -19,13 +7,14 @@ using System.Threading;
 using Messages;
 using Messages.std_msgs;
 using Messages.tf;
+using Ros_CSharp;
 using gm = Messages.geometry_msgs;
 using Int64 = System.Int64;
 using String = Messages.std_msgs.String;
 
 #endregion
 
-namespace Ros_CSharp
+namespace tf
 {
     public class Stamped<T>
     {
@@ -147,8 +136,8 @@ namespace Ros_CSharp
         private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
         private ulong cache_time;
 
-        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> {{"NO_PARENT", 0}};
-        private Dictionary<uint, string> frameids_reverse = new Dictionary<uint, string> {{0, "NO_PARENT"}};
+        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> { { "NO_PARENT", 0 } };
+        private Dictionary<uint, string> frameids_reverse = new Dictionary<uint, string> { { 0, "NO_PARENT" } };
         private object framemutex = new object();
         private SortedList<uint, TimeCache> frames = new SortedList<uint, TimeCache>();
 
@@ -157,7 +146,7 @@ namespace Ros_CSharp
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
-            if (ROS.initialized)
+            if (ROS.isStarted() && !ROS.shutting_down)
             {
                 tf_node.instance.TFsUpdated += Update;
             }
@@ -275,7 +264,7 @@ namespace Ros_CSharp
                 transform.basis = accum.result_quat;
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
-                transform.stamp = new Time {data = new TimeData {sec = (uint) (accum.time >> 32), nsec = (uint) (accum.time & 0xFFFFFFFF)}};
+                transform.stamp = new Time { data = new TimeData { sec = (uint)(accum.time >> 32), nsec = (uint)(accum.time & 0xFFFFFFFF) } };
             }
             return retval == TF_STATUS.NO_ERROR;
         }
@@ -305,7 +294,7 @@ namespace Ros_CSharp
             lookupTransform(target_frame, stamped_in.frame_id, stamped_in.stamp, out trans);
             emVector3 end = stamped_in.data;
             emVector3 origin = new emVector3(0, 0, 0);
-            emVector3 output = (trans*end) - (trans*origin);
+            emVector3 output = (trans * end) - (trans * origin);
             stamped_out.data = output;
             stamped_out.stamp = trans.stamp;
             stamped_out.frame_id = target_frame;
@@ -539,8 +528,8 @@ namespace Ros_CSharp
         {
             if (!frameIDs.ContainsKey(frame))
             {
-                frameIDs.Add(frame, (uint) (frameIDs.Count + 1));
-                frameids_reverse.Add((uint) frameids_reverse.Count + 1, frame);
+                frameIDs.Add(frame, (uint)(frameIDs.Count + 1));
+                frameids_reverse.Add((uint)frameids_reverse.Count + 1, frame);
             }
             return frameIDs[frame];
         }
@@ -598,7 +587,7 @@ namespace Ros_CSharp
         private const Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
 
         private ulong max_storage_time;
-        private volatile DLL<TransformStorage> storage = new DLL<TransformStorage>();
+        private DLL<TransformStorage> storage = new DLL<TransformStorage>();
 
         public TimeCache()
             : this(DEFAULT_MAX_STORAGE_TIME)
@@ -612,7 +601,7 @@ namespace Ros_CSharp
 
         public static ulong toLong(TimeData td)
         {
-            return (((ulong) td.sec) << 32) | td.nsec;
+            return (((ulong)td.sec) << 32) | td.nsec;
         }
 
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
@@ -685,7 +674,7 @@ namespace Ros_CSharp
             if (output == null)
                 output = new TransformStorage();
 
-            double ratio = (time - one.stamp)/(two.stamp - one.stamp);
+            double ratio = (time - one.stamp) / (two.stamp - one.stamp);
             output.translation.setInterpolate3(one.translation, two.translation, ratio);
             output.rotation = slerp(one.rotation, two.rotation, ratio);
             output.stamp = one.stamp;
@@ -783,7 +772,7 @@ namespace Ros_CSharp
 
         public uint getListLength()
         {
-            return (uint) storage.Count;
+            return (uint)storage.Count;
         }
 
         public ulong getLatestTimeStamp()
@@ -849,115 +838,6 @@ namespace Ros_CSharp
         }
     }
 
-    [DebuggerStepThrough]
-    public class emMatrix3x3
-    {
-        public emVector3[] m_el = new emVector3[3];
-
-        public emMatrix3x3() : this(0, 0, 0, 0, 0, 0, 0, 0, 0)
-        {
-        }
-
-        public emMatrix3x3(double xx, double xy, double xz,
-            double yx, double yy, double yz,
-            double zx, double zy, double zz)
-        {
-            m_el[0] = new emVector3(xx, xy, xz);
-            m_el[1] = new emVector3(yx, yy, yz);
-            m_el[2] = new emVector3(zx, zy, zz);
-        }
-
-        public emMatrix3x3(emQuaternion q)
-        {
-            setRotation(q);
-        }
-
-        public void setValue(double xx, double xy, double xz,
-            double yx, double yy, double yz,
-            double zx, double zy, double zz)
-        {
-            m_el[0] = new emVector3(xx, xy, xz);
-            m_el[1] = new emVector3(yx, yy, yz);
-            m_el[2] = new emVector3(zx, zy, zz);
-        }
-
-        public void setRotation(emQuaternion q)
-        {
-            double d = q.length2();
-            double s = 2.0/d;
-            double xs = q.x*s, ys = q.y*s, zs = q.z*s;
-            double wx = q.w*xs, wy = q.w*ys, wz = q.w*zs;
-            double xx = q.x*xs, xy = q.x*ys, xz = q.x*zs;
-            double yy = q.y*ys, yz = q.y*zs, zz = q.z*zs;
-            setValue(1.0 - (yy + zz), xy - wz, xz + wy,
-                xy + wz, 1.0 - (xx + zz), yz - wx,
-                xz - wy, yz + wx, 1.0 - (xx + yy));
-        }
-
-        internal emVector3 getYPR(uint solution_number = 1)
-        {
-            Euler euler_out;
-            Euler euler_out2; //second solution
-            //get the pointer to the raw data
-
-            // Check that pitch is not at a singularity
-            // Check that pitch is not at a singularity
-            if (Math.Abs(m_el[2].x) >= 1)
-            {
-                euler_out.yaw = 0;
-                euler_out2.yaw = 0;
-
-                // From difference of angles formula
-                double delta = Math.Atan2(m_el[2].y, m_el[2].z);
-                if (m_el[2].x < 0) //gimbal locked down
-                {
-                    euler_out.pitch = Math.PI/2.0d;
-                    euler_out2.pitch = Math.PI/2.0d;
-                    euler_out.roll = delta;
-                    euler_out2.roll = delta;
-                }
-                else // gimbal locked up
-                {
-                    euler_out.pitch = -Math.PI/2.0d;
-                    euler_out2.pitch = -Math.PI/2.0d;
-                    euler_out.roll = delta;
-                    euler_out2.roll = delta;
-                }
-            }
-            else
-            {
-                euler_out.pitch = -Math.Asin(m_el[2].x);
-                euler_out2.pitch = Math.PI - euler_out.pitch;
-
-                euler_out.roll = Math.Atan2(m_el[2].y/Math.Cos(euler_out.pitch),
-                    m_el[2].z/Math.Cos(euler_out.pitch));
-                euler_out2.roll = Math.Atan2(m_el[2].y/Math.Cos(euler_out2.pitch),
-                    m_el[2].z/Math.Cos(euler_out2.pitch));
-
-                euler_out.yaw = Math.Atan2(m_el[1].x/Math.Cos(euler_out.pitch),
-                    m_el[0].x/Math.Cos(euler_out.pitch));
-                euler_out2.yaw = Math.Atan2(m_el[1].x/Math.Cos(euler_out2.pitch),
-                    m_el[0].x/Math.Cos(euler_out2.pitch));
-            }
-
-            if (solution_number == 1)
-            {
-                /*yaw = euler_out.yaw; 
-                pitch = euler_out.pitch;
-                roll = euler_out.roll;*/
-                return new emVector3(euler_out.yaw, euler_out.pitch, euler_out.roll);
-            }
-            return new emVector3(euler_out2.yaw, euler_out2.pitch, euler_out2.roll);
-        }
-
-        public struct Euler
-        {
-            public double pitch;
-            public double roll;
-            public double yaw;
-        }
-    }
-
     public enum WalkEnding
     {
         Identity,
@@ -1018,20 +898,20 @@ namespace Ros_CSharp
                     result_quat = source_to_top_quat;
                     break;
                 case WalkEnding.SourceParentOfTarget:
-                {
-                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                    emVector3 inv_target_vec = quatRotate(inv_target_quat, -1*target_to_top_vec);
-                    result_quat = inv_target_quat;
-                    result_vec = inv_target_vec;
-                }
+                    {
+                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                        emVector3 inv_target_vec = quatRotate(inv_target_quat, -1 * target_to_top_vec);
+                        result_quat = inv_target_quat;
+                        result_vec = inv_target_vec;
+                    }
                     break;
                 case WalkEnding.FullPath:
-                {
-                    emQuaternion inv_target_quat = target_to_top_quat.inverse();
-                    emVector3 inv_target_vec = quatRotate(inv_target_quat, -1*target_to_top_vec);
-                    result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
-                    result_quat = inv_target_quat * source_to_top_quat;
-                }
+                    {
+                        emQuaternion inv_target_quat = target_to_top_quat.inverse();
+                        emVector3 inv_target_vec = quatRotate(inv_target_quat, -1 * target_to_top_vec);
+                        result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
+                        result_quat = inv_target_quat * source_to_top_quat;
+                    }
                     break;
             }
             time = _time;
@@ -1042,367 +922,21 @@ namespace Ros_CSharp
             if (source)
             {
                 source_to_top_vec = quatRotate(st.rotation, source_to_top_vec) + st.translation;
-                source_to_top_quat = st.rotation*source_to_top_quat;
+                source_to_top_quat = st.rotation * source_to_top_quat;
 
             }
             else
             {
                 target_to_top_vec = quatRotate(st.rotation, target_to_top_vec) + st.translation;
-                target_to_top_quat = st.rotation*target_to_top_quat;
+                target_to_top_quat = st.rotation * target_to_top_quat;
             }
         }
 
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
-            emQuaternion q = new emQuaternion(rotation * new emQuaternion(1.0,v.x,v.y,v.z));
-            q = q*rotation.inverse();
+            emQuaternion q = new emQuaternion(rotation * new emQuaternion(1.0, v.x, v.y, v.z));
+            q = q * rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
-        }
-    }
-
-    [DebuggerStepThrough]
-    public class emTransform
-    {
-        public string child_frame_id;
-        public string frame_id;
-
-        public emQuaternion basis;
-        public Time stamp;
-        public emVector3 origin;
-
-        public emTransform() : this(new emQuaternion(), new emVector3(), new Time(new TimeData()), "", "")
-        {
-        }
-
-        public emTransform(gm.TransformStamped msg) : this(new emQuaternion(msg.transform.rotation), new emVector3(msg.transform.translation), msg.header.stamp, msg.header.frame_id.data, msg.child_frame_id.data)
-        {
-        }
-
-        public emTransform(emQuaternion q, emVector3 v) : this(q,v,null,null,null)
-        {
-        }
-        public emTransform(emQuaternion q, emVector3 v, Time t, string fid, string cfi)
-        {
-            basis = q;
-            origin = v;
-            stamp = t;
-
-            frame_id = fid;
-            child_frame_id = cfi;
-        }
-
-
-
-        public static emTransform operator *(emTransform t, emTransform v)
-        {
-            return new emTransform(t.basis * v.basis, t * v.origin);
-        }
-
-        public static emVector3 operator *(emTransform t, emVector3 v)
-        {
-            emMatrix3x3 mat = new emMatrix3x3(t.basis);
-            return new emVector3(mat.m_el[0].dot(v) + t.origin.x,
-                mat.m_el[1].dot(v) + t.origin.y,
-                mat.m_el[2].dot(v) + t.origin.z);
-        }
-        
-        public static emQuaternion operator *(emTransform t, emQuaternion q)
-        {
-            return t.basis * q;
-        }
-    }
-
-    [DebuggerStepThrough]
-    public class emQuaternion
-    {
-        public double w;
-        public double x, y, z;
-
-        public emQuaternion() : this(0, 0, 0, 1)
-        {
-        }
-
-        public emQuaternion(double W, double X, double Y, double Z)
-        {
-            x = X;
-            y = Y;
-            z = Z;
-            w = W;
-        }
-
-        public emQuaternion(emQuaternion shallow)
-            : this(shallow.w,shallow.x, shallow.y, shallow.z)
-        {
-        }
-
-        public emQuaternion(gm.Quaternion shallow)
-            : this(shallow.w,shallow.x, shallow.y, shallow.z)
-        {
-        }
-
-        public gm.Quaternion ToMsg()
-        {
-            return new gm.Quaternion {w = w, x = x, y = y, z = z};
-        }
-
-        public static emQuaternion operator +(emQuaternion v1, emQuaternion v2)
-        {
-            return new emQuaternion(v1.w + v2.w, v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
-        }
-
-        public static emQuaternion operator *(emQuaternion v1, float d)
-        {
-            return v1*((double) d);
-        }
-
-        public static emQuaternion operator *(emQuaternion v1, int d)
-        {
-            return v1*((double) d);
-        }
-
-        public static emQuaternion operator *(emQuaternion v1, double d)
-        {
-            return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
-        }
-
-        public static emQuaternion operator *(float d, emQuaternion v1)
-        {
-            return v1*((double) d);
-        }
-
-        public static emQuaternion operator *(int d, emQuaternion v1)
-        {
-            return v1*((double) d);
-        }
-
-        public static emQuaternion operator *(double d, emQuaternion v1)
-        {
-            return new emQuaternion(v1.x*d, v1.y*d, v1.z*d, v1.w*d);
-        }
-
-        public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
-        {
-            return new emQuaternion(v1.w*v2.x + v1.x*v2.x + v1.y*v2.z - v1.z*v2.y,
-                v1.w*v2.y + v1.y*v2.w + v1.z*v2.x - v1.x*v2.z,
-                v1.w*v2.z + v1.z*v2.w + v1.x*v2.y - v1.y*v2.x,
-                v1.w*v2.w - v1.x*v2.x - v1.y*v2.y - v1.z*v2.z);
-        }
-
-        public static emQuaternion operator /(emQuaternion v1, float s)
-        {
-            return v1/((double) s);
-        }
-
-        public static emQuaternion operator /(emQuaternion v1, int s)
-        {
-            return v1/((double) s);
-        }
-
-        public static emQuaternion operator /(emQuaternion v1, double s)
-        {
-            return v1*(1.0/s);
-        }
-
-        public emQuaternion inverse()
-        {
-            return new emQuaternion(-x, -y, -z, w);
-        }
-
-        public double dot(emQuaternion q)
-        {
-            return x*q.x + y*q.y + z*q.z + w*q.w;
-        }
-
-        public double length2()
-        {
-            return dot(this);
-        }
-
-        public double length()
-        {
-            return Math.Sqrt(length2());
-        }
-
-        public override string ToString()
-        {
-            return string.Format("({0},{1},{2},{3})", w, x, y, z);
-        }
-
-        public emVector3 getRPY()
-        {
-            emVector3 tmp = new emMatrix3x3(this).getYPR();
-            return new emVector3(tmp.z, tmp.y, tmp.x);
-            emVector3 ret = new emVector3();
-            double w2 = w*w;
-            double x2 = x*x;
-            double y2 = y*y;
-            double z2 = z*z;
-            double unitLength = length(); // Normalized == 1, otherwise correction divisor.
-            double abcd = w*x + y*z;
-            double eps = Math.E;
-            double pi = Math.PI;
-            if (abcd > (0.5 - eps)*unitLength)
-            {
-                ret.z = 2*Math.Atan2(y, w);
-                ret.y = pi;
-                ret.x = 0;
-            }
-            else if (abcd < (-0.5 + eps)*unitLength)
-            {
-                ret.z = -2*Math.Atan2(y, w);
-                ret.y = -pi;
-                ret.x = 0;
-            }
-            else
-            {
-                double adbc = w*z - x*y;
-                double acbd = w*y - x*z;
-                ret.z = Math.Atan2(2*adbc, 1 - 2*(z2 + x2));
-                ret.y = Math.Asin(2*abcd/unitLength);
-                ret.x = Math.Atan2(2*acbd, 1 - 2*(y2 + x2));
-            }
-            return ret;
-        }
-
-        public static emQuaternion FromRPY(emVector3 rpy)
-        {
-            double halfroll = rpy.x/2;
-            double halfpitch = rpy.y/2;
-            double halfyaw = rpy.z/2;
-
-            double sin_r2 = Math.Sin(halfroll);
-            double sin_p2 = Math.Sin(halfpitch);
-            double sin_y2 = Math.Sin(halfyaw);
-
-            double cos_r2 = Math.Cos(halfroll);
-            double cos_p2 = Math.Cos(halfpitch);
-            double cos_y2 = Math.Cos(halfyaw);
-
-            return new emQuaternion(
-                cos_r2 * cos_p2 * cos_y2 + sin_r2 * sin_p2 * sin_y2,
-                sin_r2 * cos_p2 * cos_y2 - cos_r2 * sin_p2 * sin_y2,
-                cos_r2 * sin_p2 * cos_y2 + sin_r2 * cos_p2 * sin_y2,
-                cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
-                );
-        }
-
-        public double angleShortestPath(emQuaternion q)
-        {
-            double s = Math.Sqrt(length2()*q.length2());
-            if (dot(q) < 0)
-                return Math.Acos(dot(-1*q)/s)*2.0;
-            return Math.Acos(dot(q)/s)*2.0;
-        }
-
-        public emQuaternion slerp(emQuaternion q, double t)
-        {
-            double theta = angleShortestPath(q);
-            if (theta != 0)
-            {
-                double d = 1.0/Math.Sin(theta);
-                double s0 = Math.Sin(1.0 - t)*theta;
-                double s1 = Math.Sin(t*theta);
-                if (dot(q) < 0)
-                {
-                    return new emQuaternion(
-                        (w*s0 + -1*q.w*s1)*d,
-                        (x*s0 + -1*q.x*s1)*d,
-                        (y*s0 + -1*q.y*s1)*d,
-                        (z*s0 + -1*q.z*s1)*d);
-                }
-                return new emQuaternion((w * s0 + q.w * s1) * d,
-                    (x * s0 + q.x * s1) * d,
-                    (y*s0 + q.y*s1)*d,
-                    (z*s0 + q.z*s1)*d);
-            }
-            return new emQuaternion(this);
-        }
-    }
-    [DebuggerStepThrough]
-    public class emVector3
-    {
-        public double x, y, z;
-
-        public emVector3() : this(0, 0, 0)
-        {
-        }
-
-        public emVector3(double X, double Y, double Z)
-        {
-            x = X;
-            y = Y;
-            z = Z;
-        }
-
-        public emVector3(emVector3 shallow) : this(shallow.x, shallow.y, shallow.z)
-        {
-        }
-
-        public emVector3(gm.Vector3 shallow) : this(shallow.x, shallow.y, shallow.z)
-        {
-        }
-
-        public gm.Vector3 ToMsg()
-        {
-            return new gm.Vector3 {x = x, y = y, z = z};
-        }
-
-        public static emVector3 operator +(emVector3 v1, emVector3 v2)
-        {
-            return new emVector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
-        }
-
-        public static emVector3 operator -(emVector3 v1, emVector3 v2)
-        {
-            return new emVector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
-        }
-
-        public static emVector3 operator *(emVector3 v1, float d)
-        {
-            return v1*((double) d);
-        }
-
-        public static emVector3 operator *(emVector3 v1, int d)
-        {
-            return v1*((double) d);
-        }
-
-        public static emVector3 operator *(emVector3 v1, double d)
-        {
-            return new emVector3(v1.x*d, v1.y*d, v1.z*d);
-        }
-
-        public static emVector3 operator *(float d, emVector3 v1)
-        {
-            return v1 * d;
-        }
-
-        public static emVector3 operator *(int d, emVector3 v1)
-        {
-            return v1 * d;
-        }
-
-        public static emVector3 operator *(double d, emVector3 v1)
-        {
-            return v1 * d;
-        }
-        
-        public double dot(emVector3 v2)
-        {
-            return x + v2.x + y * v2.y + z * v2.z;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("({0},{1},{2})", x, y, z);
-        }
-
-        public void setInterpolate3(emVector3 v0, emVector3 v1, double rt)
-        {
-            double s = 1.0 - rt;
-            x = s*v0.x + rt*v1.x;
-            y = s*v0.y + rt*v1.y;
-            z = s*v0.z + rt*v1.z;
         }
     }
 }
