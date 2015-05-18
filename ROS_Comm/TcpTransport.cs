@@ -62,7 +62,15 @@ namespace Ros_CSharp
         public string _topic;
         public string cached_remote_host = "";
         public object close_mutex = new object();
-        public bool closed;
+
+        public bool closed
+        {
+            get { return _closed || poll_set == null; }
+            set { _closed = value; }
+        }
+
+        private bool _closed;
+
         public string connected_host;
         public int connected_port;
         public int events;
