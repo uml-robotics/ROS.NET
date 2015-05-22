@@ -158,8 +158,8 @@ namespace Ros_CSharp.CustomSocket
                 if (!disposed)
                 {
                     EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
-                    remove(_fakefd);
                     disposed = true;
+                    remove(_fakefd);
                     _freelist.Add(_fakefd);
                     _fakefd = 0;
                     base.Dispose(disposing);

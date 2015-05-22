@@ -67,7 +67,7 @@ namespace Ros_CSharp
         /// </summary>
         public void Dispose()
         {
-            signal_mutex.Reset();
+            signal_mutex.WaitOne();
             if (localpipeevents[0] != null)
             {
                 localpipeevents[0].Close();
@@ -78,7 +78,14 @@ namespace Ros_CSharp
                 localpipeevents[1].Close();
                 localpipeevents[1] = null;
             }
+            signal_mutex.Set();
+            if (DisposingEvent != null)
+                DisposingEvent();
         }
+
+        public delegate void DisposingDelegate();
+
+        public event DisposingDelegate DisposingEvent;
 
         public void signal()
         {
