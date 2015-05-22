@@ -26,29 +26,30 @@ namespace SimpleSubscriber
     {
         Subscriber<Messages.std_msgs.String> sub;
         NodeHandle nh;
-        DateTime before;
+
         public MainWindow()
         {
-            before = DateTime.Now;
             InitializeComponent();
 
-            ROS.ROS_MASTER_URI = "http://10.0.2.226:11311";
-            ROS.ROS_HOSTNAME = "10.0.2.226";
-            ROS.Init(new string[0], "simpleSubscriber");
+            ROS.Init(new string[0], "wpf_listener");
             nh = new NodeHandle();
 
-            sub = nh.subscribe<Messages.std_msgs.String>("/my_topic", 10, subCallback);
+            sub = nh.subscribe<Messages.std_msgs.String>("/chatter", 10, subCallback);
         }
 
         public void subCallback(Messages.std_msgs.String msg)
         {
             Dispatcher.Invoke(new Action(() =>
             {
-                TimeSpan dif = DateTime.Now.Subtract(before);
-                l.Content = "Receieved: " + msg.data + "\n" + Math.Round(dif.TotalMilliseconds, 2) + " ms"; ;
-            }));
+                l.Content = "Receieved:\n" + msg.data;
+            }), new TimeSpan(0,0,1));
+        }
 
-            before = DateTime.Now;
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            ROS.shutdown();
+            ROS.waitForShutdown();
+            base.OnClosing(e);
         }
     }
 }

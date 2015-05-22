@@ -24,35 +24,49 @@ namespace SimplePublisher
     /// </summary>
     public partial class MainWindow : Window
     {
-        Publisher<Messages.tf.tfMessage> pub;
+        Publisher<Messages.std_msgs.String> pub;
         NodeHandle nh;
+
+        private bool closing;
+        private Thread pubthread;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            ROS.Init(new string[0], "simplePublisher");
+            ROS.Init(new string[0], "wpf_talker");
             nh = new NodeHandle();
 
-            pub = nh.advertise<Messages.tf.tfMessage>("/tf_test", 1000, true);
+            pub = nh.advertise<Messages.std_msgs.String>("/chatter", 1, false);
 
-            new Thread(() =>
+            pubthread = new Thread(() =>
             {
                 int i = 0;
-                while (ROS.ok)
+                Messages.std_msgs.String msg;
+                while (ROS.ok && !closing)
                 {
-                    Messages.tf.tfMessage msg = new Messages.tf.tfMessage();
-                    msg.transforms = new Messages.geometry_msgs.TransformStamped[1];
-                    msg.transforms[0] = new Messages.geometry_msgs.TransformStamped();
-                    msg.transforms[0].header.seq = (uint)i++;
-                    pub.publish(msg);
-                    Thread.Sleep(100);
+                    msg = new Messages.std_msgs.String("foo " + (i++));
+                    pub.publish(msg); 
                     Dispatcher.Invoke(new Action(() =>
-                               {
-                                   l.Content = "Sending: " + msg.transforms[0].header.seq;
-                               }));
+                    {
+                        l.Content = "Sending: " + msg.data;
+                    }),new TimeSpan(0,0,1));
+                    Thread.Sleep(100);
                 }
-            }).Start();
-            
+            });
+            pubthread.Start();
+        }
+
+        protected override void  OnClosed(EventArgs e)
+        {
+            if (!closing)
+            {
+                closing = true;
+                pubthread.Join();
+            }
+            ROS.shutdown();
+            ROS.waitForShutdown();
+            base.OnClosed(e);
         }
     }
 }
