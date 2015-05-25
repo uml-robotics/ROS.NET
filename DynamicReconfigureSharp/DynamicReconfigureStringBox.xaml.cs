@@ -36,7 +36,7 @@ namespace DynamicReconfigureSharp
         private void changed(string newstate)
         {
             ignore = true;
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 Box.Text = newstate;
                 if (stringchanged != null)

@@ -98,8 +98,12 @@ namespace Ros_CSharp
 
         public TcpTransport(PollSet pollset, int flags) : this()
         {
-            poll_set = pollset;
-            this.flags = flags;
+            if (pollset != null)
+            {
+                poll_set = pollset;
+                poll_set.DisposingEvent += close;
+                this.flags = flags;
+            }
         }
 
         public string ClientURI
@@ -168,7 +172,7 @@ namespace Ros_CSharp
             {
                 if (closed) return;
             }
-            if (!expecting_read)
+            if (!expecting_read && poll_set != null)
             {
                 //Console.WriteLine("ENABLE READ:   " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLIN);
@@ -184,7 +188,7 @@ namespace Ros_CSharp
             {
                 if (closed) return;
             }
-            if (expecting_read)
+            if (expecting_read && poll_set != null)
             {
                 //Console.WriteLine("DISABLE READ:  " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLIN);
@@ -199,7 +203,7 @@ namespace Ros_CSharp
             {
                 if (closed) return;
             }
-            if (!expecting_write)
+            if (!expecting_write && poll_set != null)
             {
                 //Console.WriteLine("ENABLE WRITE:  " + Topic + "(" + sock.FD + ")");
                 poll_set.addEvents(sock.FD, POLLOUT);
@@ -214,7 +218,7 @@ namespace Ros_CSharp
             {
                 if (closed) return;
             }
-            if (expecting_write)
+            if (expecting_write && poll_set != null)
             {
                 //Console.WriteLine("DISABLE WRITE: " + Topic + "(" + sock.FD + ")");
                 poll_set.delEvents(sock.FD, POLLOUT);

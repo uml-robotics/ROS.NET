@@ -193,7 +193,7 @@ namespace XmlRpc_Wrapper
 
         public void Shutdown()
         {
-            if (Shutdown(__instance)) Dispose();
+            Shutdown(__instance);
         }
 
         public static bool Shutdown(IntPtr ptr)
