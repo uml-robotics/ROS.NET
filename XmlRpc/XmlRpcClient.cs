@@ -24,7 +24,7 @@ using System.Net.Sockets;
 namespace XmlRpc
 {
     [DebuggerStepThrough]
-    public class XmlRpcClient : IDisposable
+    public class XmlRpcClient //: IDisposable
     {
 		/*
 		static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";

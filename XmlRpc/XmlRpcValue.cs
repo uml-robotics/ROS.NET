@@ -39,7 +39,6 @@ namespace XmlRpc
 	[Serializable]
     public class XmlRpcValue : IDisposable
     {
-#if STUPID_XML_STUFF
         [DebuggerStepThrough]
         public XmlRpcValue()
         {
@@ -169,7 +168,7 @@ namespace XmlRpc
 		// Type tag and values
 		ValueType _type;
 
-		public struct tm 
+		public class tm 
 		{
 			public int tm_sec;     /* seconds after the minute - [0,59] */
 			public int tm_min;     /* minutes after the hour - [0,59] */
@@ -256,7 +255,7 @@ namespace XmlRpc
 			if (asArray.Length < size)
 				Array.Resize<XmlRpcValue>(ref this.asArray, size);
 		} else
-			throw XmlRpcException("type error: expected an array");
+			throw new XmlRpcException("type error: expected an array");
 	}
 
 	void assertStruct()
@@ -265,7 +264,7 @@ namespace XmlRpc
 			_type = ValueType.TypeStruct;
 			asStruct = new  Dictionary<string, XmlRpcValue>();
 		} else if (_type != ValueType.TypeStruct)
-			throw XmlRpcException("type error: expected a struct");
+			throw new XmlRpcException("type error: expected a struct");
 	}
 
 
@@ -297,7 +296,7 @@ namespace XmlRpc
 	static bool tmEq(tm t1, tm t2) 
 	{
 	return t1.tm_sec == t2.tm_sec && t1.tm_min == t2.tm_min &&
-			t1.tm_hour == t2.tm_hour && t1.tm_mday == t1.tm_mday &&
+			t1.tm_hour == t2.tm_hour && t1.tm_mday == t2.tm_mday &&
 			t1.tm_mon == t2.tm_mon && t1.tm_year == t2.tm_year;
 	}
 	
@@ -322,18 +321,21 @@ namespace XmlRpc
         {
           if (asStruct.Count != other.asStruct.Count)
             return false;
-
+			var aenum = asStruct.GetEnumerator();
+			var benum = other.asStruct.GetEnumerator();			
 			
-          
-          ValueStruct::const_iterator it1=_value.asStruct->begin();
-          ValueStruct::const_iterator it2=other._value.asStruct->begin();
-          while (it1 != _value.asStruct->end()) {
-            const XmlRpcValue& v1 = it1->second;
-            const XmlRpcValue& v2 = it2->second;
-            if ( ! (v1 == v2))
-              return false;
-            it1++;
-            it2++;
+          //ValueStruct::const_iterator it1=_value.asStruct->begin();
+          //ValueStruct::const_iterator it2=other._value.asStruct->begin();
+          while (aenum.MoveNext() && benum.MoveNext()) 
+		  {
+			  if (!aenum.Current.Value.Equals(benum.Current.Value))
+				  return false;
+          //  const XmlRpcValue& v1 = it1->second;
+          //  const XmlRpcValue& v2 = it2->second;
+          //  if ( ! (v1 == v2))
+          //    return false;
+          //  it1++;
+          //  it2++;
           }
           return true;
         }
@@ -387,26 +389,26 @@ namespace XmlRpc
     string typeTag = XmlRpcUtil.getNextTag(valueXml, offset);
     bool result = false;
     if (typeTag == BOOLEAN_TAG)
-      result = boolFromXml(valueXml, offset);
+      result = boolFromXml(valueXml, out offset);
     else if (typeTag == I4_TAG || typeTag == INT_TAG)
-      result = intFromXml(valueXml, offset);
+      result = intFromXml(valueXml, out offset);
     else if (typeTag == DOUBLE_TAG)
-      result = doubleFromXml(valueXml, offset);
-    else if (typeTag.empty() || typeTag == STRING_TAG)
-      result = stringFromXml(valueXml, offset);
+      result = doubleFromXml(valueXml, out offset);
+    else if (typeTag == null || typeTag.Equals(STRING_TAG))
+      result = stringFromXml(valueXml, out offset);
     else if (typeTag == DATETIME_TAG)
-      result = timeFromXml(valueXml, offset);
+      result = timeFromXml(valueXml, out offset);
     else if (typeTag == BASE64_TAG)
-      result = binaryFromXml(valueXml, offset);
+      result = binaryFromXml(valueXml, out offset);
     else if (typeTag == ARRAY_TAG)
-      result = arrayFromXml(valueXml, offset);
+      result = arrayFromXml(valueXml, out offset);
     else if (typeTag == STRUCT_TAG)
-      result = structFromXml(valueXml, offset);
+      result = structFromXml(valueXml, out offset);
     // Watch for empty/blank strings with no <string>tag
     else if (typeTag == VALUE_ETAG)
     {
       offset = afterValueOffset;   // back up & try again
-      result = stringFromXml(valueXml, offset);
+      result = stringFromXml(valueXml, out offset);
     }
 
     if (result)  // Skip over the </value> tag
@@ -420,7 +422,7 @@ namespace XmlRpc
 	// Encode the Value in xml
 	string toXml()
 	{
-		string ret;
+		//string ret;
 		switch (_type) {
 			case ValueType.TypeBoolean:  return boolToXml();
 			case ValueType.TypeInt:      return intToXml();
@@ -435,7 +437,6 @@ namespace XmlRpc
 		XmlRpcUtil.log(4, "calling ToXml on invalid type");
 		return "";   // Invalid value
 	}
-
 
 	// Boolean
 	bool boolFromXml(string valueXml, out int offset)
@@ -455,12 +456,15 @@ namespace XmlRpc
 
   string boolToXml()
   {
+	  /*
     std::string xml = VALUE_TAG;
     xml += BOOLEAN_TAG;
     xml += (_value.asBool ? "1" : "0");
     xml += BOOLEAN_ETAG;
     xml += VALUE_ETAG;
-    return xml;
+    return xml;*/
+
+	  return String.Format("{0}{1}{2}{3}{4}", VALUE_TAG, BOOLEAN_TAG, (asBool ? "1" : "0"), BOOLEAN_ETAG, VALUE_ETAG);
   }
 
   // Int
@@ -480,6 +484,7 @@ namespace XmlRpc
 
   string intToXml()
   {
+	  /*
     char buf[256];
     snprintf(buf, sizeof(buf)-1, "%d", _value.asInt);
     buf[sizeof(buf)-1] = 0;
@@ -488,12 +493,16 @@ namespace XmlRpc
     xml += buf;
     xml += I4_ETAG;
     xml += VALUE_ETAG;
-    return xml;
+	
+    return xml;*/
+	return String.Format("{0}{1}{2}{3}{4}", VALUE_TAG, I4_TAG, asInt, I4_ETAG, VALUE_ETAG);
   }
 
   // Double
   bool doubleFromXml(string valueXml, out int offset)
   {
+	  /// TODO: reimplement
+	 /*
     const char* valueStart = valueXml.c_str() + *offset;
     char* valueEnd;
     double dvalue = strtod(valueStart, &valueEnd);
@@ -502,77 +511,83 @@ namespace XmlRpc
 
     _type = TypeDouble;
     _value.asDouble = dvalue;
-    *offset += int(valueEnd - valueStart);
+    *offset += int(valueEnd - valueStart);*/
     return true;
   }
 
-  string doubleToXml()
-  {
-    std::stringstream ss;
-    ss.imbue(std::locale::classic()); // ensure we're using "C" locale for formatting floating-point (1.4 vs. 1,4, etc.)
-    ss.precision(17);
-    ss << _value.asDouble;
+	string doubleToXml()
+	{
+			/// TODO: reimplement
+			/*
+		std::stringstream ss;
+		ss.imbue(std::locale::classic()); // ensure we're using "C" locale for formatting floating-point (1.4 vs. 1,4, etc.)
+		ss.precision(17);
+		ss << _value.asDouble;
 
-    string xml = VALUE_TAG;
-    xml += DOUBLE_TAG;
-    xml += ss.str();
-    xml += DOUBLE_ETAG;
-    xml += VALUE_ETAG;
-    return xml;
-  }
+		string xml = VALUE_TAG;
+		xml += DOUBLE_TAG;
+		xml += ss.str();
+		xml += DOUBLE_ETAG;
+		xml += VALUE_ETAG;
+		return xml;
+		*/
+		return String.Format("{0}{1}{2}{3}{4}", VALUE_TAG, DOUBLE_TAG, asDouble, DOUBLE_ETAG, VALUE_ETAG);
+	}
 
   // String
-  bool XmlRpcValue::stringFromXml(std::string const& valueXml, int* offset)
-  {
-    size_t valueEnd = valueXml.find('<', *offset);
-    if (valueEnd == std::string::npos)
-      return false;     // No end tag;
+	bool stringFromXml(string valueXml, out int offset)
+	{
+		int valueEnd = valueXml.IndexOf('<', offset);
+		if (valueEnd == -1)
+			return false;     // No end tag;
 
-    _type = TypeString;
-    _value.asString = new std::string(XmlRpcUtil::xmlDecode(valueXml.substr(*offset, valueEnd-*offset)));
-    *offset += int(_value.asString->length());
-    return true;
-  }
+		_type = ValueType.TypeString;
+		asString = new string(XmlRpcUtil.xmlDecode(valueXml.Substring(offset, valueEnd-offset)));
+		offset += asString.Length;
+		return true;
+	}
 
-  std::string XmlRpcValue::stringToXml() const
-  {
-    std::string xml = VALUE_TAG;
-    //xml += STRING_TAG; optional
-    xml += XmlRpcUtil::xmlEncode(*_value.asString);
-    //xml += STRING_ETAG;
-    xml += VALUE_ETAG;
-    return xml;
-  }
+	string stringToXml()
+	{
+		string xml = VALUE_TAG;
+		//xml += STRING_TAG; optional
+		xml += XmlRpcUtil.xmlEncode(asString);
+		//xml += STRING_ETAG;
+		xml += VALUE_ETAG;
+		return xml;
+	}
 
   // DateTime (stored as a struct tm)
-  bool XmlRpcValue::timeFromXml(std::string const& valueXml, int* offset)
+  bool timeFromXml(string valueXml, out int offset)
   {
     size_t valueEnd = valueXml.find('<', *offset);
     if (valueEnd == std::string::npos)
       return false;     // No end tag;
 
-    std::string stime = valueXml.substr(*offset, valueEnd-*offset);
+    string stime = valueXml.substr(*offset, valueEnd-*offset);
 
-    struct tm t;
+    tm t = new tm();
     if (sscanf(stime.c_str(),"%4d%2d%2dT%2d:%2d:%2d",&t.tm_year,&t.tm_mon,&t.tm_mday,&t.tm_hour,&t.tm_min,&t.tm_sec) != 6)
       return false;
 
     t.tm_isdst = -1;
     _type = TypeDateTime;
-    _value.asTime = new struct tm(t);
-    *offset += int(stime.length());
+    asTime = t;//new tm(t);
+    offset += stime.Length;
     return true;
   }
 
-  std::string XmlRpcValue::timeToXml() const
+  string timeToXml()
   {
-    struct tm* t = _value.asTime;
-    char buf[20];
-    snprintf(buf, sizeof(buf)-1, "%4d%02d%02dT%02d:%02d:%02d", 
-      t->tm_year,t->tm_mon,t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec);
+    var t = asTime;
+    
+
+	string buf = String.Format("{0:d4}{1:d2}{1:d2}T{1:d2}:{1:d2}:{1:d2}", t.tm_year,t.tm_mon,t.tm_mday,t.tm_hour,t.tm_min,t.tm_sec);
+	//char buf[20];
+    //snprintf(buf, sizeof(buf)-1, "%4d%02d%02dT%02d:%02d:%02d", t.tm_year,t.tm_mon,t.tm_mday,t.tm_hour,t.tm_min,t.tm_sec);
     buf[sizeof(buf)-1] = 0;
 
-    std::string xml = VALUE_TAG;
+    string xml = VALUE_TAG;
     xml += DATETIME_TAG;
     xml += buf;
     xml += DATETIME_ETAG;
@@ -582,15 +597,15 @@ namespace XmlRpc
 
 
   // Base64
-  bool XmlRpcValue::binaryFromXml(std::string const& valueXml, int* offset)
+  bool binaryFromXml(string valueXml, out int offset)
   {
     size_t valueEnd = valueXml.find('<', *offset);
     if (valueEnd == std::string::npos)
       return false;     // No end tag;
 
     _type = TypeBase64;
-    std::string asString = valueXml.substr(*offset, valueEnd-*offset);
-    _value.asBinary = new BinaryData();
+    string asString = valueXml.substr(*offset, valueEnd-*offset);
+    asBinary = new BinaryData();
     // check whether base64 encodings can contain chars xml encodes...
 
     // convert from base64 to binary
@@ -599,12 +614,12 @@ namespace XmlRpc
     std::back_insert_iterator<BinaryData> ins = std::back_inserter(*(_value.asBinary));
 		decoder.get(asString.begin(), asString.end(), ins, iostatus);
 
-    *offset += int(asString.length());
+    offset += asString.Length;
     return true;
   }
 
 
-  std::string XmlRpcValue::binaryToXml() const
+  string binaryToXml()
   {
     // convert to base64
     std::vector<char> base64data;
@@ -614,7 +629,7 @@ namespace XmlRpc
 		encoder.put(_value.asBinary->begin(), _value.asBinary->end(), ins, iostatus, base64<>::crlf());
 
     // Wrap with xml
-    std::string xml = VALUE_TAG;
+    string xml = VALUE_TAG;
     xml += BASE64_TAG;
     xml.append(base64data.begin(), base64data.end());
     xml += BASE64_ETAG;
@@ -624,9 +639,9 @@ namespace XmlRpc
 
 
   // Array
-  bool XmlRpcValue::arrayFromXml(std::string const& valueXml, int* offset)
+  bool arrayFromXml(string valueXml, out int offset)
   {
-    if ( ! XmlRpcUtil::nextTagIs(DATA_TAG, valueXml, offset))
+    if ( ! XmlRpcUtil.nextTagIs(DATA_TAG, valueXml, offset))
       return false;
 
     _type = TypeArray;
@@ -636,14 +651,14 @@ namespace XmlRpc
       _value.asArray->push_back(v);       // copy...
 
     // Skip the trailing </data>
-    (void) XmlRpcUtil::nextTagIs(DATA_ETAG, valueXml, offset);
+    XmlRpcUtil.nextTagIs(DATA_ETAG, valueXml, offset);
     return true;
   }
 
 
   // In general, its preferable to generate the xml of each element of the
   // array as it is needed rather than glomming up one big string.
-  string arrayToXml() const
+  string arrayToXml()
   {
     string xml = VALUE_TAG;
     xml += ARRAY_TAG;
@@ -664,21 +679,21 @@ namespace XmlRpc
   bool structFromXml(string valueXml, out int offset)
   {
     _type = TypeStruct;
-    _value.asStruct = new ValueStruct;
+    asStruct = new Dictionary<string,XmlRpcValue>();
 
-    while (XmlRpcUtil::nextTagIs(MEMBER_TAG, valueXml, offset)) {
+    while (XmlRpcUtil.nextTagIs(MEMBER_TAG, valueXml, offset)) {
       // name
-      const std::string name = XmlRpcUtil::parseTag(NAME_TAG, valueXml, offset);
+      string name = XmlRpcUtil.parseTag(NAME_TAG, valueXml, offset);
       // value
-      XmlRpcValue val(valueXml, offset);
+      XmlRpcValue val = new XmlRpcValue(valueXml, offset);
       if ( ! val.valid()) {
         invalidate();
         return false;
       }
-      const std::pair<const std::string, XmlRpcValue> p(name, val);
-      _value.asStruct->insert(p);
+      //const std::pair<const std::string, XmlRpcValue> p(name, val);
+      asStruct.Add(name, val);
 
-      (void) XmlRpcUtil::nextTagIs(MEMBER_ETAG, valueXml, offset);
+      XmlRpcUtil.nextTagIs(MEMBER_ETAG, valueXml, offset);
     }
     return true;
   }
@@ -695,7 +710,7 @@ namespace XmlRpc
     for (it=_value.asStruct->begin(); it!=_value.asStruct->end(); ++it) {
       xml += MEMBER_TAG;
       xml += NAME_TAG;
-      xml += XmlRpcUtil::xmlEncode(it->first);
+      xml += XmlRpcUtil.xmlEncode(it->first);
       xml += NAME_ETAG;
       xml += it->second.toXml();
       xml += MEMBER_ETAG;
@@ -705,7 +720,7 @@ namespace XmlRpc
     xml += VALUE_ETAG;
     return xml;
   }
-
+		/*
   // Write the value without xml encoding it
   ostream write(ostream os)
 {
@@ -762,7 +777,7 @@ namespace XmlRpc
     }
     
     return os;
-  }
+  }*/
 		/*
         #region P/Invoke
 
@@ -1031,8 +1046,5 @@ namespace XmlRpc
             string s = Marshal.PtrToStringAnsi(tostring(instance));
             return s;
         }
-#endif
     }
-
-    
 }

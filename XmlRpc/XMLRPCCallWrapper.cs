@@ -21,7 +21,7 @@ using System.Threading;
 
 #endregion
 
-namespace XmlRpc_Wrapper
+namespace XmlRpc
 {
     public class XMLRPCCallWrapper : IDisposable
     {

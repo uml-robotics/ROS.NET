@@ -10,7 +10,7 @@
 // Created: 11/06/2013
 // Updated: 07/23/2014
 
-namespace XmlRpc_Wrapper
+namespace XmlRpc
 {
     public abstract class AsyncXmlRpcConnection
     {

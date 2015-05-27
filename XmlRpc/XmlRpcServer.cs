@@ -20,10 +20,11 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace XmlRpc_Wrapper
+namespace XmlRpc
 {
     public class XmlRpcServer : IDisposable
     {
+		/*
         protected IntPtr __instance;
 
         public IntPtr instance
@@ -39,7 +40,7 @@ namespace XmlRpc_Wrapper
                     AddRef(value);
                 __instance = value;
             }
-        }
+        }*/
 
         #region Reference Tracking + unmanaged pointer management
 
@@ -113,7 +114,7 @@ namespace XmlRpc_Wrapper
                 }
             }
         }
-
+		/*
         [DebuggerStepThrough]
         private new static void RmRef(ref IntPtr ptr)
         {
@@ -138,21 +139,21 @@ namespace XmlRpc_Wrapper
                 ptr = IntPtr.Zero;
             }
         }
-
         public void Shutdown()
         {
             Shutdown(__instance);
         }
-
+		
         public static bool Shutdown(IntPtr ptr)
         {
+			
             if (ptr != IntPtr.Zero)
             {
                 RmRef(ref ptr);
                 return (ptr == IntPtr.Zero);
             }
             return true;
-        }
+        }*/
 
         #endregion
 
@@ -161,7 +162,7 @@ namespace XmlRpc_Wrapper
         {
             instance = create();
         }
-
+		/*
         [DebuggerStepThrough]
         public XmlRpcServer(IntPtr copy)
         {
@@ -169,7 +170,7 @@ namespace XmlRpc_Wrapper
             {
                 instance = copy;
             }
-        }
+        }*/
 
         public int Port
         {
