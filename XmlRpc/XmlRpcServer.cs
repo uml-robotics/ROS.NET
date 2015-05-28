@@ -46,8 +46,8 @@ namespace XmlRpc
 
         public void Dispose()
         {
-            Shutdown();
-            RmRef(ref __instance);
+            //Shutdown();
+            //RmRef(ref __instance);
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();

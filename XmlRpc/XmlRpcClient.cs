@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Xml;
 
 #endregion
 
@@ -637,80 +638,80 @@ bool generateRequest(string methodName, XmlRpcValue parameters)
 		return true;
 	}
 
-	bool _keepOpen;
+		bool _keepOpen;
 // Read the header from the response
-bool readHeader()
-{
-  // Read available data
-	try
-	{
-		_header = reader.ReadToEnd();
-	}
-	catch (System.IO.IOException ex)
-	{
-		// If we haven't read any data yet and this is a keep-alive connection, the server may
-		// have timed out, so we try one more time.
-		if (_keepOpen && _header.Length == 0 && _sendAttempts++ == 0)
+		bool readHeader()
 		{
-			XmlRpcUtil.log(4, "XmlRpcClient::readHeader: re-trying connection");
-			XmlRpcSource.close();
-			_connectionState = ConnectionState.NO_CONNECTION;
-			_eof = false;
-			return setupConnection();
-		}
+		  // Read available data
+			try
+			{
+				_header = reader.ReadToEnd();
+			}
+			catch (System.IO.IOException ex)
+			{
+				// If we haven't read any data yet and this is a keep-alive connection, the server may
+				// have timed out, so we try one more time.
+				if (_keepOpen && _header.Length == 0 && _sendAttempts++ == 0)
+				{
+					XmlRpcUtil.log(4, "XmlRpcClient::readHeader: re-trying connection");
+					XmlRpcSource.close();
+					_connectionState = ConnectionState.NO_CONNECTION;
+					_eof = false;
+					return setupConnection();
+				}
 
-		XmlRpcUtil.error("Error in XmlRpcClient::readHeader: error while reading header ({0}) on fd %d.",
-						  getSocketError());
-		return false;
-	}
+				XmlRpcUtil.error("Error in XmlRpcClient::readHeader: error while reading header ({0}) on fd %d.",
+								  getSocketError());
+				return false;
+			}
 
-  XmlRpcUtil.log(4, "XmlRpcClient::readHeader: client has read %d bytes", _header.Length);
+		  XmlRpcUtil.log(4, "XmlRpcClient::readHeader: client has read %d bytes", _header.Length);
 
-  char *hp = (char*)_header.c_str();  // Start of header
-  char *ep = hp + _header.Length;   // End of string
-  char *bp = 0;                       // Start of body
-  char *lp = 0;                       // Start of content-length value
+		  char *hp = (char*)_header.c_str();  // Start of header
+		  char *ep = hp + _header.Length;   // End of string
+		  char *bp = 0;                       // Start of body
+		  char *lp = 0;                       // Start of content-length value
 
-  for (char *cp = hp; (bp == 0) && (cp < ep); ++cp) {
-    if ((ep - cp > 16) && (strncasecmp(cp, "Content-length: ", 16) == 0))
-      lp = cp + 16;
-    else if ((ep - cp > 4) && (strncmp(cp, "\r\n\r\n", 4) == 0))
-      bp = cp + 4;
-    else if ((ep - cp > 2) && (strncmp(cp, "\n\n", 2) == 0))
-      bp = cp + 2;
-  }
+		  for (char *cp = hp; (bp == 0) && (cp < ep); ++cp) {
+			if ((ep - cp > 16) && (strncasecmp(cp, "Content-length: ", 16) == 0))
+			  lp = cp + 16;
+			else if ((ep - cp > 4) && (strncmp(cp, "\r\n\r\n", 4) == 0))
+			  bp = cp + 4;
+			else if ((ep - cp > 2) && (strncmp(cp, "\n\n", 2) == 0))
+			  bp = cp + 2;
+		  }
 
-  // If we haven't gotten the entire header yet, return (keep reading)
-  if (bp == 0) {
-    if (_eof)          // EOF in the middle of a response is an error
-    {
-      XmlRpcUtil.error("Error in XmlRpcClient::readHeader: EOF while reading header");
-      return false;   // Close the connection
-    }
+		  // If we haven't gotten the entire header yet, return (keep reading)
+		  if (bp == 0) {
+			if (_eof)          // EOF in the middle of a response is an error
+			{
+			  XmlRpcUtil.error("Error in XmlRpcClient::readHeader: EOF while reading header");
+			  return false;   // Close the connection
+			}
     
-    return true;  // Keep reading
-  }
+			return true;  // Keep reading
+		  }
 
-  // Decode content length
-  if (lp == 0) {
-    XmlRpcUtil.error("Error XmlRpcClient::readHeader: No Content-length specified");
-    return false;   // We could try to figure it out by parsing as we read, but for now...
-  }
+		  // Decode content length
+		  if (lp == 0) {
+			XmlRpcUtil.error("Error XmlRpcClient::readHeader: No Content-length specified");
+			return false;   // We could try to figure it out by parsing as we read, but for now...
+		  }
 
-  _contentLength = atoi(lp);
-  if (_contentLength <= 0) {
-    XmlRpcUtil.error("Error in XmlRpcClient::readHeader: Invalid Content-length specified (%d).", _contentLength);
-    return false;
-  }
+		  _contentLength = atoi(lp);
+		  if (_contentLength <= 0) {
+			XmlRpcUtil.error("Error in XmlRpcClient::readHeader: Invalid Content-length specified (%d).", _contentLength);
+			return false;
+		  }
   	
-  XmlRpcUtil.log(4, "client read content length: %d", _contentLength);
+		  XmlRpcUtil.log(4, "client read content length: %d", _contentLength);
 
-  // Otherwise copy non-header data to response buffer and set state to read response.
-  _response = bp;
-  _header = "";   // should parse out any interesting bits from the header (connection, etc)...
-  _connectionState = ConnectionState.READ_RESPONSE;
-  return true;    // Continue monitoring this source
-}
+		  // Otherwise copy non-header data to response buffer and set state to read response.
+		  _response = bp;
+		  _header = "";   // should parse out any interesting bits from the header (connection, etc)...
+		  _connectionState = ConnectionState.READ_RESPONSE;
+		  return true;    // Continue monitoring this source
+		}
 
 		bool readResponse()
 		{
@@ -755,34 +756,64 @@ bool readHeader()
 
 
 		// Convert the response xml into a result value
-		bool parseResponse(out XmlRpcValue result)
+		XmlRpcValue parseResponse()
 		{
-			// Parse response xml into result
-			int offset = 0;
-			if ( ! XmlRpcUtil.findTag(METHODRESPONSE_TAG,_response, out offset)) 
+			XmlRpcValue result = null;
+			using (XmlReader reader = XmlReader.Create(new StringReader(_response)))
 			{
-				XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no methodResponse. Response:\n%s", _response.c_str());
-				return false;
-			}
+				XmlDocument response = new XmlDocument();
+				response.Load(reader);
+				// Parse response xml into result
+				//int offset = 0;
+				XmlNodeList resp = response.GetElementsByTagName("methodResponse");
+				XmlNode responseNode = resp[0];
 
-			// Expect either <params><param>... or <fault>...
-			if ((XmlRpcUtil.nextTagIs(PARAMS_TAG, _response, out offset) &&
-				XmlRpcUtil.nextTagIs(PARAM_TAG, _response, out offset)) ||
-				(XmlRpcUtil.nextTagIs(FAULT_TAG, _response, out offset) && (_isFault = true)))
-			{
-				if (!result.fromXml(_response, out offset))
+				//if (!XmlRpcUtil.findTag(METHODRESPONSE_TAG, _response, out offset))
+				if (resp.Count == 0)
 				{
-					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response value. Response:\n%s", _response.c_str());
+					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no methodResponse. Response:\n{0}", _response);
+					return null;
+				}
+
+				XmlElement pars = responseNode["params"];
+				XmlElement fault = responseNode["fault"];
+				result = new XmlRpcValue();
+				if (pars != null && !result.fromXml(pars))
+				{
+					result = null;
+				}
+				else if (fault != null && result.fromXml(fault))
+				{
+					result = null;
+				}
+				else
+				{
+					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n{0}", _response);
+				}
+				_response = "";
+				/*
+				// Expect either <params><param>... or <fault>...
+				if ((XmlRpcUtil.nextTagIs(PARAMS_TAG, _response, out offset) &&
+					XmlRpcUtil.nextTagIs(PARAM_TAG, _response, out offset)) ||
+					(XmlRpcUtil.nextTagIs(FAULT_TAG, _response, out offset) && (_isFault = true)))
+				{
+					if (!result.fromXml(resp[0]))
+					{
+						XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response value. Response:\n{0}", _response);
+						_response = "";
+						return false;
+					}
+				}
+				else
+				{
+					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n{0}", _response);
 					_response = "";
 					return false;
 				}
-			} else {
-				XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n%s", _response.c_str());
-				_response = "";
-				return false;
+				_response = "";*/
+				//return result.valid();
 			}
-			_response = "";
-			return result.valid();
+			return result;
 		}
     }
 }

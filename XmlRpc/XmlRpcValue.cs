@@ -16,7 +16,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Xml;
 
 #endregion
 
@@ -375,7 +377,28 @@ namespace XmlRpc
 		return _type == ValueType.TypeStruct && asStruct.ContainsKey(name);
 	}
 
-  // Set the value from xml. The chars at *offset into valueXml 
+  public bool fromXml(XmlNode node)
+  {
+	  //int val = offset;
+	  //offset = 0;
+	  return false;
+  }
+	public string toXml()
+	{
+		XmlWriterSettings settings = new XmlWriterSettings();
+		settings.OmitXmlDeclaration = true;
+		settings.ConformanceLevel = ConformanceLevel.Fragment;
+		settings.CloseOutput = false;
+		StringWriter strm = new StringWriter();
+		XmlWriter writer = XmlWriter.Create(strm, settings);
+
+		writer.Flush();
+		writer.Close();
+
+		return strm.ToString();
+	}
+#if MANUAL_SERIALIZATION
+		 // Set the value from xml. The chars at *offset into valueXml 
   // should be the start of a <value> tag. Destroys any existing value.
   bool fromXml(string valueXml, out int offset)
   {
@@ -418,7 +441,6 @@ namespace XmlRpc
 
     return result;
   }
-
 	// Encode the Value in xml
 	string toXml()
 	{
@@ -720,7 +742,8 @@ namespace XmlRpc
     xml += VALUE_ETAG;
     return xml;
   }
-		/*
+#endif
+	/*
   // Write the value without xml encoding it
   ostream write(ostream os)
 {
@@ -864,187 +887,215 @@ namespace XmlRpc
 
         #endregion
 		*/
-        public TypeEnum Type
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                int balls = gettype(instance);
-                if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
-                {
-                    return TypeEnum.TypeInvalid;
-                }
-                return ValueTypeHelper._typearray[balls];
-            }
-            [DebuggerStepThrough]
-            set
-            {
-                SegFault();
-                settype(instance, (int) value);
-            }
-        }
 
-        public bool Valid
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                SegFault();
-                return valid(__instance);
-            }
-        }
+	public bool Valid
+	{
+		[DebuggerStepThrough]
+		get
+		{
+			//SegFault();
+			return this._type != ValueType.TypeInvalid;
+		}
+	}
+	/*
+	public TypeEnum Type
+	{
+		[DebuggerStepThrough]
+		get
+		{
+			int balls = gettype(instance);
+			if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
+			{
+				return TypeEnum.TypeInvalid;
+			}
+			return ValueTypeHelper._typearray[balls];
+		}
+		[DebuggerStepThrough]
+		set
+		{
+			//SegFault();
+			settype(instance, (int) value);
+		}
+	}
 
-        public int Size
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                SegFault();
-                if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
-                {
-                    return 0;
-                }
-                if (Type != TypeEnum.TypeString && Type != TypeEnum.TypeStruct && Type != TypeEnum.TypeArray)
-                    return 0;
-                return getsize(instance);
-            }
-            [DebuggerStepThrough]
-            set
-            {
-                SegFault();
-                setsize(instance, value);
-            }
-        }
+	
 
-        [DebuggerStepThrough]
-        public void Set<T>(T t)
-        {
-            if ("" is T)
-            {
-                set(instance, (string) (object) t);
-            }
-            else if (0 is T)
-            {
-                set(instance, (int) (object) t);
-            }
-            else if (this is T)
-            {
-                set(instance, ((XmlRpcValue) (object) t).instance);
-            }
-            else if (true is T)
-            {
-                set(instance, (bool) (object) t);
-            }
-            else if (0d is T)
-            {
-                set(instance, (double) (object) t);
-            }
-        }
+	public int Size
+	{
+		[DebuggerStepThrough]
+		get
+		{
+			//SegFault();
+			if (!Valid || Type == ValueType.TypeInvalid || Type == ValueType.TypeIDFK)
+			{
+				return 0;
+			}
+			if (Type != ValueType.TypeString && Type != ValueType.TypeStruct && Type != ValueType.TypeArray)
+				return 0;
+			return getsize(instance);
+		}
+		[DebuggerStepThrough]
+		set
+		{
+			SegFault();
+			setsize(instance, value);
+		}
+	}
+*/
+	[DebuggerStepThrough]
+	public void Set<T>(T t)
+	{
+		/*
+		if ("" is T)
+		{
+			set(instance, (string) (object) t);
+		}
+		else if (0 is T)
+		{
+			set(instance, (int) (object) t);
+		}
+		else if (this is T)
+		{
+			set(instance, ((XmlRpcValue) (object) t).instance);
+		}
+		else if (true is T)
+		{
+			asBool = (bool)t;
+			this._type = ValueType.TypeBoolean;
+			//set(instance, (bool)(object)t);
+		}
+		else if (0d is T)
+		{
+			//set(instance, (double) (object) t);
+			asDouble = (double)t;
+			this._type = ValueType.TypeDouble;
+		}*/
+	}
+	
+		public XmlRpcValue this[int key]
+		{
+			[DebuggerStepThrough]
+			get { return Get(key); }
+			[DebuggerStepThrough]
+			set { Set(key, value); }
+		}
 
-        [DebuggerStepThrough]
-        public void Set<T>(int key, T t)
-        {
-            this[key].Set(t);
-        }
+		public XmlRpcValue this[string key]
+		{
+			[DebuggerStepThrough]
+			get { return Get(key); }
+			[DebuggerStepThrough]
+			set { Set(key, value); }
+		}
+		
+		[DebuggerStepThrough]
+		public void Set<T>(int key, T t)
+		{
+			this[key].Set(t);
+		}
 
-        [DebuggerStepThrough]
-        public void Set<T>(string key, T t)
-        {
-            this[key].Set(t);
-        }
+		[DebuggerStepThrough]
+		public void Set<T>(string key, T t)
+		{
+			this[key].Set(t);
+		}
 
-        [DebuggerStepThrough]
-        public T Get<T>() // where T : class, new()
-        {
-            if (!Valid)
-            {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
-            }
-            else if ("" is T)
-            {
-                return (T) (object) GetString();
-            }
-            else if (0 is T)
-            {
-                return (T) (object) GetInt();
-            }
-            else if (this is T)
-            {
-                return (T) (object) this;
-            }
-            else if (true is T)
-            {
-                return (T) (object) GetBool();
-            }
-            else if (0d is T)
-            {
-                return (T) (object) GetDouble();
-            }
-            Console.WriteLine("I DUNNO WHAT THAT IS!");
-            return default(T);
-        }
+		[DebuggerStepThrough]
+		public T Get<T>() // where T : class, new()
+		{
+			if (!Valid)
+			{
+				Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
+			}
+			else if ("" is T)
+			{
+				return (T) (object) GetString();
+			}
+			else if (0 is T)
+			{
+				return (T) (object) GetInt();
+			}
+			else if (this is T)
+			{
+				return (T) (object) this;
+			}
+			else if (true is T)
+			{
+				return (T) (object) GetBool();
+			}
+			else if (0d is T)
+			{
+				return (T) (object) GetDouble();
+			}
+			Console.WriteLine("I DUNNO WHAT THAT IS!");
+			return default(T);
+		}
 
-        [DebuggerStepThrough]
-        private T Get<T>(int key)
-        {
-            return this[key].Get<T>();
-        }
+		[DebuggerStepThrough]
+		private T Get<T>(int key)
+		{
+			return this[key].Get<T>();
+		}
 
-        [DebuggerStepThrough]
-        private T Get<T>(string key)
-        {
-            return this[key].Get<T>();
-        }
+		[DebuggerStepThrough]
+		private T Get<T>(string key)
+		{
+			return this[key].Get<T>();
+		}
 
-        [DebuggerStepThrough]
-        private XmlRpcValue Get(int key)
-        {
-            IntPtr nested = get(instance, key);
-            return LookUp(nested);
-        }
+		[DebuggerStepThrough]
+		private XmlRpcValue Get(int key)
+		{
+			//IntPtr nested = get(instance, key);
+			//return LookUp(nested);
+			return asArray[key];
+		}
 
-        [DebuggerStepThrough]
-        private XmlRpcValue Get(string key)
-        {
-            IntPtr nested = get(instance, key);
-            return LookUp(nested);
-        }
+		[DebuggerStepThrough]
+		private XmlRpcValue Get(string key)
+		{
+			//IntPtr nested = get(instance, key);
+			if (asStruct.ContainsKey(key))
+				return asStruct[key];
+			return null;
+			//return LookUp(nested);
+		}
 
-        [DebuggerStepThrough]
-        public int GetInt()
-        {
-            SegFault();
-            return getint(__instance);
-        }
+		[DebuggerStepThrough]
+		public int GetInt()
+		{
+			//SegFault();
+			return asInt;// getint(__instance);
+		}
 
-        [DebuggerStepThrough]
-        public string GetString()
-        {
-            SegFault();
-            return Marshal.PtrToStringAnsi(getstring(__instance));
-        }
+		[DebuggerStepThrough]
+		public string GetString()
+		{
+			//SegFault();
+			return asString;// Marshal.PtrToStringAnsi(getstring(__instance));
+		}
 
-        [DebuggerStepThrough]
-        public bool GetBool()
-        {
-            SegFault();
-            return getbool(__instance);
-        }
+		[DebuggerStepThrough]
+		public bool GetBool()
+		{
+			//SegFault();
+			return asBool;// getbool(__instance);
+		}
 
-        [DebuggerStepThrough]
-        public double GetDouble()
-        {
-            SegFault();
-            return getdouble(__instance);
-        }
-
-        [DebuggerStepThrough]
-        public override string ToString()
-        {
-            if (__instance == IntPtr.Zero)
-                return "(NULL)";
-            string s = Marshal.PtrToStringAnsi(tostring(instance));
-            return s;
-        }
-    }
+		[DebuggerStepThrough]
+		public double GetDouble()
+		{
+			//SegFault();
+			return asDouble;// getdouble(__instance);
+		}
+		/*
+		[DebuggerStepThrough]
+		public override string ToString()
+		{
+			if (__instance == IntPtr.Zero)
+				return "(NULL)";
+			string s = Marshal.PtrToStringAnsi(tostring(instance));
+			return s;
+		}*/
+	}
 }

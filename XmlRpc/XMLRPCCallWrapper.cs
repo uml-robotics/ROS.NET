@@ -25,8 +25,9 @@ namespace XmlRpc
 {
     public class XMLRPCCallWrapper : IDisposable
     {
+		
         #region Reference Tracking + unmanaged pointer management
-
+/*
         private IntPtr __instance;
 
         public void Dispose()
@@ -60,7 +61,7 @@ namespace XmlRpc
             }
         }
 #endif
-
+		
         [DebuggerStepThrough]
         public static XMLRPCCallWrapper LookUp(IntPtr ptr)
         {
@@ -140,7 +141,7 @@ namespace XmlRpc
                 __instance = value;
             }
         }
-
+		*/
         #endregion
 
         private XMLRPCFunc _FUNC;
@@ -153,17 +154,17 @@ namespace XmlRpc
         {
             name = function_name;
             this.server = server;
-            __instance = create(function_name, server.instance);
-            AddRef(__instance);
-            SegFault();
+            //__instance = create(function_name, server.instance);
+            //AddRef(__instance);
+            //SegFault();
             FUNC = func;
         }
-
+		/*
         [DebuggerStepThrough]
         public XMLRPCCallWrapper(IntPtr ptr)
         {
             instance = ptr;
-        }
+        }*/
 
         public XMLRPCFunc FUNC
         {
@@ -177,22 +178,24 @@ namespace XmlRpc
 
         public void SetFunc(XMLRPCFunc func)
         {
-            SegFault();
-            setfunc(instance, func);
+			_FUNC = func;
+            //SegFault();
+            //setfunc(instance, func);
         }
 
         public void Execute(XmlRpcValue parms, out XmlRpcValue reseseses)
         {
-            SegFault();
+            //SegFault();
             reseseses = new XmlRpcValue();
-            execute(instance, parms.instance, reseseses.instance);
+            //execute(parms, reseseses);
+			_FUNC(parms, out reseseses);
         }
-
+		/*
         public void SegFault()
         {
             if (instance == IntPtr.Zero)
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
-        }
+        }*/
 
         #region P/Invoke
 
@@ -210,8 +213,6 @@ namespace XmlRpc
 
         #endregion
     }
-
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void XMLRPCFunc([In] [Out] IntPtr addrofparams, [In] [Out] IntPtr addrofresult);
+    //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void XMLRPCFunc(XmlRpcValue parms, out XmlRpcValue reseseses);
 }
