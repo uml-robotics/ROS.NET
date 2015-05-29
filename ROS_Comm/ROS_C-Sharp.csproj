@@ -169,7 +169,7 @@
     <Compile Include="Subscription.cs" />
     <Compile Include="SubscriptionCallbackHelper.cs" />
     <Compile Include="TcpTransport.cs" />
-    <Compile Include="tf_node.cs" />
+    <None Include="tf_node.cs" />
     <Compile Include="this_node.cs" />
     <Compile Include="TimerManager.cs" />
     <Compile Include="TopicInfo.cs" />

@@ -16,13 +16,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 #endregion
 
 namespace XmlRpc
 {
-    public class XmlRpcServer : IDisposable
+	public class XmlRpcServer : XmlRpcSource
     {
 		/*
         protected IntPtr __instance;
@@ -43,7 +45,7 @@ namespace XmlRpc
         }*/
 
         #region Reference Tracking + unmanaged pointer management
-
+		/*
         public void Dispose()
         {
             //Shutdown();
@@ -72,7 +74,7 @@ namespace XmlRpc
             }
         }
 #endif
-
+		
         [DebuggerStepThrough]
         public static XmlRpcServer LookUp(IntPtr ptr)
         {
@@ -83,8 +85,6 @@ namespace XmlRpc
             }
             return null;
         }
-
-
         [DebuggerStepThrough]
         private new static void AddRef(IntPtr ptr)
         {
@@ -114,7 +114,6 @@ namespace XmlRpc
                 }
             }
         }
-		/*
         [DebuggerStepThrough]
         private new static void RmRef(ref IntPtr ptr)
         {
@@ -139,10 +138,7 @@ namespace XmlRpc
                 ptr = IntPtr.Zero;
             }
         }
-        public void Shutdown()
-        {
-            Shutdown(__instance);
-        }
+        
 		
         public static bool Shutdown(IntPtr ptr)
         {
@@ -155,14 +151,20 @@ namespace XmlRpc
             return true;
         }*/
 
-        #endregion
+		public void Shutdown()
+		{
+			_disp.Clear();
+			//Shutdown(__instance);
+		}
 
+        #endregion
+		/*
         [DebuggerStepThrough]
         public XmlRpcServer()
         {
             instance = create();
         }
-		/*
+		
         [DebuggerStepThrough]
         public XmlRpcServer(IntPtr copy)
         {
@@ -177,8 +179,8 @@ namespace XmlRpc
             [DebuggerStepThrough]
             get
             {
-                SegFault();
-                return getport(instance);
+                //SegFault();
+                return _port;
             }
         }
 
@@ -186,8 +188,8 @@ namespace XmlRpc
         {
             [DebuggerStepThrough]
             get
-            {
-                SegFault();
+            {/*
+                //SegFault();
                 if (_dispatch == null)
                 {
                     IntPtr ret = getdispatch(instance);
@@ -195,14 +197,15 @@ namespace XmlRpc
                         return null;
                     _dispatch = XmlRpcDispatch.LookUp(ret);
                 }
-                return _dispatch;
+                return _dispatch;*/
+				return _disp;
             }
         }
 
         private XmlRpcDispatch _dispatch;
 
         #region P/Invoke
-
+		/*
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create();
 
@@ -244,45 +247,62 @@ namespace XmlRpc
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetDispatch",
             CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr getdispatch(IntPtr target);
-
+		*/
         #endregion
 
-        public void AddMethod(XMLRPCCallWrapper method)
+		public void AddMethod(XmlRpcServerMethod method)
         {
-            SegFault();
-            addmethod(instance, method.instance);
+			this._methods.Add(method.name, method);
+            //SegFault();
+            //addmethod(instance, method.instance);
         }
 
-        public void RemoveMethod(XMLRPCCallWrapper method)
+		public void RemoveMethod(XmlRpcServerMethod method)
         {
-            SegFault();
-            removemethod(instance, method.instance);
+			foreach (var rec in this._methods)
+			{
+				if (method == rec.Value)
+				{
+					this._methods.Remove(rec.Key);
+					break;
+				}
+			}
+			//this._methods.Remove(method.name);
+           // SegFault();
+            //removemethod(instance, method.instance);
         }
 
         public void RemoveMethod(string name)
         {
-            SegFault();
-            removemethodbyname(instance, name);
+            //SegFault();
+			this._methods.Remove(name);
+            //removemethodbyname(instance, name);
         }
 
         public void Work(double msTime)
         {
-            SegFault();
-            work(instance, msTime);
+            //SegFault();
+			XmlRpcUtil.log(6, "XmlRpcServer::work: waiting for a connection");
+			_disp.Work(msTime);
+            //work(instance, msTime);
         }
 
         public void Exit()
         {
-            SegFault();
-            exit(instance);
+            //SegFault();
+			_disp.Exit();
+            //exit(instance);
         }
 
-        public XMLRPCCallWrapper FindMethod(string name)
+		public XmlRpcServerMethod FindMethod(string name)
         {
-            SegFault();
-            IntPtr ret = findmethod(instance, name);
-            if (ret == IntPtr.Zero) return null;
-            return XMLRPCCallWrapper.LookUp(ret);
+            //SegFault();
+			if (this._methods.ContainsKey(name))
+				return this._methods[name];
+			return null;
+            //IntPtr ret = findmethod(instance, name);
+            //if (ret == IntPtr.Zero) return null;
+            //return XMLRPCCallWrapper.LookUp(ret);
         }
 
         public bool BindAndListen(int port)
@@ -292,16 +312,44 @@ namespace XmlRpc
 
         public bool BindAndListen(int port, int backlog)
         {
-            SegFault();
-            return bindandlisten(instance, port, backlog);
-        }
+			IPAddress address = new IPAddress(0); // INADDR_ANY
+			try
+			{
+				this._port = port;
+				listener = new TcpListener(address, port);
+				listener.Start(backlog);
+				_disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
 
+				XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", port);
+				//listener.
+				//SegFault();
+				//return bindandlisten(instance, port, backlog);
+				return true;
+			}
+			catch (Exception)
+			{
+			}
+			return false;
+		}
+		TcpListener listener;
+		// Event dispatcher
+		XmlRpcDispatch _disp;
+		// Whether the introspection API is supported by this server
+		bool _introspectionEnabled;
+		// Collection of methods. This could be a set keyed on method name if we wanted...
+		Dictionary<string, XmlRpcServerMethod> _methods;
+		// system methods
+		XmlRpcServerMethod _listMethods;
+		XmlRpcServerMethod _methodHelp;
 
+		/*
         [DebuggerStepThrough]
         public new void SegFault()
         {
             if (instance == IntPtr.Zero)
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
-        }
+        }*/
+
+		int _port;
     }
 }

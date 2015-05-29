@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace XmlRpc
 {
-    public class XMLRPCCallWrapper : IDisposable
+    public class XmlRpcServerMethod //: IDisposable
     {
 		
         #region Reference Tracking + unmanaged pointer management
@@ -150,7 +150,7 @@ namespace XmlRpc
         public XmlRpcServer server;
 
         [DebuggerStepThrough]
-        public XMLRPCCallWrapper(string function_name, XMLRPCFunc func, XmlRpcServer server)
+		public XmlRpcServerMethod(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
             name = function_name;
             this.server = server;

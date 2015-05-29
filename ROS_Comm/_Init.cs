@@ -20,7 +20,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Messages;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -421,7 +421,7 @@ namespace Ros_CSharp
         {
             XmlRpcValue parms = XmlRpcValue.LookUp(p);
             int num_params = 0;
-            if (parms.Type == TypeEnum.TypeArray)
+			if (parms.Type == XmlRpcValue.ValueType.TypeArray)
                 num_params = parms.Size;
             if (num_params > 1)
             {

@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Messages;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -311,7 +311,7 @@ namespace Ros_CSharp
 #endif
                 return;
             }
-            if (proto.Type != TypeEnum.TypeArray)
+			if (proto.Type != XmlRpcValue.ValueType.TypeArray)
             {
                 EDB.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
                 return;
@@ -323,7 +323,7 @@ namespace Ros_CSharp
             }
             else if (proto_name == "TCPROS")
             {
-                if (proto.Size != 3 || proto[1].Type != TypeEnum.TypeString || proto[2].Type != TypeEnum.TypeInt)
+				if (proto.Size != 3 || proto[1].Type != XmlRpcValue.ValueType.TypeString || proto[2].Type != XmlRpcValue.ValueType.TypeInt)
                 {
                     EDB.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
                     return;

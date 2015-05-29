@@ -16,7 +16,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using XmlRpc_Wrapper;
+using XmlRpc;
 
 #endregion
 
@@ -276,7 +276,7 @@ namespace Ros_CSharp
             parm.Set(0, this_node.Name);
             if (!master.execute("getParamNames", parm, ref result, ref payload, false))
                 return ret;
-            if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != TypeEnum.TypeArray)
+			if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != XmlRpcValue.ValueType.TypeArray)
             {
                 Console.WriteLine("Expected a return code, a description, and a list!");
                 return ret;

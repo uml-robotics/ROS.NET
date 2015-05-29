@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc
 {
-    public class XmlRpcDispatch : IDisposable
+    public class XmlRpcDispatch //: IDisposable
     {
         #region EventType enum
 
@@ -69,14 +69,23 @@ namespace XmlRpc
 
         #endregion
 		*/
+
+		class DispatchRecord
+		{
+			public XmlRpcSource client;
+			public XmlRpcDispatch.EventType mask;
+		}
+
+		List<DispatchRecord> sources;
+
         #region Reference Tracking + unmanaged pointer management
 
 //        private IntPtr __instance;
-
+		/*
         public void Dispose()
         {
             Shutdown();
-        }
+        }*/
 
 #if USE_BULLSHIT
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -194,12 +203,12 @@ namespace XmlRpc
         }
 
 #endif //refcounted bullshit
-
+		/*
         public void Shutdown()
         {
             if (Shutdown(__instance)) Dispose();
         }
-
+		
         public static bool Shutdown(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -208,47 +217,168 @@ namespace XmlRpc
                 return (ptr == IntPtr.Zero);
             }
             return true;
-        }
+        }*/
 
         #endregion
-
+		/*
         [DebuggerStepThrough]
         public XmlRpcDispatch()
         {
-            instance = create();
+            //instance = create();
         }
-
+		
         [DebuggerStepThrough]
         public XmlRpcDispatch(IntPtr otherref)
         {
             if (otherref != IntPtr.Zero)
                 instance = otherref;
-        }
+        }*/
 
-        public void AddSource(XmlRpcClient source, int eventMask)
+		public void SegFault()
+		{
+			// 
+		}
+
+		public void AddSource(XmlRpcSource source, XmlRpcDispatch.EventType eventMask)
         {
-            addsource(instance, source.instance, (uint) eventMask);
+			sources.Add(new DispatchRecord(){client = source, mask = eventMask});
+            //addsource(instance, source.instance, (uint) eventMask);
         }
 
         public void RemoveSource(XmlRpcClient source)
         {
+			foreach(var record in sources)
+			{
+				if (record.client == source)
+				{
+					sources.Remove(record);
+					break;
+				}
+			}
             //source.SegFault();
 			//this.reRemoveSource(source);
-            removesource(instance, source.instance);
+            //removesource(instance, source.instance);
         }
 
-        public void SetSourceEvents(XmlRpcClient source, int eventMask)
+		public void SetSourceEvents(XmlRpcClient source, XmlRpcDispatch.EventType eventMask)
         {
-			this.SetSourceEvents(source, eventMask);
+			foreach (var record in sources)
+			{
+				if (record.client == source)
+				{
+					record.mask |= eventMask;
+				}
+			}
+			//this.SetSourceEvents(source, eventMask);
         }
 
-        public void Work(double msTime)
+		public void Work(double timeout)
         {
-            work(instance, msTime);
+			_endTime = (timeout < 0.0) ? -1.0 : (getTime() + timeout);
+			_doClear = false;
+			_inWork = true;
+			while (sources.Count > 0)
+			{			
+				// TODO: check for the rest events
+				/*
+				// Construct the sets of descriptors we are interested in
+				fd_set inFd, outFd, excFd;
+					FD_ZERO(&inFd);
+					FD_ZERO(&outFd);
+					FD_ZERO(&excFd);
+
+				int maxFd = -1;     // Not used on windows
+				SourceList::iterator it;
+				for (it=_sources.begin(); it!=_sources.end(); ++it) {
+					int fd = it->getSource()->getfd();
+					if (it->getMask() & ReadableEvent) FD_SET(fd, &inFd);
+					if (it->getMask() & WritableEvent) FD_SET(fd, &outFd);
+					if (it->getMask() & Exception)     FD_SET(fd, &excFd);
+					if (it->getMask() && fd > maxFd)   maxFd = fd;
+				}
+
+				// Check for events
+				int nEvents;
+				if (timeout < 0.0)
+					nEvents = select(maxFd+1, &inFd, &outFd, &excFd, NULL);
+				else 
+				{
+					struct timeval tv;
+					tv.tv_sec = (int)floor(timeout);
+					tv.tv_usec = ((int)floor(1000000.0 * (timeout-floor(timeout)))) % 1000000;
+					nEvents = select(maxFd+1, &inFd, &outFd, &excFd, &tv);
+				}
+
+				if (nEvents < 0)
+				{
+					if(errno != EINTR)
+					XmlRpcUtil::error("Error in XmlRpcDispatch::work: error in select (%d).", nEvents);
+					_inWork = false;
+					return;
+				}
+
+				// Process events
+				for (it=_sources.begin(); it != _sources.end(); )
+				{
+					SourceList::iterator thisIt = it++;
+					XmlRpcSource* src = thisIt->getSource();
+					int fd = src->getfd();
+					unsigned newMask = (unsigned) -1;
+					if (fd <= maxFd) {
+					// If you select on multiple event types this could be ambiguous
+					if (FD_ISSET(fd, &inFd))
+						newMask &= src->handleEvent(ReadableEvent);
+					if (FD_ISSET(fd, &outFd))
+						newMask &= src->handleEvent(WritableEvent);
+					if (FD_ISSET(fd, &excFd))
+						newMask &= src->handleEvent(Exception);
+
+					// Find the source again.  It may have moved as a result of the way
+					// that sources are removed and added in the call stack starting
+					// from the handleEvent() calls above.
+					for (thisIt=_sources.begin(); thisIt != _sources.end(); thisIt++)
+					{
+						if(thisIt->getSource() == src)
+						break;
+					}
+					if(thisIt == _sources.end())
+					{
+						XmlRpcUtil::error("Error in XmlRpcDispatch::work: couldn't find source iterator");
+						continue;
+					}
+
+					if ( ! newMask) {
+						_sources.erase(thisIt);  // Stop monitoring this one
+						if ( ! src->getKeepOpen())
+						src->close();
+					} else if (newMask != (unsigned) -1) {
+						thisIt->getMask() = newMask;
+					}
+					}
+				}
+				*/
+				if (_doClear)
+				{
+					var closeList = sources;
+					this.sources = new List<DispatchRecord>();
+					foreach (var it in closeList)
+					{
+						it.client.Close();
+					}
+
+					_doClear = false;
+				}
+
+				// Check whether end time has passed
+				if (0 <= _endTime && getTime() > _endTime)
+				  break;
+			}
+			_inWork = false;
+            //work(instance, msTime);
         }
 
         public void Exit()
-        {
+        {/*
             try
             {
                 exit(instance);
@@ -256,7 +386,7 @@ namespace XmlRpc
             catch (Exception e)
             {
                 Console.WriteLine(e);
-            }
+            }*/
         }
 
         public void Clear()
@@ -270,5 +400,14 @@ namespace XmlRpc
                 Console.WriteLine(e);
             }
         }
+
+		double _endTime = 0.0;
+		bool _doClear;
+		bool _inWork;
+
+		public double getTime()
+		{
+			return 0;
+		}
     }
 }

@@ -137,14 +137,14 @@ namespace Ros_CSharp
 
         public bool validateXmlrpcResponse(string method, XmlRpcValue response, ref XmlRpcValue payload)
         {
-            if (response.Type != TypeEnum.TypeArray)
+			if (response.Type != XmlRpcValue.ValueType.TypeArray)
                 return validateFailed(method, "didn't return an array -- {0}", response);
             if (response.Size != 3)
                 return validateFailed(method, "didn't return a 3-element array -- {0}", response);
-            if (response[0].Type != TypeEnum.TypeInt)
+			if (response[0].Type != XmlRpcValue.ValueType.TypeInt)
                 return validateFailed(method, "didn't return an int as the 1st element -- {0}", response);
             int status_code = response[0].Get<int>();
-            if (response[1].Type != TypeEnum.TypeString)
+			if (response[1].Type != XmlRpcValue.ValueType.TypeString)
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response[1].Get<string>();
             if (status_code != 1)
@@ -239,7 +239,7 @@ namespace Ros_CSharp
                     {
                         name = function_name,
                         function = cb,
-                        wrapper = new XMLRPCCallWrapper(function_name, cb, server)
+                        wrapper = new XmlRpcServerMethod(function_name, cb, server)
                     });
             }
             return true;
@@ -395,7 +395,7 @@ namespace Ros_CSharp
         {
             public XMLRPCFunc function;
             public string name = "";
-            public XMLRPCCallWrapper wrapper;
+			public XmlRpcServerMethod wrapper;
         }
 
         #endregion

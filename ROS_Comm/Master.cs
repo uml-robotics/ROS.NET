@@ -17,7 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using XmlRpc_Wrapper;
+using XmlRpc;
 
 #endregion
 
@@ -137,7 +137,7 @@ namespace Ros_CSharp
             XmlRpcValue req = new XmlRpcValue(), resp = new XmlRpcValue(), payl = new XmlRpcValue();
             req.Set(0, this_node.Name);
             req.Set(1, "Out of respect for Mrs. " + this_node.Name);
-            if (!cl.Execute("shutdown", req, resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+            if (!cl.Execute("shutdown", req, out resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
                 return false;
             payl.Dump();
             XmlRpcManager.Instance.releaseXMLRPCClient(cl);

@@ -19,7 +19,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Messages;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -458,12 +458,12 @@ namespace Ros_CSharp
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
                 XmlRpcValue proto = protos[proto_idx];
-                if (proto.Type != TypeEnum.TypeArray)
+				if (proto.Type != XmlRpcValue.ValueType.TypeArray)
                 {
                     EDB.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;
                 }
-                if (proto[0].Type != TypeEnum.TypeString)
+				if (proto[0].Type != XmlRpcValue.ValueType.TypeString)
                 {
                     EDB.WriteLine(
                         "requestTopic received a protocol list in which a sublist did not start with a string");

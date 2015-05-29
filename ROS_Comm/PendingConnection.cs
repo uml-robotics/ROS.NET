@@ -13,7 +13,7 @@
 #region USINGZ
 
 using System;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -43,7 +43,7 @@ namespace Ros_CSharp
 
         public void Dispose()
         {
-            chk.Dispose();
+            chk = null;//.Dispose();
             client.Dispose();
             client = null;
         }
@@ -63,7 +63,7 @@ namespace Ros_CSharp
             if (check())
                 return;
             client.SegFault();
-            disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
+            disp.AddSource(client, (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public override void removeFromDispatch(XmlRpcDispatch disp)

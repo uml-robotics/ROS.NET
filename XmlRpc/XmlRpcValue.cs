@@ -23,29 +23,35 @@ using System.Xml;
 #endregion
 
 namespace XmlRpc
-{
-	public enum ValueType
-    {
-        TypeInvalid,
-        TypeBoolean,
-        TypeInt,
-        TypeDouble,
-        TypeString,
-        TypeDateTime,
-        TypeBase64,
-        TypeArray,
-        TypeStruct,
-        TypeIDFK
-    }
+{	
     //TODO: OPERATOR GARBAGE?
 	[Serializable]
-    public class XmlRpcValue : IDisposable
+    public class XmlRpcValue// : IDisposable
     {
+		public enum ValueType
+		{
+			TypeInvalid,
+			TypeBoolean,
+			TypeInt,
+			TypeDouble,
+			TypeString,
+			TypeDateTime,
+			TypeBase64,
+			TypeArray,
+			TypeStruct,
+			TypeIDFK
+		}
+
         [DebuggerStepThrough]
         public XmlRpcValue()
         {
            _type = ValueType.TypeInvalid;
         }
+
+		public void Dump()
+		{
+			// Dunno what to do here
+		}
 
         [DebuggerStepThrough]
         public XmlRpcValue(params object[] initialvalues)
@@ -136,6 +142,8 @@ namespace XmlRpc
             AddRef(existingptr);
         }
 		*/
+
+		/*
 		static string VALUE_TAG     = "<value>";
 		static string VALUE_ETAG    = "</value>";
 
@@ -162,7 +170,7 @@ namespace XmlRpc
 		static string NAME_TAG      = "<name>";
 		static string NAME_ETAG     = "</name>";
 		static string MEMBER_ETAG   = "</member>";
-		static string STRUCT_ETAG   = "</struct>";
+		static string STRUCT_ETAG   = "</struct>";*/
 
 		// Format strings
 		string _doubleFormat = "%.16g";
@@ -236,7 +244,7 @@ namespace XmlRpc
 		else if (_type != t)
 			throw XmlRpcException("type error");
 	}*/
-
+		/*
 	void assertArray(int size)
 	{
 		if (_type != ValueType.TypeArray)
@@ -244,8 +252,8 @@ namespace XmlRpc
 		else if (this.asArray.Length < size)
 			throw new XmlRpcException("range error: array index too large");
 	}
-
-
+		*/
+		
 	void assertArray(int size)
 	{
 		if (_type == ValueType.TypeInvalid) 
@@ -302,49 +310,49 @@ namespace XmlRpc
 			t1.tm_mon == t2.tm_mon && t1.tm_year == t2.tm_year;
 	}
 	
-  bool Equals(object obj)
-  {
-	  XmlRpcValue other = (XmlRpcValue)obj;
+		public override bool Equals(object obj)
+		{
+			XmlRpcValue other = (XmlRpcValue)obj;
 	  
-    if (_type != other._type)
-      return false;
+			if (_type != other._type)
+				return false;
 
-    switch (_type) {
-      case ValueType.TypeBoolean:  return asBool == other.asBool;
-      case ValueType.TypeInt:      return asInt == other.asInt;
-      case ValueType.TypeDouble:   return asDouble == other.asDouble;
-      case ValueType.TypeDateTime: return tmEq(asTime, other.asTime);
-      case ValueType.TypeString:   return asString.Equals(other.asString);
-      case ValueType.TypeBase64:   return asBinary == other.asBinary;
-      case ValueType.TypeArray:    return asArray == other.asArray;
+			switch (_type) {
+				case ValueType.TypeBoolean:  return asBool == other.asBool;
+				case ValueType.TypeInt:      return asInt == other.asInt;
+				case ValueType.TypeDouble:   return asDouble == other.asDouble;
+				case ValueType.TypeDateTime: return tmEq(asTime, other.asTime);
+				case ValueType.TypeString:   return asString.Equals(other.asString);
+				case ValueType.TypeBase64:   return asBinary == other.asBinary;
+				case ValueType.TypeArray:    return asArray == other.asArray;
 
-      // The map<>::operator== requires the definition of value< for kcc
-      case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
-        {
-          if (asStruct.Count != other.asStruct.Count)
-            return false;
-			var aenum = asStruct.GetEnumerator();
-			var benum = other.asStruct.GetEnumerator();			
+				// The map<>::operator== requires the definition of value< for kcc
+				case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
+				{
+					if (asStruct.Count != other.asStruct.Count)
+					return false;
+					var aenum = asStruct.GetEnumerator();
+					var benum = other.asStruct.GetEnumerator();			
 			
-          //ValueStruct::const_iterator it1=_value.asStruct->begin();
-          //ValueStruct::const_iterator it2=other._value.asStruct->begin();
-          while (aenum.MoveNext() && benum.MoveNext()) 
-		  {
-			  if (!aenum.Current.Value.Equals(benum.Current.Value))
-				  return false;
-          //  const XmlRpcValue& v1 = it1->second;
-          //  const XmlRpcValue& v2 = it2->second;
-          //  if ( ! (v1 == v2))
-          //    return false;
-          //  it1++;
-          //  it2++;
-          }
-          return true;
-        }
-      default: break;
-    }
-    return true;    // Both invalid values ...
-  }
+					//ValueStruct::const_iterator it1=_value.asStruct->begin();
+					//ValueStruct::const_iterator it2=other._value.asStruct->begin();
+					while (aenum.MoveNext() && benum.MoveNext()) 
+					{
+						if (!aenum.Current.Value.Equals(benum.Current.Value))
+							return false;
+					//  const XmlRpcValue& v1 = it1->second;
+					//  const XmlRpcValue& v2 = it2->second;
+					//  if ( ! (v1 == v2))
+					//    return false;
+					//  it1++;
+					//  it2++;
+					}
+					return true;
+				}
+				default: break;
+			}
+			return true;    // Both invalid values ...
+		}
 		/*
   bool XmlRpcValue::operator!=(XmlRpcValue const& other) const
   {
@@ -897,25 +905,21 @@ namespace XmlRpc
 			return this._type != ValueType.TypeInvalid;
 		}
 	}
-	/*
-	public TypeEnum Type
+	
+	public ValueType Type
 	{
 		[DebuggerStepThrough]
 		get
 		{
-			int balls = gettype(instance);
-			if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
-			{
-				return TypeEnum.TypeInvalid;
-			}
-			return ValueTypeHelper._typearray[balls];
+			return _type;
 		}
+		/*
 		[DebuggerStepThrough]
 		set
 		{
 			//SegFault();
 			settype(instance, (int) value);
-		}
+		}*/
 	}
 
 	
@@ -932,16 +936,24 @@ namespace XmlRpc
 			}
 			if (Type != ValueType.TypeString && Type != ValueType.TypeStruct && Type != ValueType.TypeArray)
 				return 0;
-			return getsize(instance);
+			if (Type == ValueType.TypeArray)
+				return asArray.Length;
+			else if (Type == ValueType.TypeString)
+				return asString.Length;
+			else if (Type == ValueType.TypeStruct)
+				return asStruct.Count;
+			return 0;
+			//return getsize(instance);
 		}
+		/*
 		[DebuggerStepThrough]
 		set
 		{
 			SegFault();
 			setsize(instance, value);
-		}
+		}*/
 	}
-*/
+
 	[DebuggerStepThrough]
 	public void Set<T>(T t)
 	{

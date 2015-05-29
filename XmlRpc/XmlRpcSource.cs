@@ -18,11 +18,12 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace XmlRpc_Wrapper
+namespace XmlRpc
 {
     [DebuggerStepThrough]
     public abstract class XmlRpcSource : IDisposable
     {
+		/*
         protected IntPtr __instance;
 
         public IntPtr instance
@@ -44,11 +45,11 @@ namespace XmlRpc_Wrapper
             get { return getfd(instance); }
             set { setfd(instance, value); }
         }
-
+		*/
         public bool KeepOpen
         {
-            get { return getkeepopen(instance) != 0; }
-            set { setkeepopen(instance, value); }
+            get { return _keepOpen; }
+            set { _keepOpen = value; }
         }
 
         #region IDisposable Members
@@ -61,7 +62,7 @@ namespace XmlRpc_Wrapper
         #endregion
 
         #region P/Invoke
-
+/*
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_Close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void close(IntPtr target);
 
@@ -80,9 +81,9 @@ namespace XmlRpc_Wrapper
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
-
+*/
         #endregion
-
+		/*
         public virtual void RmRef(ref IntPtr i)
         {
         }
@@ -97,16 +98,29 @@ namespace XmlRpc_Wrapper
             {
                 throw new Exception("BOOM");
             }
-        }
+        }*/
 
         internal virtual void Close()
         {
-            close(instance);
+            //close(instance);
         }
 
-        internal virtual UInt16 HandleEvent(UInt16 eventType)
+		public virtual XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
-            return handleevent(instance, eventType);
+			return 0;// handleevent(instance, eventType);
         }
+
+		//! Return whether the file descriptor should be kept open if it is no longer monitored.
+		public bool getKeepOpen() { return _keepOpen; }
+		//! Specify whether the file descriptor should be kept open if it is no longer monitored.
+		public void setKeepOpen(bool b=true) { _keepOpen = b; }
+
+		// In the server, a new source (XmlRpcServerConnection) is created
+		// for each connected client. When each connection is closed, the
+		// corresponding source object is deleted.
+		bool _deleteOnClose;
+
+		// In the client, keep connections open if you intend to make multiple calls.
+		bool _keepOpen;
     }
 }
