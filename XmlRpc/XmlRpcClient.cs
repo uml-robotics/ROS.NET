@@ -437,10 +437,15 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			else
 				_uri = "/RPC2";
 
-
 			_connectionState = ConnectionState.CONNECTING;
 			_executing = false;
 			_eof = false;
+			/*
+			httpClient = new System.Net.WebClient();
+
+			httpClient.OpenRead(String.Format("http://{0}:{1}", _host, _port));*/
+
+			//httpClient.BaseAddress = 
 
 			if (doConnect())
 			{
@@ -473,11 +478,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				writer = null;
 			}
 		}
-
-	
-		
-
-		
 
 		bool executeCheckDone(XmlRpcValue result)
 		{
@@ -528,20 +528,20 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			}
 
 			if (_connectionState == ConnectionState.WRITE_REQUEST)
-			if ( ! writeRequest()) return 0;
+				if ( ! writeRequest()) return 0;
 
 			if (_connectionState == ConnectionState.READ_HEADER)
-			if ( ! readHeader()) return 0;
+				if ( ! readHeader()) return 0;
 
 			if (_connectionState == ConnectionState.READ_RESPONSE)
-			if ( ! readResponse()) return 0;
+				if ( ! readResponse()) return 0;
 
 			// This should probably always ask for Exception events too
 			return (_connectionState == ConnectionState.WRITE_REQUEST) 
 				? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
 		}
 
-		HttpWebRequest httpClient;
+		System.Net.WebClient httpClient;
 
 
 		// Create the socket connection to the server if necessary
@@ -669,11 +669,14 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		{
 			if (_bytesWritten == 0)
 				XmlRpcUtil.log(5, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts+1, _request);
-
+			//StreamWriter writer = new StreamWriter(socket.GetStream());
 			// Try to write the request
 			try
 			{
+				if (!socket.Connected)
+					XmlRpcUtil.error("XmlRpcClient::writeRequest not connected");
 				writer.Write(_request);
+				writer.Flush();
 				_bytesWritten = _request.Length;
 			}
 			catch(System.IO.IOException ex)
@@ -698,7 +701,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 // Read the header from the response
 		bool readHeader()
 		{
-#if USE_BULLSHIT
+
 		  // Read available data
 			try
 			{
@@ -718,13 +721,13 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 					return setupConnection();
 				}
 
-				XmlRpcUtil.error("Error in XmlRpcClient::readHeader: error while reading header ({0}) on fd %d.",
+				XmlRpcUtil.error("Error in XmlRpcClient::readHeader: error while reading header ({0}).",
 								  getSocketError());
 				return false;
 			}
 
-			XmlRpcUtil.log(4, "XmlRpcClient::readHeader: client has read %d bytes", _header.Length);
-
+			XmlRpcUtil.log(4, "XmlRpcClient::readHeader: client has read {0} bytes", _header.Length);
+#if USE_BULLSHIT
 			char *hp = (char*)_header.c_str();  // Start of header
 			char *ep = hp + _header.Length;   // End of string
 			char *bp = 0;                       // Start of body
