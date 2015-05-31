@@ -86,7 +86,8 @@ namespace Ros_CSharp
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, name);
-            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
+            XmlRpcValue conn_data = new XmlRpcValue();
+			conn_data.SetArray(0);
             lock (publisher_links_mutex)
             {
                 int cidx = 0;
@@ -281,9 +282,10 @@ namespace Ros_CSharp
             return true;
         }
 
-        public void pendingConnectionDone(PendingConnection conn, IntPtr res)
+        //public void pendingConnectionDone(PendingConnection conn, IntPtr res)
+		public void pendingConnectionDone(PendingConnection conn, XmlRpcValue result)
         {
-            XmlRpcValue result = XmlRpcValue.LookUp(res);
+            //XmlRpcValue result = XmlRpcValue.LookUp(res);
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)

@@ -79,7 +79,7 @@ namespace Ros_CSharp
                 return false;
             if (client.ExecuteCheckDone(chk))
             {
-                parent.pendingConnectionDone(this, chk.instance);
+                parent.pendingConnectionDone(this, chk);
                 return true;
             }
             return false;

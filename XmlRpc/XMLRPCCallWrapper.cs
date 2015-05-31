@@ -183,12 +183,12 @@ namespace XmlRpc
             //setfunc(instance, func);
         }
 
-        public void Execute(XmlRpcValue parms, out XmlRpcValue reseseses)
+        public void Execute(XmlRpcValue parms, XmlRpcValue reseseses)
         {
             //SegFault();
-            reseseses = new XmlRpcValue();
+            //reseseses = new XmlRpcValue();
             //execute(parms, reseseses);
-			_FUNC(parms, out reseseses);
+			_FUNC(parms, reseseses);
         }
 		/*
         public void SegFault()
@@ -214,5 +214,5 @@ namespace XmlRpc
         #endregion
     }
     //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void XMLRPCFunc(XmlRpcValue parms, out XmlRpcValue reseseses);
+	public delegate void XMLRPCFunc(XmlRpcValue parms, XmlRpcValue reseseses);
 }

@@ -256,33 +256,33 @@ namespace Ros_CSharp
         }
 
 
-        public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
+		public Action<XmlRpcValue> responseStr(IntPtr target, int code, string msg, string response)
         {
-            return p =>
+			return (XmlRpcValue v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                //XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);
             };
         }
 
-        public Action<IntPtr> responseInt(int code, string msg, int response)
+		public Action<XmlRpcValue> responseInt(int code, string msg, int response)
         {
-            return p =>
+            return (XmlRpcValue v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                //XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);
             };
         }
 
-        public Action<IntPtr> responseBool(int code, string msg, bool response)
+		public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
         {
-            return p =>
+			return (XmlRpcValue v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
+                //XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);

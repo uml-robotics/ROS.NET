@@ -191,9 +191,9 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
         }
 
 		
-        public bool Execute(string method, XmlRpcValue parameters, out XmlRpcValue result)
+        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            bool r = execute(method, parameters, out result);
+            bool r = execute(method, parameters, result);
             return r;
         }
 
@@ -412,7 +412,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		// Params should be an array of the arguments for the method.
 		// Returns true if the request was sent and a result received (although the result
 		// might be a fault).
-		bool execute(string method, XmlRpcValue parameters, out XmlRpcValue result)
+		bool execute(string method, XmlRpcValue parameters, XmlRpcValue result)
 		{
 		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method %s (_connectionState %d).", method, _connectionState);
 		  result = null;
@@ -440,7 +440,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 		  if (_connectionState != ConnectionState.IDLE )
 			return false;
-			result = parseResponse();
+		  parseResponse(result);
 
 		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method %s completed.", method);
 		  _response = "";
@@ -482,8 +482,8 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			// Are we done yet?
 			if (_connectionState != ConnectionState.IDLE)
 				return false;
-			result = parseResponse();
-			if (result == null)
+
+			if (!parseResponse(result))
 			{
 			// Hopefully the caller can determine that parsing failed.
 			}
@@ -809,9 +809,10 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 
 		// Convert the response xml into a result value
-		XmlRpcValue parseResponse()
+		bool parseResponse(XmlRpcValue result)
 		{
-			XmlRpcValue result = null;
+			bool success = true;
+			//XmlRpcValue result = null;
 			using (XmlReader reader = XmlReader.Create(new StringReader(_response)))
 			{
 				XmlDocument response = new XmlDocument();
@@ -825,19 +826,19 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				if (resp.Count == 0)
 				{
 					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no methodResponse. Response:\n{0}", _response);
-					return null;
+					return false;
 				}
 
 				XmlElement pars = responseNode["params"];
 				XmlElement fault = responseNode["fault"];
-				result = new XmlRpcValue();
+				//result = new XmlRpcValue();
 				if (pars != null && !result.fromXml(pars))
 				{
-					result = null;
+					success = false;
 				}
 				else if (fault != null && result.fromXml(fault))
 				{
-					result = null;
+					success = false;
 				}
 				else
 				{
@@ -866,7 +867,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				_response = "";*/
 				//return result.valid();
 			}
-			return result;
+			return success;
 		}
     }
 }

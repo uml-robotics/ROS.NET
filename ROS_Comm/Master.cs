@@ -55,7 +55,7 @@ namespace Ros_CSharp
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, ref result, ref payload, false);
+            return execute("getPid", args, result, ref payload, false);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, ref result, ref payload, true))
+            if (!execute("getPublishedTopics", args, result, ref payload, true))
                 return false;
             topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
@@ -89,7 +89,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, ref result, ref payload, true))
+            if (!execute("getSystemState", args, result, ref payload, true))
             {
                 return false;
             }
@@ -116,7 +116,7 @@ namespace Ros_CSharp
             args.Set(1, nodename);
             XmlRpcValue resp = new XmlRpcValue();
             XmlRpcValue payl = new XmlRpcValue();
-            if (!execute("lookupNode", args, ref resp, ref payl, true))
+            if (!execute("lookupNode", args, resp, ref payl, true))
                 return null;
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
                 return null;
@@ -137,7 +137,7 @@ namespace Ros_CSharp
             XmlRpcValue req = new XmlRpcValue(), resp = new XmlRpcValue(), payl = new XmlRpcValue();
             req.Set(0, this_node.Name);
             req.Set(1, "Out of respect for Mrs. " + this_node.Name);
-            if (!cl.Execute("shutdown", req, out resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+            if (!cl.Execute("shutdown", req, resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
                 return false;
             payl.Dump();
             XmlRpcManager.Instance.releaseXMLRPCClient(cl);
@@ -152,7 +152,7 @@ namespace Ros_CSharp
         /// <param name="payload">Location to store the actual data requested, if any.</param>
         /// <param name="wait_for_master">If you recieve an unseccessful status code, keep retrying.</param>
         /// <returns></returns>
-        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
+        public static bool execute(string method, XmlRpcValue request, XmlRpcValue response, ref XmlRpcValue payload,
             bool wait_for_master)
         {
             try

@@ -379,6 +379,25 @@ namespace XmlRpc
 		}
 	}
 
+	public void Copy(XmlRpcValue other)
+	{
+		switch (_type)
+		{
+			case ValueType.TypeBoolean: asBool = other.asBool; break;
+			case ValueType.TypeInt: asInt = other.asInt; break;
+			case ValueType.TypeDouble: asDouble = other.asDouble; break;
+			case ValueType.TypeDateTime: asTime = other.asTime; break;
+			case ValueType.TypeString: asString = other.asString; break;
+			case ValueType.TypeBase64: asBinary = other.asBinary; break;
+			case ValueType.TypeArray: asArray = other.asArray; break;
+
+			// The map<>::operator== requires the definition of value< for kcc
+			case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
+				asStruct = other.asStruct;
+				break;
+		}
+	}
+
 	// Checks for existence of struct member
 	bool hasMember(string name)
 	{
@@ -957,37 +976,47 @@ namespace XmlRpc
 	[DebuggerStepThrough]
 	public void Set<T>(T t)
 	{
-		/*
-		if ("" is T)
+		if (t is string)
 		{
-			set(instance, (string) (object) t);
+			this.asString = (string)(object)t;
 		}
 		else if (0 is T)
 		{
-			set(instance, (int) (object) t);
+			this.asInt = (int)(object)t;
+			//set(instance, (int) (object) t);
 		}
 		else if (this is T)
 		{
-			set(instance, ((XmlRpcValue) (object) t).instance);
+			Copy(t as XmlRpcValue);
+			//set(instance, ((XmlRpcValue) (object) t).instance);
 		}
-		else if (true is T)
+		else if (t is bool)
 		{
-			asBool = (bool)t;
+			asBool = (bool)(object)t;
 			this._type = ValueType.TypeBoolean;
 			//set(instance, (bool)(object)t);
 		}
 		else if (0d is T)
 		{
 			//set(instance, (double) (object) t);
-			asDouble = (double)t;
+			asDouble = (double)(object)t;
 			this._type = ValueType.TypeDouble;
-		}*/
+		}
+	}
+	public void EnsureArraySize(int size)
+	{
+		if (asArray != null && asArray.Length < size)
+			Array.Resize(ref asArray, size);
 	}
 	
 		public XmlRpcValue this[int key]
 		{
 			[DebuggerStepThrough]
-			get { return Get(key); }
+			get 
+			{
+				EnsureArraySize(key+1);
+				return Get(key); 
+			}
 			[DebuggerStepThrough]
 			set { Set(key, value); }
 		}
@@ -1004,6 +1033,12 @@ namespace XmlRpc
 		public void Set<T>(int key, T t)
 		{
 			this[key].Set(t);
+		}
+
+		public void SetArray(int maxSize)
+		{
+			this._type = ValueType.TypeArray;
+			this.asArray = new XmlRpcValue[maxSize];
 		}
 
 		[DebuggerStepThrough]

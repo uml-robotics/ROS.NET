@@ -98,7 +98,7 @@ namespace Ros_CSharp
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, ref response, ref payload, true))
+                if (master.execute("setParam", parm, response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, val);
@@ -120,7 +120,7 @@ namespace Ros_CSharp
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, ref response, ref payload, true))
+                if (master.execute("setParam", parm, response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -142,7 +142,7 @@ namespace Ros_CSharp
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, ref response, ref payload, true))
+                if (master.execute("setParam", parm, response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -164,7 +164,7 @@ namespace Ros_CSharp
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, ref response, ref payload, true))
+                if (master.execute("setParam", parm, response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -186,7 +186,7 @@ namespace Ros_CSharp
             parm.Set(2, val);
             lock (parms_mutex)
             {
-                if (master.execute("setParam", parm, ref response, ref payload, true))
+                if (master.execute("setParam", parm, response, ref payload, true))
                 {
                     if (subscribed_params.Contains(mapped_key))
                         parms.Add(mapped_key, parm);
@@ -274,7 +274,7 @@ namespace Ros_CSharp
             List<string> ret = new List<string>();
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
-            if (!master.execute("getParamNames", parm, ref result, ref payload, false))
+            if (!master.execute("getParamNames", parm, result, ref payload, false))
                 return ret;
 			if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != XmlRpcValue.ValueType.TypeArray)
             {
@@ -298,7 +298,7 @@ namespace Ros_CSharp
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, names.resolve(key));
-            if (!master.execute("hasParam", parm, ref result, ref payload, false))
+            if (!master.execute("hasParam", parm, result, ref payload, false))
                 return false;
             return payload.Get<bool>();
         }
@@ -324,7 +324,7 @@ namespace Ros_CSharp
             XmlRpcValue parm = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             parm.Set(0, this_node.Name);
             parm.Set(1, mapped_key);
-            if (!master.execute("deleteParam", parm, ref result, ref payload, false))
+            if (!master.execute("deleteParam", parm, result, ref payload, false))
                 return false;
             return true;
         }
@@ -415,13 +415,16 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="parm">Name of parameter</param>
         /// <param name="result">New value of parameter</param>
-        public static void paramUpdateCallback(IntPtr parm, IntPtr result)
+        //public static void paramUpdateCallback(IntPtr parm, IntPtr result)
+		public static void paramUpdateCallback(XmlRpcValue val, XmlRpcValue result)
         {
-            XmlRpcValue val = XmlRpcValue.LookUp(parm);
+            //XmlRpcValue val = XmlRpcValue.LookUp(parm);
             val.Set(0, 1);
             val.Set(1, "");
             val.Set(2, 0);
-            update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
+            //update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
+			/// TODO: check carefully this stuff. It looks strange
+			update(val[1].Get<string>(), val[2]);
         }
 
         public static bool getImpl(string key, ref XmlRpcValue v, bool use_cache)
@@ -451,7 +454,7 @@ namespace Ros_CSharp
                         parm.Set(0, this_node.Name);
                         parm.Set(1, XmlRpcManager.Instance.uri);
                         parm.Set(2, mapped_key);
-                        if (!master.execute("subscribeParam", parm, ref result, ref payload, false))
+                        if (!master.execute("subscribeParam", parm, result, ref payload, false))
                         {
                             subscribed_params.Remove(mapped_key);
                             use_cache = false;
@@ -464,7 +467,7 @@ namespace Ros_CSharp
             parm2.Set(0, this_node.Name);
             parm2.Set(1, mapped_key);
 
-            bool ret = master.execute("getParam", parm2, ref result2, ref v, false);
+            bool ret = master.execute("getParam", parm2, result2, ref v, false);
 
             if (use_cache)
             {
