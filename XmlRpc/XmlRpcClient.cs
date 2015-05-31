@@ -57,7 +57,7 @@ namespace XmlRpc
         [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
-			createImpl(HostName, Port, Uri);
+			Initialize(HostName, Port, Uri);
 			//socket.GetStream();
         }
 
@@ -66,7 +66,7 @@ namespace XmlRpc
             : this(HostName, Port, "/")
         {
         }
-
+		/*
 		void createImpl(string host, int port, string uri)
 		{
 			XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {0}.", host, port);
@@ -83,7 +83,7 @@ namespace XmlRpc
 
 			// Default to keeping the connection open until an explicit close is done
 			setKeepOpen();
-		}
+		}*/
 
         [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
@@ -100,7 +100,7 @@ namespace XmlRpc
             if (chunks2.Length > 1 && chunks2[1].Length != 0)
                 u = chunks2[1];
 
-			createImpl(hn, p, u);
+			Initialize(hn, p, u);
         }
 
         #region public get passthroughs
@@ -190,21 +190,76 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			return this._host.Equals(host) && this._port == port && this._uri.Equals(uri);// checkident(instance, host, port, uri);
         }
 
-		
+		// Execute the named procedure on the remote server.
+		// Params should be an array of the arguments for the method.
+		// Returns true if the request was sent and a result received (although the result
+		// might be a fault).
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            bool r = execute(method, parameters, result);
-            return r;
+			XmlRpcUtil.log(1, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
+			result = null;
+			// This is not a thread-safe operation, if you want to do multithreading, use separate
+			// clients for each thread. If you want to protect yourself from multiple threads
+			// accessing the same client, replace this code with a real mutex.
+			if (_executing)
+				return false;
+
+			_executing = true;
+			//ClearFlagOnExit cf(_executing);
+
+			_sendAttempts = 0;
+			_isFault = false;
+
+			if ( ! setupConnection())
+				return false;
+
+			if ( ! generateRequest(method, parameters))
+				return false;
+
+			//result.clear();
+			double msTime = -1.0;   // Process until exit is called
+			_disp.Work(msTime);
+
+			if (_connectionState != ConnectionState.IDLE )
+				return false;
+			parseResponse(result);
+
+			XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} completed.", method);
+			_response = "";
+			return true;
         }
 
 		public void SegFault()
 		{
 			// 
 		}
-
+		// Execute the named procedure on the remote server, non-blocking.
+		// Params should be an array of the arguments for the method.
+		// Returns true if the request was sent and a result received (although the result
+		// might be a fault).
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-			return executeNonBlock(method, parameters);
+			XmlRpcUtil.log(1, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
+
+			// This is not a thread-safe operation, if you want to do multithreading, use separate
+			// clients for each thread. If you want to protect yourself from multiple threads
+			// accessing the same client, replace this code with a real mutex.
+			if (_executing)
+				return false;
+
+			_executing = true;
+			//ClearFlagOnExit cf(_executing);
+
+			_sendAttempts = 0;
+			_isFault = false;
+
+			if ( ! setupConnection())
+				return false;
+
+			if ( ! generateRequest(method, parameters))
+				return false;
+
+			return true;
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
@@ -355,8 +410,8 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		int _contentLength;
 
 		// Event dispatcher
-		XmlRpcDispatch _disp;
-
+		XmlRpcDispatch _disp = new XmlRpcDispatch();
+		/*
 		bool testConnection()
 		{	
 			if (((int)_connectionState & (int)ConnectionState.NO_CONNECTION) != 0)
@@ -364,7 +419,12 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 					return false;
 			return ((int)_connectionState & (int)ConnectionState.NO_CONNECTION) != 0;	
 		}
+		*/
 
+		public override Socket getSocket()
+		{
+			return this.socket != null ? this.socket.Client : null;
+		}
 		//done and works
 		void Initialize(string host, int port, string uri/*=0*/)
 		{
@@ -376,9 +436,16 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				_uri = uri;
 			else
 				_uri = "/RPC2";
-			_connectionState = ConnectionState.NO_CONNECTION;
+
+
+			_connectionState = ConnectionState.CONNECTING;
 			_executing = false;
 			_eof = false;
+
+			if (doConnect())
+			{
+				_connectionState = ConnectionState.IDLE;
+			}
 
 			// Default to keeping the connection open until an explicit close is done
 			setKeepOpen();
@@ -408,73 +475,9 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		}
 
 	
-		// Execute the named procedure on the remote server.
-		// Params should be an array of the arguments for the method.
-		// Returns true if the request was sent and a result received (although the result
-		// might be a fault).
-		bool execute(string method, XmlRpcValue parameters, XmlRpcValue result)
-		{
-		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} (_connectionState {0}).", method, _connectionState);
-		  result = null;
-		  // This is not a thread-safe operation, if you want to do multithreading, use separate
-		  // clients for each thread. If you want to protect yourself from multiple threads
-		  // accessing the same client, replace this code with a real mutex.
-		  if (_executing)
-			return false;
+		
 
-		  _executing = true;
-		  //ClearFlagOnExit cf(_executing);
-
-		  _sendAttempts = 0;
-		  _isFault = false;
-
-		  if ( ! setupConnection())
-			return false;
-
-		  if ( ! generateRequest(method, parameters))
-			return false;
-
-		  //result.clear();
-		  double msTime = -1.0;   // Process until exit is called
-		  _disp.Work(msTime);
-
-		  if (_connectionState != ConnectionState.IDLE )
-			return false;
-		  parseResponse(result);
-
-		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} completed.", method);
-		  _response = "";
-		  return true;
-		}
-
-		// Execute the named procedure on the remote server, non-blocking.
-		// Params should be an array of the arguments for the method.
-		// Returns true if the request was sent and a result received (although the result
-		// might be a fault).
-		bool executeNonBlock(string method, XmlRpcValue parameters)
-		{
-			XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} (_connectionState {0}.", method, _connectionState);
-
-			// This is not a thread-safe operation, if you want to do multithreading, use separate
-			// clients for each thread. If you want to protect yourself from multiple threads
-			// accessing the same client, replace this code with a real mutex.
-			if (_executing)
-				return false;
-
-			_executing = true;
-			//ClearFlagOnExit cf(_executing);
-
-			_sendAttempts = 0;
-			_isFault = false;
-
-			if ( ! setupConnection())
-				return false;
-
-			if ( ! generateRequest(method, parameters))
-				return false;
-
-			return true;
-		}
+		
 
 		bool executeCheckDone(XmlRpcValue result)
 		{
@@ -544,24 +547,23 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		// Create the socket connection to the server if necessary
 		bool setupConnection()
 		{
-		  // If an error occurred last time through, or if the server closed the connection, close our end
+			// If an error occurred last time through, or if the server closed the connection, close our end
 			if ((_connectionState != ConnectionState.NO_CONNECTION && _connectionState != ConnectionState.IDLE) || _eof)
-			close();
+				close();
+			_eof = false;
+			if (_connectionState == ConnectionState.NO_CONNECTION)
+				if (! doConnect()) 
+					return false;
 
-		  _eof = false;
-		  if (_connectionState == ConnectionState.NO_CONNECTION)
-			if (! doConnect()) 
-			  return false;
+			// Prepare to write the request
+			_connectionState = ConnectionState.WRITE_REQUEST;
+			_bytesWritten = 0;
 
-		  // Prepare to write the request
-		  _connectionState = ConnectionState.WRITE_REQUEST;
-		  _bytesWritten = 0;
+			// Notify the dispatcher to listen on this source (calls handleEvent when the socket is writable)
+			_disp.RemoveSource(this);       // Make sure nothing is left over
+			_disp.AddSource(this, XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception);
 
-		  // Notify the dispatcher to listen on this source (calls handleEvent when the socket is writable)
-		  _disp.RemoveSource(this);       // Make sure nothing is left over
-		  _disp.AddSource(this, XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception);
-
-		  return true;
+			return true;
 		}
 
 	// Connect to the xmlrpc server
@@ -585,15 +587,19 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not set socket to non-blocking IO mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
 		return false;
 	  }*/
-
-		socket = new TcpClient(_host, _port);
-	
-		if ( socket.Connected)
+		if (socket == null)
+		{
+			socket = new TcpClient(_host, _port);
+		}
+		if (!socket.Connected)
 		{
 			this.close();
-			XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server (%s).", this.getSocketError());
+			XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", this.getSocketError());
 			return false;
 		}
+
+		writer = new StreamWriter(socket.GetStream());
+		reader = new StreamReader(socket.GetStream());
 		return true;
 	}
 	public void Shutdown()
@@ -668,6 +674,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			try
 			{
 				writer.Write(_request);
+				_bytesWritten = _request.Length;
 			}
 			catch(System.IO.IOException ex)
 			{	
@@ -675,7 +682,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				return false;
 			}
     
-			XmlRpcUtil.log(3, "XmlRpcClient::writeRequest: wrote %d of %d bytes.", _bytesWritten, _request.Length);
+			XmlRpcUtil.log(3, "XmlRpcClient::writeRequest: wrote {0} of {1} bytes.", _bytesWritten, _request.Length);
 
 			// Wait for the result
 			if (_bytesWritten == _request.Length) 

@@ -14,6 +14,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -39,18 +40,18 @@ namespace XmlRpc
                 __instance = value;
             }
         }
-
-        public int FD
-        {
-            get { return getfd(instance); }
-            set { setfd(instance, value); }
-        }
 		*/
+		
         public bool KeepOpen
         {
             get { return _keepOpen; }
             set { _keepOpen = value; }
         }
+
+		public virtual Socket getSocket()
+		{
+			return null;
+		}
 
         #region IDisposable Members
 

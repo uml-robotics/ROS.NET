@@ -143,7 +143,19 @@ namespace XmlRpc
             AddRef(existingptr);
         }
 		*/
-
+		static string VALUE_TAG = "value";
+		static string BOOLEAN_TAG = "boolean";
+		static string DOUBLE_TAG = "double";
+		static string INT_TAG = "int";
+		static string I4_TAG = "i4";
+		static string STRING_TAG = "string";
+		static string DATETIME_TAG = "dateTime.iso8601";
+		static string BASE64_TAG = "base64";
+		static string ARRAY_TAG = "array";
+		static string DATA_TAG = "data";
+		static string STRUCT_TAG = "struct";
+		static string MEMBER_TAG = "member";
+		static string NAME_TAG = "name";
 		/*
 		static string VALUE_TAG     = "<value>";
 		static string VALUE_ETAG    = "</value>";
@@ -375,7 +387,7 @@ namespace XmlRpc
 				default: break;
 			}
 
-			XmlRpcUtil.log(4, "Trying to get size of something without a size! -- type=%d", _type);
+			XmlRpcUtil.log(4, "Trying to get size of something without a size! -- type={0}", _type);
 			throw new XmlRpcException("type error");
 		}
 	}
@@ -411,19 +423,88 @@ namespace XmlRpc
 	  //offset = 0;
 	  return false;
   }
-	public string toXml()
-	{
-		XmlWriterSettings settings = new XmlWriterSettings();
+
+  public string toXml()
+  {
+	  XmlWriterSettings settings = new XmlWriterSettings();
 		settings.OmitXmlDeclaration = true;
 		settings.ConformanceLevel = ConformanceLevel.Fragment;
 		settings.CloseOutput = false;
 		StringWriter strm = new StringWriter();
 		XmlWriter writer = XmlWriter.Create(strm, settings);
 
-		writer.Flush();
+		XmlDocument doc = new XmlDocument();
+		toXml(doc, doc);
+		doc.WriteContentTo(writer);
 		writer.Close();
+	  string result = strm.ToString();
+	  return result;
+  }
+	public XmlNode toXml(XmlDocument doc, XmlNode parent)
+	{
+		/*
+		XmlWriterSettings settings = new XmlWriterSettings();
+		settings.OmitXmlDeclaration = true;
+		settings.ConformanceLevel = ConformanceLevel.Fragment;
+		settings.CloseOutput = false;*/
+		//StringWriter strm = new StringWriter();
+		//XmlWriter writer = XmlWriter.Create(strm, settings);
 
-		return strm.ToString();
+		//XmlDocument doc = new XmlDocument();
+
+		XmlElement root = doc.CreateElement(VALUE_TAG);
+
+		//value.
+		XmlElement el = null;
+		switch (this._type)
+		{
+			case ValueType.TypeBoolean:
+				el = doc.CreateElement(BOOLEAN_TAG);
+				el.AppendChild(doc.CreateTextNode(asBool.ToString()));
+				break;
+			case ValueType.TypeInt:
+				el = doc.CreateElement(INT_TAG);
+				el.AppendChild(doc.CreateTextNode(asInt.ToString()));
+				break;
+			case ValueType.TypeDouble:
+				el = doc.CreateElement(BOOLEAN_TAG);
+				el.AppendChild(doc.CreateTextNode(asDouble.ToString()));
+				break;
+			case ValueType.TypeDateTime:
+				el = doc.CreateElement(DATETIME_TAG);
+				el.AppendChild(doc.CreateTextNode(asTime.ToString()));
+				break;
+			case ValueType.TypeString: 
+				//asString = other.asString; 
+				el = doc.CreateElement(STRING_TAG);
+				el.AppendChild(doc.CreateTextNode(asString));
+				break;
+			case ValueType.TypeBase64: 
+				//asBinary = other.asBinary; 
+				el = doc.CreateElement(DATA_TAG);
+				throw new NotImplementedException("Base64 serialization is not implemented");
+				//writer.WriteElementString(DATA_TAG, asBinary.ToString());
+				break;
+
+			case ValueType.TypeArray:
+				el = doc.CreateElement(DATA_TAG);
+				for (int i = 0; i < Size; i++)
+				{
+					asArray[i].toXml(doc, el);
+				}
+				break;
+			// The map<>::operator== requires the definition of value< for kcc
+			case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
+				throw new NotImplementedException("Struct serialization is not implemented");
+				//asStruct = other.asStruct;
+				break;
+		}
+
+		if(el != null)
+			root.AppendChild(el);
+
+		parent.AppendChild(root);
+		return root;
 	}
 #if MANUAL_SERIALIZATION
 		 // Set the value from xml. The chars at *offset into valueXml 
@@ -829,9 +910,9 @@ namespace XmlRpc
     
     return os;
   }*/
-		/*
+		
         #region P/Invoke
-
+	/*
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_Create1", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create();
 
@@ -912,9 +993,9 @@ namespace XmlRpc
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcValue_ToString", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr tostring(IntPtr target);
-
-        #endregion
 		*/
+		#endregion
+
 
 	public bool Valid
 	{
@@ -979,10 +1060,12 @@ namespace XmlRpc
 	{
 		if (t is string)
 		{
+			this._type = ValueType.TypeString;
 			this.asString = (string)(object)t;
 		}
 		else if (0 is T)
 		{
+			this._type = ValueType.TypeInt;
 			this.asInt = (int)(object)t;
 			//set(instance, (int) (object) t);
 		}

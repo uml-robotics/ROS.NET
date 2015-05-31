@@ -310,6 +310,11 @@ namespace XmlRpc
             return BindAndListen(port, 5);
         }
 
+		public override Socket getSocket()
+		{
+			return listener != null ? listener.Server : null;
+		}
+
         public bool BindAndListen(int port, int backlog)
         {
 			IPAddress address = new IPAddress(0); // INADDR_ANY
