@@ -33,10 +33,12 @@ namespace XmlRpc
 		public static string XMLRPC_VERSION = "XMLRPC++ 0.7";
 		public static void error(string format, params object[] list)
 		{
+			Debug.WriteLine(String.Format(format, list));
 		}
 
 		public static void log(int level, string format, params object[] list)
 		{
+			Debug.WriteLine(String.Format(format, list));
 		}
 		/*
         private static printint _PRINTINT;

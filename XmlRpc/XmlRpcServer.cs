@@ -320,20 +320,22 @@ namespace XmlRpc
 				listener.Start(backlog);
 				_disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
 
-				XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", port);
+				this._port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
+				XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", this._port);
 				//listener.
 				//SegFault();
 				//return bindandlisten(instance, port, backlog);
 				return true;
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				throw ex;
 			}
 			return false;
 		}
 		TcpListener listener;
 		// Event dispatcher
-		XmlRpcDispatch _disp;
+		XmlRpcDispatch _disp = new XmlRpcDispatch();
 		// Whether the introspection API is supported by this server
 		bool _introspectionEnabled;
 		// Collection of methods. This could be a set keyed on method name if we wanted...

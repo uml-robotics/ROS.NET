@@ -76,7 +76,7 @@ namespace XmlRpc
 			public XmlRpcDispatch.EventType mask;
 		}
 
-		List<DispatchRecord> sources;
+		List<DispatchRecord> sources = new List<DispatchRecord>();
 
         #region Reference Tracking + unmanaged pointer management
 
@@ -278,7 +278,7 @@ namespace XmlRpc
 			_doClear = false;
 			_inWork = true;
 			while (sources.Count > 0)
-			{			
+			{
 				// TODO: check for the rest events
 				/*
 				// Construct the sets of descriptors we are interested in

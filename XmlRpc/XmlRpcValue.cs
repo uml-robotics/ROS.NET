@@ -57,6 +57,7 @@ namespace XmlRpc
         public XmlRpcValue(params object[] initialvalues)
             : this()
         {
+			SetArray(initialvalues.Length);
             for (int i = 0; i < initialvalues.Length; i++)
             {
                 int ires = 0;
@@ -1032,6 +1033,10 @@ namespace XmlRpc
 		[DebuggerStepThrough]
 		public void Set<T>(int key, T t)
 		{
+			if (asArray[key] == null)
+			{
+				asArray[key] = new XmlRpcValue();
+			}
 			this[key].Set(t);
 		}
 

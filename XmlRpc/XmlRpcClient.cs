@@ -69,7 +69,7 @@ namespace XmlRpc
 
 		void createImpl(string host, int port, string uri)
 		{
-			XmlRpcUtil.log(1, "XmlRpcClient new client: host %s, port %d.", host, port);
+			XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {0}.", host, port);
 
 			_host = host;
 			_port = port;
@@ -368,7 +368,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		//done and works
 		void Initialize(string host, int port, string uri/*=0*/)
 		{
-			XmlRpcUtil.log(1, "XmlRpcClient new client: host %s, port %d.", host, port);
+			XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {1}.", host, port);
 
 			_host = host;
 			_port = port;
@@ -414,7 +414,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		// might be a fault).
 		bool execute(string method, XmlRpcValue parameters, XmlRpcValue result)
 		{
-		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method %s (_connectionState %d).", method, _connectionState);
+		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} (_connectionState {0}).", method, _connectionState);
 		  result = null;
 		  // This is not a thread-safe operation, if you want to do multithreading, use separate
 		  // clients for each thread. If you want to protect yourself from multiple threads
@@ -442,7 +442,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			return false;
 		  parseResponse(result);
 
-		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method %s completed.", method);
+		  XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} completed.", method);
 		  _response = "";
 		  return true;
 		}
@@ -453,7 +453,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		// might be a fault).
 		bool executeNonBlock(string method, XmlRpcValue parameters)
 		{
-			XmlRpcUtil.log(1, "XmlRpcClient::execute: method %s (_connectionState %d).", method, _connectionState);
+			XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} (_connectionState {0}.", method, _connectionState);
 
 			// This is not a thread-safe operation, if you want to do multithreading, use separate
 			// clients for each thread. If you want to protect yourself from multiple threads

@@ -13,7 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Ros_CSharp;
-using XmlRpc_Wrapper;
+//using XmlRpc_Wrapper;
 using Messages;
 using System.Threading;
 
@@ -33,28 +33,35 @@ namespace SimplePublisher
         public MainWindow()
         {
             InitializeComponent();
+			ROS.ROS_MASTER_URI = "http://notemind02:11311";
+			try
+			{
+				ROS.Init(new string[0], "wpf_talker");
+				nh = new NodeHandle();
 
-            ROS.Init(new string[0], "wpf_talker");
-            nh = new NodeHandle();
+				pub = nh.advertise<Messages.std_msgs.String>("/chatter", 1, false);
 
-            pub = nh.advertise<Messages.std_msgs.String>("/chatter", 1, false);
-
-            pubthread = new Thread(() =>
-            {
-                int i = 0;
-                Messages.std_msgs.String msg;
-                while (ROS.ok && !closing)
-                {
-                    msg = new Messages.std_msgs.String("foo " + (i++));
-                    pub.publish(msg); 
-                    Dispatcher.Invoke(new Action(() =>
-                    {
-                        l.Content = "Sending: " + msg.data;
-                    }),new TimeSpan(0,0,1));
-                    Thread.Sleep(100);
-                }
-            });
-            pubthread.Start();
+				pubthread = new Thread(() =>
+				{
+					int i = 0;
+					Messages.std_msgs.String msg;
+					while (ROS.ok && !closing)
+					{
+						msg = new Messages.std_msgs.String("foo " + (i++));
+						pub.publish(msg);
+						Dispatcher.Invoke(new Action(() =>
+						{
+							l.Content = "Sending: " + msg.data;
+						}), new TimeSpan(0, 0, 1));
+						Thread.Sleep(100);
+					}
+				});
+				pubthread.Start();
+			}
+			catch (Exception e)
+			{
+				System.Diagnostics.Debug.Write(e);
+			}
         }
 
         protected override void  OnClosed(EventArgs e)
