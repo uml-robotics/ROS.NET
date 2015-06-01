@@ -416,13 +416,142 @@ namespace XmlRpc
 	{
 		return _type == ValueType.TypeStruct && asStruct.ContainsKey(name);
 	}
+/*
+	static Dictionary<string, Action<XmlNode>> parsers = new Dictionary<string, Action<XmlNode>>()
+	{
+		{BOOLEAN_TAG, parseBool},
+	};*/
 
-  public bool fromXml(XmlNode node)
-  {
-	  //int val = offset;
-	  //offset = 0;
-	  return false;
-  }
+	void parseString(XmlNode node)
+	{
+		this._type = ValueType.TypeString;
+		this.asString = node.InnerText;
+	}
+	void parseBool(XmlNode node)
+	{
+	}
+
+	//bool fromXml(string valueXml, out int offset)
+	public bool fromXml(XmlNode value)
+	{
+		//int val = offset;
+		//offset = 0;
+		try
+		{
+			//XmlElement value = node["value"];
+			if (value == null)
+				return false;
+			/*
+			foreach (var parser in parsers)
+			{
+				XmlElement el = value[parser.Key];
+				if (el == null)
+					continue;
+				parser.Value(el);
+				//if( != null)
+			}*/
+			string tex = value.InnerText;
+			XmlElement val;
+			if ((val = value[BOOLEAN_TAG]) != null)
+			{
+				this._type = ValueType.TypeBoolean;
+				//this.asBool = 
+			}
+			else if ((val = value[I4_TAG]) != null)
+			{
+				this._type = ValueType.TypeInt;
+				return int.TryParse(tex, out asInt);
+			}
+			else if ((val = value[INT_TAG]) != null)
+			{
+				this._type = ValueType.TypeInt;
+				return int.TryParse(tex, out asInt);
+			}
+			else if ((val = value[DOUBLE_TAG]) != null)
+			{
+			}
+			else if ((val = value[DATETIME_TAG]) != null)
+			{
+			}
+			else if ((val = value[DATETIME_TAG]) != null)
+			{
+			}
+			else if ((val = value[BASE64_TAG]) != null)
+			{
+			}
+			else if ((val = value[STRING_TAG]) != null)
+			{
+				this._type = ValueType.TypeString;
+				this.asString = tex;
+			}
+			else if ((val = value[ARRAY_TAG]) != null)
+			{
+				var data = val[DATA_TAG];
+				if (data == null)
+					return false;
+				var selection = data.SelectNodes(VALUE_TAG);
+				SetArray(selection.Count);
+				for (int i = 0; i < selection.Count; i++)
+				{
+					var xmlValue = new XmlRpcValue();
+					if (!xmlValue.fromXml(selection[i]))
+						return false;
+					asArray[i] = xmlValue;
+				}
+			}
+			else if ((val = value[STRUCT_TAG]) != null)
+			{
+			}
+			else if ((val = value[ARRAY_TAG]) != null)
+			{
+			}
+		}
+		catch (Exception ex)
+		{
+			return false;
+		}
+  /*
+		int savedOffset = offset;
+
+		invalidate();
+		if ( ! XmlRpcUtil.nextTagIs(VALUE_TAG, valueXml, offset))
+			return false;       // Not a value, offset not updated
+
+		int afterValueOffset = offset;
+		string typeTag = XmlRpcUtil.getNextTag(valueXml, offset);
+		bool result = false;
+		if (typeTag == BOOLEAN_TAG)
+			result = boolFromXml(valueXml, out offset);
+		else if (typeTag == I4_TAG || typeTag == INT_TAG)
+			result = intFromXml(valueXml, out offset);
+		else if (typeTag == DOUBLE_TAG)
+			result = doubleFromXml(valueXml, out offset);
+		else if (typeTag == null || typeTag.Equals(STRING_TAG))
+			result = stringFromXml(valueXml, out offset);
+		else if (typeTag == DATETIME_TAG)
+			result = timeFromXml(valueXml, out offset);
+		else if (typeTag == BASE64_TAG)
+			result = binaryFromXml(valueXml, out offset);
+		else if (typeTag == ARRAY_TAG)
+			result = arrayFromXml(valueXml, out offset);
+		else if (typeTag == STRUCT_TAG)
+			result = structFromXml(valueXml, out offset);
+		// Watch for empty/blank strings with no <string>tag
+		else if (typeTag == VALUE_ETAG)
+		{
+			offset = afterValueOffset;   // back up & try again
+			result = stringFromXml(valueXml, out offset);
+		}
+
+		if (result)  // Skip over the </value> tag
+			XmlRpcUtil.findTag(VALUE_ETAG, valueXml, offset);
+		else        // Unrecognized tag after <value>
+			offset = savedOffset;
+
+		return result;*/
+  
+		return true;
+	}
 
   public string toXml()
   {
