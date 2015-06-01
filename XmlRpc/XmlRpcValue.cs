@@ -12,7 +12,6 @@
 
 #region USINGZ
 
-//#define REFDEBUG
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -209,25 +208,20 @@ namespace XmlRpc
 		public int asInt;
 		public bool asBool;
 		public double asDouble;
-		public char[] asBinary;
+		public byte[] asBinary;
 		public XmlRpcValue[] asArray;
 		public Dictionary<string, XmlRpcValue> asStruct;
 
 		// Clean up
 		void invalidate()
 		{
-			/*
-			switch (_type) 
-			{
-				case TypeString:    delete _value.asString; break;
-				case TypeDateTime:  delete _value.asTime;   break;
-				case TypeBase64:    delete _value.asBinary; break;
-				case TypeArray:     delete _value.asArray;  break;
-				case TypeStruct:    delete _value.asStruct; break;
-				default: break;
-			}*/
 			_type = ValueType.TypeInvalid;
-			//_value.asBinary = 0;
+			asStruct = null;
+			asArray = null;
+			asString = null;
+			asBinary = null;
+			asBool = false;
+			asTime = null;
 		}
 
   
@@ -290,31 +284,6 @@ namespace XmlRpc
 			throw new XmlRpcException("type error: expected a struct");
 	}
 
-
-  // Operators
-/*
-  XmlRpcValue operator=(XmlRpcValue const& rhs)
-  {
-    if (this != &rhs)
-    {
-      invalidate();
-      _type = rhs._type;
-      switch (_type) {
-        case ValueType.TypeBoolean:  _value.asBool = rhs._value.asBool; break;
-        case ValueType.TypeInt:      _value.asInt = rhs._value.asInt; break;
-        case ValueType.TypeDouble:   _value.asDouble = rhs._value.asDouble; break;
-        case TypeDateTime: _value.asTime = new struct tm(*rhs._value.asTime); break;
-        case TypeString:   _value.asString = new std::string(*rhs._value.asString); break;
-        case TypeBase64:   _value.asBinary = new BinaryData(*rhs._value.asBinary); break;
-        case TypeArray:    _value.asArray = new ValueArray(*rhs._value.asArray); break;
-        case TypeStruct:   _value.asStruct = new ValueStruct(*rhs._value.asStruct); break;
-        default:           _value.asBinary = 0; break;
-      }
-    }
-    return *this;
-  }*/
-
-
   // Predicate for tm equality
 	static bool tmEq(tm t1, tm t2) 
 	{
@@ -347,18 +316,10 @@ namespace XmlRpc
 					var aenum = asStruct.GetEnumerator();
 					var benum = other.asStruct.GetEnumerator();			
 			
-					//ValueStruct::const_iterator it1=_value.asStruct->begin();
-					//ValueStruct::const_iterator it2=other._value.asStruct->begin();
 					while (aenum.MoveNext() && benum.MoveNext()) 
 					{
 						if (!aenum.Current.Value.Equals(benum.Current.Value))
 							return false;
-					//  const XmlRpcValue& v1 = it1->second;
-					//  const XmlRpcValue& v2 = it2->second;
-					//  if ( ! (v1 == v2))
-					//    return false;
-					//  it1++;
-					//  it2++;
 					}
 					return true;
 				}
@@ -366,13 +327,7 @@ namespace XmlRpc
 			}
 			return true;    // Both invalid values ...
 		}
-		/*
-  bool XmlRpcValue::operator!=(XmlRpcValue const& other) const
-  {
-    return !(*this == other);
-  }*/
-
-
+	
 	// Works for strings, binary data, arrays, and structs.
 	public int Length
 	{
@@ -416,11 +371,6 @@ namespace XmlRpc
 	{
 		return _type == ValueType.TypeStruct && asStruct.ContainsKey(name);
 	}
-/*
-	static Dictionary<string, Action<XmlNode>> parsers = new Dictionary<string, Action<XmlNode>>()
-	{
-		{BOOLEAN_TAG, parseBool},
-	};*/
 
 	void parseString(XmlNode node)
 	{
@@ -455,7 +405,12 @@ namespace XmlRpc
 			if ((val = value[BOOLEAN_TAG]) != null)
 			{
 				this._type = ValueType.TypeBoolean;
-				//this.asBool = 
+				int tmp = 0;
+				if (!int.TryParse(tex, out tmp))
+					return false;
+				if(tmp != 0 && tmp != 1)
+					return false;
+				this.asBool = (tmp == 0 ? false : true);
 			}
 			else if ((val = value[I4_TAG]) != null)
 			{
@@ -469,15 +424,16 @@ namespace XmlRpc
 			}
 			else if ((val = value[DOUBLE_TAG]) != null)
 			{
+				this._type = ValueType.TypeDouble;
+				return double.TryParse(tex, out this.asDouble);
 			}
 			else if ((val = value[DATETIME_TAG]) != null)
 			{
-			}
-			else if ((val = value[DATETIME_TAG]) != null)
-			{
+				// TODO: implement
 			}
 			else if ((val = value[BASE64_TAG]) != null)
 			{
+				// TODO: implement
 			}
 			else if ((val = value[STRING_TAG]) != null)
 			{
@@ -501,61 +457,19 @@ namespace XmlRpc
 			}
 			else if ((val = value[STRUCT_TAG]) != null)
 			{
-			}
-			else if ((val = value[ARRAY_TAG]) != null)
-			{
+				// TODO: implement
 			}
 		}
 		catch (Exception ex)
 		{
 			return false;
 		}
-  /*
-		int savedOffset = offset;
-
-		invalidate();
-		if ( ! XmlRpcUtil.nextTagIs(VALUE_TAG, valueXml, offset))
-			return false;       // Not a value, offset not updated
-
-		int afterValueOffset = offset;
-		string typeTag = XmlRpcUtil.getNextTag(valueXml, offset);
-		bool result = false;
-		if (typeTag == BOOLEAN_TAG)
-			result = boolFromXml(valueXml, out offset);
-		else if (typeTag == I4_TAG || typeTag == INT_TAG)
-			result = intFromXml(valueXml, out offset);
-		else if (typeTag == DOUBLE_TAG)
-			result = doubleFromXml(valueXml, out offset);
-		else if (typeTag == null || typeTag.Equals(STRING_TAG))
-			result = stringFromXml(valueXml, out offset);
-		else if (typeTag == DATETIME_TAG)
-			result = timeFromXml(valueXml, out offset);
-		else if (typeTag == BASE64_TAG)
-			result = binaryFromXml(valueXml, out offset);
-		else if (typeTag == ARRAY_TAG)
-			result = arrayFromXml(valueXml, out offset);
-		else if (typeTag == STRUCT_TAG)
-			result = structFromXml(valueXml, out offset);
-		// Watch for empty/blank strings with no <string>tag
-		else if (typeTag == VALUE_ETAG)
-		{
-			offset = afterValueOffset;   // back up & try again
-			result = stringFromXml(valueXml, out offset);
-		}
-
-		if (result)  // Skip over the </value> tag
-			XmlRpcUtil.findTag(VALUE_ETAG, valueXml, offset);
-		else        // Unrecognized tag after <value>
-			offset = savedOffset;
-
-		return result;*/
-  
 		return true;
 	}
 
-  public string toXml()
-  {
-	  XmlWriterSettings settings = new XmlWriterSettings();
+	public string toXml()
+	{
+		XmlWriterSettings settings = new XmlWriterSettings();
 		settings.OmitXmlDeclaration = true;
 		settings.ConformanceLevel = ConformanceLevel.Fragment;
 		settings.CloseOutput = false;
@@ -566,21 +480,11 @@ namespace XmlRpc
 		toXml(doc, doc);
 		doc.WriteContentTo(writer);
 		writer.Close();
-	  string result = strm.ToString();
-	  return result;
-  }
+		string result = strm.ToString();
+		return result;
+	}
 	public XmlNode toXml(XmlDocument doc, XmlNode parent)
 	{
-		/*
-		XmlWriterSettings settings = new XmlWriterSettings();
-		settings.OmitXmlDeclaration = true;
-		settings.ConformanceLevel = ConformanceLevel.Fragment;
-		settings.CloseOutput = false;*/
-		//StringWriter strm = new StringWriter();
-		//XmlWriter writer = XmlWriter.Create(strm, settings);
-
-		//XmlDocument doc = new XmlDocument();
-
 		XmlElement root = doc.CreateElement(VALUE_TAG);
 
 		//value.
@@ -610,11 +514,10 @@ namespace XmlRpc
 				break;
 			case ValueType.TypeBase64: 
 				//asBinary = other.asBinary; 
-				el = doc.CreateElement(DATA_TAG);
-				throw new NotImplementedException("Base64 serialization is not implemented");
-				//writer.WriteElementString(DATA_TAG, asBinary.ToString());
+				el = doc.CreateElement(BASE64_TAG);
+				var base64 = System.Convert.ToBase64String(asBinary);
+				el.AppendChild(doc.CreateTextNode(base64));
 				break;
-
 			case ValueType.TypeArray:
 				el = doc.CreateElement(DATA_TAG);
 				for (int i = 0; i < Size; i++)
@@ -622,10 +525,18 @@ namespace XmlRpc
 					asArray[i].toXml(doc, el);
 				}
 				break;
-			// The map<>::operator== requires the definition of value< for kcc
-			case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
-				throw new NotImplementedException("Struct serialization is not implemented");
-				//asStruct = other.asStruct;
+			case ValueType.TypeStruct:
+				el = doc.CreateElement(STRUCT_TAG);
+				foreach (var record in this.asStruct)
+				{
+					var member = doc.CreateElement(MEMBER_TAG);
+					var name = doc.CreateElement(NAME_TAG);
+					name.AppendChild(doc.CreateTextNode(record.Key));
+					member.AppendChild(name);
+					record.Value.toXml(doc, member);
+					el.AppendChild(member);
+				}
+				//throw new NotImplementedException("Struct serialization is not implemented");
 				break;
 		}
 
@@ -1131,7 +1042,6 @@ namespace XmlRpc
 		[DebuggerStepThrough]
 		get
 		{
-			//SegFault();
 			return this._type != ValueType.TypeInvalid;
 		}
 	}
@@ -1143,23 +1053,13 @@ namespace XmlRpc
 		{
 			return _type;
 		}
-		/*
-		[DebuggerStepThrough]
-		set
-		{
-			//SegFault();
-			settype(instance, (int) value);
-		}*/
 	}
-
-	
 
 	public int Size
 	{
 		[DebuggerStepThrough]
 		get
 		{
-			//SegFault();
 			if (!Valid || Type == ValueType.TypeInvalid || Type == ValueType.TypeIDFK)
 			{
 				return 0;
@@ -1173,15 +1073,7 @@ namespace XmlRpc
 			else if (Type == ValueType.TypeStruct)
 				return asStruct.Count;
 			return 0;
-			//return getsize(instance);
 		}
-		/*
-		[DebuggerStepThrough]
-		set
-		{
-			SegFault();
-			setsize(instance, value);
-		}*/
 	}
 
 	[DebuggerStepThrough]
@@ -1196,22 +1088,18 @@ namespace XmlRpc
 		{
 			this._type = ValueType.TypeInt;
 			this.asInt = (int)(object)t;
-			//set(instance, (int) (object) t);
 		}
 		else if (this is T)
 		{
 			Copy(t as XmlRpcValue);
-			//set(instance, ((XmlRpcValue) (object) t).instance);
 		}
 		else if (t is bool)
 		{
 			asBool = (bool)(object)t;
 			this._type = ValueType.TypeBoolean;
-			//set(instance, (bool)(object)t);
 		}
 		else if (0d is T)
 		{
-			//set(instance, (double) (object) t);
 			asDouble = (double)(object)t;
 			this._type = ValueType.TypeDouble;
 		}
@@ -1322,35 +1210,30 @@ namespace XmlRpc
 			if (asStruct.ContainsKey(key))
 				return asStruct[key];
 			return null;
-			//return LookUp(nested);
 		}
 
 		[DebuggerStepThrough]
 		public int GetInt()
 		{
-			//SegFault();
-			return asInt;// getint(__instance);
+			return asInt;
 		}
 
 		[DebuggerStepThrough]
 		public string GetString()
 		{
-			//SegFault();
-			return asString;// Marshal.PtrToStringAnsi(getstring(__instance));
+			return asString;
 		}
 
 		[DebuggerStepThrough]
 		public bool GetBool()
 		{
-			//SegFault();
-			return asBool;// getbool(__instance);
+			return asBool;
 		}
 
 		[DebuggerStepThrough]
 		public double GetDouble()
 		{
-			//SegFault();
-			return asDouble;// getdouble(__instance);
+			return asDouble;
 		}
 		/*
 		[DebuggerStepThrough]
