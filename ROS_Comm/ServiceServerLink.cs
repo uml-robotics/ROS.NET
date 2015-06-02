@@ -342,7 +342,7 @@ namespace Ros_CSharp
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
             if (iresp != null)
-                resp = (MRes) resp.Deserialize(iresp.Serialized);
+                resp = (MRes) iresp;//.Deserialize(iresp.Serialized);
             else
             {
                 //std_servs.Empty, I hope?
