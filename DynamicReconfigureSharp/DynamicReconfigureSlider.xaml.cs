@@ -42,7 +42,7 @@ namespace DynamicReconfigureSharp
                 value.Maximum = 1000.0;
             else
                 value.Maximum = max;
-            description.Content = name + ":";
+            description.Text = name + ":";
             JustTheTip.Content = pd.description.data;
 
             if (isDouble)
@@ -71,9 +71,9 @@ namespace DynamicReconfigureSharp
 
         private void changed(int newstate)
         {
-            ignore = true;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                ignore = true;
                 box.Text = "" + newstate;
                 value.Value = newstate;
                 if (intchanged != null)
@@ -84,9 +84,9 @@ namespace DynamicReconfigureSharp
 
         private void changed(double newstate)
         {
-            ignore = true;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                ignore = true;
                 box.Text = string.Format("{0:N2}", newstate);
                 value.Value = newstate;
                 if (doublechanged != null)
@@ -102,9 +102,14 @@ namespace DynamicReconfigureSharp
                 double d = 0;
                 if (double.TryParse(box.Text, out d))
                 {
-                    value.Value = d;
-                    if (!ignore)
-                        dynamic.Set(name, d);
+                    if (value.Value != d)
+                    {
+                        value.Value = d;
+                        //the following was redundant since the "Set" method is 
+                        //going to be called from the ValueChanged event
+                        //if (!ignore)
+                            //dynamic.Set(name, d);                        
+                    }
                 }
             }
             else
@@ -112,9 +117,14 @@ namespace DynamicReconfigureSharp
                 int i = 0;
                 if (int.TryParse(box.Text, out i))
                 {
-                    value.Value = i;
-                    if (!ignore)
-                        dynamic.Set(name, i);
+                    if (value.Value != i)
+                    {
+                        value.Value = i;
+                        //the following was redundant since the "Set" method is 
+                        //going to be called from the ValueChanged event
+                        //if (!ignore)
+                            //dynamic.Set(name, i);
+                    }
                 }
             }
         }
@@ -132,21 +142,41 @@ namespace DynamicReconfigureSharp
             commit();
         }
 
-        private void Value_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        #region Slider Value Changed
+        private bool dragStarted = false;
+        private void Slider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+        {
+            this.dragStarted = true;
+        }
+        private void Slider_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
         {
             if (isDouble)
-            {
                 box.Text = string.Format("{0:N2}", value.Value);
-                if (!ignore)
-                    dynamic.Set(name, value.Value);
-            }
             else
-            {
-                box.Text = "" + (int) value.Value;
-                if (!ignore)
-                    dynamic.Set(name, (int) value.Value);
-            }
+                box.Text = "" + (int)value.Value;
         }
+        private void Slider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            this.dragStarted = false;
+            Value_OnValueChanged(null, null);
+        }
+        private void Value_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!dragStarted)
+                if (isDouble)
+                {
+                    box.Text = string.Format("{0:N2}", value.Value);
+                    if (!ignore)
+                        dynamic.Set(name, value.Value);
+                }
+                else
+                {
+                    box.Text = "" + (int)value.Value;
+                    if (!ignore)
+                        dynamic.Set(name, (int)value.Value);
+                }
+        }
+        #endregion
 
         private event Action<int> intchanged;
         private event Action<double> doublechanged;
@@ -184,6 +214,7 @@ namespace DynamicReconfigureSharp
         }
 
         #endregion
+
     }
 
     public class AllowableCharactersTextBoxBehavior : Behavior<TextBox>

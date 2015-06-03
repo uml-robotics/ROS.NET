@@ -37,6 +37,7 @@ namespace DynamicReconfigureTest
                 TargetBox.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("", System.ComponentModel.ListSortDirection.Ascending));
                 TargetBox.ItemsSource = knownConfigurations.Keys;
                 knownConfigurations.Add("-", null);
+                TargetBox.SelectedIndex = 0;
             }
             catch (Exception e)
             {
@@ -84,19 +85,23 @@ namespace DynamicReconfigureTest
                                 }
                             }
                         }
-                    }));
+                    }), new TimeSpan(0, 0, 0, 0, 500), null);
                     Thread.Sleep(500);
                 }
             });
             topicPoller.Start();
         }
 
-        protected override void OnClosed(EventArgs e)
-        {
-            ROS.shutdown();
-            topicPoller.Join();
-            base.OnClosed(e);
-        }
+        //This freezes if the window closes and the topicPoller is waiting to
+        //acquire the dispatcher. The code was moved to the "Window_Closing" method.
+        //This is not the only case, I added a timeout to the threadPoller dispatcher
+        //protected override void OnClosed(EventArgs e)
+        //{
+        //    ROS.shutdown();
+        //    ROS.waitForShutdown();
+        //    topicPoller.Join();
+        //    base.OnClosed(e);
+        //}
 
         private void TargetBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -109,10 +114,17 @@ namespace DynamicReconfigureTest
                 string newprefix = news.ElementAt(0);
                 if (newprefix != null)
                 {
-                    if (knownConfigurations.ContainsKey(newprefix))
+                    if (knownConfigurations.ContainsKey(newprefix) && !newprefix.Equals("-"))
                         PageContainer.Children.Add(knownConfigurations[newprefix]);
                 }
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            ROS.shutdown();
+            ROS.waitForShutdown();
+            topicPoller.Join();
         }
     }
 }

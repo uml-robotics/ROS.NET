@@ -13,7 +13,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Label Name="description" HorizontalAlignment="Right">Description</Label>
+        <TextBlock Name="description" HorizontalAlignment="Right">Description</TextBlock>
         <TextBox Name="Box" Grid.Column="1" MinWidth="100" HorizontalAlignment="Stretch" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus" />
     </Grid>
 </UserControl>

@@ -15,7 +15,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="70" />
         </Grid.ColumnDefinitions>
-        <Label Name="description" Grid.Column="0" HorizontalAlignment="Right">Description</Label>
+        <TextBlock Name="description" Grid.Column="0" HorizontalAlignment="Right">Description</TextBlock>
         <Grid Name="numberline" Grid.Column="1" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -24,7 +24,11 @@
             </Grid.ColumnDefinitions>
             <Label Name="maxlabel" Grid.Column="2" />
             <Label Name="minlabel" Grid.Column="0" />
-            <Slider Name="value" Grid.Column="1" VerticalAlignment="Center" ValueChanged="Value_OnValueChanged" />
+            <Slider Name="value" Grid.Column="1" VerticalAlignment="Center" ValueChanged="Value_OnValueChanged" 
+                    Thumb.DragStarted="Slider_DragStarted"
+                    Thumb.DragDelta="Slider_DragDelta"
+                    Thumb.DragCompleted="Slider_DragCompleted">
+            </Slider>
         </Grid>
         <TextBox Name="box" VerticalAlignment="Center" Grid.Column="2" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus">
             <i:Interaction.Behaviors>

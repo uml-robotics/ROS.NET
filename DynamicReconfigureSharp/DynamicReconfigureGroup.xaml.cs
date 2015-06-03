@@ -81,6 +81,12 @@ namespace DynamicReconfigureSharp
             _parent = g.parent;
             Loaded += (sender, args) =>
             {
+                paramsHolder.Children.Clear();
+                dropdowns.Clear();
+                checkboxes.Clear();
+                sliders.Clear();
+                boxes.Clear();
+
                 foreach (ParamDescription s in g.parameters)
                 {
                     string _name = s.name.data;
