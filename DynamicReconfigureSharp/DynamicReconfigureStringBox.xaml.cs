@@ -20,6 +20,7 @@ namespace DynamicReconfigureSharp
         private DynamicReconfigureInterface dynamic;
         private bool ignore = true;
         private string name;
+        private string text;
 
         public DynamicReconfigureStringBox(DynamicReconfigureInterface dynamic, ParamDescription pd, string def)
         {
@@ -27,10 +28,11 @@ namespace DynamicReconfigureSharp
             name = pd.name.data;
             this.dynamic = dynamic;
             InitializeComponent();
-            description.Content = name + ":";
+            description.Text = name + ":";
             JustTheTip.Content = pd.description.data;
             dynamic.Subscribe(name, changed);
             ignore = false;
+            text = Box.Text;
         }
 
         private void changed(string newstate)
@@ -39,6 +41,7 @@ namespace DynamicReconfigureSharp
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 Box.Text = newstate;
+                text = newstate;
                 if (stringchanged != null)
                     stringchanged(newstate);
                 ignore = false;
@@ -47,7 +50,11 @@ namespace DynamicReconfigureSharp
 
         private void commit()
         {
-            dynamic.Set(name, Box.Text);
+            if (!Box.Text.Equals(text))
+            {
+                dynamic.Set(name, Box.Text);
+                text = Box.Text;
+            }
         }
 
         private void Box_OnKeyDown(object sender, KeyEventArgs e)
