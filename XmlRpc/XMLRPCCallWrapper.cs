@@ -197,6 +197,11 @@ namespace XmlRpc
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
         }*/
 
+		public virtual string Help()
+		{
+			return "no help";
+		}
+
         #region P/Invoke
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServerMethod_Create",

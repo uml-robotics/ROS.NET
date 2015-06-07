@@ -367,7 +367,7 @@ namespace XmlRpc
 	}
 
 	// Checks for existence of struct member
-	bool hasMember(string name)
+	public bool hasMember(string name)
 	{
 		return _type == ValueType.TypeStruct && asStruct.ContainsKey(name);
 	}

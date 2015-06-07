@@ -202,7 +202,7 @@ namespace XmlRpc
             }
         }
 
-        private XmlRpcDispatch _dispatch;
+        //private XmlRpcDispatch _dispatch;
 
         #region P/Invoke
 		/*
@@ -356,6 +356,172 @@ namespace XmlRpc
             if (instance == IntPtr.Zero)
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
         }*/
+		
+		// Handle input on the server socket by accepting the connection
+		// and reading the rpc request.
+		override public XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
+		{
+		  acceptConnection();
+		  return XmlRpcDispatch.EventType.ReadableEvent;		// Continue to monitor this fd
+		}
+
+
+		// Accept a client connection request and create a connection to
+		// handle method calls from the client.
+		void acceptConnection()
+		{	
+			try{
+				Socket s = this.getSocket().Accept();//XmlRpcSocket::accept(this->getfd());
+				//XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: socket %d", s);
+
+				XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: creating a connection");
+				_disp.AddSource(this.createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
+			}
+			catch(SocketException ex)
+			{
+			//if (s == null)
+			//{
+			//this->close();
+				XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+			//}
+			}
+				/*
+			else if (s!XmlRpcSocket.setNonBlocking(s))
+			{
+			XmlRpcSocket::close(s);
+			XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
+			}*/
+			//else  // Notify the dispatcher to listen for input on this source when we are in work()
+			{
+			
+			}
+		}
+
+		HttpListener httpListener;
+
+		void onRequest(HttpListenerContext context)
+		{
+			//httpListener.S
+		}
+
+		// Create a new connection object for processing requests from a specific client.
+		XmlRpcServerConnection createConnection(Socket s)
+		{
+			// Specify that the connection object be deleted when it is closed
+			return new XmlRpcServerConnection(s, this, true);
+		}
+
+
+		public void removeConnection(XmlRpcServerConnection sc)
+		{
+		  _disp.RemoveSource(sc);
+		}
+
+
+		// Stop processing client requests
+		void exit()
+		{
+		  _disp.Exit();
+		}
+
+
+		// Close the server socket file descriptor and stop monitoring connections
+		void shutdown()
+		{
+		  // This closes and destroys all connections as well as closing this socket
+		  _disp.Clear();
+		}
+
+
+// Introspection support
+static string LIST_METHODS = "system.listMethods";
+static string METHOD_HELP = "system.methodHelp";
+static string MULTICALL = "system.multicall";
+
+
+// List all methods available on a server
+class ListMethods : XmlRpcServerMethod
+{
+public
+  ListMethods(XmlRpcServer s)
+		: base(LIST_METHODS, null, s) { this.FUNC = execute; }
+
+	void execute(XmlRpcValue parms, XmlRpcValue result)
+	{
+		server.listMethods(result);
+	}
+
+	string help() { return "List all methods available on a server as an array of strings"; }
+};
+
+
+// Retrieve the help string for a named method
+class MethodHelp : XmlRpcServerMethod
+{
+public MethodHelp(XmlRpcServer s) : base(METHOD_HELP, null, s) 
+{
+	this.FUNC = execute;
+}
+
+  void execute(XmlRpcValue parms, XmlRpcValue result)
+  {
+    if (parms[0].Type != XmlRpcValue.ValueType.TypeString)
+      throw new XmlRpcException(METHOD_HELP + ": Invalid argument type");
+
+	XmlRpcServerMethod m = server.FindMethod(parms[0].GetString());
+    if (m == null)
+      throw new XmlRpcException(METHOD_HELP + ": Unknown method name");
+
+	result.Set(m.Help());
+  }
+
+  public override string Help() { return ("Retrieve the help string for a named method"); }
+};
+
+    
+// Specify whether introspection is enabled or not. Default is enabled.
+void enableIntrospection(bool enabled)
+{
+  if (_introspectionEnabled == enabled)
+    return;
+
+  _introspectionEnabled = enabled;
+
+  if (enabled)
+  {
+    if ( _listMethods == null)
+    {
+      _listMethods = new ListMethods(this);
+      _methodHelp = new MethodHelp(this);
+    } else {
+      AddMethod(_listMethods);
+      AddMethod(_methodHelp);
+    }
+  }
+  else
+  {
+    RemoveMethod(LIST_METHODS);
+    RemoveMethod(METHOD_HELP);
+  }
+}
+
+
+void listMethods(XmlRpcValue result)
+{
+  int i = 0;
+  result.SetArray(_methods.Count+1);
+
+  foreach (var rec in _methods)
+  {
+	  result.Set(i++, rec.Key);
+  }
+	/*
+  for (MethodMap::iterator it=_methods.begin(); it != _methods.end(); ++it)
+    result[i++] = it->first;*/
+
+  // Multicall support is built into XmlRpcServerConnection
+  result.Set(i, MULTICALL);
+}
 
 		int _port;
     }

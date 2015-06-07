@@ -108,6 +108,7 @@ namespace XmlRpc
 
 		public virtual XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
+			throw new NotImplementedException();
 			return 0;// handleevent(instance, eventType);
         }
 

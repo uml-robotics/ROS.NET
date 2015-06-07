@@ -645,9 +645,11 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", this.getSocketError());
 			return false;
 		}
-
-		writer = new StreamWriter(socket.GetStream());
-		reader = new StreamReader(socket.GetStream());
+		else
+		{
+			writer = new StreamWriter(socket.GetStream());
+			reader = new StreamReader(socket.GetStream());
+		}
 		return true;
 	}
 	public void Shutdown()

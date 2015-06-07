@@ -46,6 +46,7 @@
     <Compile Include="XmlRpcClient.cs" />
     <Compile Include="XmlRpcDispatch.cs" />
     <Compile Include="XmlRpcServer.cs" />
+    <Compile Include="XmlRpcServerConnection.cs" />
     <Compile Include="XmlRpcSource.cs" />
     <Compile Include="XmlRpcUtil.cs" />
     <Compile Include="XmlRpcValue.cs" />
