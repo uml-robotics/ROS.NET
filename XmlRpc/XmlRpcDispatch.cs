@@ -306,7 +306,7 @@ namespace XmlRpc
 				//struct timeval tv;
 				//tv.tv_sec = (int)floor(timeout);
 				//tv.tv_usec = ((int)floor(1000000.0 * (timeout-floor(timeout)))) % 1000000;
-				Socket.Select(checkRead, checkWrite, checkExc, (int)(timeout * 1000000));
+				Socket.Select(checkRead, checkWrite, checkExc, (int)(timeout * 1000000.0));
 				//nEvents = select(maxFd+1, &inFd, &outFd, &excFd, &tv);
 			}
 
@@ -314,8 +314,14 @@ namespace XmlRpc
 
 			if (nEvents == 0)
 				return;
+			List<DispatchRecord> sourcesCopy = new List<DispatchRecord>();
+			lock (this.sources)
+			{
+				foreach (var record in this.sources)
+					sourcesCopy.Add(record);
+			}
 			// Process events
-			foreach (var record in this.sources)
+			foreach (var record in sourcesCopy)
 			{
 				XmlRpcSource src = record.client;
 				XmlRpcDispatch.EventType newMask = defaultMask;// (unsigned) -1;

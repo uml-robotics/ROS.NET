@@ -25,124 +25,6 @@ namespace XmlRpc
 {
     public class XmlRpcServerMethod //: IDisposable
     {
-		
-        #region Reference Tracking + unmanaged pointer management
-/*
-        private IntPtr __instance;
-
-        public void Dispose()
-        {
-            RmRef(ref __instance);
-            if (__instance == IntPtr.Zero)
-            {
-                FUNC = null;
-            }
-        }
-
-        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
-        private static object reflock = new object();
-#if REFDEBUGWrapper
-        private static Thread refdumper;
-        private static void dumprefs()
-        {
-            while (true)
-            {
-                Dictionary<IntPtr, int> dainbrammage = null;
-                lock (reflock)
-                {
-                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
-                }
-                Console.WriteLine("REF DUMP");
-                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
-                {
-                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
-                }
-                Thread.Sleep(500);
-            }
-        }
-#endif
-		
-        [DebuggerStepThrough]
-        public static XMLRPCCallWrapper LookUp(IntPtr ptr)
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                AddRef(ptr);
-                return new XMLRPCCallWrapper(ptr);
-            }
-            return null;
-        }
-
-
-        [DebuggerStepThrough]
-        private static void AddRef(IntPtr ptr)
-        {
-#if REFDEBUGWrapper
-            if (refdumper == null)
-            {
-                refdumper = new Thread(dumprefs);
-                refdumper.IsBackground = true;
-                refdumper.Start();
-            }
-#endif
-            lock (reflock)
-            {
-                if (!_refs.ContainsKey(ptr))
-                {
-#if REFDEBUGWrapper
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
-#endif
-                    _refs.Add(ptr, 1);
-                }
-                else
-                {
-#if REFDEBUGWrapper
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
-#endif
-                    _refs[ptr]++;
-                }
-            }
-        }
-
-        [DebuggerStepThrough]
-        private static void RmRef(ref IntPtr ptr)
-        {
-            lock (reflock)
-            {
-                if (_refs.ContainsKey(ptr))
-                {
-#if REFDEBUGWrapper
-                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
-#endif
-                    _refs[ptr]--;
-                    if (_refs[ptr] <= 0)
-                    {
-#if REFDEBUGWrapper
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S NOT VERY NICE!");
-#endif
-                        _refs.Remove(ptr);
-                        XmlRpcUtil.Free(ptr);
-                        ptr = IntPtr.Zero;
-                    }
-                }
-            }
-        }
-
-        public IntPtr instance
-        {
-            [DebuggerStepThrough] get { return __instance; }
-            [DebuggerStepThrough]
-            set
-            {
-                if (__instance != IntPtr.Zero)
-                    RmRef(ref __instance);
-                if (value != IntPtr.Zero)
-                    AddRef(value);
-                __instance = value;
-            }
-        }
-		*/
-        #endregion
 
         private XMLRPCFunc _FUNC;
 
@@ -159,12 +41,7 @@ namespace XmlRpc
             //SegFault();
             FUNC = func;
         }
-		/*
-        [DebuggerStepThrough]
-        public XMLRPCCallWrapper(IntPtr ptr)
-        {
-            instance = ptr;
-        }*/
+
 
         public XMLRPCFunc FUNC
         {
@@ -190,12 +67,6 @@ namespace XmlRpc
             //execute(parms, reseseses);
 			_FUNC(parms, reseseses);
         }
-		/*
-        public void SegFault()
-        {
-            if (instance == IntPtr.Zero)
-                throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
-        }*/
 
 		public virtual string Help()
 		{
