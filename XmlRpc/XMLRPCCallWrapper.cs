@@ -40,6 +40,8 @@ namespace XmlRpc
             //AddRef(__instance);
             //SegFault();
             FUNC = func;
+			if(server != null)
+				server.AddMethod(this);
         }
 
 

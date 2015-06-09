@@ -13,7 +13,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Ros_CSharp;
-using XmlRpc_Wrapper;
 using Messages;
 using System.Threading;
 
@@ -30,7 +29,7 @@ namespace SimpleSubscriber
         public MainWindow()
         {
             InitializeComponent();
-
+			ROS.ROS_MASTER_URI = "http://notemind02:11311";
             ROS.Init(new string[0], "wpf_listener");
             nh = new NodeHandle();
 

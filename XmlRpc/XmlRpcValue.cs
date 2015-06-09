@@ -1103,23 +1103,40 @@ namespace XmlRpc
 			asDouble = (double)(object)t;
 			this._type = ValueType.TypeDouble;
 		}
+		else if (t is XmlRpcValue)
+		{
+			Copy(t as XmlRpcValue);
+		}
 	}
 	public void EnsureArraySize(int size)
 	{
-		if (asArray != null && asArray.Length < size)
-			Array.Resize(ref asArray, size);
+		if (_type != ValueType.TypeInvalid && _type != ValueType.TypeArray)
+			throw new Exception("Converting to array existing value");
+		if (asArray != null)
+		{
+			if (asArray.Length < size+1)
+				Array.Resize(ref asArray, size+1);
+		}
+		else
+			asArray = new XmlRpcValue[size+1];
+		this._type = ValueType.TypeArray;
 	}
 	
 		public XmlRpcValue this[int key]
 		{
+			
 			[DebuggerStepThrough]
 			get 
 			{
-				EnsureArraySize(key+1);
+				EnsureArraySize(key);
 				return Get(key); 
 			}
 			[DebuggerStepThrough]
-			set { Set(key, value); }
+			set 
+			{
+				EnsureArraySize(key);
+				Set(key, value); 
+			}
 		}
 
 		public XmlRpcValue this[string key]
@@ -1133,6 +1150,7 @@ namespace XmlRpc
 		[DebuggerStepThrough]
 		public void Set<T>(int key, T t)
 		{
+			EnsureArraySize(key);
 			if (asArray[key] == null)
 			{
 				asArray[key] = new XmlRpcValue();

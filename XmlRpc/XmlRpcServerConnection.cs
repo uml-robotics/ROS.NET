@@ -61,6 +61,8 @@ namespace XmlRpc
 		Socket socket;
 
 		NetworkStream stream;
+		StreamReader reader;
+		StreamWriter writer;
 
 		// The server delegates handling client requests to a serverConnection object.
 		public XmlRpcServerConnection(Socket fd, XmlRpcServer server, bool deleteOnClose /*= false*/) 
@@ -71,6 +73,8 @@ namespace XmlRpc
 			this.socket = fd;
 			//this.socket.Blocking = false;
 			stream = new NetworkStream(socket);
+			reader = new StreamReader(stream);
+			writer = new StreamWriter(stream);
 			_connectionState = ServerConnectionState.READ_HEADER;
 			this.KeepOpen = true;
 			_keepAlive = true;
@@ -110,7 +114,7 @@ namespace XmlRpc
 			int dataLen = 0;
 			//string data = "";
 			try{
-				using (StreamReader reader = new StreamReader(stream))
+				//using(StreamReader reader = new StreamReader(stream))
 				{
 					if (reader.Peek() > 0)
 					{
@@ -265,7 +269,6 @@ namespace XmlRpc
 				char[] data = new char[left];
 				try
 				{
-					using (StreamReader reader = new StreamReader(stream))
 					{
 						if (reader.Peek() > 0)
 						{
@@ -301,22 +304,24 @@ namespace XmlRpc
 				XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: empty response.");
 				return false;
 			}
-			
-			using (StreamWriter writer = new StreamWriter(stream))
+			try
 			{
-				try
+				//using (StreamWriter writer = new StreamWriter(stream))
 				{
-					// Try to write the response
-					writer.Write(response);
-					_bytesWritten = response.Length;
-				}
-				catch (Exception ex)
-				{
-					XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: write error ({0}).", ex.Message);
-					return false;
+				
+						// Try to write the response
+						writer.Write(response);
+						writer.Flush();
+						_bytesWritten = response.Length;
+				
 				}
 			}
-			XmlRpcUtil.log(3, "XmlRpcServerConnection::writeResponse: wrote %d of %d bytes.", _bytesWritten, response.Length);
+			catch (Exception ex)
+			{
+				XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: write error ({0}).", ex.Message);
+				return false;
+			}
+			XmlRpcUtil.log(3, "XmlRpcServerConnection::writeResponse: wrote {0} of {0} bytes.", _bytesWritten, response.Length);
 
 			// Prepare to read the next request
 			if (_bytesWritten == response.Length) 

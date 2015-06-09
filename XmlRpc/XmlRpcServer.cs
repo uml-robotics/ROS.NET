@@ -376,7 +376,7 @@ namespace XmlRpc
 
     
 		// Specify whether introspection is enabled or not. Default is enabled.
-		void enableIntrospection(bool enabled)
+		public void enableIntrospection(bool enabled)
 		{
 			if (_introspectionEnabled == enabled)
 				return;
@@ -497,8 +497,8 @@ namespace XmlRpc
 				for (int i = 0; i < xmlParameters.Count; i++)
 				{
 					var value = new XmlRpcValue();
-					value.fromXml(xmlParameters[i]);
-					parms[i++] = value;
+					value.fromXml(xmlParameters[i]["value"]);
+					parms.asArray[i] = value;
 				}
 				/*
 				XmlNode responseNode = xmlParameters[0];
@@ -641,5 +641,5 @@ namespace XmlRpc
 
 			return true;
 		}
-    }
+	}
 }

@@ -249,6 +249,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 						{
 							_response = reader.ReadToEnd();
 							parseResponse(result, _response);
+							Debug.Write(String.Format("Request: {0}\nResponse: {1}", requestData, _response));
 						}
 					}
 				}
