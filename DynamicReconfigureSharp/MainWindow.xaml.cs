@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using DynamicReconfigureSharp;
 using Ros_CSharp;
+using XmlRpc_Wrapper;
 
 #endregion
 
@@ -18,7 +20,7 @@ namespace DynamicReconfigureTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Dictionary<string, DynamicReconfigurePage> knownConfigurations = new Dictionary<string, DynamicReconfigurePage>();
+        private SortedDictionary<string, DynamicReconfigurePage> knownConfigurations = new SortedDictionary<string, DynamicReconfigurePage>(); 
         private NodeHandle nh;
         private Thread topicPoller;
 
@@ -33,8 +35,7 @@ namespace DynamicReconfigureTest
             try
             {
                 InitializeComponent();
-                TargetBox.Items.SortDescriptions.Clear();
-                TargetBox.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("", System.ComponentModel.ListSortDirection.Ascending));
+                System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
                 TargetBox.ItemsSource = knownConfigurations.Keys;
                 knownConfigurations.Add("-", null);
                 TargetBox.SelectedIndex = 0;
@@ -49,43 +50,61 @@ namespace DynamicReconfigureTest
             {
                 while (ROS.ok && !ROS.shutting_down)
                 {
-                    Dispatcher.Invoke(new Action(() =>
+                    
+                    TopicInfo[] topics = new TopicInfo[0];
+                    master.getTopics(ref topics);
+                    string[] nodes = new string[0];
+                    master.getNodes(ref nodes);
+                    List<string> prevlist = new List<string>(knownConfigurations.Keys);
+                    List<string> additions = new List<string>();
+                    foreach (TopicInfo ti in topics)
                     {
-                        TopicInfo[] topics = new TopicInfo[0];
-                        master.getTopics(ref topics);
-                        List<string> prevlist = new List<string>(knownConfigurations.Keys);
-                        List<string> additions = new List<string>();
-                        foreach (TopicInfo ti in topics)
+                        if (ti.data_type == "dynamic_reconfigure/Config")
                         {
-                            if (ti.data_type == "dynamic_reconfigure/Config")
-                            {
-                                string prefix = ti.name.Replace("/parameter_updates", "");
+                            string prefix = ti.name.Replace("/parameter_updates", "");
+                            if (!knownConfigurations.ContainsKey(prefix))
+                                additions.Add(prefix);
+                            else
                                 prevlist.Remove(prefix);
-                                if (!knownConfigurations.ContainsKey(prefix))
-                                {
-                                    additions.Add(prefix);
-                                }
-                            }
                         }
-                        lock (this)
+                    }
+                    lock (this)
+                    {
+                        if (!ROS.ok || ROS.shutting_down)
+                            return;
+                        foreach (string prefix in additions)
                         {
-                            if (!ROS.ok || ROS.shutting_down)
-                                return;
-                            foreach (string prefix in additions)
-                            {
-                                DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, prefix);
-                                if (drp != null)
-                                    knownConfigurations.Add(prefix, drp);
-                            }
-                            foreach (string s in prevlist)
-                            {
-                                if (!knownConfigurations.ContainsKey(s))
-                                {
-                                    knownConfigurations.Remove(s);
-                                }
-                            }
+                            string pfx = prefix;
+                            Dispatcher.Invoke(new Action(() =>
+                                                             {
+                                                                 DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, pfx);
+                                                                 if (drp != null)
+                                                                 {
+                                                                     knownConfigurations.Add(pfx, drp);
+                                                                     TargetBox.Items.Refresh();
+                                                                 }
+                                                             }), new TimeSpan(0,0,0,1));
                         }
-                    }), new TimeSpan(0, 0, 0, 0, 500), null);
+                    }
+                    foreach (string s in prevlist)
+                    {
+                        if (!s.Equals("-"))
+                        {
+                            string pfx = s;
+                            Dispatcher.Invoke(new Action(() =>
+                                                                {
+                                                                    if (TargetBox.SelectedItem != null && ((string) TargetBox.SelectedItem).Equals(pfx))
+                                                                    {
+                                                                        TargetBox.SelectedIndex = 0;
+                                                                    }
+                                                                    lock (this)
+                                                                    {
+                                                                        knownConfigurations.Remove(pfx);
+                                                                        TargetBox.Items.Refresh();
+                                                                    }
+                                                                }), new TimeSpan(0, 0, 0, 1));
+                        }
+                    }
                     Thread.Sleep(500);
                 }
             });
