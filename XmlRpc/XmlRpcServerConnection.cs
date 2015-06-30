@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -58,23 +59,15 @@ namespace XmlRpc
 		// Whether to keep the current client connection open for further requests
 		bool _keepAlive;
 
-		Socket socket;
-
-		NetworkStream stream;
-		StreamReader reader;
-		StreamWriter writer;
-
+		TcpClient socket;
+		
 		// The server delegates handling client requests to a serverConnection object.
-		public XmlRpcServerConnection(Socket fd, XmlRpcServer server, bool deleteOnClose /*= false*/) 
+		public XmlRpcServerConnection(TcpClient fd, XmlRpcServer server, bool deleteOnClose /*= false*/) 
 		//: base(fd, deleteOnClose)
 		{
 			XmlRpcUtil.log(2,"XmlRpcServerConnection: new socket %d.", fd);
 			this.server = server;
 			this.socket = fd;
-			//this.socket.Blocking = false;
-			stream = new NetworkStream(socket);
-			reader = new StreamReader(stream);
-			writer = new StreamWriter(stream);
 			_connectionState = ServerConnectionState.READ_HEADER;
 			this.KeepOpen = true;
 			_keepAlive = true;
@@ -110,32 +103,30 @@ namespace XmlRpc
 			// Read available data
 			bool eof;
 
-			char[] data = new char[1024];
+			byte[] data = new byte[1024];
 			int dataLen = 0;
 			//string data = "";
-			try{
-				//using(StreamReader reader = new StreamReader(stream))
-				{
-					if (reader.Peek() > 0)
-					{
-						dataLen = reader.Read(data, 0, data.Length);
-						//data = reader.Read();
-					}
-					else
-					{
-						return false;
-					}
-				}
+			try
+			{
+				var stream = socket.GetStream();
+				dataLen = stream.Read(data, 0, 1024);
 			}
-			catch(Exception ex)
-			{ 
-				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).",ex.Message);
+			catch (SocketException ex)
+			{
+				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+				return false;
 			}
+			catch (Exception ex)
+			{
+				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+				return false;
+			}
+			/// If it is disconnect
+			if (dataLen == 0)
+				return false;
 			if (dataLen > 0)
 			{
-				System.Text.StringBuilder sb = new StringBuilder();
-				sb.Append(data, 0, dataLen);
-				_header += sb;
+				_header += System.Text.Encoding.Default.GetString(data, 0, dataLen);
 			}
 			if (_header.Length < 10)
 				return false;
@@ -143,150 +134,53 @@ namespace XmlRpc
 
 			if (header.IndexHeaderEnd == 0)
 				return false;
-			
-			if(int.TryParse(header.HTTPField[(int)HTTPHeaderField.Content_Length], out this._contentLength))
+			var value = header.HTTPField[(int)HTTPHeaderField.Content_Length];
+			if(int.TryParse(value, out this._contentLength))
 			{
 				_request = _header.Substring(header.IndexHeaderEnd+4);
 			}
-
-			
-			/*
-			if ( ! XmlRpcSocket::nbRead(this->getfd(), _header, &eof)) {
-			// Its only an error if we already have read some data
-			if (_header.Length > 0)
-				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header (%s).",XmlRpcSocket.getErrorMsg().c_str());
-			return false;
-			}*/
-
-			/*
-
-
-			XmlRpcUtil.log(4, "XmlRpcServerConnection::readHeader: read {0} bytes.", data.Length);
-			int hp = (char*)_header.c_str();  // Start of header
-			int ep = hp + _header.Length;   // End of string
-			int bp = 0;                       // Start of body
-			int lp = 0;                       // Start of content-length value
-			int kp = 0;                       // Start of connection value
-			char *hp = (char*)_header.c_str();  // Start of header
-			char *ep = hp + _header.Length;   // End of string
-			char *bp = 0;                       // Start of body
-			char *lp = 0;                       // Start of content-length value
-			char *kp = 0;                       // Start of connection value
-			for(int i = 0; i < _header.Length; i++)
-			{
-				_header.IndexOf(i, 
-				for (char *cp = hp; (bp == 0) && (cp < ep); ++cp) 
-				{
-				if ((ep - cp > 16) && (strncasecmp(cp, "Content-length: ", 16) == 0))
-					lp = cp + 16;
-				else if ((ep - cp > 12) && (strncasecmp(cp, "Connection: ", 12) == 0))
-					kp = cp + 12;
-				else if ((ep - cp > 4) && (strncmp(cp, "\r\n\r\n", 4) == 0))
-					bp = cp + 4;
-				else if ((ep - cp > 2) && (strncmp(cp, "\n\n", 2) == 0))
-					bp = cp + 2;
-				}
-			}
-
-			// If we haven't gotten the entire header yet, return (keep reading)
-			if (bp == 0) {
-				// EOF in the middle of a request is an error, otherwise its ok
-				if (eof) {
-					XmlRpcUtil.log(4, "XmlRpcServerConnection::readHeader: EOF");
-					if (_header.Length > 0)
-					XmlRpcUtil.error("XmlRpcServerConnection::readHeader: EOF while reading header");
-					return false;   // Either way we close the connection
-				}
-    
-				return true;  // Keep reading
-			}
-
-			// Decode content length
-			if (lp == 0) {
-				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: No Content-length specified");
-				return false;   // We could try to figure it out by parsing as we read, but for now...
-			}
-
-			_contentLength = atoi(lp);
-			if (_contentLength <= 0) {
-				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: Invalid Content-length specified (%d).", _contentLength);
-				return false;
-			}
-  	
-			XmlRpcUtil.log(3, "XmlRpcServerConnection::readHeader: specified content length is %d.", _contentLength);
-
-			// Otherwise copy non-header data to request buffer and set state to read request.
-			_request = bp;
-
-			// Parse out any interesting bits from the header (HTTP version, connection)
-			_keepAlive = true;
-
-			if(_header.IndexOf("HTTP/1.0") != -1)
-			{
-
-			}
-			if (_header.find("HTTP/1.0") != std::string::npos) 
-			{
-				if (kp == 0 || strncasecmp(kp, "keep-alive", 10) != 0)
-					_keepAlive = false;           // Default for HTTP 1.0 is to close the connection
-			} else {
-				if (kp != 0 && strncasecmp(kp, "close", 5) == 0)
-					_keepAlive = false;
-			}
-			*/
+		
 			XmlRpcUtil.log(3, "KeepAlive: {0}", _keepAlive);
-
-
 			_header = ""; 
 			_connectionState = ServerConnectionState.READ_REQUEST;
 			return true;    // Continue monitoring this source
 		}
 
+		public override void Close()
+		{
+			XmlRpcUtil.log(3, "XmlRpcServerConnection is closing");
+			if (this.socket != null)
+			{
+				this.socket.Close();
+				this.socket = null;
+			}
+		}
+
 		bool readRequest()
 		{
-			/*
-			// If we dont have the entire request yet, read available data
-			if (_request.Length < _contentLength) {
-				bool eof;
-				if ( ! XmlRpcSocket::nbRead(this->getfd(), _request, &eof)) {
-					XmlRpcUtil.error("XmlRpcServerConnection::readRequest: read error (%s).",XmlRpcSocket::getErrorMsg().c_str());
-					return false;
-				}
-
-				// If we haven't gotten the entire request yet, return (keep reading)
-				if (_request.Length < _contentLength) {
-					if (eof) {
-					XmlRpcUtil.error("XmlRpcServerConnection::readRequest: EOF while reading request");
-					return false;   // Either way we close the connection
-					}
-					return true;
-				}
-			}
-			*/
+			if (this._request == null)
+				this._request = "";
 			int left = this._contentLength - _request.Length;
+			int dataLen = 0;
 			if (left > 0)
 			{
-				char[] data = new char[left];
+				byte[] data = new byte[left];
 				try
 				{
+					var stream = socket.GetStream();
+					dataLen = stream.Read(data, 0, left);
+					if (dataLen == 0)
 					{
-						if (reader.Peek() > 0)
-						{
-							int res = reader.Read(data, 0, left);
-							//data = reader.ReadToEnd();
-						}
-						else
-						{
-							return false;
-						}
+						Debug.WriteLine("XmlRpcServerConnection::readRequest: Stream was closed");
+						return false;
 					}
 				}
 				catch (Exception ex)
 				{
-					XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+					XmlRpcUtil.error("XmlRpcServerConnection::readRequest: error while reading the rest of data ({0}).", ex.Message);
 					return false;
 				}
-				_request += data.ToString() ;
+				_request += System.Text.Encoding.Default.GetString(data, 0, dataLen);
 			}
 			// Otherwise, parse and dispatch the request
 			XmlRpcUtil.log(3, "XmlRpcServerConnection::readRequest read {0} bytes.", _request.Length);
@@ -306,14 +200,21 @@ namespace XmlRpc
 			}
 			try
 			{
-				//using (StreamWriter writer = new StreamWriter(stream))
+				MemoryStream memstream = new MemoryStream();
+				using (StreamWriter writer = new StreamWriter(memstream))
 				{
-				
-						// Try to write the response
-						writer.Write(response);
-						writer.Flush();
-						_bytesWritten = response.Length;
-				
+					writer.Write(response);
+					_bytesWritten = response.Length;
+				}
+				var stream = socket.GetStream();
+				try
+				{
+					var buffer = memstream.GetBuffer();
+					stream.Write(buffer, 0, buffer.Length);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(string.Format("Exception while writing response: {0}", ex.Message));
 				}
 			}
 			catch (Exception ex)
@@ -337,7 +238,7 @@ namespace XmlRpc
 
 		public override Socket getSocket()
 		{
-			return this.socket;
+			return this.socket.Client;
 		}
 	}
 }

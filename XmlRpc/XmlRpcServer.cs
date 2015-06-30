@@ -72,59 +72,9 @@ namespace XmlRpc
             }
         }
 
-        //private XmlRpcDispatch _dispatch;
-
-        #region P/Invoke
-		/*
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Create", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create();
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_AddMethod", CallingConvention = CallingConvention.Cdecl
-            )]
-        private static extern void addmethod(IntPtr target, IntPtr method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethod",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethod(IntPtr target, IntPtr method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethodbyname(IntPtr target,
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr findmethod(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool bindandlisten(IntPtr target, int port, int backlog);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Work", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void work(IntPtr target, double msTime);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Exit", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void exit(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Shutdown", CallingConvention = CallingConvention.Cdecl)
-        ]
-        private static extern void shutdown(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetPort", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getport(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetDispatch",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getdispatch(IntPtr target);
-		*/
-        #endregion
-
 		public void AddMethod(XmlRpcServerMethod method)
         {
 			this._methods.Add(method.name, method);
-            //SegFault();
-            //addmethod(instance, method.instance);
         }
 
 		public void RemoveMethod(XmlRpcServerMethod method)
@@ -147,9 +97,9 @@ namespace XmlRpc
 		IAsyncResult asyncRequest = null;
 
         public void Work(double msTime)
-        {
+		{/*
 			XmlRpcUtil.log(6, "XmlRpcServer::work: waiting for a connection");
-			/*
+			
 			if (asyncRequest == null)
 			{
 				asyncRequest = httpListener.BeginGetContext((IAsyncResult result) => { this.onRequest(result); }, this);
@@ -213,9 +163,6 @@ namespace XmlRpc
 
         public bool BindAndListen(int port, int backlog)
         {
-			this._port = port;
-			
-			
 			IPAddress address = new IPAddress(0); // INADDR_ANY
 			try
 			{
@@ -224,22 +171,8 @@ namespace XmlRpc
 				listener.Start(backlog);
 				this._port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
 				_disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
+				//listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
 				XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", this._port);
-				/*
-				listener.Stop();
-				string prefix = String.Format("http://localhost:{0}/", port);
-				try
-				{
-					httpListener = new HttpListener();
-					httpListener.Prefixes.Add(prefix);
-
-					httpListener.Start();
-					return true;
-				}
-				catch (Exception ex)
-				{
-				}*/
-				return true;
 			}
 			catch (Exception ex)
 			{
@@ -247,9 +180,7 @@ namespace XmlRpc
 			}
 			return true;
 		}
-
-		HttpListener httpListener;
-
+		
 		TcpListener listener;
 		// Event dispatcher
 		XmlRpcDispatch _disp = new XmlRpcDispatch();
@@ -268,41 +199,37 @@ namespace XmlRpc
 		  acceptConnection();
 		  return XmlRpcDispatch.EventType.ReadableEvent;		// Continue to monitor this fd
 		}
-
-
+		/*
+		private void acceptClient(IAsyncResult ar)
+		{
+			try{
+				TcpListener lis = ar.AsyncState as TcpListener;
+				TcpClient cli = lis.EndAcceptTcpClient(ar);
+				_disp.AddSource(this.createConnection(cli), XmlRpcDispatch.EventType.ReadableEvent);
+			}
+			catch (SocketException ex)
+			{
+				XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+			}
+		}*/
+		
 		// Accept a client connection request and create a connection to
 		// handle method calls from the client.
 		void acceptConnection()
 		{	
 			try{
-				Socket s = this.listener.AcceptSocket();//XmlRpcSocket::accept(this->getfd());
-				//XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: socket %d", s);
-
+				TcpClient s = this.listener.AcceptTcpClient();
 				XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: creating a connection");
 				_disp.AddSource(this.createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
 			}
 			catch(SocketException ex)
 			{
-			//if (s == null)
-			//{
-			//this->close();
 				XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
-			//}
-			}
-				/*
-			else if (s!XmlRpcSocket.setNonBlocking(s))
-			{
-			XmlRpcSocket::close(s);
-			XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
-			}*/
-			//else  // Notify the dispatcher to listen for input on this source when we are in work()
-			{
-			
 			}
 		}
 		
 		// Create a new connection object for processing requests from a specific client.
-		XmlRpcServerConnection createConnection(Socket s)
+		XmlRpcServerConnection createConnection(TcpClient s)
 		{
 			// Specify that the connection object be deleted when it is closed
 			return new XmlRpcServerConnection(s, this, true);
@@ -481,6 +408,8 @@ namespace XmlRpc
 			{
 				XmlDocument xmldoc = new XmlDocument();
 				xmldoc.Load(reader);
+
+				xmldoc.Save("last_request.xml");
 				// Parse response xml into result
 				//int offset = 0;
 				XmlNodeList xmlMethodNameList = xmldoc.GetElementsByTagName("methodName");

@@ -24,24 +24,6 @@ namespace XmlRpc
     [DebuggerStepThrough]
     public abstract class XmlRpcSource : IDisposable
     {
-		/*
-        protected IntPtr __instance;
-
-        public IntPtr instance
-        {
-            [DebuggerStepThrough] get { return __instance; }
-            [DebuggerStepThrough]
-            set
-            {
-                if (__instance != IntPtr.Zero)
-                    RmRef(ref __instance);
-                if (value != IntPtr.Zero)
-                    AddRef(value);
-                __instance = value;
-            }
-        }
-		*/
-		
         public bool KeepOpen
         {
             get { return _keepOpen; }
@@ -84,26 +66,10 @@ namespace XmlRpc
         private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
 */
         #endregion
-		/*
-        public virtual void RmRef(ref IntPtr i)
+		
+        public virtual void Close()
         {
-        }
-
-        public virtual void AddRef(IntPtr i)
-        {
-        }
-
-        public void SegFault()
-        {
-            if (__instance == IntPtr.Zero)
-            {
-                throw new Exception("BOOM");
-            }
-        }*/
-
-        internal virtual void Close()
-        {
-            //close(instance);
+			throw new NotImplementedException();
         }
 
 		public virtual XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)

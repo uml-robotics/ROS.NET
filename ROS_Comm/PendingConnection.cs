@@ -62,19 +62,16 @@ namespace Ros_CSharp
                 return;
             if (check())
                 return;
-            client.SegFault();
             disp.AddSource(client, (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public override void removeFromDispatch(XmlRpcDispatch disp)
         {
-            client.SegFault();
             disp.RemoveSource(client);
         }
 
         public override bool check()
         {
-            client.SegFault();
             if (parent == null)
                 return false;
             if (client.ExecuteCheckDone(chk))

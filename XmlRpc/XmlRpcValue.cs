@@ -349,7 +349,7 @@ namespace XmlRpc
 
 	public void Copy(XmlRpcValue other)
 	{
-		switch (_type)
+		switch (other._type)
 		{
 			case ValueType.TypeBoolean: asBool = other.asBool; break;
 			case ValueType.TypeInt: asInt = other.asInt; break;
@@ -364,6 +364,7 @@ namespace XmlRpc
 				asStruct = other.asStruct;
 				break;
 		}
+		_type = other._type;
 	}
 
 	// Checks for existence of struct member
@@ -459,6 +460,11 @@ namespace XmlRpc
 			{
 				// TODO: implement
 			}
+			else
+			{
+				this._type = ValueType.TypeString;
+				this.asString = tex;
+			}
 		}
 		catch (Exception ex)
 		{
@@ -519,10 +525,12 @@ namespace XmlRpc
 				el.AppendChild(doc.CreateTextNode(base64));
 				break;
 			case ValueType.TypeArray:
-				el = doc.CreateElement(DATA_TAG);
+				el = doc.CreateElement(ARRAY_TAG);
+				var elData = doc.CreateElement(DATA_TAG);
+				el.AppendChild(elData);
 				for (int i = 0; i < Size; i++)
 				{
-					asArray[i].toXml(doc, el);
+					asArray[i].toXml(doc, elData);
 				}
 				break;
 			case ValueType.TypeStruct:

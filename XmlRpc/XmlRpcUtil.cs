@@ -188,7 +188,7 @@ namespace XmlRpc
 				HHField = (HTTPHeaderField)IndexHTTPfield;
 				HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": "; //Ajout de \n devant pour éviter les doublons entre cookie et set_cookie
 				// Si le champ n'est pas présent dans la requête, on passe au champ suivant
-				Index = Header.IndexOf(HTTPfield);
+				Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
 				if (Index == -1)
 					continue;
 

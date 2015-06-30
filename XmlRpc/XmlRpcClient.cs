@@ -256,28 +256,16 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				catch (Exception ex)
 				{
 					Debug.Write(ex.Message);
-				}
-				/*
-				//Assert.IsTrue(webRequester.ContentLength > 0);
-				//this.webRequester.
-				//result.clear();
-				double msTime = -1.0;   // Process until exit is called
-				_disp.Work(msTime);
-
-				if (_connectionState != ConnectionState.IDLE )
 					return false;
-				parseResponse(result);
-				*/
+				}
+
 				XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} completed.", method);
 				_response = "";
+				_executing = false;
 			}
 			return true;
         }
 
-		public void SegFault()
-		{
-			// 
-		}
 		// Execute the named procedure on the remote server, non-blocking.
 		// Params should be an array of the arguments for the method.
 		// Returns true if the request was sent and a result received (although the result
@@ -289,11 +277,13 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			// This is not a thread-safe operation, if you want to do multithreading, use separate
 			// clients for each thread. If you want to protect yourself from multiple threads
 			// accessing the same client, replace this code with a real mutex.
+
+			XmlRpcValue result = new XmlRpcValue();
+			return Execute(method, parameters, result);
 			if (_executing)
 				return false;
 
 			_executing = true;
-			//ClearFlagOnExit cf(_executing);
 
 			_sendAttempts = 0;
 			_isFault = false;
@@ -319,96 +309,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
         }
 		*/
         #endregion
-/*
-        #region P/Invoke
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Create", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create
-            (
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host,
-            int port,
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Close", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void close(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Execute", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool execute
-            (IntPtr target,
-                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method,
-                IntPtr parameters,
-                IntPtr result);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool executenonblock
-            (IntPtr target,
-                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool executecheckdone([In] [Out] IntPtr target, [In] [Out] IntPtr result);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_HandleEvent",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool isconnected(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr gethost(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr geturi(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getport(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getrequest(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getheader(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getresponse(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetSendAttempts",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getsendattempts(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetBytesWritten",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getbyteswritten(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetExecuting",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool getexecuting(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetEOF", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool geteof(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_CheckIdent", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool checkident(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host, int port, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getcontentlength(IntPtr Target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetXmlRpcDispatch",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getxmlrpcdispatch(IntPtr target);
-
-        #endregion
- */
 
 		// Static data
 		static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
@@ -467,6 +367,11 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			return ((int)_connectionState & (int)ConnectionState.NO_CONNECTION) != 0;	
 		}
 		*/
+
+		public override void Close()
+		{
+			XmlRpcUtil.log(1, "XmlRpcClient::Close()");
+		}
 
 		public override Socket getSocket()
 		{
@@ -638,7 +543,14 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 	  }*/
 		if (socket == null)
 		{
-			socket = new TcpClient(_host, _port);
+			try
+			{
+				socket = new TcpClient(_host, _port);
+			}
+			catch (SocketException ex)
+			{
+				return false;
+			}
 		}
 		if (!socket.Connected)
 		{
