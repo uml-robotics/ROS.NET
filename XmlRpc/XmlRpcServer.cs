@@ -39,13 +39,6 @@ namespace XmlRpc
 
 
 		int _port;
-
-		static string METHODNAME_TAG = "<methodName>";
-		static string PARAMS_TAG = "<params>";
-		static string PARAMS_ETAG = "</params>";
-		static string PARAM_TAG = "<param>";
-		static string PARAM_ETAG = "</param>";
-
 		static string SYSTEM_MULTICALL = "system.multicall";
 		static string METHODNAME = "methodName";
 		static string PARAMS = "params";
@@ -58,7 +51,6 @@ namespace XmlRpc
             [DebuggerStepThrough]
             get
             {
-                //SegFault();
                 return _port;
             }
         }
@@ -93,8 +85,6 @@ namespace XmlRpc
         {
 			this._methods.Remove(name);
         }
-
-		IAsyncResult asyncRequest = null;
 
         public void Work(double msTime)
 		{

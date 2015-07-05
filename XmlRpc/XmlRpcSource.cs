@@ -43,29 +43,6 @@ namespace XmlRpc
         }
 
         #endregion
-
-        #region P/Invoke
-/*
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_Close", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void close(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetFd", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getfd(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetFd", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void setfd(IntPtr target, int fd);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern byte getkeepopen(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void setkeepopen(IntPtr target, [MarshalAs(UnmanagedType.I1)] bool keepopen);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
-        private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
-*/
-        #endregion
 		
         public virtual void Close()
         {
@@ -75,7 +52,6 @@ namespace XmlRpc
 		public virtual XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
 			throw new NotImplementedException();
-			return 0;// handleevent(instance, eventType);
         }
 
 		//! Return whether the file descriptor should be kept open if it is no longer monitored.

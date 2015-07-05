@@ -29,9 +29,6 @@ namespace XmlRpc
     public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
 		TcpClient socket;
-		//NetworkStream stream;
-		//StreamReader reader;
-		//StreamWriter writer;
 
 		// Static data
 		static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
@@ -41,8 +38,6 @@ namespace XmlRpc
 		static string PARAM_TAG = "<param>";
 		static string PARAM_ETAG = "</param>";
 		static string REQUEST_END = "</methodCall>\r\n";
-		static string METHODRESPONSE_TAG = "<methodResponse>";
-		static string FAULT_TAG = "<fault>";
 		
         public string HostUri = "";
 
@@ -58,24 +53,6 @@ namespace XmlRpc
             : this(HostName, Port, "/")
         {
         }
-		/*
-		void createImpl(string host, int port, string uri)
-		{
-			XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {0}.", host, port);
-
-			_host = host;
-			_port = port;
-			if (uri != null)
-				_uri = uri;
-			else
-				_uri = "/RPC2";
-			_connectionState = ConnectionState. NO_CONNECTION;
-			_executing = false;
-			_eof = false;
-
-			// Default to keeping the connection open until an explicit close is done
-			setKeepOpen();
-		}*/
 
         [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
@@ -160,11 +137,6 @@ namespace XmlRpc
         {
             [DebuggerStepThrough] get { return this._contentLength; }
         }
-		/*
-        public IntPtr XmlRpcDispatch
-        {
-            [DebuggerStepThrough] get { return getxmlrpcdispatch(instance); }
-        }*/
 
         #endregion
 
@@ -172,13 +144,6 @@ namespace XmlRpc
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-			/*
-extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, const char* host, int port, const char* uri)
-{
-    if (instance == NULL) return 0;
-    return (instance->getPort() == port && instance->getUri().compare(uri) == 0 && instance->getHost().compare(host) == 0) ? 1 : 0;
-}
-			*/
 			return this._host.Equals(host) && this._port == port && this._uri.Equals(uri);// checkident(instance, host, port, uri);
         }
 
@@ -324,15 +289,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 		// Event dispatcher
 		XmlRpcDispatch _disp = new XmlRpcDispatch();
-		/*
-		bool testConnection()
-		{	
-			if (((int)_connectionState & (int)ConnectionState.NO_CONNECTION) != 0)
-				if (! setupConnection())
-					return false;
-			return ((int)_connectionState & (int)ConnectionState.NO_CONNECTION) != 0;	
-		}
-		*/
 
 		public override void Close()
 		{
@@ -368,21 +324,15 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			setKeepOpen();
 		}
 
-			/*
-		XmlRpcClient::~XmlRpcClient()
-		{
-		  this->close();
-		}*/
-
 		// Close the owned fd
 		public void close()
 		{
-		  XmlRpcUtil.log(4, "XmlRpcClient::close.");
-		  _connectionState = ConnectionState.NO_CONNECTION;
+			XmlRpcUtil.log(4, "XmlRpcClient::close.");
+			_connectionState = ConnectionState.NO_CONNECTION;
 		
-		  _disp.Exit();
-		  //_disp.removeSource(this);
-		  //XmlRpcSource::close();
+			_disp.Exit();
+			//_disp.removeSource(this);
+			//XmlRpcSource::close();
 			if(socket != null)
 			{
 				socket.Close();
@@ -391,7 +341,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			}
 		}
 
-		string socketError;
 		string getSocketError()
 		{
 			return "UnknownError";
@@ -458,70 +407,70 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			return true;
 		}
 
-	// Connect to the xmlrpc server
-	bool doConnect()
-	{
-		if (socket == null)
+		// Connect to the xmlrpc server
+		bool doConnect()
 		{
-			try
+			if (socket == null)
 			{
-				socket = new TcpClient(_host, _port);
-			}
-			catch (SocketException ex)
-			{
-				return false;
-			}
-		}
-		if (!socket.Connected)
-		{
-			this.close();
-			XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", this.getSocketError());
-			return false;
-		}
-		else
-		{
-			//writer = new StreamWriter(socket.GetStream());
-			//reader = new StreamReader(socket.GetStream());
-		}
-		return true;
-	}
-
-	public void Shutdown()
-	{
-		Close();
-	}
-
-	string generateRequestStr(string methodName, XmlRpcValue parameters)
-	{
-		string body = REQUEST_BEGIN;
-		body += methodName;
-		body += REQUEST_END_METHODNAME;
-
-		// If params is an array, each element is a separate parameter
-		if (parameters.Valid)
-		{
-			body += PARAMS_TAG;
-			if (parameters.Type == XmlRpcValue.ValueType.TypeArray)
-			{
-				for (int i = 0; i < parameters.Length; ++i)
+				try
 				{
-					body += PARAM_TAG;
-					body += parameters[i].toXml();
-					body += PARAM_ETAG;
+					socket = new TcpClient(_host, _port);
 				}
+				catch (SocketException ex)
+				{
+					return false;
+				}
+			}
+			if (!socket.Connected)
+			{
+				this.close();
+				XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", this.getSocketError());
+				return false;
 			}
 			else
 			{
-				body += PARAM_TAG;
-				body += parameters.toXml();
-				body += PARAM_ETAG;
+				//writer = new StreamWriter(socket.GetStream());
+				//reader = new StreamReader(socket.GetStream());
 			}
-
-			body += PARAMS_ETAG;
+			return true;
 		}
-		body += REQUEST_END;
-		return body;
-	}
+
+		public void Shutdown()
+		{
+			Close();
+		}
+
+		string generateRequestStr(string methodName, XmlRpcValue parameters)
+		{
+			string body = REQUEST_BEGIN;
+			body += methodName;
+			body += REQUEST_END_METHODNAME;
+
+			// If params is an array, each element is a separate parameter
+			if (parameters.Valid)
+			{
+				body += PARAMS_TAG;
+				if (parameters.Type == XmlRpcValue.ValueType.TypeArray)
+				{
+					for (int i = 0; i < parameters.Length; ++i)
+					{
+						body += PARAM_TAG;
+						body += parameters[i].toXml();
+						body += PARAM_ETAG;
+					}
+				}
+				else
+				{
+					body += PARAM_TAG;
+					body += parameters.toXml();
+					body += PARAM_ETAG;
+				}
+
+				body += PARAMS_ETAG;
+			}
+			body += REQUEST_END;
+			return body;
+		}
 		// Encode the request to call the specified method with the specified parameters into xml
 		bool generateRequest(string methodName, XmlRpcValue parameters)
 		{
@@ -537,22 +486,20 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		// Prepend http headers
 		string generateHeader(string body)
 		{
-		  string header = "POST " + _uri + " HTTP/1.1\r\nUser-Agent: ";
-		  header += XmlRpcUtil.XMLRPC_VERSION;
-		  header += "\r\nHost: ";
-		  header += _host;
+			string header = "POST " + _uri + " HTTP/1.1\r\nUser-Agent: ";
+			header += XmlRpcUtil.XMLRPC_VERSION;
+			header += "\r\nHost: ";
+			header += _host;
 
-		  //char[]buff = new char [40];
-		  string buff = String.Format(":{0}\r\n", _port);
-		  //sprintf(buff,":%d\r\n", _port);
+			string buff = String.Format(":{0}\r\n", _port);
+			//sprintf(buff,":%d\r\n", _port);
 
 
-		  header += buff;
-		  header += "Content-Type: text/xml\r\nContent-length: ";
-		  buff = String.Format("{0}\r\n\r\n", body.Length);
-		  //sprintf(buff,"%d\r\n\r\n", (int)body.size());
+			header += buff;
+			header += "Content-Type: text/xml\r\nContent-length: ";
+			buff = String.Format("{0}\r\n\r\n", body.Length);
 
-		  return header + buff;
+			return header + buff;
 		}
 
 		bool writeRequest()
@@ -580,9 +527,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				{
 					Debug.WriteLine(string.Format("Exception while writing request: {0}", ex.Message));
 				}
-/////////////////
-				//writer.Write(_request);
-				//writer.Flush();
 				_bytesWritten = _request.Length;
 			}
 			catch(System.IO.IOException ex)
@@ -653,87 +597,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			return true;    // Continue monitoring this source
 		}
 
-#if OLD_PARSER
-		// Read the header from the response
-		bool readHeader()
-		{
-			// Read available data
-			try
-			{
-				_header = reader.ReadToEnd();
-			}
-			catch (System.IO.IOException ex)
-			{
-				// If we haven't read any data yet and this is a keep-alive connection, the server may
-				// have timed out, so we try one more time.
-				if (_keepOpen && _header.Length == 0 && _sendAttempts++ == 0)
-				{
-					XmlRpcUtil.log(4, "XmlRpcClient::readHeader: re-trying connection");
-					Close();
-					//XmlRpcSource.close();
-					_connectionState = ConnectionState.NO_CONNECTION;
-					_eof = false;
-					return setupConnection();
-				}
-
-				XmlRpcUtil.error("Error in XmlRpcClient::readHeader: error while reading header ({0}).",
-								  getSocketError());
-				return false;
-			}
-			
-			XmlRpcUtil.log(4, "XmlRpcClient::readHeader: client has read {0} bytes", _header.Length);
-			string bp;
-			//bp.st
-#if USE_BULLSHIT
-			char *hp = (char*)_header.c_str();  // Start of header
-			char *ep = hp + _header.Length;   // End of string
-			char *bp = 0;                       // Start of body
-			char *lp = 0;                       // Start of content-length value
-
-			for (char *cp = hp; (bp == 0) && (cp < ep); ++cp) {
-			if ((ep - cp > 16) && (strncasecmp(cp, "Content-length: ", 16) == 0))
-				lp = cp + 16;
-			else if ((ep - cp > 4) && (strncmp(cp, "\r\n\r\n", 4) == 0))
-				bp = cp + 4;
-			else if ((ep - cp > 2) && (strncmp(cp, "\n\n", 2) == 0))
-				bp = cp + 2;
-			}
-
-			// If we haven't gotten the entire header yet, return (keep reading)
-			if (bp == 0) {
-				if (_eof)          // EOF in the middle of a response is an error
-				{
-					XmlRpcUtil.error("Error in XmlRpcClient::readHeader: EOF while reading header");
-					return false;   // Close the connection
-				}
-    
-				return true;  // Keep reading
-			}
-
-			// Decode content length
-			if (lp == 0) {
-				XmlRpcUtil.error("Error XmlRpcClient::readHeader: No Content-length specified");
-				return false;   // We could try to figure it out by parsing as we read, but for now...
-			}
-
-			_contentLength = atoi(lp);
-#endif
-			if (_contentLength <= 0) {
-				XmlRpcUtil.error("Error in XmlRpcClient::readHeader: Invalid Content-length specified ({0}).", _contentLength);
-				return false;
-			}
-  	
-			XmlRpcUtil.log(4, "client read content length: {0}", _contentLength);
-
-			// Otherwise copy non-header data to response buffer and set state to read response.
-			_response = "";
-
-			_header = "";   // should parse out any interesting bits from the header (connection, etc)...
-			_connectionState = ConnectionState.READ_RESPONSE;
-
-			return true;    // Continue monitoring this source
-		}
-#endif
 		bool readResponse()
 		{
 			if (this._response == null)
@@ -767,49 +630,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 			return false;    // Continue monitoring this source
 		}
-#if OLD_PARSER
-		bool readResponse()
-		{
-			// If we dont have the entire response yet, read available data
-			if (_response.Length < _contentLength) 
-			{
-				try
-				{
-					_response = reader.ReadToEnd();
-				}
-				catch (IOException ex)
-				{
-					XmlRpcUtil.error("Error in XmlRpcClient::readResponse: read error ({0}).", ex.Message);
-					return false;
-				}
-				/*
-				if ( ! XmlRpcSocket.nbRead(_response, ref _eof)) 
-				{
-					
-				}*/
-
-				// If we haven't gotten the entire _response yet, return (keep reading)
-				if (_response.Length < _contentLength) 
-				{
-					if (_eof) 
-					{
-						XmlRpcUtil.error("Error in XmlRpcClient::readResponse: EOF while reading response");
-						return false;
-					}
-					return true;
-				}
-			}
-
-			// Otherwise, parse and return the result
-			XmlRpcUtil.log(3, "XmlRpcClient::readResponse (read {0} bytes)", _response.Length);
-			XmlRpcUtil.log(5, "response:\n{0}", _response);
-
-			_connectionState = ConnectionState.IDLE;
-
-			return false;    // Stop monitoring this source (causes return from work)
-		}
-#endif
-
 
 		// Convert the response xml into a result value
 		bool parseResponse(XmlRpcValue result, string _response)
@@ -867,27 +687,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n{0}", _response);
 				}
 				_response = "";
-				/*
-				// Expect either <params><param>... or <fault>...
-				if ((XmlRpcUtil.nextTagIs(PARAMS_TAG, _response, out offset) &&
-					XmlRpcUtil.nextTagIs(PARAM_TAG, _response, out offset)) ||
-					(XmlRpcUtil.nextTagIs(FAULT_TAG, _response, out offset) && (_isFault = true)))
-				{
-					if (!result.fromXml(resp[0]))
-					{
-						XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response value. Response:\n{0}", _response);
-						_response = "";
-						return false;
-					}
-				}
-				else
-				{
-					XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n{0}", _response);
-					_response = "";
-					return false;
-				}
-				_response = "";*/
-				//return result.valid();
 			}
 			return success;
 		}

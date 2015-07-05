@@ -10,26 +10,13 @@ using System.Xml;
 
 namespace XmlRpc
 {
-	
+	/// <summary>
+	/// Incoming connection to XmlRpcServer
+	/// </summary>
 	public class XmlRpcServerConnection : XmlRpcSource
 	{
-		// Static data
-		static string METHODNAME_TAG = "<methodName>";
-		static string PARAMS_TAG = "<params>";
-		static string PARAMS_ETAG = "</params>";
-		static string PARAM_TAG = "<param>";
-		static string PARAM_ETAG = "</param>";
-
-		static string SYSTEM_MULTICALL = "system.multicall";
-		static string METHODNAME = "methodName";
-		static string PARAMS = "params";
-
-		static string FAULTCODE = "faultCode";
-		static string FAULTSTRING = "faultString";
+		// The XmlRpc server that accepted this connection
 		XmlRpcServer server;
-
-		 // The XmlRpc server that accepted this connection
-
 		// Possible IO states for the connection
 		enum ServerConnectionState 
 		{ 
@@ -44,8 +31,6 @@ namespace XmlRpc
 
 		// Number of bytes expected in the request body (parsed from header)
 		int _contentLength;
-
-		char[] _rawRequest;
 
 		// Request body
 		string _request;
@@ -84,7 +69,6 @@ namespace XmlRpc
 		// and reading the rpc request. Return true to continue to monitor
 		// the socket for events, false to remove it from the dispatcher.
 		public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
-		//unsigned handleEvent(unsigned /*eventType*/)
 		{
 			if (_connectionState == ServerConnectionState.READ_HEADER)
 				if ( ! readHeader()) return 0;
