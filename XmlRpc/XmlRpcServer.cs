@@ -97,46 +97,9 @@ namespace XmlRpc
 		IAsyncResult asyncRequest = null;
 
         public void Work(double msTime)
-		{/*
-			XmlRpcUtil.log(6, "XmlRpcServer::work: waiting for a connection");
-			
-			if (asyncRequest == null)
-			{
-				asyncRequest = httpListener.BeginGetContext((IAsyncResult result) => { this.onRequest(result); }, this);
-			}
-			else
-			{
-				//
-				return;
-			}*/
+		{
 			_disp.Work(msTime);
         }
-
-		public void onRequest(IAsyncResult result)
-		{
-			HttpListener listener = (HttpListener)result.AsyncState;
-			HttpListenerContext context = listener.EndGetContext(result);
-			HttpListenerRequest request = context.Request;
-
-			string responseData = "";
-			
-			using (StreamReader reader = new StreamReader(request.InputStream))
-			{
-				string requestData = reader.ReadToEnd();
-				XmlRpcValue parms = new XmlRpcValue();
-				responseData = this.parseRequest(parms, requestData);
-				//parseResponse(result, _response);
-			}
-			
-			// Obtain a response object.
-			HttpListenerResponse response = context.Response;
-
-			using (System.IO.Stream output = response.OutputStream)
-			{
-				/// TODO: write response here
-			}
-			this.asyncRequest = null;
-		}
 
         public void Exit()
         {

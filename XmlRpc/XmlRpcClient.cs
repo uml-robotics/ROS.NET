@@ -28,30 +28,22 @@ namespace XmlRpc
     [DebuggerStepThrough]
     public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
-		/*
+		TcpClient socket;
+		//NetworkStream stream;
+		//StreamReader reader;
+		//StreamWriter writer;
+
+		// Static data
 		static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
 		static string REQUEST_END_METHODNAME = "</methodName>\r\n";
 		static string PARAMS_TAG = "<params>";
 		static string PARAMS_ETAG = "</params>";
 		static string PARAM_TAG = "<param>";
-		static string PARAM_ETAG =  "</param>";
+		static string PARAM_ETAG = "</param>";
 		static string REQUEST_END = "</methodCall>\r\n";
 		static string METHODRESPONSE_TAG = "<methodResponse>";
-		static string FAULT_TAG = "<fault>";*/
-
-		TcpClient socket;
-		//NetworkStream stream;
-		StreamReader reader;
-		StreamWriter writer;
-		/*
-        public void SegFault()
-        {
-            if (__instance == IntPtr.Zero)
-            {
-                throw new Exception("BOOM");
-            }
-        }*/
-
+		static string FAULT_TAG = "<fault>";
+		
         public string HostUri = "";
 
         [DebuggerStepThrough]
@@ -211,51 +203,25 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 				_sendAttempts = 0;
 				_isFault = false;
-				/*
-				if ( ! setupConnection())
+
+				if (!setupConnection())
+				{
+					_executing = false;
 					return false;
+				}
 
-				if ( ! generateRequest(method, parameters))
+				if (!generateRequest(method, parameters))
+				{
+					_executing = false;
 					return false;
-			
-				 * string header = "POST " + _uri + " HTTP/1.1\r\nUser-Agent: ";
-					  header += XmlRpcUtil.XMLRPC_VERSION;
-					  header += "\r\nHost: ";
-					  header += _host;
-
-					  //char[]buff = new char [40];
-					  string buff = String.Format(":{0}\r\n", _port);
-					  //sprintf(buff,":%d\r\n", _port);
-
-
-					  header += buff;
-					  header += "Content-Type: text/xml\r\nContent-length: ";
-					  buff = String.Format("{0}\r\n\r\n", body.Length);
-				*/
-				string requestData = this.generateRequestStr(method, parameters);
-				this.webRequester.Method = "POST";
-				this.webRequester.UserAgent = XmlRpcUtil.XMLRPC_VERSION;
-				this.webRequester.ContentType = "text/xml";
-				//this.webRequester.ContentLength = requestData.Length;
-				using (var writer = new System.IO.StreamWriter(webRequester.GetRequestStream()))
-				{
-					writer.Write(requestData);
 				}
-				try
+
+				double msTime = -1.0;
+				this._disp.Work(msTime);
+
+				if (_connectionState != ConnectionState.IDLE || !parseResponse(result, _response))
 				{
-					using (HttpWebResponse resp = (HttpWebResponse)webRequester.GetResponse())
-					{
-						using (StreamReader reader = new StreamReader(resp.GetResponseStream()))
-						{
-							_response = reader.ReadToEnd();
-							parseResponse(result, _response);
-							Debug.Write(String.Format("Request: {0}\nResponse: {1}", requestData, _response));
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Debug.Write(ex.Message);
+					_executing = false;
 					return false;
 				}
 
@@ -263,6 +229,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				_response = "";
 				_executing = false;
 			}
+			_executing = false;
 			return true;
         }
 
@@ -279,7 +246,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			// accessing the same client, replace this code with a real mutex.
 
 			XmlRpcValue result = new XmlRpcValue();
-			return Execute(method, parameters, result);
 			if (_executing)
 				return false;
 
@@ -288,38 +254,38 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			_sendAttempts = 0;
 			_isFault = false;
 
-			if ( ! setupConnection())
+			if (!setupConnection())
+			{
+				_executing = false;
 				return false;
+			}
 
-			if ( ! generateRequest(method, parameters))
+			if (!generateRequest(method, parameters))
+			{
+				_executing = false;
 				return false;
+			}
 
+			_executing = false;
 			return true;
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
         {
-			//return executeCheckDone( result);
+			//result.clear();
+			// Are we done yet?
+			if (_connectionState != ConnectionState.IDLE)
+				return false;
+			if (!parseResponse(result, _response))
+			{
+				// Hopefully the caller can determine that parsing failed.
+			}
+			XmlRpcUtil.log(1, "XmlRpcClient::execute: method completed.");
+			_response = "";
 			return true;
         }
-		/*
-		public UInt16 HandleEvent(XmlRpcDispatch.EventType eventType)
-        {
-            return handleEvent(eventType);
-        }
-		*/
+		
         #endregion
-
-		// Static data
-		static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
-		static string REQUEST_END_METHODNAME = "</methodName>\r\n";
-		static string PARAMS_TAG = "<params>";
-		static string PARAMS_ETAG = "</params>";
-		static string PARAM_TAG = "<param>";
-		static string PARAM_ETAG =  "</param>";
-		static string REQUEST_END = "</methodCall>\r\n";
-		static string METHODRESPONSE_TAG = "<methodResponse>";
-		static string FAULT_TAG = "<fault>";
 
 		// Server location
 		int _port;
@@ -335,7 +301,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		string _header;
 		string _response;
 
-		HttpWebRequest webRequester;
+		//HttpWebRequest webRequester;
 
 		// Number of times the client has attempted to send the request
 		int _sendAttempts;
@@ -392,15 +358,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			_connectionState = ConnectionState.CONNECTING;
 			_executing = false;
 			_eof = false;
-
-			this.webRequester = System.Net.HttpWebRequest.Create(String.Format("http://{0}:{1}", _host, _port)) as HttpWebRequest;
-			this.webRequester.KeepAlive = true;
-			//httpClient = new System.Net.WebClient();
-			/*
-			httpClient.OpenRead(String.Format("http://{0}:{1}", _host, _port));*/
-
-			//httpClient.BaseAddress = 
-
+			
 			if (doConnect())
 			{
 				_connectionState = ConnectionState.IDLE;
@@ -417,7 +375,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		}*/
 
 		// Close the owned fd
-		void close()
+		public void close()
 		{
 		  XmlRpcUtil.log(4, "XmlRpcClient::close.");
 		  _connectionState = ConnectionState.NO_CONNECTION;
@@ -428,25 +386,9 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 			if(socket != null)
 			{
 				socket.Close();
-				reader = null;
-				writer = null;
+				//reader = null;
+				//writer = null;
 			}
-		}
-
-		bool executeCheckDone(XmlRpcValue result)
-		{
-			//result.clear();
-			// Are we done yet?
-			if (_connectionState != ConnectionState.IDLE)
-				return false;
-
-			if (!parseResponse(result, _response))
-			{
-			// Hopefully the caller can determine that parsing failed.
-			}
-			//XmlRpcUtil::log(1, "XmlRpcClient::execute: method %s completed.", method);
-			_response = "";
-			return true;
 		}
 
 		string socketError;
@@ -467,7 +409,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		ConnectionState _connectionState;
 		// XmlRpcSource interface implementation
 		// Handle server responses. Called by the event dispatcher during execute.
-		//XmlRpcDispatch.EventType handleEvent(XmlRpcDispatch.EventType eventType)
 		public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
 		{
 			if (eventType == XmlRpcDispatch.EventType.Exception)
@@ -495,9 +436,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 				? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
 		}
 
-		//System.Net.WebClient httpClient;
-
-
 		// Create the socket connection to the server if necessary
 		bool setupConnection()
 		{
@@ -523,24 +461,6 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 	// Connect to the xmlrpc server
 	bool doConnect()
 	{
-		/*
-	  int fd = XmlRpcSocket::socket();
-	  if (fd < 0)
-	  {
-		XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not create socket (%s).", XmlRpcSocket::getErrorMsg().c_str());
-		return false;
-	  }
-
-	  XmlRpcUtil.log(3, "XmlRpcClient::doConnect: fd %d.", fd);
-	  this->setfd(fd);
-
-	  // Don't block on connect/reads/writes
-	  if ( ! XmlRpcSocket.setNonBlocking(fd))
-	  {
-		this->close();
-		XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not set socket to non-blocking IO mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
-		return false;
-	  }*/
 		if (socket == null)
 		{
 			try
@@ -560,15 +480,17 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		}
 		else
 		{
-			writer = new StreamWriter(socket.GetStream());
-			reader = new StreamReader(socket.GetStream());
+			//writer = new StreamWriter(socket.GetStream());
+			//reader = new StreamReader(socket.GetStream());
 		}
 		return true;
 	}
+
 	public void Shutdown()
 	{
-		
+		Close();
 	}
+
 	string generateRequestStr(string methodName, XmlRpcValue parameters)
 	{
 		string body = REQUEST_BEGIN;
@@ -637,14 +559,30 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		{
 			if (_bytesWritten == 0)
 				XmlRpcUtil.log(5, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts+1, _request);
-			//StreamWriter writer = new StreamWriter(socket.GetStream());
 			// Try to write the request
 			try
 			{
 				if (!socket.Connected)
 					XmlRpcUtil.error("XmlRpcClient::writeRequest not connected");
-				writer.Write(_request);
-				writer.Flush();
+				MemoryStream memstream = new MemoryStream();
+				using (StreamWriter writer = new StreamWriter(memstream))
+				{
+					writer.Write(_request);
+					_bytesWritten = _request.Length;
+				}
+				var stream = socket.GetStream();
+				try
+				{
+					var buffer = memstream.GetBuffer();
+					stream.Write(buffer, 0, buffer.Length);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(string.Format("Exception while writing request: {0}", ex.Message));
+				}
+/////////////////
+				//writer.Write(_request);
+				//writer.Flush();
 				_bytesWritten = _request.Length;
 			}
 			catch(System.IO.IOException ex)
@@ -666,6 +604,56 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 		}
 
 		bool _keepOpen;
+
+		bool readHeader()
+		{
+			// Read available data
+			bool eof;
+
+			byte[] data = new byte[1024];
+			int dataLen = 0;
+			//string data = "";
+			try
+			{
+				var stream = socket.GetStream();
+				dataLen = stream.Read(data, 0, 1024);
+			}
+			catch (SocketException ex)
+			{
+				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+				return false;
+			}
+			catch (Exception ex)
+			{
+				XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+				return false;
+			}
+			/// If it is disconnect
+			if (dataLen == 0)
+				return false;
+			if (dataLen > 0)
+			{
+				_header += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+			}
+			if (_header.Length < 10)
+				return false;
+			HTTPHeader header = new HTTPHeader(_header);
+
+			if (header.IndexHeaderEnd == 0)
+				return false;
+			var value = header.HTTPField[(int)HTTPHeaderField.Content_Length];
+			if (int.TryParse(value, out this._contentLength))
+			{
+				_response = _header.Substring(header.IndexHeaderEnd + 4);
+			}
+
+			//XmlRpcUtil.log(3, "KeepAlive: {0}", _keepAlive);
+			_header = "";
+			_connectionState = ConnectionState.READ_RESPONSE;
+			return true;    // Continue monitoring this source
+		}
+
+#if OLD_PARSER
 		// Read the header from the response
 		bool readHeader()
 		{
@@ -745,7 +733,41 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 			return true;    // Continue monitoring this source
 		}
+#endif
+		bool readResponse()
+		{
+			if (this._response == null)
+				this._response = "";
+			int left = this._contentLength - _response.Length;
+			int dataLen = 0;
+			if (left > 0)
+			{
+				byte[] data = new byte[left];
+				try
+				{
+					var stream = socket.GetStream();
+					dataLen = stream.Read(data, 0, left);
+					if (dataLen == 0)
+					{
+						Debug.WriteLine("XmlRpcClient::readResponse: Stream was closed");
+						return false;
+					}
+				}
+				catch (Exception ex)
+				{
+					XmlRpcUtil.error("XmlRpcClient::readResponse: error while reading the rest of data ({0}).", ex.Message);
+					return false;
+				}
+				_response += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+			}
+			// Otherwise, parse and dispatch the request
+			XmlRpcUtil.log(3, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
 
+			_connectionState = ConnectionState.IDLE;
+
+			return false;    // Continue monitoring this source
+		}
+#if OLD_PARSER
 		bool readResponse()
 		{
 			// If we dont have the entire response yet, read available data
@@ -786,6 +808,7 @@ extern XMLRPC_API unsigned char XmlRpcClient_CheckIdent(XmlRpcClient* instance, 
 
 			return false;    // Stop monitoring this source (causes return from work)
 		}
+#endif
 
 
 		// Convert the response xml into a result value

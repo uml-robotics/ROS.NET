@@ -512,7 +512,7 @@ namespace XmlRpc
 
 		public double getTime()
 		{
-			return 0;
+			return 0.001 * Environment.TickCount;
 		}
     }
 }
