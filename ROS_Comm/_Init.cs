@@ -509,23 +509,23 @@ namespace Ros_CSharp
                 _shutting_down = true;
 
                 EDB.WriteLine("ROS is shutting down.");
-
-                GlobalCallbackQueue.Disable();
-                GlobalCallbackQueue.Clear();
-
-                if (started)
-                {
-                    TopicManager.Instance.shutdown();
-                    ServiceManager.Instance.shutdown();
-                    PollManager.Instance.shutdown();
-                    XmlRpcManager.Instance.shutdown();
-                    if (rosoutappender != null)
-                        rosoutappender.shutdown();
-                }
-
-                started = false;
-                _ok = false;
             }
+
+            if (started)
+            {
+                GlobalNodeHandle.shutdown();
+                TopicManager.Instance.shutdown();
+                ServiceManager.Instance.shutdown();
+                PollManager.Instance.shutdown();
+                XmlRpcManager.Instance.shutdown();
+                if (rosoutappender != null)
+                    rosoutappender.shutdown();
+            }
+            started = false;
+            _ok = false;
+
+            GlobalCallbackQueue.Disable();
+            GlobalCallbackQueue.Clear();
         }
 
         /// <summary>

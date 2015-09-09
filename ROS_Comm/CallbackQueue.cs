@@ -124,10 +124,7 @@ namespace Ros_CSharp
                 idinfo = id_info[owner_id];
             }
             if (idinfo.id == tls.calling_in_this_thread)
-                lock (idinfo.calling_rw_mutex)
-                {
-                    removeemall(owner_id);
-                }
+                removeemall(owner_id);
             else
             {
                 Console.WriteLine("removeByID w/ WRONG THREAD ID");
@@ -146,9 +143,10 @@ namespace Ros_CSharp
 
         private void threadFunc()
         {
-            while (ROS.ok && !ROS._shutting_down && enabled)
+            while (ROS.ok)
             {
-                callAvailable();
+                if (!callAvailable())
+                    break;
             }
             Console.WriteLine("CallbackQueue thread broke out!");
         }
@@ -158,8 +156,8 @@ namespace Ros_CSharp
             lock (mutex)
             {
                 enabled = true;
-                notify_all();
             }
+            notify_all();
             if (cbthread == null)
             {
                 cbthread = new Thread(threadFunc);
@@ -172,8 +170,8 @@ namespace Ros_CSharp
             lock (mutex)
             {
                 enabled = false;
-                notify_all();
             }
+            notify_all();
             if (cbthread != null)
             {
                 cbthread.Join();
@@ -279,28 +277,30 @@ namespace Ros_CSharp
             return res;
         }
 
-        public void callAvailable()
+        public bool callAvailable()
         {
-            callAvailable(ROS.WallDuration);
+            return callAvailable(ROS.WallDuration);
         }
 
-        public void callAvailable(int timeout)
+        public bool callAvailable(int timeout)
         {
             setupTLS();
             int called = 0;
             lock (mutex)
             {
-                if (!enabled) return;
+                if (!enabled) return false;
             }
             if (Count == 0 && timeout != 0)
             {
                 if (!sem.WaitOne(timeout))
-                    return;
+                    return true;
             }
             lock (mutex)
             {
-                if (Count == 0 || !enabled)
-                    return;
+                if (Count == 0)
+                    return true;
+                if (!enabled)
+                    return false;
                 callbacks.ForEach(cbi => tls.enqueue(cbi));
                 callbacks.Clear();
                 Count = 0;
@@ -318,6 +318,7 @@ namespace Ros_CSharp
             {
                 calling -= called;
             }
+            return true;
         }
     }
 

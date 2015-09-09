@@ -22,6 +22,7 @@ using ns = System.Net.Sockets;
 
 namespace Ros_CSharp.CustomSocket
 {
+    [DebuggerStepThrough]
     public class Socket : ns.Socket
     {
         private static SortedList<uint, Socket> _socklist = new SortedList<uint, Socket>();
