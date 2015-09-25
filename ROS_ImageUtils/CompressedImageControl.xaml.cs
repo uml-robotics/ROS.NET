@@ -109,10 +109,7 @@ namespace ROS_ImageWPF
 
         public void Resubscribe()
         {
-            if (imgSub != null)
-            {
-                Desubscribe();
-            }
+            Desubscribe();
             imgSub = imagehandle.subscribe<sm.CompressedImage>(Topic, 1, updateImage);
         }
 
@@ -121,8 +118,11 @@ namespace ROS_ImageWPF
         /// </summary>
         public void Desubscribe()
         {
-            imgSub.shutdown();
-            imgSub = null;
+            if (imgSub != null)
+            {
+                imgSub.shutdown();
+                imgSub = null;
+            }
         }
 
         public CompressedImageControl()
