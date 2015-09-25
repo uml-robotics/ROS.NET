@@ -81,13 +81,13 @@ namespace CompressedImageView
                 if (topics[i] == null)
                 {
                     topics[i] = c2.Topic;
-                    c2.guts.fps.Content = "PAUSED";
-                    c2.shutdown();
+                    c2.mGenericImage.fps.Content = "PAUSED";
+                    c2.Desubscribe();
                 }
                 else
                 {
                     c2.Topic = topics[i];
-                    c2.guts.fps.Content = "0";
+                    c2.mGenericImage.fps.Content = "0";
                     topics[i] = null;
                 }
             }
