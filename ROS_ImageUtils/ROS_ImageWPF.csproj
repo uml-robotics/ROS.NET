@@ -160,6 +160,7 @@
     <Compile Include="GenericImage.xaml.cs">
       <DependentUpon>GenericImage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="iROSImage.cs" />
     <Compile Include="WindowScraper.cs" />
     <Page Include="CompressedImageControl.xaml">
       <Generator>MSBuild:Compile</Generator>

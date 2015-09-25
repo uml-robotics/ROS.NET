@@ -20,7 +20,7 @@ namespace ROS_ImageWPF
     /// <summary>
     /// Interaction logic for CompressedImageControl.xaml
     /// </summary>
-    public partial class CompressedImageControl : UserControl
+    public partial class CompressedImageControl : UserControl, iROSImage
     {
         private NodeHandle imagehandle;
         private Subscriber<sm.CompressedImage> imgSub;
@@ -92,10 +92,17 @@ namespace ROS_ImageWPF
 
         private void updateImage(sm.CompressedImage img)
         {
-            Dispatcher.Invoke(new Action(() =>
-            {
-                mGenericImage.UpdateImage(img.data);
-            }));
+            Dispatcher.Invoke(new Action(() => mGenericImage.UpdateImage(img.data)));
+        }
+
+        public GenericImage getGenericImage()
+        {
+            return mGenericImage;
+        }
+
+        public bool IsSubscribed()
+        {
+            return imgSub != null;
         }
 
         /// <summary>
