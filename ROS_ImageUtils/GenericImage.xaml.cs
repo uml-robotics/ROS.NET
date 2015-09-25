@@ -285,7 +285,6 @@ namespace ROS_ImageWPF
             return new Size(s.Width, s.Height);
         }
 
-        private static int identifier = 0;
         public static bool BytesToImage(byte[] data, ref BitmapImage img)
         {
             bool ret = false;

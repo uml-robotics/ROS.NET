@@ -28,18 +28,23 @@ using sm = Messages.sensor_msgs;
 namespace ROS_ImageWPF
 {
     /// <summary>
-    ///     A general Surface WPF control for the displaying of bitmaps
+    ///     A WPF Control used for displaying of maps (occupancy grids)
+    ///     When added to a XAML file, the width of the map control needs to be set to the desired width, height will be set automatically to keep map aspect ratio
     /// </summary>
     public partial class MapControl : UserControl
     {
-        //pixels per meter, and meters per pixel respectively. This is whatever you have the map set to on the ROS side. These variables are axtually wrong, PPM is meters per pixel. Will fix...
-        private static float _PPM = 0.02868f;
-        private static float _MPP = 1.0f/PPM;
-
+        private float mapResolution; //in Meters per Pixel
+        private float mapHeight;
+        private float mapWidth;
+        private float actualResolution;
+        private NodeHandle imagehandle;
+        private Subscriber<nm.OccupancyGrid> mapSub;
+        private Point origin;
+        private Thread waitingThread;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
-            typeof (string),
-            typeof (MapControl),
+            typeof(string),
+            typeof(MapControl),
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
                 {
@@ -48,130 +53,85 @@ namespace ROS_ImageWPF
                         if (obj is MapControl)
                         {
                             MapControl target = obj as MapControl;
-                            target.Topic = (string) args.NewValue;
-                            target.Init();
+                            target.Topic = (string)args.NewValue;
+                            target.DrawMap();
                         }
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
-                }));
+        }));
 
-        private NodeHandle imagehandle;
-        private Subscriber<nm.OccupancyGrid> mapsub;
-        public Point origin = new Point(0, 0);
-        private Thread waitforinit;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ImageControl" /> class.
-        ///     constructor... nothing fancy
-        /// </summary>
-        public MapControl()
-        {
-            InitializeComponent();
-            guts.fps.Visibility = Visibility.Hidden;
-        }
-
-        public static float MPP
-        {
-            get { return _MPP; }
-            set
-            {
-                _MPP = value;
-                _PPM = 1.0f/value;
-            }
-        }
-
-        public static float PPM
-        {
-            get { return _PPM; }
-            set
-            {
-                _PPM = value;
-                _MPP = 1.0f/value;
-            }
-        }
-
-        public string Topic
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
-        }
-
-        public WindowPositionStuff WhereYouAt(UIElement uie)
-        {
-            Point tl = new Point(), br = new Point();
-            tl = TranslatePoint(new Point(), uie);
-            br = TranslatePoint(new Point(Width, Height), uie);
-            return new WindowPositionStuff(tl, br, new Size(Math.Abs(br.X - tl.X), Math.Abs(br.Y - tl.Y)));
-        }
-
-        private void Init()
+        private void DrawMap()
         {
             if (!ROS.isStarted())
             {
-                if (waitforinit == null)
+                if (waitingThread == null)
                 {
-                    string workaround = Topic;
-                    waitforinit = new Thread(() => waitfunc(workaround));
+                    string topicString = Topic;
+                    waitingThread = new Thread(() => waitThenSubscribe(topicString));
                 }
-                if (!waitforinit.IsAlive)
+                if (!waitingThread.IsAlive)
                 {
-                    waitforinit.Start();
+                    waitingThread.Start();
                 }
             }
             else
-                SetupTopic(Topic);
+                SubscribeToMap(Topic);
         }
 
-        private void waitfunc(string topic)
+        private void waitThenSubscribe(string topic)
         {
             while (!ROS.isStarted())
             {
                 Thread.Sleep(100);
             }
             Thread.Sleep(1000);
-            SetupTopic(topic);
+            SubscribeToMap(topic);
         }
 
-        private void SetupTopic(string topic)
+        private void SubscribeToMap(string topic)
         {
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (mapsub != null && mapsub.topic != topic)
+            if (mapSub != null && mapSub.topic != topic)
             {
-                mapsub.shutdown();
-                mapsub = null;
+                mapSub.shutdown();
+                mapSub = null;
             }
-            if (mapsub != null)
+            if (mapSub != null)
                 return;
-            Console.WriteLine("MAP TOPIC = " + topic);
-            mapsub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
+            Console.WriteLine("Subscribing to map at:= " + topic);
+            mapSub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
             {
-                SmartResize(i.info.width, i.info.height);
-                MPP = i.info.resolution;
+                Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
+                mapResolution = i.info.resolution;
+                mapHeight = i.info.height;
+                mapWidth = i.info.width;
+                actualResolution = (mapWidth / (float)Width) * mapResolution;
+                Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
+                MatchAspectRatio();
                 origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
-                Size s = new Size(i.info.width, i.info.height);
-                byte[] d = createRGBA(i.data);
-                guts.UpdateImage(d, s, false);
-                d = null;
+                Size size = new Size(i.info.width, i.info.height);
+                byte[] data = createRGBA(i.data);
+                mGenericImage.UpdateImage(data, size, false);
+                data = null;
             })));
         }
 
-        private void SmartResize(uint w, uint h)
+        /// <summary>
+        /// Changes the Height of the control, so that it matches the aspect ratio of the map
+        /// </summary>
+        private void MatchAspectRatio()
         {
-            //determine aspect ratio
-            double iar = w/h;
-
-            //determine own aspect ratio
-            double ar = Width/Height;
-
-            //do nothing if close enough
-            if (Math.Abs(ar - iar) < 0.001)
+            double mapAspectRatio = (double)mapWidth/(double)mapHeight;
+            //Do nothing if map aspect ratio is close enough to control aspect ratio
+            if (Math.Abs(Width/Height - mapAspectRatio) < 0.001)
                 return;
 
-            Height = Width/iar;
+            //Else, modify control Height to match map aspect ratio
+            Height = Width/mapAspectRatio;
         }
 
         private byte[] createRGBA(sbyte[] map)
@@ -182,25 +142,25 @@ namespace ROS_ImageWPF
             {
                 switch (j)
                 {
-                    case -1:
+                    case -1: ///Unkown occupancy, light gray
                         image[count] = 211;
                         image[count + 1] = 211;
                         image[count + 2] = 211;
                         image[count + 3] = 0xFF;
                         break;
-                    case 100:
+                    case 100: //100% prob of occupancy, dark gray
                         image[count] = 105;
                         image[count + 1] = 105;
                         image[count + 2] = 105;
                         image[count + 3] = 0xFF;
                         break;
-                    case 0:
+                    case 0:  //0% prob of occupancy, White
                         image[count] = 255;
                         image[count + 1] = 255;
                         image[count + 2] = 255;
                         image[count + 3] = 0xFF;
                         break;
-                    default:
+                    default: //Any other case. (red?)
                         image[count] = 255;
                         image[count + 1] = 0;
                         image[count + 2] = 0;
@@ -211,20 +171,59 @@ namespace ROS_ImageWPF
             }
             return image;
         }
-    }
 
-    public class WindowPositionStuff
-    {
-        public Point BR;
-        public Point TL;
-        public Size size;
-
-        public WindowPositionStuff(Point tl, Point br, Size s)
+        public MapControl()
         {
-            // TODO: Complete member initialization
-            TL = tl;
-            BR = br;
-            size = s;
+            InitializeComponent();
+        }
+
+        /// <summary>
+        /// Map Resolution in meters per pixel of the actual rendered map
+        /// </summary>
+        public float ActualResolution
+        {
+            get { return actualResolution; }
+        }
+
+        /// <summary>
+        /// Map Resolution in meters per pixel, (As provided in the map topic, not actual rendered resolution)
+        /// </summary>
+        public float MapResolution
+        {
+            get { return mapResolution; }
+        }
+
+        /// <summary>
+        /// Map height in pixels (This is the map height as provided in the map topic, not the actual rendered height)
+        /// </summary>
+        public float MapHeight
+        {
+            get { return mapHeight; }
+        }
+
+        /// <summary>
+        /// Map width in pixels (This is the map width as provided in the map topic, not the actual rendered width)
+        /// </summary>
+        public float MapWidth
+        {
+            get { return mapWidth; }
+        }
+
+        /// <summary>
+        /// Point set as the origin of the map
+        /// </summary>
+        public Point Origin
+        {
+            get { return origin; }
+        }
+
+        /// <summary>
+        /// Map provider topic
+        /// </summary>
+        public string Topic
+        {
+            get { return GetValue(TopicProperty) as string; }
+            set { SetValue(TopicProperty, value); }
         }
     }
 }
