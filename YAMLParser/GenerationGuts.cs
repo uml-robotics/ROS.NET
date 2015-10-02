@@ -654,7 +654,7 @@ namespace FauxMessages
                     return "ul";
                     break;
                 case "uint":
-                    return "ui";
+                    return "u";
                     break;
                 default:
                     return "";
