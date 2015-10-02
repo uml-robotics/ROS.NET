@@ -31,11 +31,12 @@ namespace ROS_ImageWPF
     /// <summary>
     ///     A general Surface WPF control for the displaying of bitmaps
     /// </summary>
-    public partial class ImageControl : UserControl
+    public partial class ImageControl : UserControl, iROSImage
     {
+        private NodeHandle imagehandle;
+        private Subscriber<sm.Image> imgSub;
+        private Thread waitingThread;
         public event FPSEvent fpsevent;
-
-        public delegate void ImageReceivedHandler(ImageControl sender);
 
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
@@ -50,6 +51,7 @@ namespace ROS_ImageWPF
                         {
                             ImageControl target = obj as ImageControl;
                             target.Topic = (string) args.NewValue;
+                            target.DrawImage();
                         }
                     }
                     catch (Exception e)
@@ -58,128 +60,93 @@ namespace ROS_ImageWPF
                     }
                 }));
 
-        private NodeHandle imagehandle;
-        private Subscriber<sm.Image> imgsub;
-        private Thread waitforinit;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ImageControl" /> class.
-        ///     constructor... nothing fancy
-        /// </summary>
-        public ImageControl()
-        {
-            InitializeComponent();
-            guts.fpsevent += (fps) => { if (fpsevent != null) fpsevent(fps); };
-        }
-
-        public string Topic
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set
-            {
-                Console.WriteLine("CHANGING TOPIC FROM " + Topic + " to " + value);
-                SetValue(TopicProperty, value);
-                Init();
-            }
-        }
-
-        public event ImageReceivedHandler ImageReceivedEvent;
-
-        public void shutdown()
-        {
-            if (imgsub != null)
-            {
-                imgsub.shutdown();
-                imgsub = null;
-            }
-            if (imagehandle != null)
-            {
-                imagehandle.shutdown();
-                imagehandle = null;
-            }
-        }
-
-        private void Init()
+        private void DrawImage()
         {
             if (!ROS.isStarted())
             {
-                if (waitforinit == null)
+                if (waitingThread == null)
                 {
-                    string workaround = Topic;
-                    waitforinit = new Thread(() => waitfunc(workaround));
+                    string topicString = Topic;
+                    waitingThread = new Thread(() => waitThenSubscribe(topicString));
                 }
-                if (!waitforinit.IsAlive)
+                if (!waitingThread.IsAlive)
                 {
-                    waitforinit.Start();
+                    waitingThread.Start();
                 }
             }
             else
-                SetupTopic(Topic);
+                SubscribeToImage(Topic);
         }
 
-        private void waitfunc(string TopicName)
+        private void waitThenSubscribe(string topic)
         {
             while (!ROS.isStarted())
             {
                 Thread.Sleep(100);
             }
-            SetupTopic(TopicName);
+            Thread.Sleep(1000);
+            SubscribeToImage(topic);
         }
 
-        private void SetupTopic(string TopicName)
+        private void SubscribeToImage(string topic)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
-                return;
             if (imagehandle == null)
                 imagehandle = new NodeHandle();
-            if (imgsub != null && imgsub.topic != TopicName)
+            if (imgSub != null && imgSub.topic != topic)
             {
-                imgsub.shutdown();
-                imgsub = null;
+                Desubscribe();
             }
-            if (imgsub != null)
+            if (imgSub != null)
                 return;
-            imgsub = imagehandle.subscribe<sm.Image>(TopicName, 1, UpdateImage);
+            Console.WriteLine("Subscribing to image at:= " + topic);
+            imgSub = imagehandle.subscribe<sm.Image>(topic, 1, updateImage);
         }
 
-        #region Events
-
-        private void UpdateImage(sm.Image i)
+        private void updateImage(sm.Image img)
         {
-            Dispatcher.Invoke(new Action(() =>
-            {
-                if (guts == null)
-                    return;
-                guts.UpdateImage(i.data, new Size((int) i.width, (int) i.height), false, i.encoding.data);
-                if (ImageReceivedEvent != null) ImageReceivedEvent(this);
-            }));
+            Dispatcher.Invoke(new Action(() => mGenericImage.UpdateImage(img.data, new Size((int) img.width, (int) img.height), false, img.encoding.data)));
         }
-
-        private const double _scalex = 1;
-        private const double _scaley = -1;
 
         /// <summary>
-        ///     when going from a System.Drawing.Bitmap's byte array, throwing a bmp file header on it, and sticking it in a
-        ///     BitmapImage with a MemoryStream,
-        ///     the image gets flipped upside down from how it would look in a  PictureBox in a Form, so this transform corrects
-        ///     that inversion
+        /// Gets/Sets Image provider topic and starts subscription
         /// </summary>
-        /// <param name="sender">
-        ///     The sender.
-        /// </param>
-        /// <param name="e">
-        ///     The e.
-        /// </param>
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        public string Topic
         {
-            guts.Transform(_scalex, _scaley);
+            get { return GetValue(TopicProperty) as string; }
+            set { SetValue(TopicProperty, value); }
         }
 
-        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+        public void Resubscribe()
         {
-            guts.Transform(_scalex, _scaley);
+            Desubscribe();
+            imgSub = imagehandle.subscribe<sm.Image>(Topic, 1, updateImage);
         }
 
-        #endregion
+        public GenericImage getGenericImage()
+        {
+            return mGenericImage;
+        }
+
+        public bool IsSubscribed()
+        {
+            return imgSub != null;
+        }
+
+        /// <summary>
+        /// Stops Subscription
+        /// </summary>
+        public void Desubscribe()
+        {
+            if (imgSub != null)
+            {
+                imgSub.shutdown();
+                imgSub = null;
+            }
+        }
+
+        public ImageControl()
+        {
+            InitializeComponent();
+        }
     }
 }

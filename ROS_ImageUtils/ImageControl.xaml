@@ -1,9 +1,12 @@
 ﻿<UserControl x:Class="ROS_ImageWPF.ImageControl"
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                      xmlns:RosImageWpf="clr-namespace:ROS_ImageWPF" 
-                      Loaded="UserControl_Loaded" SnapsToDevicePixels="True" SizeChanged="UserControl_SizeChanged" >
+                      xmlns:RosImageWpf="clr-namespace:ROS_ImageWPF" SnapsToDevicePixels="True" >
     <Grid SnapsToDevicePixels="True">
-        <RosImageWpf:GenericImage x:Name="guts" x:FieldModifier="public"/>
+        <RosImageWpf:GenericImage x:Name="mGenericImage" RenderTransformOrigin="0.5, 0.5">
+            <RosImageWpf:GenericImage.RenderTransform>
+                <ScaleTransform ScaleY="-1" />
+            </RosImageWpf:GenericImage.RenderTransform>
+        </RosImageWpf:GenericImage>
     </Grid>
 </UserControl>

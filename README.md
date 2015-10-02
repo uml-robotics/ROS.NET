@@ -46,7 +46,7 @@ Apologies in advance for the minimal documentation, but I've been busy using it.
 
 I hope this can be of use to someone!
 
-Some of the included code is leftovers from a few projects it was used on over the years, so allow me to apologize in advance about some of the attrocities you might find there-in.
+Some of the included code is leftovers from a few projects it was used on over the years, so allow me to apologize in advance about some of the atrocities you might find there-in.
 
 Longer-term, a more programmer-friendly layout (msg/ folders in package folders, for example... rather than one giant message folder in YAMLParser) might facilitate making ROS.NET something that could exist on the system and be used with a variable subset of messages included for specific targets, more similar to how ROSCPP and ROSPY operate under linux.
 

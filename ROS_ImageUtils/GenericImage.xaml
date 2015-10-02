@@ -8,13 +8,10 @@
                        SnapsToDevicePixels="True" >
     <Grid>
         <Rectangle SnapsToDevicePixels="True" Stretch="Fill" RenderTransformOrigin="0.5,0.5">
-            <Rectangle.RenderTransform>
-                <ScaleTransform ScaleX="-1" />
-            </Rectangle.RenderTransform>
             <Rectangle.Fill>
                 <ImageBrush x:Name="image" />
             </Rectangle.Fill>
         </Rectangle>
-        <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold" x:FieldModifier="public" Visibility="Hidden">FPS</Label>
+        <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold" x:FieldModifier="public" Visibility="Hidden"></Label>
     </Grid>
 </UserControl>
