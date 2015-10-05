@@ -26,10 +26,10 @@ namespace Ros_CSharp
         public static string Name = "empty";
         public static string Namespace = "";
 
-        public static List<string> AdvertisedTopics()
+        public static IEnumerable<string> AdvertisedTopics()
         {
-            List<string> ret = new List<string>();
-            TopicManager.Instance.getAdvertisedTopics(ref ret);
+            IEnumerable<string> ret;
+            TopicManager.Instance.getAdvertisedTopics(out ret);
             return ret;
         }
 

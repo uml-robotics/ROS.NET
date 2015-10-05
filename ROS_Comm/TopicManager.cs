@@ -41,8 +41,6 @@ namespace Ros_CSharp
         private static object singleton_mutex = new object();
         private List<Publication> advertised_topics = new List<Publication>();
         private object advertised_topics_mutex = new object();
-        private List<string> advertised_topics_names = new List<string>();
-        private object advertised_topics_names_mutex = new object();
         private bool shutting_down;
         private object shutting_down_mutex = new object();
         private object subs_mutex = new object();
@@ -129,11 +127,11 @@ namespace Ros_CSharp
         ///     Updates the list of advertised topics.
         /// </summary>
         /// <param name="topics">List of topics to update</param>
-        public void getAdvertisedTopics(ref List<string> topics)
+        public void getAdvertisedTopics(out IEnumerable<string> topics)
         {
-            lock (advertised_topics_names_mutex)
+            lock (advertised_topics_mutex)
             {
-                topics = new List<string>(advertised_topics_names);
+                topics = advertised_topics.Select((a) => a.Name);
             }
         }
 
@@ -141,12 +139,11 @@ namespace Ros_CSharp
         ///     Updates the list of subscribed topics
         /// </summary>
         /// <param name="topics"></param>
-        public void getSubscribedTopics(ref List<string> topics)
+        public void getSubscribedTopics(out IEnumerable<string> topics)
         {
             lock (subs_mutex)
             {
-                topics.Clear();
-                topics.AddRange(subscriptions.Select(s => s.name));
+                topics = subscriptions.Select(s => s.name);
             }
         }
 
@@ -218,11 +215,6 @@ namespace Ros_CSharp
                         ops.latch, ops.has_header);
                 pub.addCallbacks(callbacks);
                 advertised_topics.Add(pub);
-            }
-
-            lock (advertised_topics_names_mutex)
-            {
-                advertised_topics_names.Add(ops.topic);
             }
 
             bool found = false;
@@ -754,8 +746,6 @@ namespace Ros_CSharp
                     unregisterPublisher(pub.Name);
                     pub.drop();
                     advertised_topics.Remove(pub);
-                    lock (advertised_topics_names_mutex)
-                        advertised_topics_names.Remove(pub.Name);
                 }
             }
             return true;
