@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -28,7 +28,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class XmlRpcManager : IDisposable
     {
         private static object singleton_mutex = new object();
@@ -59,8 +61,10 @@ namespace Ros_CSharp
 
         public static XmlRpcManager Instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (_instance == null)
                 {
@@ -258,34 +262,34 @@ namespace Ros_CSharp
         public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
         {
             return p =>
-            {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
-                v.Set(0, code);
-                v.Set(1, msg);
-                v.Set(2, response);
-            };
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
+                       };
         }
 
         public Action<IntPtr> responseInt(int code, string msg, int response)
         {
             return p =>
-            {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
-                v.Set(0, code);
-                v.Set(1, msg);
-                v.Set(2, response);
-            };
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
+                       };
         }
 
         public Action<IntPtr> responseBool(int code, string msg, bool response)
         {
             return p =>
-            {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
-                v.Set(0, code);
-                v.Set(1, msg);
-                v.Set(2, response);
-            };
+                       {
+                           XmlRpcValue v = XmlRpcValue.LookUp(p);
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
+                       };
         }
 
         /// <summary>
@@ -400,7 +404,9 @@ namespace Ros_CSharp
         #endregion
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class CachedXmlRpcClient
     {
         public XmlRpcClient client;

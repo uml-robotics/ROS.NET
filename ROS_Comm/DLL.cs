@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 01/14/2014
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -100,7 +100,9 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XmlRpcDispatch LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -112,7 +114,9 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -142,7 +146,9 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -169,8 +175,10 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (__instance == IntPtr.Zero)
                 {
@@ -180,8 +188,10 @@ namespace XmlRpc_Wrapper
                 }
                 return __instance;
             }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);
@@ -208,13 +218,17 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcDispatch()
         {
             instance = create();
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcDispatch(IntPtr otherref)
         {
             if (otherref != IntPtr.Zero)

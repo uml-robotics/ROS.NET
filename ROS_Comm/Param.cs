@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -32,7 +32,9 @@ namespace Ros_CSharp
 
     public delegate void ParamBoolDelegate(string key, bool value);
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public static class Param
     {
         public static Dictionary<string, XmlRpcValue> parms = new Dictionary<string, XmlRpcValue>();

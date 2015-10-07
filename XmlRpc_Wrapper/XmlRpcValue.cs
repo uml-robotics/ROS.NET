@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -29,19 +29,33 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcValue this[int key]
         {
-            [DebuggerStepThrough] get { return Get(key); }
-            [DebuggerStepThrough] set { Set(key, value); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Get(key); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                set { Set(key, value); }
         }
 
         public XmlRpcValue this[string key]
         {
-            [DebuggerStepThrough] get { return Get(key); }
-            [DebuggerStepThrough] set { Set(key, value); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Get(key); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                set { Set(key, value); }
         }
 
         private IntPtr __instance;
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void Dispose()
         {
             RmRef(ref __instance);
@@ -71,7 +85,9 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XmlRpcValue LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -83,7 +99,9 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
@@ -115,7 +133,9 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -145,8 +165,10 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (__instance == IntPtr.Zero)
                 {
@@ -156,8 +178,10 @@ namespace XmlRpc_Wrapper
                 }
                 return __instance;
             }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);
@@ -169,14 +193,18 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue()
         {
             __instance = create();
             AddRef(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(params object[] initialvalues)
             : this()
         {
@@ -200,21 +228,27 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(bool value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(int value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(double value)
         {
             __instance = create(value);
@@ -222,20 +256,26 @@ namespace XmlRpc_Wrapper
             AddRef(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(string value)
         {
             __instance = create(value);
             AddRef(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(XmlRpcValue value)
             : this(value.instance)
         {
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcValue(IntPtr existingptr)
         {
             if (existingptr == IntPtr.Zero)
@@ -331,8 +371,10 @@ namespace XmlRpc_Wrapper
 
         public TypeEnum Type
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 int balls = gettype(instance);
                 if (balls < 0 || balls >= ValueTypeHelper._typearray.Length)
@@ -341,8 +383,10 @@ namespace XmlRpc_Wrapper
                 }
                 return ValueTypeHelper._typearray[balls];
             }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 SegFault();
                 settype(instance, (int) value);
@@ -351,8 +395,10 @@ namespace XmlRpc_Wrapper
 
         public bool Valid
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 SegFault();
                 return valid(__instance);
@@ -361,8 +407,10 @@ namespace XmlRpc_Wrapper
 
         public int Size
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 SegFault();
                 if (!Valid || Type == TypeEnum.TypeInvalid || Type == TypeEnum.TypeIDFK)
@@ -373,15 +421,19 @@ namespace XmlRpc_Wrapper
                     return 0;
                 return getsize(instance);
             }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 SegFault();
                 setsize(instance, value);
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void Set<T>(T t)
         {
             if ("" is T)
@@ -406,19 +458,25 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void Set<T>(int key, T t)
         {
             this[key].Set(t);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void Set<T>(string key, T t)
         {
             this[key].Set(t);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public T Get<T>() // where T : class, new()
         {
             if (!Valid)
@@ -449,61 +507,79 @@ namespace XmlRpc_Wrapper
             return default(T);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private T Get<T>(int key)
         {
             return this[key].Get<T>();
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private T Get<T>(string key)
         {
             return this[key].Get<T>();
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private XmlRpcValue Get(int key)
         {
             IntPtr nested = get(instance, key);
             return LookUp(nested);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private XmlRpcValue Get(string key)
         {
             IntPtr nested = get(instance, key);
             return LookUp(nested);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public int GetInt()
         {
             SegFault();
             return getint(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public string GetString()
         {
             SegFault();
             return Marshal.PtrToStringAnsi(getstring(__instance));
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public bool GetBool()
         {
             SegFault();
             return getbool(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public double GetDouble()
         {
             SegFault();
             return getdouble(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public override string ToString()
         {
             if (__instance == IntPtr.Zero)
@@ -512,7 +588,9 @@ namespace XmlRpc_Wrapper
             return s;
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XmlRpcValue Create(ref IntPtr existingvalue)
         {
             if (existingvalue == IntPtr.Zero)
@@ -525,21 +603,27 @@ namespace XmlRpc_Wrapper
             return new XmlRpcValue(existingvalue);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public bool HasMember(string name)
         {
             SegFault();
             return hasmember(instance, name);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void Dump()
         {
             SegFault();
             dump(__instance);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public void SegFault()
         {
             if (__instance == IntPtr.Zero)
@@ -549,7 +633,9 @@ namespace XmlRpc_Wrapper
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public static class ValueTypeHelper
     {
         public static TypeEnum[] _typearray =

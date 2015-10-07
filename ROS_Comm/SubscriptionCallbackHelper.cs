@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -24,7 +24,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
         public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
@@ -69,7 +71,9 @@ namespace Ros_CSharp
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class ISubscriptionCallbackHelper
     {
         private CallbackInterface _callback;

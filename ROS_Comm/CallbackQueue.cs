@@ -7,11 +7,9 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
-
-//#define SAFE
 #region USINGZ
 
 using System;
@@ -28,7 +26,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class CallbackQueue : CallbackQueueInterface, IDisposable
     {
         private int Count;
@@ -500,7 +500,9 @@ namespace Ros_CSharp
     }
      */
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class CallbackQueueInterface
     {
         public virtual void addCallback(CallbackInterface callback)

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -47,7 +47,9 @@ namespace Ros_CSharp
         public static event otheroutput OtherOutput;
 
         //does the actual writing
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void _writeline(object o)
         {
             if (OtherOutput != null)
@@ -68,7 +70,9 @@ namespace Ros_CSharp
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
         /// </summary>
         /// <param name="o"> A string or something to print </param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void WriteLine(object o)
         {
             _writeline(o);
@@ -84,7 +88,9 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format">Format string</param>
         /// <param name="args">Stuff to format</param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void WriteLine(string format, params object[] args)
         {
             if (args != null && args.Length > 0)
@@ -220,14 +226,16 @@ namespace Ros_CSharp
         ///     ROS_INFO(...)
         /// </summary>
         /// <param name="o"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
-        public static void Info(object o,int level=1)
+#endif
+        public static void Info(object o, int level = 1)
         {
             Console.WriteLine("[INFO] " + o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.INFO, level+1);
+                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.INFO, level + 1);
         }
 
         /// <summary>
@@ -235,18 +243,22 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format"> format string </param>
         /// <param name="args"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void Info(string format, params object[] args)
         {
-            Info((object) string.Format(format, args),2);
+            Info((object) string.Format(format, args), 2);
         }
 
         /// <summary>
         ///     ROS_DEBUG(...)
         /// </summary>
         /// <param name="o"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
-        public static void Debug(object o,int level=1)
+#endif
+        public static void Debug(object o, int level = 1)
         {
 #if DEBUG
             Console.WriteLine("[DEBUG] " + o);
@@ -254,7 +266,7 @@ namespace Ros_CSharp
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.DEBUG,level+1);
+                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.DEBUG, level + 1);
         }
 
         /// <summary>
@@ -262,24 +274,28 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format"> format string </param>
         /// <param name="args"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void Debug(string format, params object[] args)
         {
-            Debug((object) string.Format(format, args),2);
+            Debug((object) string.Format(format, args), 2);
         }
 
         /// <summary>
         ///     ROS_ERROR(...)
         /// </summary>
         /// <param name="o"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
-        public static void Error(object o, int level=1)
+#endif
+        public static void Error(object o, int level = 1)
         {
             Console.WriteLine("[Error] " + o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.ERROR, level+1);
+                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.ERROR, level + 1);
         }
 
         /// <summary>
@@ -287,24 +303,28 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format"> format string </param>
         /// <param name="args"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void Error(string format, params object[] args)
         {
-            Error((object) string.Format(format, args),2);
+            Error((object) string.Format(format, args), 2);
         }
 
         /// <summary>
         ///     ROS_WARN(...)
         /// </summary>
         /// <param name="o"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
-        public static void Warn(object o,int level=1)
+#endif
+        public static void Warn(object o, int level = 1)
         {
             Console.WriteLine("[Warn] " + o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
-                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.WARN, level+1);
+                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.WARN, level + 1);
         }
 
         /// <summary>
@@ -312,10 +332,12 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format"> format string </param>
         /// <param name="args"> ... </param>
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void Warn(string format, params object[] args)
         {
-            Warn((object) string.Format(format, args),2);
+            Warn((object) string.Format(format, args), 2);
         }
 
         /// <summary>

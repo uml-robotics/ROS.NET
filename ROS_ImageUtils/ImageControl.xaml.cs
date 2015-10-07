@@ -7,13 +7,12 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,32 +32,75 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class ImageControl : UserControl, iROSImage
     {
-        private NodeHandle imagehandle;
-        private Subscriber<sm.Image> imgSub;
-        private Thread waitingThread;
-        public event FPSEvent fpsevent;
-
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
             typeof (string),
             typeof (ImageControl),
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
-                {
-                    try
-                    {
-                        if (obj is ImageControl)
-                        {
-                            ImageControl target = obj as ImageControl;
-                            target.Topic = (string) args.NewValue;
-                            target.DrawImage();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                }));
+                                                           {
+                                                               try
+                                                               {
+                                                                   if (obj is ImageControl)
+                                                                   {
+                                                                       ImageControl target = obj as ImageControl;
+                                                                       target.Topic = (string) args.NewValue;
+                                                                       target.DrawImage();
+                                                                   }
+                                                               }
+                                                               catch (Exception e)
+                                                               {
+                                                                   Console.WriteLine(e);
+                                                               }
+                                                           }));
+
+        private NodeHandle imagehandle;
+        private Subscriber<sm.Image> imgSub;
+        private Thread waitingThread;
+
+        public ImageControl()
+        {
+            InitializeComponent();
+        }
+
+        /// <summary>
+        ///     Gets/Sets Image provider topic and starts subscription
+        /// </summary>
+        public string Topic
+        {
+            get { return GetValue(TopicProperty) as string; }
+            set { SetValue(TopicProperty, value); }
+        }
+
+        public void Resubscribe()
+        {
+            Desubscribe();
+            imgSub = imagehandle.subscribe<sm.Image>(Topic, 1, updateImage);
+        }
+
+        public GenericImage getGenericImage()
+        {
+            return mGenericImage;
+        }
+
+        public bool IsSubscribed()
+        {
+            return imgSub != null;
+        }
+
+        /// <summary>
+        ///     Stops Subscription
+        /// </summary>
+        public void Desubscribe()
+        {
+            if (imgSub != null)
+            {
+                imgSub.shutdown();
+                imgSub = null;
+            }
+        }
+
+        public event FPSEvent fpsevent;
 
         private void DrawImage()
         {
@@ -105,48 +147,6 @@ namespace ROS_ImageWPF
         private void updateImage(sm.Image img)
         {
             Dispatcher.Invoke(new Action(() => mGenericImage.UpdateImage(img.data, new Size((int) img.width, (int) img.height), false, img.encoding.data)));
-        }
-
-        /// <summary>
-        /// Gets/Sets Image provider topic and starts subscription
-        /// </summary>
-        public string Topic
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
-        }
-
-        public void Resubscribe()
-        {
-            Desubscribe();
-            imgSub = imagehandle.subscribe<sm.Image>(Topic, 1, updateImage);
-        }
-
-        public GenericImage getGenericImage()
-        {
-            return mGenericImage;
-        }
-
-        public bool IsSubscribed()
-        {
-            return imgSub != null;
-        }
-
-        /// <summary>
-        /// Stops Subscription
-        /// </summary>
-        public void Desubscribe()
-        {
-            if (imgSub != null)
-            {
-                imgSub.shutdown();
-                imgSub = null;
-            }
-        }
-
-        public ImageControl()
-        {
-            InitializeComponent();
         }
     }
 }

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -20,16 +20,23 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public abstract class XmlRpcSource : IDisposable
     {
         protected IntPtr __instance;
 
         public IntPtr instance
         {
-            [DebuggerStepThrough] get { return __instance; }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                get { return __instance; }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);

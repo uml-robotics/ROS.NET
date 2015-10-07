@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 12/23/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -16,12 +16,13 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Net.Cache;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using Point = System.Drawing.Point;
 using Size = System.Windows.Size;
 
 #endregion
@@ -33,8 +34,6 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class GenericImage : UserControl
     {
-        public event FPSEvent fpsevent;
-
         public GenericImage()
         {
             InitializeComponent();
@@ -153,7 +152,7 @@ namespace ROS_ImageWPF
         /// <param name="hasHeader">
         ///     whether or not a header needs to be concatinated
         /// </param>
-        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding=null)
+        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
         {
             //Console.WriteLine(1 / DateTime.Now.Subtract(wtf).TotalSeconds);
             //wtf = DateTime.Now;
@@ -265,7 +264,7 @@ namespace ROS_ImageWPF
             frames = (frames + 1)%10;
             if (frames == 0)
             {
-                if (fps.Visibility == System.Windows.Visibility.Visible)
+                if (fps.Visibility == Visibility.Visible)
                     fps.Content = "" + Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2);
                 if (fpsevent != null)
                     fpsevent(Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2));
@@ -433,6 +432,8 @@ namespace ROS_ImageWPF
         }
 
         #endregion
+
+        public event FPSEvent fpsevent;
 
         public void Transform(double scalex, double scaley)
         {

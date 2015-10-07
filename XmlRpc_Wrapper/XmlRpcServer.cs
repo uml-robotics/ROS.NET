@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -28,10 +28,14 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get { return __instance; }
+#endif
+                get { return __instance; }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);
@@ -72,7 +76,9 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XmlRpcServer LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -84,8 +90,10 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
-        private new static void AddRef(IntPtr ptr)
+#endif
+        private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
             if (refdumper == null)
@@ -114,8 +122,10 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
-        private new static void RmRef(ref IntPtr ptr)
+#endif
+        private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
             {
@@ -156,13 +166,17 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcServer()
         {
             instance = create();
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcServer(IntPtr copy)
         {
             if (copy != IntPtr.Zero)
@@ -173,8 +187,10 @@ namespace XmlRpc_Wrapper
 
         public int Port
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 SegFault();
                 return getport(instance);
@@ -183,8 +199,10 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcDispatch Dispatch
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 SegFault();
                 if (_dispatch == null)
@@ -296,8 +314,10 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
-        public new void SegFault()
+#endif
+        public void SegFault()
         {
             if (instance == IntPtr.Zero)
                 throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");

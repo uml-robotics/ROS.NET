@@ -1,4 +1,16 @@
-﻿#region USINGZ
+﻿// File: PInvokeAllUpInYoGrill.cs
+// Project: YAMLParser
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 04/28/2015
+// Updated: 10/07/2015
+
+#region USINGZ
 
 using System;
 using System.Runtime.InteropServices;

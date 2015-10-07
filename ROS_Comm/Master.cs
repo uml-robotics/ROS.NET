@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -23,7 +23,9 @@ using XmlRpc_Wrapper;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public static class master
     {
         public static int port;
@@ -121,8 +123,8 @@ namespace Ros_CSharp
             if (!XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
                 return null;
             string nodeuri = payl.GetString();
-            string nodehost=null;
-            int nodeport=0;
+            string nodehost = null;
+            int nodeport = 0;
             if (!network.splitURI(nodeuri, ref nodehost, ref nodeport) || nodehost == null || nodeport <= 0)
                 return null;
             return XmlRpcManager.Instance.getXMLRPCClient(nodehost, nodeport, nodeuri);

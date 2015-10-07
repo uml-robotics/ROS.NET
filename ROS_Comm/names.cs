@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -28,19 +28,25 @@ namespace Ros_CSharp
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public static class names
     {
         public static IDictionary resolved_remappings = new Hashtable();
         public static IDictionary unresolved_remappings = new Hashtable();
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static bool isValidCharInName(char c)
         {
             return (Char.IsLetterOrDigit(c) || c == '/' || c == '_');
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static bool validate(string name, ref string error)
         {
             if (name == "" || name.StartsWith("__")) return true;
@@ -63,7 +69,9 @@ namespace Ros_CSharp
             return true;
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string clean(string name)
         {
             while (name.Contains("//"))
@@ -71,43 +79,57 @@ namespace Ros_CSharp
             return name.TrimEnd('/');
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string append(string left, string right)
         {
             return clean(left + "/" + right);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string remap(string name)
         {
             return resolve(name, false);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string resolve(string name)
         {
             return resolve(name, true);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string resolve(string ns, string name)
         {
             return resolve(ns, name, true);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string resolve(string name, bool doremap)
         {
             return resolve(this_node.Namespace, name, doremap);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         internal static Exception InvalidName(string error)
         {
             return new InvalidNameException(error);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string resolve(string ns, string name, bool doremap)
         {
             string error = "";
@@ -133,7 +155,9 @@ namespace Ros_CSharp
             return copy;
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static void Init(IDictionary remappings)
         {
             foreach (object k in remappings.Keys)
@@ -150,7 +174,9 @@ namespace Ros_CSharp
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static string parentNamespace(string name)
         {
             string error = "";

@@ -1,3 +1,15 @@
+// File: GenerationGuts.cs
+// Project: YAMLParser
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 04/28/2015
+// Updated: 10/07/2015
+
 #region USINGZ
 
 using System;
@@ -260,37 +272,6 @@ namespace FauxMessages
         public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
 
-        public void resolve(string package, ref string type)
-        {
-            if (resolver.Keys.Contains(type))
-            {
-                string same_pkg = null;
-
-                if (resolver[type].Count > 1)
-                {
-                    for (int i = 0; i < resolver[type].Count; i++)
-                    {
-                        if (package.Length > 0 && resolver[type][i].Contains(package))
-                        {
-                            type = resolver[type][i];
-                            return;
-                        }
-                        if (resolver[type][i].Contains(Namespace))
-                        {
-                            same_pkg = resolver[type][i];
-                        }
-                    }
-                    if (same_pkg != null)
-                    {
-                        type = same_pkg;
-                        return;
-                    }
-                    throw new Exception("Could not resolve " + type);
-                }
-                type = resolver[type][0];
-            }
-        }
-
         public MsgsFile(string filename, bool isrequest, List<string> lines)
             : this(filename, isrequest, lines, "")
         {
@@ -362,7 +343,7 @@ namespace FauxMessages
             classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
             Namespace = Namespace.Trim('.');
             if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
-                resolver.Add(classname, new List<string>(){Namespace + "." + classname});
+                resolver.Add(classname, new List<string> {Namespace + "." + classname});
             else if (Namespace != "Messages.std_msgs")
                 resolver[classname].Add(Namespace + "." + classname);
             List<string> lines = new List<string>(File.ReadAllLines(filename));
@@ -372,12 +353,12 @@ namespace FauxMessages
             //lines = lines.Where((st) => (st.Length > 0)).ToList();
 
             lines.ForEach(s =>
-            {
-                if (s.Contains('#') && s.Split('#')[0].Length != 0)
-                    s = s.Split('#')[0];
-                if (s.Contains('#'))
-                    s = "";
-            });
+                              {
+                                  if (s.Contains('#') && s.Split('#')[0].Length != 0)
+                                      s = s.Split('#')[0];
+                                  if (s.Contains('#'))
+                                      s = "";
+                              });
             lines = lines.Where(st => (st.Length > 0)).ToList();
 
 
@@ -390,6 +371,37 @@ namespace FauxMessages
                 SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
+            }
+        }
+
+        public void resolve(string package, ref string type)
+        {
+            if (resolver.Keys.Contains(type))
+            {
+                string same_pkg = null;
+
+                if (resolver[type].Count > 1)
+                {
+                    for (int i = 0; i < resolver[type].Count; i++)
+                    {
+                        if (package.Length > 0 && resolver[type][i].Contains(package))
+                        {
+                            type = resolver[type][i];
+                            return;
+                        }
+                        if (resolver[type][i].Contains(Namespace))
+                        {
+                            same_pkg = resolver[type][i];
+                        }
+                    }
+                    if (same_pkg != null)
+                    {
+                        type = same_pkg;
+                        return;
+                    }
+                    throw new Exception("Could not resolve " + type);
+                }
+                type = resolver[type][0];
             }
         }
 
@@ -685,7 +697,7 @@ namespace FauxMessages
                 if (t.Test(test))
                 {
                     t.rostype = t.Type;
-                    return t.Finalize(parent,test);
+                    return t.Finalize(parent, test);
                 }
             }
             return t.Finalize(parent, t.input.Split(spliter, StringSplitOptions.RemoveEmptyEntries), false);
@@ -699,6 +711,7 @@ namespace FauxMessages
         public bool IsArray;
         public bool IsLiteral;
         public string Name;
+        public string Package;
         public string Type;
         private string[] backup;
         public string input;
@@ -707,7 +720,6 @@ namespace FauxMessages
         public bool meta;
         public string output;
         public string rostype = "";
-        public string Package;
 
         public SingleType(string s)
             : this("", s, "")
@@ -881,14 +893,14 @@ namespace FauxMessages
                     ConstValue = chunks[chunks.Length - 1].Trim();
                     if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim().Replace("\"","") + "\")";
+                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim().Replace("\"", "") + "\")";
                     }
                 }
                 else if (!type.Equals("String"))
                 {
                     wantsconstructor = true;
                 }
-                string prefix = "",suffix="";
+                string prefix = "", suffix = "";
                 if (isconst)
                 {
                     if (!type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
@@ -937,7 +949,7 @@ namespace FauxMessages
                 string t = members.Type.Replace("Messages.", "");
                 if (!t.Contains('.'))
                     t = "std_msgs." + t;
-                mt = "MsgTypes."+t.Replace(".", "__");
+                mt = "MsgTypes." + t.Replace(".", "__");
                 if (mt.Contains("ColorRGBA"))
                     Console.WriteLine(mt);
             }
@@ -969,7 +981,9 @@ namespace FauxMessages
         public Type Type;
         public MsgTypes message_type;
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
             string lengths, bool meta, MsgTypes mt)
         {

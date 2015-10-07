@@ -7,14 +7,13 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
 using System;
 using System.Collections;
-using System.Runtime.InteropServices;
 using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -80,7 +79,7 @@ namespace Ros_CSharp
             }
             else
             {
-                stats.bytes_received += (ulong)m.Serialized.Length;
+                stats.bytes_received += (ulong) m.Serialized.Length;
                 byte[] tmp = new byte[m.Serialized.Length - 4];
                 Array.Copy(m.Serialized, 4, tmp, 0, m.Serialized.Length - 4);
                 m.Serialized = tmp;

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -29,39 +29,95 @@ namespace ROS_ImageWPF
 {
     /// <summary>
     ///     A WPF Control used for displaying of maps (occupancy grids)
-    ///     When added to a XAML file, the width of the map control needs to be set to the desired width, height will be set automatically to keep map aspect ratio
+    ///     When added to a XAML file, the width of the map control needs to be set to the desired width, height will be set
+    ///     automatically to keep map aspect ratio
     /// </summary>
     public partial class MapControl : UserControl
     {
-        private float mapResolution; //in Meters per Pixel
-        private float mapHeight;
-        private float mapWidth;
-        private float actualResolution;
-        private NodeHandle imagehandle;
-        private Subscriber<nm.OccupancyGrid> mapSub;
-        private Point origin;
-        private Thread waitingThread;
         public static readonly DependencyProperty TopicProperty = DependencyProperty.Register(
             "Topic",
-            typeof(string),
-            typeof(MapControl),
+            typeof (string),
+            typeof (MapControl),
             new FrameworkPropertyMetadata(null,
                 FrameworkPropertyMetadataOptions.None, (obj, args) =>
-                {
-                    try
-                    {
-                        if (obj is MapControl)
-                        {
-                            MapControl target = obj as MapControl;
-                            target.Topic = (string)args.NewValue;
-                            target.DrawMap();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-        }));
+                                                           {
+                                                               try
+                                                               {
+                                                                   if (obj is MapControl)
+                                                                   {
+                                                                       MapControl target = obj as MapControl;
+                                                                       target.Topic = (string) args.NewValue;
+                                                                       target.DrawMap();
+                                                                   }
+                                                               }
+                                                               catch (Exception e)
+                                                               {
+                                                                   Console.WriteLine(e);
+                                                               }
+                                                           }));
+
+        private float actualResolution;
+        private NodeHandle imagehandle;
+        private float mapHeight;
+        private float mapResolution; //in Meters per Pixel
+        private Subscriber<nm.OccupancyGrid> mapSub;
+        private float mapWidth;
+        private Point origin;
+        private Thread waitingThread;
+
+        public MapControl()
+        {
+            InitializeComponent();
+        }
+
+        /// <summary>
+        ///     Map Resolution in meters per pixel of the actual rendered map
+        /// </summary>
+        public float ActualResolution
+        {
+            get { return actualResolution; }
+        }
+
+        /// <summary>
+        ///     Map Resolution in meters per pixel, (As provided in the map topic, not actual rendered resolution)
+        /// </summary>
+        public float MapResolution
+        {
+            get { return mapResolution; }
+        }
+
+        /// <summary>
+        ///     Map height in pixels (This is the map height as provided in the map topic, not the actual rendered height)
+        /// </summary>
+        public float MapHeight
+        {
+            get { return mapHeight; }
+        }
+
+        /// <summary>
+        ///     Map width in pixels (This is the map width as provided in the map topic, not the actual rendered width)
+        /// </summary>
+        public float MapWidth
+        {
+            get { return mapWidth; }
+        }
+
+        /// <summary>
+        ///     Point set as the origin of the map
+        /// </summary>
+        public Point Origin
+        {
+            get { return origin; }
+        }
+
+        /// <summary>
+        ///     Map provider topic
+        /// </summary>
+        public string Topic
+        {
+            get { return GetValue(TopicProperty) as string; }
+            set { SetValue(TopicProperty, value); }
+        }
 
         private void DrawMap()
         {
@@ -104,28 +160,28 @@ namespace ROS_ImageWPF
                 return;
             Console.WriteLine("Subscribing to map at:= " + topic);
             mapSub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
-            {
-                Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
-                mapResolution = i.info.resolution;
-                mapHeight = i.info.height;
-                mapWidth = i.info.width;
-                actualResolution = (mapWidth / (float)Width) * mapResolution;
-                Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
-                MatchAspectRatio();
-                origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
-                Size size = new Size(i.info.width, i.info.height);
-                byte[] data = createRGBA(i.data);
-                mGenericImage.UpdateImage(data, size, false);
-                data = null;
-            })));
+                                                                                                             {
+                                                                                                                 Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
+                                                                                                                 mapResolution = i.info.resolution;
+                                                                                                                 mapHeight = i.info.height;
+                                                                                                                 mapWidth = i.info.width;
+                                                                                                                 actualResolution = (mapWidth/(float) Width)*mapResolution;
+                                                                                                                 Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
+                                                                                                                 MatchAspectRatio();
+                                                                                                                 origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
+                                                                                                                 Size size = new Size(i.info.width, i.info.height);
+                                                                                                                 byte[] data = createRGBA(i.data);
+                                                                                                                 mGenericImage.UpdateImage(data, size, false);
+                                                                                                                 data = null;
+                                                                                                             })));
         }
 
         /// <summary>
-        /// Changes the Height of the control, so that it matches the aspect ratio of the map
+        ///     Changes the Height of the control, so that it matches the aspect ratio of the map
         /// </summary>
         private void MatchAspectRatio()
         {
-            double mapAspectRatio = (double)mapWidth/(double)mapHeight;
+            double mapAspectRatio = mapWidth/(double) mapHeight;
             //Do nothing if map aspect ratio is close enough to control aspect ratio
             if (Math.Abs(Width/Height - mapAspectRatio) < 0.001)
                 return;
@@ -154,7 +210,7 @@ namespace ROS_ImageWPF
                         image[count + 2] = 105;
                         image[count + 3] = 0xFF;
                         break;
-                    case 0:  //0% prob of occupancy, White
+                    case 0: //0% prob of occupancy, White
                         image[count] = 255;
                         image[count + 1] = 255;
                         image[count + 2] = 255;
@@ -170,60 +226,6 @@ namespace ROS_ImageWPF
                 count += 4;
             }
             return image;
-        }
-
-        public MapControl()
-        {
-            InitializeComponent();
-        }
-
-        /// <summary>
-        /// Map Resolution in meters per pixel of the actual rendered map
-        /// </summary>
-        public float ActualResolution
-        {
-            get { return actualResolution; }
-        }
-
-        /// <summary>
-        /// Map Resolution in meters per pixel, (As provided in the map topic, not actual rendered resolution)
-        /// </summary>
-        public float MapResolution
-        {
-            get { return mapResolution; }
-        }
-
-        /// <summary>
-        /// Map height in pixels (This is the map height as provided in the map topic, not the actual rendered height)
-        /// </summary>
-        public float MapHeight
-        {
-            get { return mapHeight; }
-        }
-
-        /// <summary>
-        /// Map width in pixels (This is the map width as provided in the map topic, not the actual rendered width)
-        /// </summary>
-        public float MapWidth
-        {
-            get { return mapWidth; }
-        }
-
-        /// <summary>
-        /// Point set as the origin of the map
-        /// </summary>
-        public Point Origin
-        {
-            get { return origin; }
-        }
-
-        /// <summary>
-        /// Map provider topic
-        /// </summary>
-        public string Topic
-        {
-            get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
         }
     }
 }

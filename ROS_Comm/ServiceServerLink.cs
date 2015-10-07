@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -50,6 +50,18 @@ namespace Ros_CSharp
             RequestMd5Sum = requestMd5Sum;
             ResponseMd5Sum = responseMd5Sum;
             this.header_values = header_values;
+        }
+
+        /// <summary>
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            if (connection != null && !connection.dropped)
+            {
+                connection.drop(Connection.DropReason.Destructing);
+                connection = null;
+            }
         }
 
         public void initialize<MSrv>()
@@ -312,18 +324,6 @@ namespace Ros_CSharp
             }
             return info.success;
         }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            if (connection != null && !connection.dropped)
-            {
-                connection.drop(Connection.DropReason.Destructing);
-                connection = null;
-            }
-        }
     }
 
     public class ServiceServerLink<MReq, MRes> : IServiceServerLink
@@ -342,12 +342,7 @@ namespace Ros_CSharp
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
             if (iresp != null)
-                resp = (MRes) iresp;//.Deserialize(iresp.Serialized);
-            else
-            {
-                //std_servs.Empty, I hope?
-                // or un-set?
-            }
+                resp = (MRes) iresp; //.Deserialize(iresp.Serialized);
             return r;
         }
     }

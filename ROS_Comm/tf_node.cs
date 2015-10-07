@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -16,23 +16,24 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using MathNet.Spatial;
 using Messages;
 using Messages.std_msgs;
 using Messages.tf;
 using gm = Messages.geometry_msgs;
 using Int64 = System.Int64;
 using String = Messages.std_msgs.String;
-using MathNet.Spatial;
 using Vector3 = MathNet.Spatial.Vector3D;
+
 #endregion
 
 namespace Ros_CSharp
 {
     public class Stamped<T>
     {
-        public Time stamp;
-        public string frame_id;
         public T data;
+        public string frame_id;
+        public Time stamp;
 
         public Stamped()
         {
@@ -62,10 +63,6 @@ namespace Ros_CSharp
         private NodeHandle tfhandle;
         private Thread updateThread;
 
-        internal delegate void TFUpdate(gm.TransformStamped msg);
-
-        internal event TFUpdate TFsUpdated;
-
         private tf_node()
         {
             if (additions == null)
@@ -77,32 +74,32 @@ namespace Ros_CSharp
             if (updateThread == null)
             {
                 updateThread = new Thread(() =>
-                {
-                    while (ROS.ok)
-                    {
-                        Queue<tfMessage> local;
-                        lock (addlock)
-                        {
-                            local = new Queue<tfMessage>(additions);
-                            additions.Clear();
-                        }
-                        if (local.Count > 0)
-                        {
-                            while (local.Count > 0)
-                            {
-                                tfMessage msg = local.Dequeue();
-                                foreach (gm.TransformStamped t in msg.transforms)
-                                {
-                                    if (TFsUpdated != null)
-                                    {
-                                        TFsUpdated(t);
-                                    }
-                                }
-                            }
-                        }
-                        Thread.Sleep(1);
-                    }
-                });
+                                              {
+                                                  while (ROS.ok)
+                                                  {
+                                                      Queue<tfMessage> local;
+                                                      lock (addlock)
+                                                      {
+                                                          local = new Queue<tfMessage>(additions);
+                                                          additions.Clear();
+                                                      }
+                                                      if (local.Count > 0)
+                                                      {
+                                                          while (local.Count > 0)
+                                                          {
+                                                              tfMessage msg = local.Dequeue();
+                                                              foreach (gm.TransformStamped t in msg.transforms)
+                                                              {
+                                                                  if (TFsUpdated != null)
+                                                                  {
+                                                                      TFsUpdated(t);
+                                                                  }
+                                                              }
+                                                          }
+                                                      }
+                                                      Thread.Sleep(1);
+                                                  }
+                                              });
                 updateThread.Start();
             }
             tfhandle.subscribe<tfMessage>("/tf", 0, tfCallback);
@@ -110,8 +107,10 @@ namespace Ros_CSharp
 
         public static tf_node instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (_instance == null)
                 {
@@ -125,11 +124,15 @@ namespace Ros_CSharp
             }
         }
 
+        internal event TFUpdate TFsUpdated;
+
         private void tfCallback(tfMessage msg)
         {
             lock (addlock)
                 additions.Enqueue(msg);
         }
+
+        internal delegate void TFUpdate(gm.TransformStamped msg);
     }
 
     public enum TF_STATUS
@@ -183,7 +186,7 @@ namespace Ros_CSharp
             {
                 if (prefix[0] == '/' && prefix.Length == 1)
                     return "/" + frame_name;
-                else if (prefix[0] == '/')
+                if (prefix[0] == '/')
                     return prefix + "/" + frame_name;
                 return "/" + prefix + "/" + frame_name;
             }
@@ -285,7 +288,7 @@ namespace Ros_CSharp
         {
             emTransform trans = new emTransform();
             lookupTransform(target_frame, stamped_in.frame_id, stamped_in.stamp, out trans);
-            stamped_out.data = trans * stamped_in.data;
+            stamped_out.data = trans*stamped_in.data;
             stamped_out.stamp = trans.stamp;
             stamped_out.frame_id = target_frame;
         }
@@ -324,7 +327,6 @@ namespace Ros_CSharp
 
         public void transformPoint(string target_frame, Stamped<gm.Point> stamped_in, ref Stamped<gm.Point> stamped_out)
         {
-
         }
 
         public TF_STATUS walkToTopParent<F>(F f, ulong time, uint target_id, uint source_id, ref string error_str) where F : ATransformAccum
@@ -824,7 +826,9 @@ namespace Ros_CSharp
         #endregion
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class TransformStorage
     {
         public uint child_frame_id;
@@ -850,7 +854,9 @@ namespace Ros_CSharp
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class emMatrix3x3
     {
         public emVector3[] m_el = new emVector3[3];
@@ -1031,7 +1037,7 @@ namespace Ros_CSharp
                     emQuaternion inv_target_quat = target_to_top_quat.inverse();
                     emVector3 inv_target_vec = quatRotate(inv_target_quat, -1*target_to_top_vec);
                     result_vec = quatRotate(inv_target_quat, source_to_top_vec) + inv_target_vec;
-                    result_quat = inv_target_quat * source_to_top_quat;
+                    result_quat = inv_target_quat*source_to_top_quat;
                 }
                     break;
             }
@@ -1044,7 +1050,6 @@ namespace Ros_CSharp
             {
                 source_to_top_vec = quatRotate(st.rotation, source_to_top_vec) + st.translation;
                 source_to_top_quat = st.rotation*source_to_top_quat;
-
             }
             else
             {
@@ -1055,13 +1060,15 @@ namespace Ros_CSharp
 
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
-            emQuaternion q = new emQuaternion(rotation * new emQuaternion(1.0,v.x,v.y,v.z));
+            emQuaternion q = new emQuaternion(rotation*new emQuaternion(1.0, v.x, v.y, v.z));
             q = q*rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class emTransform
     {
         public string child_frame_id;
@@ -1079,9 +1086,10 @@ namespace Ros_CSharp
         {
         }
 
-        public emTransform(emQuaternion q, emVector3 v) : this(q,v,null,null,null)
+        public emTransform(emQuaternion q, emVector3 v) : this(q, v, null, null, null)
         {
         }
+
         public emTransform(emQuaternion q, emVector3 v, Time t, string fid, string cfi)
         {
             basis = q;
@@ -1093,10 +1101,9 @@ namespace Ros_CSharp
         }
 
 
-
         public static emTransform operator *(emTransform t, emTransform v)
         {
-            return new emTransform(t.basis * v.basis, t * v.origin);
+            return new emTransform(t.basis*v.basis, t*v.origin);
         }
 
         public static emVector3 operator *(emTransform t, emVector3 v)
@@ -1106,14 +1113,16 @@ namespace Ros_CSharp
                 mat.m_el[1].vec.DotProduct(v.vec) + t.origin.y,
                 mat.m_el[2].vec.DotProduct(v.vec) + t.origin.z);
         }
-        
+
         public static emQuaternion operator *(emTransform t, emQuaternion q)
         {
-            return t.basis * q;
+            return t.basis*q;
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class emQuaternion
     {
         internal Quaternion quat;
@@ -1142,7 +1151,7 @@ namespace Ros_CSharp
             get { return quat.ImagZ; }
         }
 
-        public emQuaternion() : this(new Quaternion(1,0,0,0))
+        public emQuaternion() : this(new Quaternion(1, 0, 0, 0))
         {
         }
 
@@ -1157,12 +1166,12 @@ namespace Ros_CSharp
         }
 
         public emQuaternion(emQuaternion shallow)
-            : this(shallow.w,shallow.x, shallow.y, shallow.z)
+            : this(shallow.w, shallow.x, shallow.y, shallow.z)
         {
         }
 
         public emQuaternion(gm.Quaternion shallow)
-            : this(shallow.w,shallow.x, shallow.y, shallow.z)
+            : this(shallow.w, shallow.x, shallow.y, shallow.z)
         {
         }
 
@@ -1178,52 +1187,52 @@ namespace Ros_CSharp
 
         public static emQuaternion operator *(emQuaternion v1, float d)
         {
-            return new emQuaternion(v1.quat * d);
+            return new emQuaternion(v1.quat*d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, int d)
         {
-            return new emQuaternion(v1.quat * d);
+            return new emQuaternion(v1.quat*d);
         }
 
         public static emQuaternion operator *(emQuaternion v1, double d)
         {
-            return new emQuaternion(v1.quat * d);
+            return new emQuaternion(v1.quat*d);
         }
 
         public static emQuaternion operator *(float d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return new emQuaternion(d*v1.quat);
         }
 
         public static emQuaternion operator *(int d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return new emQuaternion(d*v1.quat);
         }
 
         public static emQuaternion operator *(double d, emQuaternion v1)
         {
-            return new emQuaternion(d * v1.quat);
+            return new emQuaternion(d*v1.quat);
         }
 
         public static emQuaternion operator *(emQuaternion v1, emQuaternion v2)
         {
-            return new emQuaternion(v1.quat * v2.quat);
+            return new emQuaternion(v1.quat*v2.quat);
         }
 
         public static emQuaternion operator /(emQuaternion v1, float s)
         {
-            return new emQuaternion(v1.quat / s);
+            return new emQuaternion(v1.quat/s);
         }
 
         public static emQuaternion operator /(emQuaternion v1, int s)
         {
-            return new emQuaternion(v1.quat / s);
+            return new emQuaternion(v1.quat/s);
         }
 
         public static emQuaternion operator /(emQuaternion v1, double s)
         {
-            return new emQuaternion(v1.quat / s);
+            return new emQuaternion(v1.quat/s);
         }
 
         public emQuaternion inverse()
@@ -1238,7 +1247,7 @@ namespace Ros_CSharp
 
         public double length2()
         {
-            return quat.Abs * quat.Abs;
+            return quat.Abs*quat.Abs;
         }
 
         public double length()
@@ -1302,10 +1311,10 @@ namespace Ros_CSharp
             double cos_y2 = Math.Cos(halfyaw);
 
             return new emQuaternion(
-                cos_r2 * cos_p2 * cos_y2 + sin_r2 * sin_p2 * sin_y2,
-                sin_r2 * cos_p2 * cos_y2 - cos_r2 * sin_p2 * sin_y2,
-                cos_r2 * sin_p2 * cos_y2 + sin_r2 * cos_p2 * sin_y2,
-                cos_r2 * cos_p2 * sin_y2 - sin_r2 * sin_p2 * cos_y2
+                cos_r2*cos_p2*cos_y2 + sin_r2*sin_p2*sin_y2,
+                sin_r2*cos_p2*cos_y2 - cos_r2*sin_p2*sin_y2,
+                cos_r2*sin_p2*cos_y2 + sin_r2*cos_p2*sin_y2,
+                cos_r2*cos_p2*sin_y2 - sin_r2*sin_p2*cos_y2
                 );
         }
 
@@ -1330,15 +1339,18 @@ namespace Ros_CSharp
                         (y*s0 + -1*q.y*s1)*d,
                         (z*s0 + -1*q.z*s1)*d);
                 }
-                return new emQuaternion((w * s0 + q.w * s1) * d,
-                    (x * s0 + q.x * s1) * d,
+                return new emQuaternion((w*s0 + q.w*s1)*d,
+                    (x*s0 + q.x*s1)*d,
                     (y*s0 + q.y*s1)*d,
                     (z*s0 + q.z*s1)*d);
             }
             return new emQuaternion(this);
         }
     }
+
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class emVector3
     {
         internal Vector3 vec;
@@ -1348,18 +1360,20 @@ namespace Ros_CSharp
             get { return vec.X; }
             set { vec = new Vector3(value, y, z); }
         }
+
         public double y
         {
             get { return vec.Y; }
             set { vec = new Vector3(x, value, z); }
         }
+
         public double z
         {
             get { return vec.Z; }
             set { vec = new Vector3(x, y, value); }
         }
 
-        public emVector3() : this(0,0,0)
+        public emVector3() : this(0, 0, 0)
         {
         }
 
@@ -1368,7 +1382,7 @@ namespace Ros_CSharp
             vec = v;
         }
 
-        public emVector3(double X, double Y, double Z) : this(new Vector3(X,Y,Z))
+        public emVector3(double X, double Y, double Z) : this(new Vector3(X, Y, Z))
         {
         }
 
@@ -1402,27 +1416,27 @@ namespace Ros_CSharp
 
         public static emVector3 operator *(emVector3 v1, int d)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(d*v1.vec);
         }
 
         public static emVector3 operator *(emVector3 v1, double d)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(d*v1.vec);
         }
 
         public static emVector3 operator *(float d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(d*v1.vec);
         }
 
         public static emVector3 operator *(int d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(d*v1.vec);
         }
 
         public static emVector3 operator *(double d, emVector3 v1)
         {
-            return new emVector3(d * v1.vec);
+            return new emVector3(d*v1.vec);
         }
 
         public override string ToString()

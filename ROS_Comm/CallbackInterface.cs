@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -24,7 +24,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
         public Callback(CallbackDelegate<T> f, string topic, uint queue_size, bool allow_concurrent_callbacks) : this(f)
@@ -51,17 +53,17 @@ namespace Ros_CSharp
             };*/
             base.Event +=
                 b =>
-                {
-                    if (b.Serialized != null)
                     {
-                        IRosMessage t = new T();
-                        t = t.Deserialize(b.Serialized);
-                        t.connection_header = b.connection_header;
-                        f(t as T);
-                    }
-                    else
-                        f(b as T);
-                };
+                        if (b.Serialized != null)
+                        {
+                            IRosMessage t = new T();
+                            t = t.Deserialize(b.Serialized);
+                            t.connection_header = b.connection_header;
+                            f(t as T);
+                        }
+                        else
+                            f(b as T);
+                    };
             //func = f;
         }
 
@@ -190,7 +192,9 @@ namespace Ros_CSharp
         }
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class CallbackInterface
     {
         #region Delegates

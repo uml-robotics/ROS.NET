@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -27,7 +27,6 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    [DebuggerStepThrough]
     public class Subscription
     {
         private bool _dropped;
@@ -563,7 +562,9 @@ namespace Ros_CSharp
 
         #region Nested type: CallbackInfo
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
         {
             public CallbackInfo()
@@ -576,7 +577,9 @@ namespace Ros_CSharp
 
         #region Nested type: ICallbackInfo
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public class ICallbackInfo
         {
             public CallbackQueueInterface callback;
@@ -593,7 +596,9 @@ namespace Ros_CSharp
 
         #region Nested type: LatchInfo
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public class LatchInfo
         {
             public IDictionary connection_header;

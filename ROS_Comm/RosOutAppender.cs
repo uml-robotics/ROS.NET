@@ -7,12 +7,11 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -61,15 +60,15 @@ namespace Ros_CSharp
             }
         }
 
-        public void Append(string m, int level=1)
+        public void Append(string m, int level = 1)
         {
-            Append(m, ROSOUT_LEVEL.INFO, level+1);
+            Append(m, ROSOUT_LEVEL.INFO, level + 1);
         }
 
-        public void Append(string m, ROSOUT_LEVEL lvl, int level=1)
+        public void Append(string m, ROSOUT_LEVEL lvl, int level = 1)
         {
-            StackFrame sf = new StackTrace(new StackFrame(level,true)).GetFrame(0);
-            Log l = new Log {msg = new m.String(m), level = ((byte) ((int) lvl)), name = new m.String(this_node.Name), file = new m.String(sf.GetFileName()), function = new m.String(sf.GetMethod().Name), line = (uint)sf.GetFileLineNumber()};
+            StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
+            Log l = new Log {msg = new m.String(m), level = ((byte) ((int) lvl)), name = new m.String(this_node.Name), file = new m.String(sf.GetFileName()), function = new m.String(sf.GetMethod().Name), line = (uint) sf.GetFileLineNumber()};
             string[] advert = this_node.AdvertisedTopics().ToArray();
             l.topics = new m.String[advert.Length];
             for (int i = 0; i < advert.Length; i++)

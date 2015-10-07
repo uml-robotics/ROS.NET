@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -42,8 +42,10 @@ namespace Ros_CSharp
 
         public static ServiceManager Instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (_instance == null)
                     lock (singleton_instance)
@@ -138,7 +140,7 @@ namespace Ros_CSharp
         internal void removeServiceServerLink<S>(ServiceServerLink<S> issl)
             where S : IRosService, new()
         {
-            removeServiceServerLink((IServiceServerLink)issl);
+            removeServiceServerLink((IServiceServerLink) issl);
         }
 
         internal void removeServiceServerLink(IServiceServerLink issl)

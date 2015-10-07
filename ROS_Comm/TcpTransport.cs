@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -108,8 +108,10 @@ namespace Ros_CSharp
 
         public string ClientURI
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (connected_host == null || connected_port == 0)
                     return "[NOT CONNECTED]";
@@ -258,18 +260,18 @@ namespace Ros_CSharp
             LocalEndPoint = ipep;
             ManualResetEvent connectDone = new ManualResetEvent(false);
 
-            sock.BeginConnect(ipep, (iar) =>
-            {
-                try
-                {
-                    sock.EndConnect(iar);
-                    connectDone.Set();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }, null);
+            sock.BeginConnect(ipep, iar =>
+                                        {
+                                            try
+                                            {
+                                                sock.EndConnect(iar);
+                                                connectDone.Set();
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Console.WriteLine(e);
+                                            }
+                                        }, null);
             bool completed = false;
             while (ROS.ok && !ROS.shutting_down)
             {
@@ -557,7 +559,9 @@ namespace Ros_CSharp
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public override string ToString()
         {
             return "TCPROS connection to [" + sock + "]";

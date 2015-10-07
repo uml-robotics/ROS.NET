@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -28,7 +28,6 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    [DebuggerStepThrough]
     public class TopicManager
     {
         #region Delegates
@@ -48,8 +47,10 @@ namespace Ros_CSharp
 
         public static TopicManager Instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get
+#endif
+                get
             {
                 if (_instance == null)
                 {
@@ -131,7 +132,7 @@ namespace Ros_CSharp
         {
             lock (advertised_topics_mutex)
             {
-                topics = advertised_topics.Select((a) => a.Name);
+                topics = advertised_topics.Select(a => a.Name);
             }
         }
 
@@ -368,7 +369,7 @@ namespace Ros_CSharp
                 p = lookupPublication(topic);
             if (p != null)
             {
-                p.connection_header = new Header { Values = new Hashtable() };
+                p.connection_header = new Header {Values = new Hashtable()};
                 p.connection_header.Values["type"] = p.DataType;
                 p.connection_header.Values["md5sum"] = p.Md5sum;
                 p.connection_header.Values["message_definition"] = p.MessageDefinition;

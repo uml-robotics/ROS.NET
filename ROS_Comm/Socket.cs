@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -22,7 +22,9 @@ using ns = System.Net.Sockets;
 
 namespace Ros_CSharp.CustomSocket
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class Socket : ns.Socket
     {
         private static SortedList<uint, Socket> _socklist = new SortedList<uint, Socket>();
@@ -92,16 +94,19 @@ namespace Ros_CSharp.CustomSocket
             attemptedConnectionEndpoint = ipep.Address.ToString();
             base.BeginConnect(endpoint, ac, st);
         }
+
         public new void BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = address.ToString();
             base.BeginConnect(address, port, ac, st);
         }
+
         public new void BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = addresses[0].ToString();
             base.BeginConnect(addresses, port, ac, st);
         }
+
         public new void BeginConnect(string host, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = host;
@@ -127,7 +132,7 @@ namespace Ros_CSharp.CustomSocket
         }
 
         public new bool ConnectAsync(ns.SocketAsyncEventArgs e)
-        {   
+        {
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
             return base.ConnectAsync(e);
         }
@@ -186,7 +191,9 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public override string ToString()
         {
             if (string.IsNullOrEmpty(attemptedConnectionEndpoint))

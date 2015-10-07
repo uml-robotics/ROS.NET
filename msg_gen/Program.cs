@@ -1,15 +1,29 @@
-﻿using System;
+﻿// File: Program.cs
+// Project: msg_gen
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 04/28/2015
+// Updated: 10/07/2015
+
+#region USINGZ
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
+
+#endregion
 
 namespace msg_gen
 {
     internal class Program
     {
-        private static string[] msg_gen_folder_names = new[]
+        private static string[] msg_gen_folder_names =
         {
             "msg",
             "srv",
@@ -18,14 +32,14 @@ namespace msg_gen
         };
 
         private static string getPackageName(string path, out string targetmsgpath)
-        {   
+        {
             if (File.Exists(path))
             {
                 string[] chunks = path.Split('\\');
                 string foldername = chunks[chunks.Length - 2];
                 if (msg_gen_folder_names.Contains(foldername))
                     foldername = chunks[chunks.Length - 3];
-                targetmsgpath = foldername+"\\"+chunks[chunks.Length-1];
+                targetmsgpath = foldername + "\\" + chunks[chunks.Length - 1];
                 return foldername;
             }
             targetmsgpath = null;
@@ -36,7 +50,7 @@ namespace msg_gen
         {
             string m = null;
             string p = getPackageName(msgpath, out m);
-            targetmsgpath = basedir+"\\"+m;
+            targetmsgpath = basedir + "\\" + m;
             return basedir + "\\" + p;
         }
 
@@ -46,7 +60,7 @@ namespace msg_gen
             s.AddRange(Directory.EnumerateFiles(path, "*.srv", SearchOption.AllDirectories).Except(s).ToList());
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             string directory = Environment.GetEnvironmentVariable("TMP") + "\\msgs_flat";
             try
@@ -54,7 +68,7 @@ namespace msg_gen
                 if (Directory.Exists(directory))
                     Directory.Delete(directory, true);
             }
-            catch(System.IO.DirectoryNotFoundException dnfe)
+            catch (DirectoryNotFoundException dnfe)
             {
                 Console.WriteLine(dnfe);
             }

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 09/01/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -22,18 +22,23 @@ using System.Runtime.InteropServices;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class XmlRpcClient : IDisposable
     {
-
         protected IntPtr __instance;
 
         public IntPtr instance
         {
+#if !TRACE
             [DebuggerStepThrough]
-            get { return __instance; }
+#endif
+                get { return __instance; }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);
@@ -82,7 +87,9 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XmlRpcDispatch LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -94,8 +101,10 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
-        private new static void AddRef(IntPtr ptr)
+#endif
+        private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUG
             if (refdumper == null)
@@ -124,8 +133,10 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
-        private new static void RmRef(ref IntPtr ptr)
+#endif
+        private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
             {
@@ -168,19 +179,25 @@ namespace XmlRpc_Wrapper
 
         public string HostUri = "";
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
             instance = create(HostName, Port, Uri);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcClient(string HostName, int Port)
             : this(HostName, Port, "/")
         {
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XmlRpcClient(string WHOLESHEBANG)
         {
             if (!WHOLESHEBANG.Contains("://")) throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
@@ -200,67 +217,106 @@ namespace XmlRpc_Wrapper
 
         public bool IsConnected
         {
-            [DebuggerStepThrough] get { return isconnected(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return isconnected(instance); }
         }
 
         public string Host
         {
-            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(gethost(instance)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Marshal.PtrToStringAnsi(gethost(instance)); }
         }
 
         public string Uri
         {
-            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(geturi(instance)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Marshal.PtrToStringAnsi(geturi(instance)); }
         }
 
         public int Port
         {
-            [DebuggerStepThrough] get { return getport(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getport(instance); }
         }
 
         public string Request
         {
-            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
         }
 
         public string Header
         {
-            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getheader(instance)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Marshal.PtrToStringAnsi(getheader(instance)); }
         }
 
         public string Response
         {
-            [DebuggerStepThrough] get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
         }
 
         public int SendAttempts
         {
-            [DebuggerStepThrough] get { return getsendattempts(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getsendattempts(instance); }
         }
 
         public int BytesWritten
         {
-            [DebuggerStepThrough] get { return getbyteswritten(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getbyteswritten(instance); }
         }
 
         public bool Executing
         {
-            [DebuggerStepThrough] get { return getexecuting(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getexecuting(instance); }
         }
 
         public bool EOF
         {
-            [DebuggerStepThrough] get { return geteof(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return geteof(instance); }
         }
 
         public int ContentLength
         {
-            [DebuggerStepThrough] get { return getcontentlength(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getcontentlength(instance); }
         }
 
         public IntPtr XmlRpcDispatch
         {
-            [DebuggerStepThrough] get { return getxmlrpcdispatch(instance); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return getxmlrpcdispatch(instance); }
         }
 
         #endregion
@@ -288,7 +344,7 @@ namespace XmlRpc_Wrapper
             return executecheckdone(instance, result.instance);
         }
 
-        public new UInt16 HandleEvent(UInt16 eventType)
+        public UInt16 HandleEvent(UInt16 eventType)
         {
             return handleevent(instance, eventType);
         }

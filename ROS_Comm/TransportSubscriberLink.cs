@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -16,7 +16,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Messages;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -29,12 +28,12 @@ namespace Ros_CSharp
     {
         public Connection connection;
         private bool header_written;
+        private int max_queue;
         private Queue<MessageAndSerializerFunc> outbox = new Queue<MessageAndSerializerFunc>();
         private object outbox_mutex = new object();
         private new Publication parent;
         private bool queue_full;
         private bool writing_message;
-        private int max_queue = 0;
 
         public TransportSubscriberLink()
         {

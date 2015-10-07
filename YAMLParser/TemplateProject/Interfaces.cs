@@ -17,7 +17,9 @@ namespace Messages
         internal static Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>> constructors = new Dictionary<MsgTypes, Func<MsgTypes, IRosMessage>>();
         private static Dictionary<MsgTypes, Type> _typeregistry = new Dictionary<MsgTypes, Type>();
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosMessage generate(MsgTypes t)
         {
@@ -75,19 +77,25 @@ namespace Messages
         {
         }
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields)
         :this(t,def,hasheader,meta,fields,"")
         {}
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5) : this(t,def,hasheader,meta,fields,ms5,false)
         {
         }
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5, bool isservicemessage)
         {
@@ -107,7 +115,9 @@ namespace Messages
             SerializationHelper.deserialize(GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
         }
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
         {
@@ -177,7 +187,9 @@ namespace Messages
         internal static Dictionary<SrvTypes, Func<SrvTypes, IRosService>> constructors = new Dictionary<SrvTypes, Func<SrvTypes, IRosService>>();
         private static Dictionary<SrvTypes, Type> _typeregistry = new Dictionary<SrvTypes, Type>();
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static IRosService generate(SrvTypes t)
         {

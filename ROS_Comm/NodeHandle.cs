@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -25,7 +25,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class NodeHandle : IDisposable
     {
         private string Namespace = "", UnresolvedNamespace = "";
@@ -427,14 +429,14 @@ namespace Ros_CSharp
 
         public ServiceClient<MSrv> serviceClient<MSrv>(string service_name)
             where MSrv : IRosService, new()
-            
+
         {
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, false, null));
         }
 
         public ServiceClient<MSrv> serviceClient<MSrv>(string service_name, bool persistent)
             where MSrv : IRosService, new()
-            
+
         {
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, null));
         }
@@ -442,14 +444,14 @@ namespace Ros_CSharp
         public ServiceClient<MSrv> serviceClient<MSrv>(string service_name, bool persistent,
             IDictionary header_values)
             where MSrv : IRosService, new()
-            
+
         {
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, header_values));
         }
 
         public ServiceClient<MSrv> serviceClient<MSrv>(ServiceClientOptions ops)
             where MSrv : IRosService, new()
-            
+
         {
             ops.service = resolveName(ops.service);
             ops.md5sum = new MSrv().RequestMessage.MD5Sum;
@@ -489,7 +491,9 @@ namespace Ros_CSharp
                 ROS.shutdown();
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private void initRemappings(IDictionary rms)
         {
             if (rms == null) return;
@@ -507,7 +511,9 @@ namespace Ros_CSharp
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private string remapName(string name)
         {
             string resolved = resolveName(name, false);
@@ -518,13 +524,17 @@ namespace Ros_CSharp
             return names.remap(resolved);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private string resolveName(string name)
         {
             return resolveName(name, true);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private string resolveName(string name, bool remap)
         {
             string error = "";
@@ -533,7 +543,9 @@ namespace Ros_CSharp
             return resolveName(name, remap, no_validate);
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private string resolveName(string name, bool remap, bool novalidate)
         {
             //EDB.WriteLine("resolveName(" + name + ")");
@@ -555,7 +567,9 @@ namespace Ros_CSharp
 
         #region Nested type: NodeHandleBackingCollection
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public class NodeHandleBackingCollection : IDisposable
         {
             public readonly object mutex = new object();

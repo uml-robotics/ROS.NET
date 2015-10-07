@@ -12,6 +12,6 @@
                 <ImageBrush x:Name="image" />
             </Rectangle.Fill>
         </Rectangle>
-        <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold" x:FieldModifier="public" Visibility="Hidden"></Label>
+        <Label Name="fps" VerticalAlignment="Top" HorizontalAlignment="Right" Opacity="0.5" Background="Black" Foreground="Yellow" Padding="3" FontSize="20" FontWeight="DemiBold" x:FieldModifier="public" Visibility="Hidden" />
     </Grid>
 </UserControl>

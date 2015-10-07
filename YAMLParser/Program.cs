@@ -1,6 +1,14 @@
-﻿//#define NO_SRVS_RIGHT_NOW
-//#define SINGLE_PASS
-//#define NOT_ON_TOP_OF_ITSELF
+﻿// File: Program.cs
+// Project: YAMLParser
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -21,7 +29,7 @@ namespace YAMLParser
         public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
-        public static string inputdir = Environment.GetEnvironmentVariable("TMP")+"\\msgs_flat";
+        public static string inputdir = Environment.GetEnvironmentVariable("TMP") + "\\msgs_flat";
         public static string outputdir = "Messages";
         public static string name = "Messages";
         public static string outputdir_secondpass = "SecondPass";

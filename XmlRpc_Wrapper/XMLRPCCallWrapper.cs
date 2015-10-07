@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 04/28/2015
+// Updated: 10/07/2015
 
 #region USINGZ
 
@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #endregion
 
@@ -61,7 +60,9 @@ namespace XmlRpc_Wrapper
         }
 #endif
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public static XMLRPCCallWrapper LookUp(IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
@@ -73,7 +74,9 @@ namespace XmlRpc_Wrapper
         }
 
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void AddRef(IntPtr ptr)
         {
 #if REFDEBUGWrapper
@@ -103,7 +106,9 @@ namespace XmlRpc_Wrapper
             }
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         private static void RmRef(ref IntPtr ptr)
         {
             lock (reflock)
@@ -129,9 +134,14 @@ namespace XmlRpc_Wrapper
 
         public IntPtr instance
         {
-            [DebuggerStepThrough] get { return __instance; }
+#if !TRACE
             [DebuggerStepThrough]
-            set
+#endif
+                get { return __instance; }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                set
             {
                 if (__instance != IntPtr.Zero)
                     RmRef(ref __instance);
@@ -148,7 +158,9 @@ namespace XmlRpc_Wrapper
         public string name;
         public XmlRpcServer server;
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XMLRPCCallWrapper(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
             name = function_name;
@@ -159,7 +171,9 @@ namespace XmlRpc_Wrapper
             FUNC = func;
         }
 
+#if !TRACE
         [DebuggerStepThrough]
+#endif
         public XMLRPCCallWrapper(IntPtr ptr)
         {
             instance = ptr;
@@ -167,8 +181,14 @@ namespace XmlRpc_Wrapper
 
         public XMLRPCFunc FUNC
         {
-            [DebuggerStepThrough] get { return _FUNC; }
-            [DebuggerStepThrough] set { SetFunc((_FUNC = value)); }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                get { return _FUNC; }
+#if !TRACE
+            [DebuggerStepThrough]
+#endif
+                set { SetFunc((_FUNC = value)); }
         }
 
         #region IDisposable Members

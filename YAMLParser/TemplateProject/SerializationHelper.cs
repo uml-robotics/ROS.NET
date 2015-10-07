@@ -26,7 +26,9 @@ namespace Messages
         }
 
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
-        //[DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         public static MsgTypes GetMessageType(Type t)
         {
             MsgTypes mt;
@@ -49,7 +51,9 @@ namespace Messages
             }
         }
 
-        //[DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         public static Type GetType(string s)
         {
             Type ret;
@@ -64,7 +68,9 @@ namespace Messages
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
 
-        //[DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         public static MsgTypes GetMessageType(string s)
         {
             //Console.WriteLine("LOOKING FOR: " + s + "'s type");
@@ -108,7 +114,9 @@ namespace Messages
             }
         }
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         public static bool IsSizeKnown(Type T, bool recurse)
         {
             if (T == typeof(string) || T == typeof(String) ||
@@ -739,7 +747,9 @@ Console.WriteLine("//deserialize: " + T.FullName);
         public Type Type;
         public MsgTypes message_type;
 
-        [DebuggerStepThrough]
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
             string lengths, bool meta, MsgTypes mt)
         {
