@@ -251,25 +251,29 @@ namespace Ros_CSharp
                     return true;
                 if (shutting_down)
                     return false;
-                if (ops.md5sum == "")
-                    throw subscribeFail(ops, "with an empty md5sum");
-                if (ops.datatype == "")
-                    throw subscribeFail(ops, "with an empty datatype");
-                if (ops.helper == null)
-                    throw subscribeFail(ops, "without a callback");
-                string md5sum = ops.md5sum;
-                string datatype = ops.datatype;
-                Subscription s = new Subscription(ops.topic, md5sum, datatype);
-                s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks, ops.topic);
-                if (!registerSubscriber(s, ops.datatype))
-                {
-                    EDB.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
-                    s.shutdown();
-                    return false;
-                }
-                subscriptions.Add(s);
-                return true;
             }
+            if (ops.md5sum == "")
+                throw subscribeFail(ops, "with an empty md5sum");
+            if (ops.datatype == "")
+                throw subscribeFail(ops, "with an empty datatype");
+            if (ops.helper == null)
+                throw subscribeFail(ops, "without a callback");
+            string md5sum = ops.md5sum;
+            string datatype = ops.datatype;
+            Subscription s = new Subscription(ops.topic, md5sum, datatype);
+            s.addCallback(ops.helper, ops.md5sum, ops.callback_queue, ops.queue_size, ops.allow_concurrent_callbacks, ops.topic);
+            if (!registerSubscriber(s, ops.datatype))
+            {
+                EDB.WriteLine("Couldn't register subscriber on topic [{0}]", ops.topic);
+                s.shutdown();
+                return false;
+            }
+
+            lock (subs_mutex)
+            {
+                subscriptions.Add(s);
+            }
+            return true;
         }
 
         public Exception subscribeFail<T>(SubscribeOptions<T> ops, string reason) where T : IRosMessage, new()
