@@ -34,9 +34,64 @@ namespace ROS_ImageWPF
     /// </summary>
     public partial class GenericImage : UserControl
     {
+        public event FPSEvent fpsevent;
+        private int frames;
+        private DateTime lastFrame = DateTime.Now;
+
         public GenericImage()
         {
             InitializeComponent();
+            impl = new GenericImageIMPL(image);
+        }
+
+        private GenericImageIMPL impl;
+
+        public void UpdateImage(Bitmap bmp)
+        {
+            impl.UpdateImage(bmp);
+        }
+
+        public void UpdateImage(Bitmap bmp, int bpp)
+        {
+            impl.UpdateImage(bmp, bpp);
+        }
+
+        public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
+        {
+            impl.UpdateImage(data, size, hasHeader, encoding);
+        }
+
+        public void UpdateImage(byte[] data)
+        {
+            impl.UpdateImage(data);
+            frames = (frames + 1) % 10;
+            if (frames == 0)
+            {
+                if (fps.Visibility == Visibility.Visible)
+                    fps.Content = "" + Math.Round(10.0 / DateTime.Now.Subtract(lastFrame).TotalMilliseconds * 1000.0, 2);
+                if (fpsevent != null)
+                    fpsevent(Math.Round(10.0 / DateTime.Now.Subtract(lastFrame).TotalMilliseconds * 1000.0, 2));
+                lastFrame = DateTime.Now;
+            }
+        }
+
+        public void Transform(double scalex, double scaley)
+        {
+            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth/2, ActualHeight/2);
+        }
+
+        public void Transform(int scalex, int scaley)
+        {
+            image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth/2, ActualHeight/2);
+        }
+    }
+
+    public class GenericImageIMPL
+    {
+        private ImageBrush image;
+        public GenericImageIMPL(ImageBrush ib)
+        {
+            image = ib;
         }
 
         #region variables and such
@@ -55,9 +110,6 @@ namespace ROS_ImageWPF
         #endregion
 
         #region UpdateImage overloads that will take a byte[] (with or without header), a System.Drawing.Bitmap, or a System.Windows.Media.whatever.BitmapImage
-
-        private int frames;
-        private DateTime lastFrame = DateTime.Now;
 
         /// <summary>
         ///     Looks up the bitmaps dress, then starts passing the image around as a Byte[] and a System.Media.Size to the
@@ -260,16 +312,6 @@ namespace ROS_ImageWPF
             image.ImageSource = target;
             img = null;
             target = null;
-
-            frames = (frames + 1)%10;
-            if (frames == 0)
-            {
-                if (fps.Visibility == Visibility.Visible)
-                    fps.Content = "" + Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2);
-                if (fpsevent != null)
-                    fpsevent(Math.Round(10.0/DateTime.Now.Subtract(lastFrame).TotalMilliseconds*1000.0, 2));
-                lastFrame = DateTime.Now;
-            }
         }
 
         /// <summary>
@@ -432,18 +474,6 @@ namespace ROS_ImageWPF
         }
 
         #endregion
-
-        public event FPSEvent fpsevent;
-
-        public void Transform(double scalex, double scaley)
-        {
-            image.Transform = new ScaleTransform(scalex, scaley, ActualWidth/2, ActualHeight/2);
-        }
-
-        public void Transform(int scalex, int scaley)
-        {
-            image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth/2, ActualHeight/2);
-        }
     }
 
     public delegate void FPSEvent(double fps);
