@@ -146,6 +146,12 @@ namespace Ros_CSharp
         private static object shutting_down_mutex = new object();
         private static bool dictinit;
 
+        //last sim time time
+        private static TimeSpan lastSimTime;
+        //last sim time received time (wall)
+        private static TimeSpan lastSimTimeReceived;
+        
+
         public static bool shutting_down
         {
             get { return _shutting_down; }
@@ -188,6 +194,10 @@ namespace Ros_CSharp
         /// <returns> a time struct </returns>
         public static m.Time GetTime(TimeSpan timestamp)
         {
+            if (lastSimTimeReceived != default(TimeSpan))
+            {
+                timestamp = timestamp.Subtract(lastSimTimeReceived).Add(lastSimTime);
+            }
             uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
             uint nanoseconds = ((uint) Math.Floor(((timestamp.TotalSeconds - seconds)*1000000000)));
             m.Time stamp = new m.Time(new TimeData(seconds, nanoseconds));
@@ -201,6 +211,12 @@ namespace Ros_CSharp
         public static m.Time GetTime()
         {
             return GetTime(DateTime.Now);
+        }
+
+        private static void SimTimeCallback(TimeSpan ts)
+        {
+            lastSimTime = ts;
+            lastSimTimeReceived = DateTime.Now.Subtract(new DateTime());
         }
 
         /// <summary>
@@ -415,6 +431,7 @@ namespace Ros_CSharp
                 master.init(remapping_args);
                 this_node.Init(name, remapping_args, options);
                 Param.init(remapping_args);
+                SimTime.instance.SimTimeEvent += SimTimeCallback;
                 initialized = true;
                 GlobalNodeHandle = new NodeHandle(this_node.Namespace, remapping_args);
             }

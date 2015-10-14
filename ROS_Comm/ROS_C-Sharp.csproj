@@ -167,6 +167,7 @@
     <Compile Include="TcpTransport.cs" />
     <Compile Include="tf_node.cs" />
     <Compile Include="this_node.cs" />
+    <Compile Include="Time.cs" />
     <Compile Include="TimerManager.cs" />
     <Compile Include="TopicInfo.cs" />
     <Compile Include="TopicManager.cs" />
