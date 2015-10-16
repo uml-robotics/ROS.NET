@@ -23,3 +23,4 @@ Release/*.pdb
 *.testsettings
 *.vsmdi
 msg_gen/msg_gen.exe
+*.Debug.cachefile
