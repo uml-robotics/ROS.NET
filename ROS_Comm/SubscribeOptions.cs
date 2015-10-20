@@ -39,24 +39,13 @@ namespace Ros_CSharp
         public uint queue_size;
         public string topic = "";
 
-        public SubscribeOptions() : this("", 1, null)
+        public SubscribeOptions() : this("", 1)
         {
             //allow_concurrent_callbacks = false;
             //allow_concurrent_callbacks = true;
         }
 
-        public SubscribeOptions(string topic, uint queue_size)
-            : this(topic, queue_size, null, null)
-        {
-        }
-
-        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL)
-            : this(topic, queue_size, CALL, null)
-        {
-        }
-
-
-        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL, string thisisveryverybad)
+        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL = null)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -70,24 +59,7 @@ namespace Ros_CSharp
             Type msgtype = new T().GetType();
             string[] chunks = msgtype.FullName.Split('.');
             datatype = chunks[chunks.Length - 2] + "/" + chunks[chunks.Length - 1];
-            md5sum = thisisveryverybad ?? new T().MD5Sum;
-        }
-
-        public SubscribeOptions(string topic, uint queue_size, CallbackDelegate<T> CALL, string thisisveryverybad, Type JPAddedType)
-        {
-            // TODO: Complete member initialization
-            this.topic = topic;
-            this.queue_size = queue_size;
-            if (CALL != null)
-                helper = new SubscriptionCallbackHelper<T>(new T().msgtype, CALL);
-            else
-                helper = new SubscriptionCallbackHelper<T>(new T().msgtype);
-
-
-            Type msgtype = JPAddedType;
-            string[] chunks = msgtype.FullName.Split('.');
-            datatype = chunks[chunks.Length - 2] + "/" + chunks[chunks.Length - 1];
-            md5sum = thisisveryverybad ?? new T().MD5Sum;
+            md5sum = new T().MD5Sum;
         }
     }
 

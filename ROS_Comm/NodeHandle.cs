@@ -318,9 +318,7 @@ namespace Ros_CSharp
             {
                 _callback = ROS.GlobalCallbackQueue;
             }
-            SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size,
-                cb.func, thisisveryverybad
-                )
+            SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size, cb.func)
             {callback_queue = _callback};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);
