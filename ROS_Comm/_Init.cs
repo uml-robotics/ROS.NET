@@ -174,7 +174,7 @@ namespace Ros_CSharp
         public static UInt64 getPID()
         {
             return (UInt64)
-                Process.GetCurrentProcess().Id; //Thread.CurrentThread.ManagedThreadId;
+                Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>

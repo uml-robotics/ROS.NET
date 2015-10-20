@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Messages;
@@ -35,36 +36,12 @@ namespace Ros_CSharp
             this.allow_concurrent_callbacks = allow_concurrent_callbacks;
             _full = false;
             size = queue_size;
-            this.queue_size = 0;
         }
 
-        public Callback(CallbackDelegate<T> f)
+        public Callback(CallbackDelegate<T> f) : base()
         {
             Event += func;
-            /*{
-                T t = new T();
-                t.Deserialize(ci.Serialized);
-                //if (ci == null || ci.Serialized == null) return;
-                //byte[] data = new byte[ci.Serialized.Length];
-                //Array.Copy(ci.Serialized, data, data.Length);
-                //T t = new T();
-                //t.Deserialize(data);
-                //f(t);
-            };*/
-            base.Event +=
-                b =>
-                    {
-                        if (b.Serialized != null)
-                        {
-                            IRosMessage t = new T();
-                            t = t.Deserialize(b.Serialized);
-                            t.connection_header = b.connection_header;
-                            f(t as T);
-                        }
-                        else
-                            f(b as T);
-                    };
-            //func = f;
+            base.Event += b => f(b as T);
         }
 
 #pragma warning disable 67
@@ -74,69 +51,40 @@ namespace Ros_CSharp
         public bool _full;
         public bool allow_concurrent_callbacks;
 
-        public bool callback_mutex;
-        public volatile Queue<Item> queue = new Queue<Item>();
-        public object queue_mutex = new object();
+        public volatile ConcurrentQueue<Item> queue = new ConcurrentQueue<Item>();
+        private volatile bool callback_state = false;
 
-        public uint queue_size;
         public uint size;
         public string topic;
 
-        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy, ref bool was_full)
-        {
-            push(helper, deserializer, nonconst_need_copy, ref was_full, new TimeData());
-        }
-
-
-        public void push(SubscriptionCallbackHelper<T> helper, MessageDeserializer<T> deserializer, bool nonconst_need_copy,
-            ref bool was_full, TimeData receipt_time)
-        {
-            pushitgood(helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
-        }
-
         public override void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
-            lock (queue_mutex)
+            if (was_full)
+                was_full = false;
+            if (fullNoLock())
             {
-                if (was_full)
-                    was_full = false;
-                if (fullNoLock())
-                {
-                    queue.Dequeue();
-                    --queue_size;
+                Item toss;
+                queue.TryDequeue(out toss);
 
-                    _full = true;
-                    if (was_full)
-                        was_full = true;
-                }
-                else
-                    _full = false;
-
-                Item i = new Item
-                {
-                    helper = helper,
-                    deserializer = deserializer,
-                    nonconst_need_copy = nonconst_need_copy,
-                    receipt_time = receipt_time
-                };
-                queue.Enqueue(i);
-
-                ++queue_size;
+                _full = true;
+                was_full = true;
             }
+            else
+                _full = false;
+
+            Item i = new Item
+            {
+                helper = helper,
+                deserializer = deserializer,
+                nonconst_need_copy = nonconst_need_copy,
+                receipt_time = receipt_time
+            };
+            queue.Enqueue(i);
         }
 
         public override void clear()
         {
-            while (callback_mutex)
-            {
-            }
-            callback_mutex = true;
-            lock (queue_mutex)
-            {
-                queue.Clear();
-                queue_size = 0;
-            }
-            callback_mutex = false;
+            queue = new ConcurrentQueue<Item>();
         }
 
         public new virtual bool ready()
@@ -146,15 +94,12 @@ namespace Ros_CSharp
 
         private bool fullNoLock()
         {
-            return size > 0 && queue_size >= size;
+            return size > 0 && queue.Count >= size;
         }
 
         public bool full()
         {
-            lock (queue_mutex)
-            {
-                return fullNoLock();
-            }
+            return fullNoLock();
         }
 
         public class Item
@@ -169,25 +114,20 @@ namespace Ros_CSharp
         {
             if (!allow_concurrent_callbacks)
             {
-                if (callback_mutex)
+                if (callback_state)
                     return CallResult.TryAgain;
-                callback_mutex = true;
+                callback_state = true;
             }
             Item i = null;
-            lock (queue_mutex)
+            if (queue.Count == 0)
+                return CallResult.Invalid;
+            if (!queue.TryDequeue(out i) || i == null)
             {
-                if (queue.Count == 0)
-                    return CallResult.Invalid;
-                i = queue.Dequeue();
-                --queue_size;
-            }
-            if (i == null)
-            {
-                callback_mutex = false;
+                callback_state = false;
                 return CallResult.Invalid;
             }
-            i.deserializer.deserialize();
-            callback_mutex = false;
+            i.helper.call(i.deserializer.deserialize());
+            callback_state = false;
             return CallResult.Success;
         }
     }
@@ -197,6 +137,24 @@ namespace Ros_CSharp
 #endif
     public class CallbackInterface
     {
+        private static object uidlock = new object();
+        private static UInt64 nextuid = 0;
+        private UInt64 uid;
+
+        public CallbackInterface()
+        {
+            lock (uidlock)
+            {
+                uid = nextuid;
+                nextuid++;
+            }
+        }
+
+        public UInt64 Get()
+        {
+            return uid;
+        }
+
         #region Delegates
 
         public delegate void ICallbackDelegate(IRosMessage msg);
@@ -213,12 +171,8 @@ namespace Ros_CSharp
         }
 
         #endregion
-
-        public CallbackInterface()
-        {
-        }
-
-        public CallbackInterface(ICallbackDelegate f)
+        
+        public CallbackInterface(ICallbackDelegate f) : this()
         {
             Event += f;
         }
@@ -228,6 +182,10 @@ namespace Ros_CSharp
             if (Event != null)
             {
                 Event(msg);
+            }
+            else
+            {
+                Console.WriteLine("EVENT IS NULL");
             }
         }
 

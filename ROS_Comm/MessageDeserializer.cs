@@ -41,9 +41,12 @@ namespace Ros_CSharp
 
         public override IRosMessage deserialize()
         {
-            if (message != null)
+            if (message.Serialized != null)
             {
-                helper.call(message);
+                IRosMessage t = new M();
+                t = t.Deserialize(message.Serialized);
+                t.connection_header = message.connection_header;
+                base.message = t;
             }
             return message;
         }

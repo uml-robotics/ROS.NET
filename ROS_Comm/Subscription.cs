@@ -480,6 +480,7 @@ namespace Ros_CSharp
 
                 if (latched_messages.Count > 0)
                 {
+                    MsgTypes ti = info.helper.type;
                     lock (publisher_links_mutex)
                     {
                         foreach (PublisherLink link in publisher_links)
@@ -489,13 +490,17 @@ namespace Ros_CSharp
                                 if (latched_messages.ContainsKey(link))
                                 {
                                     LatchInfo latch_info = latched_messages[link];
-                                    IMessageDeserializer des = new IMessageDeserializer(helper, latch_info.message,
-                                        latch_info.connection_header);
+                                    IMessageDeserializer deserializer = null;
+                                    if (cached_deserializers.ContainsKey(ti))
+                                        deserializer = cached_deserializers[ti];
+                                    else
+                                    {
+                                        deserializer = MakeDeserializer(ti, info.helper, latched_messages[link].message, latch_info.connection_header);
+                                        cached_deserializers.Add(ti, deserializer);
+                                    }
                                     bool was_full = false;
-                                    ((Callback<M>) info.subscription_queue).push((SubscriptionCallbackHelper<M>) info.helper, (MessageDeserializer<M>) des, true,
-                                        ref was_full,
-                                        latch_info.receipt_time);
-                                    ((Callback<M>) info.subscription_queue).topic = topiclol;
+                                    bool nonconst_need_copy = false; //callbacks.Count > 1;
+                                    info.subscription_queue.pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, ROS.GetTime().data);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }
@@ -588,7 +593,7 @@ namespace Ros_CSharp
 
             public UInt64 Get()
             {
-                return ROS.getPID();
+                return subscription_queue.Get();
             }
         }
 

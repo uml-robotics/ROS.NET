@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -324,16 +325,12 @@ namespace Ros_CSharp
 
     public class TLS
     {
-        private volatile Queue<CallbackQueueInterface.ICallbackInfo> _queue = new Queue<CallbackQueueInterface.ICallbackInfo>();
-        private UInt64 _count;
+        private volatile ConcurrentQueue<CallbackQueueInterface.ICallbackInfo> _queue = new ConcurrentQueue<CallbackQueueInterface.ICallbackInfo>();
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
-#if SAFE
-        private object mut = new object();
-#endif
 
         public int Count
         {
-            get { return (int) _count; }
+            get { return _queue.Count; }
         }
 
         public CallbackQueueInterface.ICallbackInfo head
@@ -341,10 +338,10 @@ namespace Ros_CSharp
             get
             {
                 if (Count == 0) return null;
-#if SAFE
-                lock (mut) 
-#endif
-                return _queue.Peek();
+                CallbackQueueInterface.ICallbackInfo icb;
+                if (_queue.TryPeek(out icb))
+                    return icb;
+                throw new Exception("Peek failed");
             }
         }
 
@@ -353,9 +350,6 @@ namespace Ros_CSharp
             get
             {
                 if (Count == 0) return null;
-#if SAFE
-                lock(mut) 
-#endif
                 return _queue.Last();
             }
         }
@@ -363,142 +357,34 @@ namespace Ros_CSharp
         public CallbackQueueInterface.ICallbackInfo dequeue()
         {
             CallbackQueueInterface.ICallbackInfo icb;
-#if SAFE
-            lock (mut)
-#endif
-            {
-                icb = _queue.Dequeue();
-                _count--;
-            }
-            return icb;
+            if (_queue.TryDequeue(out icb))
+                return icb;
+            throw new Exception("Dequeue failed");
         }
 
         public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
             if (info.Callback == null)
                 return;
-#if SAFE
-            lock (mut)
-#endif
+
+            if (!_queue.Contains(info))
             {
-                if (!_queue.Contains(info))
-                {
-                    _queue.Enqueue(info);
-                    _count++;
-                }
+                _queue.Enqueue(info);
+            }
+            else
+            {
+                Console.WriteLine("ADDING A DUPLICATE CALLBACKINFO TO THE QUEUE");
             }
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
-            CallbackQueueInterface.ICallbackInfo icb;
-            int stop;
-#if SAFE
-            lock (mut)
-#endif
-            {
-                if (!_queue.Contains(info))
-                    return null;
-                stop = Count;
-                _queue = new Queue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[] {info}));
-                _count--;
-                return info;
-            }
+            if (!_queue.Contains(info))
+                return null;
+            _queue = new ConcurrentQueue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[] {info}));
+            return info;
         }
     }
-
-    /*
-    public class TLS
-    {
-        public UInt64 calling_in_this_thread = 0xffffffffffffffff;
-        public CallbackInfoNode current;
-        public CallbackInfoNode head;
-        public CallbackInfoNode tail;
-        public int Count { get; set; }
-
-        public CallbackQueueInterface.ICallbackInfo dequeue()
-        {
-            Count--;
-            CallbackQueueInterface.ICallbackInfo ret = head.info;
-            head = head.next;
-            if (Count == 0)
-            {
-                current = null;
-                tail = null;
-            }
-            return ret;
-        }
-
-        public void enqueue(CallbackQueueInterface.ICallbackInfo info)
-        {
-            Count++;
-            if (head == null)
-            {
-                head = new CallbackInfoNode(info);
-                tail = head;
-            }
-            else if (tail == null)
-            {
-                tail = head;
-            }
-            else
-            {
-                tail.next = new CallbackInfoNode(info);
-                tail = tail.next;
-            }
-            if (current == null) current = head;
-        }
-
-        public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
-        {
-            CallbackInfoNode walk = head, walkbehind = null;
-            while ((walkbehind = walk) != null && (walk = walk.next) != null)
-            {
-                if (walk.info == info)
-                    break;
-            }
-            if (walk == tail && walk.info != info)
-                return null;
-            Count--;
-            if (walk == tail)
-                tail = walkbehind;
-            if (walk != null && walkbehind != null)
-                walkbehind.next = walk.next;
-            else
-                walkbehind = null;
-            walk = null;
-            if (Count == 0)
-            {
-                current = null;
-                return null;
-            }
-            if (current != null)
-                return current.info;
-            return null;
-        }
-
-        #region Nested type: CallbackInfoNode
-
-        public class CallbackInfoNode
-        {
-            public CallbackQueueInterface.ICallbackInfo info;
-            public CallbackInfoNode next;
-
-            public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i, CallbackInfoNode n)
-            {
-                info = i;
-                next = n;
-            }
-
-            public CallbackInfoNode(CallbackQueueInterface.ICallbackInfo i)
-                : this(i, null)
-            {
-            }
-        }
-
-        #endregion
-    }
-     */
 
 #if !TRACE
     [DebuggerStepThrough]
@@ -507,7 +393,7 @@ namespace Ros_CSharp
     {
         public virtual void addCallback(CallbackInterface callback)
         {
-            addCallback(callback, ROS.getPID());
+            addCallback(callback, callback.Get());
         }
 
         public virtual void addCallback(CallbackInterface callback, UInt64 owner_id)
@@ -519,15 +405,6 @@ namespace Ros_CSharp
         {
             throw new NotImplementedException();
         }
-
-        #region Nested type: CallbackInfo
-
-        public class CallbackInfo<M> : ICallbackInfo where M : IRosMessage, new()
-        {
-            public SubscriptionCallbackHelper<M> helper;
-        }
-
-        #endregion
 
         #region Nested type: ICallbackInfo
 

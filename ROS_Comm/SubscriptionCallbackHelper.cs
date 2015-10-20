@@ -29,8 +29,6 @@ namespace Ros_CSharp
 #endif
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
-        public ParameterAdapter<M> Adapter = new ParameterAdapter<M>();
-
         public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
         {
             //EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
@@ -49,19 +47,6 @@ namespace Ros_CSharp
             : base(q)
         {
             //EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
-        }
-
-        public M deserialize(SubscriptionCallbackHelperDeserializeParams parms)
-        {
-            //EDB.WriteLine("SubscriptionCallbackHelper: deserialize(specific)");
-            return deserialize<M>(parms);
-        }
-
-        public override T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms)
-        {
-            //EDB.WriteLine("SubscriptionCallbackHelper: deserialize(generic adapter)");
-            T t = base.deserialize<T>(parms);
-            return t;
         }
 
         public override void call(IRosMessage msg)
@@ -103,17 +88,6 @@ namespace Ros_CSharp
             return _callback;
         }
 
-        public virtual T deserialize<T>(SubscriptionCallbackHelperDeserializeParams parms) where T : IRosMessage
-        {
-            //EDB.WriteLine("ISubscriptionCallbackHelper: deserialize");
-            IRosMessage msg = ROS.MakeMessage(type);
-            assignSubscriptionConnectionHeader(ref msg, parms.connection_header);
-            T t = (T) msg;
-            t.Deserialize(parms.buffer);
-            return t;
-            //return SerializationHelper.Deserialize<T>(parms.buffer);
-        }
-
         private void assignSubscriptionConnectionHeader(ref IRosMessage msg, IDictionary p)
         {
             // EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
@@ -124,44 +98,6 @@ namespace Ros_CSharp
         {
             // EDB.WriteLine("ISubscriptionCallbackHelper: call");
             throw new NotImplementedException();
-        }
-    }
-
-    public class SubscriptionCallbackHelperDeserializeParams
-    {
-        public byte[] buffer;
-        public IDictionary connection_header;
-        public int length;
-
-        public SubscriptionCallbackHelperDeserializeParams()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class SubscriptionCallbackHelperCallParams<M> : ISubscriptionCallbackHelperCallParams where M : IRosMessage, new()
-    {
-        public SubscriptionCallbackHelperCallParams(MessageEvent<M> e) : base(e)
-        {
-        }
-    }
-
-    public class ISubscriptionCallbackHelperCallParams
-    {
-        public IMessageEvent Event;
-
-        public ISubscriptionCallbackHelperCallParams(IMessageEvent e)
-        {
-            Event = e;
-        }
-    }
-
-    public class ParameterAdapter<P> where P : IRosMessage, new()
-    {
-        public P getParameter(MessageEvent<P> Event)
-        {
-            //EDB.WriteLine("getParameter!");
-            return (P) Event.message.Deserialize(Event.message.Serialized);
         }
     }
 }
