@@ -117,9 +117,6 @@ namespace Ros_CSharp
                     Thread.Sleep(10);
                 }
 
-                if (shutting_down)
-                    return;
-
                 foreach (AsyncXmlRpcConnection con in connections)
                 {
                     if (con.check())
