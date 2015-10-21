@@ -184,7 +184,47 @@ namespace Ros_CSharp
         /// <returns> containing secs, nanosecs since 1/1/1970 </returns>
         public static m.Time GetTime(DateTime time)
         {
-            return GetTime(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
+            return GetTime<m.Time>(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
+        }
+
+        #region time helpers
+        internal static long ticksFromData(TimeData data)
+        {
+            return data.sec * TimeSpan.TicksPerSecond + (uint)Math.Floor(data.nsec / 100.0);
+        }
+
+        internal static TimeData ticksToData(long ticks)
+        {
+            uint seconds = (((uint)Math.Floor(ticks / (1.0 * TimeSpan.TicksPerSecond))));
+            uint nanoseconds = ((uint)Math.Floor((double)(ticks - (seconds * TimeSpan.TicksPerSecond))) * 100);
+            return new TimeData(seconds, nanoseconds);
+        }
+        #endregion
+
+        /// <summary>
+        ///     Turns a std_msgs.Time into a DateTime
+        /// </summary>
+        /// <param name="time"> std_msgs.Time to convert </param>
+        /// <returns> a DateTime </returns>
+        public static DateTime GetTime(m.Time time)
+        {
+            return new DateTime(1970, 1, 1, 0, 0, 0).Add(new TimeSpan(ticksFromData(time.data)));
+        }
+
+        /// <summary>
+        ///     Turns a std_msgs.Duration into a TimeSpan
+        /// </summary>
+        /// <param name="time"> std_msgs.Duration to convert </param>
+        /// <returns> a TimeSpan </returns>
+        public static TimeSpan GetTime(m.Duration duration)
+        {
+            return new TimeSpan(ticksFromData(duration.data));
+        }
+
+        public static T GetTime<T>(TimeSpan ts) where T : IRosMessage, new()
+        {
+            T test = Activator.CreateInstance(typeof(T), GetTime(ts)) as T;
+            return test;
         }
 
         /// <summary>
@@ -192,16 +232,13 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="timestamp"> The timespan to convert to seconds/nanoseconds </param>
         /// <returns> a time struct </returns>
-        public static m.Time GetTime(TimeSpan timestamp)
+        public static TimeData GetTime(TimeSpan timestamp)
         {
             if (lastSimTimeReceived != default(TimeSpan))
             {
                 timestamp = timestamp.Subtract(lastSimTimeReceived).Add(lastSimTime);
             }
-            uint seconds = (((uint) Math.Floor(timestamp.TotalSeconds) & 0xFFFFFFFF));
-            uint nanoseconds = ((uint) Math.Floor(((timestamp.TotalSeconds - seconds)*1000000000)));
-            m.Time stamp = new m.Time(new TimeData(seconds, nanoseconds));
-            return stamp;
+            return ticksToData(timestamp.Ticks);
         }
 
         /// <summary>
