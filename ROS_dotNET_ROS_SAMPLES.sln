@@ -14,6 +14,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_C-Sharp", "ROS_Comm\ROS
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62BF0BBD-313B-448C-A434-B1DD5FEFF10C}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		ROS_dotNET_ROS_SAMPLES.vsmdi = ROS_dotNET_ROS_SAMPLES.vsmdi
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceClientSample", "ServiceClientSample\ServiceClientSample.csproj", "{1A913959-AF59-4EBE-A4EF-41D51F856EF0}"
 EndProject
@@ -40,9 +45,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSubscriber", "SimpleS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_ImageWPF", "ROS_ImageUtils\ROS_ImageWPF.csproj", "{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tf_example", "tf_example\tf_example.csproj", "{DC786B4E-091F-4C7F-8812-EF09D7BFE290}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = ROS_dotNET.vsmdi
+		CategoryFile = ROS_dotNET_ROS_SAMPLES.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -104,6 +111,10 @@ Global
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Debug|x86.Build.0 = Debug|x86
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Release|x86.ActiveCfg = Release|x86
 		{E0E04AFE-E2CF-4A04-A331-76FE05DCC749}.Release|x86.Build.0 = Release|x86
+		{DC786B4E-091F-4C7F-8812-EF09D7BFE290}.Debug|x86.ActiveCfg = Debug|x86
+		{DC786B4E-091F-4C7F-8812-EF09D7BFE290}.Debug|x86.Build.0 = Debug|x86
+		{DC786B4E-091F-4C7F-8812-EF09D7BFE290}.Release|x86.ActiveCfg = Release|x86
+		{DC786B4E-091F-4C7F-8812-EF09D7BFE290}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

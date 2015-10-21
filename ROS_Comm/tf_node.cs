@@ -13,9 +13,11 @@
 #region USINGZ
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using MathNet.Numerics.LinearAlgebra.Complex;
 using MathNet.Spatial;
 using Messages;
 using Messages.std_msgs;
@@ -151,8 +153,8 @@ namespace Ros_CSharp
         private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
         private ulong cache_time;
 
-        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint> {{"NO_PARENT", 0}};
-        private Dictionary<uint, string> frameids_reverse = new Dictionary<uint, string> {{0, "NO_PARENT"}};
+        private ConcurrentDictionary<string, uint> frameIDs = new ConcurrentDictionary<string, uint>();
+        private ConcurrentDictionary<uint, string> frameids_reverse = new ConcurrentDictionary<uint, string>();
         private object framemutex = new object();
         private SortedList<uint, TimeCache> frames = new SortedList<uint, TimeCache>();
 
@@ -161,6 +163,8 @@ namespace Ros_CSharp
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
+            frameIDs["NO_PARENT"] = 0;
+            frameids_reverse[0] = "NO_PARENT";
             if (ROS.initialized)
             {
                 tf_node.instance.TFsUpdated += Update;
@@ -199,14 +203,16 @@ namespace Ros_CSharp
             {
                 foreach (TimeCache tc in frames.Values)
                     tc.clearList();
+                frameIDs.Clear();
+                frameids_reverse.Clear();
             }
         }
 
-        public void lookupTransform(String t, String s, Time time, out emTransform transform)
+        public void lookupTransform(String target_frame, String source_frame, Time time, out emTransform transform)
         {
             try
             {
-                lookupTransform(t.data, s.data, time, out transform);
+                lookupTransform(target_frame.data, source_frame.data, time, out transform);
             }
             catch (Exception e)
             {
@@ -216,13 +222,30 @@ namespace Ros_CSharp
             }
         }
 
-        public uint getFrameID(string frame)
+        private uint getFrameIDInternal(string frame)
         {
-            if (frameIDs.ContainsKey(frame))
+            uint value;
+            if (frameIDs.TryGetValue(frame, out value))
             {
-                return frameIDs[frame];
+                return value;
             }
             return 0;
+        }
+
+        public uint getFrameID(string frame)
+        {
+            lock (framemutex)
+                return getFrameIDInternal(frame);
+        }
+
+        public bool frameExists(string frame)
+        {
+            return getFrameID(frame) != 0;
+        }
+
+        private bool frameExistsInternal(string frame)
+        {
+            return getFrameIDInternal(frame) != 0;
         }
 
         public bool lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform)
@@ -254,8 +277,8 @@ namespace Ros_CSharp
             TF_STATUS retval;
             lock (framemutex)
             {
-                uint target_id = getFrameID(mapped_tgt);
-                uint source_id = getFrameID(mapped_src);
+                uint target_id = getFrameIDInternal(mapped_tgt);
+                uint source_id = getFrameIDInternal(mapped_src);
 
                 TransformAccum accum = new TransformAccum();
 
@@ -279,7 +302,7 @@ namespace Ros_CSharp
                 transform.basis = accum.result_quat;
                 transform.child_frame_id = mapped_src;
                 transform.frame_id = mapped_tgt;
-                transform.stamp = new Time {data = new TimeData {sec = (uint) (accum.time >> 32), nsec = (uint) (accum.time & 0xFFFFFFFF)}};
+                transform.stamp = new Time(ROS.ticksToData((long)accum.time));
             }
             return retval == TF_STATUS.NO_ERROR;
         }
@@ -323,10 +346,6 @@ namespace Ros_CSharp
             stamped_out.stamp = vecout.stamp;
             stamped_out.data = vecout.data.ToMsg();
             stamped_out.frame_id = vecout.frame_id;
-        }
-
-        public void transformPoint(string target_frame, Stamped<gm.Point> stamped_in, ref Stamped<gm.Point> stamped_out)
-        {
         }
 
         public TF_STATUS walkToTopParent<F>(F f, ulong time, uint target_id, uint source_id, ref string error_str) where F : ATransformAccum
@@ -542,8 +561,8 @@ namespace Ros_CSharp
         {
             if (!frameIDs.ContainsKey(frame))
             {
-                frameIDs.Add(frame, (uint) (frameIDs.Count + 1));
-                frameids_reverse.Add((uint) frameids_reverse.Count + 1, frame);
+                frameIDs[frame] = (uint) (frameIDs.Count + 1);
+                frameids_reverse[(uint) frameids_reverse.Count + 1] = frame;
             }
             return frameIDs[frame];
         }
@@ -580,6 +599,98 @@ namespace Ros_CSharp
             }
             return true;
         }
+
+        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, ref string error_msg)
+        {
+            return waitForTransform(target_frame, source_frame, time, timeout, null, ref error_msg);
+        }
+
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, ref string error_msg)
+        {
+            return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, null, ref error_msg);
+        }
+
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration, ref string error_msg)
+        {
+            return waitForTransform(target_frame, source_frame, target_time, timeout, pollingSleepDuration, ref error_msg) &&
+                   waitForTransform(target_frame, source_frame, source_time, timeout, pollingSleepDuration, ref error_msg);
+        }
+
+        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, Duration pollingSleepDuration, ref string error_msg)
+        {
+            if (pollingSleepDuration == null)
+                pollingSleepDuration = ROS.GetTime<Duration>(new TimeSpan(0, 0, 0, 0, 100));
+            return waitForTransform(target_frame, source_frame, time, ROS.GetTime(timeout), ROS.GetTime(pollingSleepDuration), ref error_msg);
+        }
+
+        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, TimeSpan pollingSleepDuration, ref string error_msg)
+        {
+            DateTime start_time = DateTime.Now;
+            string mapped_target = resolve(tf_prefix, target_frame);
+            string mapped_source = resolve(tf_prefix, source_frame);
+
+            while (ROS.ok && (DateTime.Now.Subtract(start_time).TotalMilliseconds < timeout.TotalMilliseconds))
+            {
+                if (canTransform(mapped_target, mapped_source, time, ref error_msg))
+                    return true;
+                Thread.Sleep(pollingSleepDuration);
+            }
+            return false;
+        }
+
+        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, Duration pollingSleepDuration = null)
+        {
+            string error_msg = null;
+            return waitForTransform(target_frame, source_frame, time, timeout, pollingSleepDuration, ref error_msg);
+        }
+
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration=null)
+        {
+            string error_msg = null;
+            return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, pollingSleepDuration, ref error_msg);
+        }
+
+        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, TimeSpan pollingSleepDuration)
+        {
+            string error_msg = null;
+            return waitForTransform(target_frame, source_frame, time, timeout, pollingSleepDuration, ref error_msg);
+        }
+
+        private bool canTransform(string target_frame, Time target_time, string source_frame, Time source_time, ref string error_msg)
+        {
+            return canTransform(target_frame, source_frame, target_time, ref error_msg) && canTransform(target_frame, source_frame, source_time, ref error_msg);
+        }
+
+        private bool canTransform(string target_frame, string source_frame, Time time, ref string error_msg)
+        {
+            string mapped_target = resolve(tf_prefix, target_frame);
+            string mapped_source = resolve(tf_prefix, source_frame);
+            if (mapped_target == mapped_source) return true;
+            lock (framemutex)
+            {
+                if (!frameExistsInternal(mapped_target) || !frameExistsInternal(mapped_source)) return false;
+                uint target_id = getFrameIDInternal(mapped_target);
+                uint source_id = getFrameIDInternal(mapped_source);
+                return canTransformNoLock(target_id, source_id, time, ref error_msg);
+            }
+        }
+
+        private bool canTransformNoLock(uint target_id, uint source_id, Time time, ref string error_msg)
+        {
+            if (target_id == 0 || source_id == 0) return false;
+            CanTransformAccum accum = new CanTransformAccum();
+            if (walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_msg) == TF_STATUS.NO_ERROR)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool canTransformInternal(uint target_id, uint source_id, Time time, ref string error_msg)
+        {
+            lock (framemutex)
+                return canTransformNoLock(target_id, source_id, time, ref error_msg);
+        }
     }
 
     public struct TimeAndFrameID
@@ -615,7 +726,7 @@ namespace Ros_CSharp
 
         public static ulong toLong(TimeData td)
         {
-            return (((ulong) td.sec) << 32) | td.nsec;
+            return (ulong)ROS.ticksFromData(td);
         }
 
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
@@ -718,8 +829,7 @@ namespace Ros_CSharp
         public bool getData(ulong time_, ref TransformStorage data_out, ref string error_str)
         {
             TransformStorage temp1 = null, temp2 = null;
-            int num_nodes;
-            num_nodes = findClosest(ref temp1, ref temp2, time_, ref error_str);
+            int num_nodes = findClosest(ref temp1, ref temp2, time_, ref error_str);
             switch (num_nodes)
             {
                 case 0:
@@ -763,8 +873,7 @@ namespace Ros_CSharp
         {
             TransformStorage temp1 = null, temp2 = null;
 
-            int num_nodes;
-            num_nodes = findClosest(ref temp1, ref temp2, time, ref error_str);
+            int num_nodes = findClosest(ref temp1, ref temp2, time, ref error_str);
             if (num_nodes == 0) return 0;
             return temp1.frame_id;
         }
@@ -959,9 +1068,9 @@ namespace Ros_CSharp
 
         public struct Euler
         {
+            public double yaw;
             public double pitch;
             public double roll;
-            public double yaw;
         }
     }
 
@@ -1060,8 +1169,8 @@ namespace Ros_CSharp
 
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
-            emQuaternion q = new emQuaternion(rotation*new emQuaternion(1.0, v.x, v.y, v.z));
-            q = q*rotation.inverse();
+            emQuaternion q = rotation*v;
+            q*=rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
         }
     }
@@ -1086,11 +1195,7 @@ namespace Ros_CSharp
         {
         }
 
-        public emTransform(emQuaternion q, emVector3 v) : this(q, v, null, null, null)
-        {
-        }
-
-        public emTransform(emQuaternion q, emVector3 v, Time t, string fid, string cfi)
+        public emTransform(emQuaternion q, emVector3 v, Time t = null, string fid = null, string cfi = null)
         {
             basis = q;
             origin = v;
@@ -1117,6 +1222,11 @@ namespace Ros_CSharp
         public static emQuaternion operator *(emTransform t, emQuaternion q)
         {
             return t.basis*q;
+        }
+
+        public override string ToString()
+        {
+            return "\ttranslation: " + origin + "\n\trotation: " + basis;
         }
     }
 
@@ -1160,18 +1270,18 @@ namespace Ros_CSharp
             quat = q;
         }
 
-        public emQuaternion(double W, double X, double Y, double Z)
+        public emQuaternion(double X, double Y, double Z, double W)
         {
             quat = new Quaternion(W, X, Y, Z);
         }
 
         public emQuaternion(emQuaternion shallow)
-            : this(shallow.w, shallow.x, shallow.y, shallow.z)
+            : this(shallow.x, shallow.y, shallow.z, shallow.w)
         {
         }
 
         public emQuaternion(gm.Quaternion shallow)
-            : this(shallow.w, shallow.x, shallow.y, shallow.z)
+            : this(shallow.x, shallow.y, shallow.z, shallow.w)
         {
         }
 
@@ -1220,6 +1330,14 @@ namespace Ros_CSharp
             return new emQuaternion(v1.quat*v2.quat);
         }
 
+        public static emQuaternion operator *(emQuaternion q, emVector3 w)
+        {
+            return new emQuaternion( q.w * w.x + q.y * w.z - q.z * w.y,
+                 q.w * w.y + q.z * w.x - q.x * w.z,
+                 q.w * w.z + q.x * w.y - q.y * w.x,
+                 -q.x * w.x - q.y * w.y - q.z * w.z);
+        }
+
         public static emQuaternion operator /(emQuaternion v1, float s)
         {
             return new emQuaternion(v1.quat/s);
@@ -1257,43 +1375,13 @@ namespace Ros_CSharp
 
         public override string ToString()
         {
-            return string.Format("({0},{1},{2},{3})", w, x, y, z);
+            return string.Format("quat=({0:F4},{1:F4},{2:F4},{3:F4})"/*, rpy={4}"*/, w, x, y, z/*, getRPY()*/);
         }
 
         public emVector3 getRPY()
         {
             emVector3 tmp = new emMatrix3x3(this).getYPR();
             return new emVector3(tmp.z, tmp.y, tmp.x);
-            emVector3 ret = new emVector3();
-            double w2 = w*w;
-            double x2 = x*x;
-            double y2 = y*y;
-            double z2 = z*z;
-            double unitLength = length(); // Normalized == 1, otherwise correction divisor.
-            double abcd = w*x + y*z;
-            double eps = Math.E;
-            double pi = Math.PI;
-            if (abcd > (0.5 - eps)*unitLength)
-            {
-                ret.z = 2*Math.Atan2(y, w);
-                ret.y = pi;
-                ret.x = 0;
-            }
-            else if (abcd < (-0.5 + eps)*unitLength)
-            {
-                ret.z = -2*Math.Atan2(y, w);
-                ret.y = -pi;
-                ret.x = 0;
-            }
-            else
-            {
-                double adbc = w*z - x*y;
-                double acbd = w*y - x*z;
-                ret.z = Math.Atan2(2*adbc, 1 - 2*(z2 + x2));
-                ret.y = Math.Asin(2*abcd/unitLength);
-                ret.x = Math.Atan2(2*acbd, 1 - 2*(y2 + x2));
-            }
-            return ret;
         }
 
         public static emQuaternion FromRPY(emVector3 rpy)
@@ -1441,7 +1529,7 @@ namespace Ros_CSharp
 
         public override string ToString()
         {
-            return string.Format("({0},{1},{2})", x, y, z);
+            return string.Format("({0:F4},{1:F4},{2:F4})", x, y, z);
         }
 
         public void setInterpolate3(emVector3 v0, emVector3 v1, double rt)

@@ -38,7 +38,7 @@ I've found that creating a new repository, adding ros.net as a submodule, creati
 #### Is it stable?
 - I could lie to you, but I won't.
 - It is not without its quirks, but during the course of its development, it has been used to communicate between various WPF windows and one or more robots for a handful of research projects, and could not have easily been replaced.
-- TF is pretty broken. Most of ROS.NET was designed based structurally on ROSCPP from the diamondback era... and TF was one of the LAST things that was added to ROS.NET. As the reason TF was being implemented was critical-path, the decision was made to offload the TF work to a helper node on a linux machine, and it hasn't been revisited since.
+- Transformers are __SLIGHTLY__ broken, and becoming LESS SO.
 
 * It's generally leak free and fairly light on resources, but doing more things at compile time than are presently being done (de)serialization-wise would be a step in the right direction. *
 
