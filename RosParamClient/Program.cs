@@ -80,9 +80,7 @@ namespace RosParamClient
         }
 
         static void Main(string[] args)
-        {   
-            ROS.ROS_MASTER_URI = "http://192.168.121.129:11311";
-            ROS.ROS_HOSTNAME = "192.168.121.1";
+        {
             IDictionary remappings;
             RemappingHelper.GetRemappings(ref args, out remappings);
             network.init(remappings);
