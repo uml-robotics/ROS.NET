@@ -413,7 +413,17 @@ namespace Ros_CSharp
             {
                 atexit_registered = true;
                 Process.GetCurrentProcess().EnableRaisingEvents = true;
-                Process.GetCurrentProcess().Exited += (o, args) => _shutdown();
+                Process.GetCurrentProcess().Exited += (o, args) =>
+                                                          {
+                                                              _shutdown();
+                                                              waitForShutdown();
+                                                          };
+                Console.CancelKeyPress += (o, args) =>
+                                              {
+                                                  _shutdown();
+                                                  waitForShutdown();
+                                                  args.Cancel = false;
+                                              };
             }
 
             // this needs to exist for connections and stuff to happen
