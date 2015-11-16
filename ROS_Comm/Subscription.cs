@@ -31,9 +31,6 @@ namespace Ros_CSharp
     {
         private bool _dropped;
 
-        public Dictionary<MsgTypes, IMessageDeserializer> cached_deserializers =
-            new Dictionary<MsgTypes, IMessageDeserializer>();
-
         private List<ICallbackInfo> callbacks = new List<ICallbackInfo>();
         public object callbacks_mutex = new object();
         public string datatype = "";
@@ -382,28 +379,20 @@ namespace Ros_CSharp
         {
             lock (callbacks_mutex)
             {
+                IRosMessage t = null;
                 ulong drops = 0;
-                cached_deserializers.Clear();
                 TimeData receipt_time = ROS.GetTime().data;
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
                     if (nocopy || ser)
                     {
-                        IMessageDeserializer deserializer = null;
-                        if (cached_deserializers.ContainsKey(ti))
-                            deserializer = cached_deserializers[ti];
-                        else
-                        {
-                            deserializer = MakeDeserializer(ti, info.helper, msg, connection_header);
-                            cached_deserializers.Add(ti, deserializer);
-                        }
+                        t = msg.Deserialize(msg.Serialized);
+                        t.connection_header = msg.connection_header;
+                        t.Serialized = null;
                         bool was_full = false;
                         bool nonconst_need_copy = callbacks.Count > 1;
-                        //info.helper.callback().func(msg);
-                        //info.helper.callback().pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
-                        info.subscription_queue.pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, receipt_time);
-                        //push(info.helper, deserializer, nonconst_need_copy, ref was_full,receipt_time);
+                        info.subscription_queue.pushitgood(info.helper, t, nonconst_need_copy, ref was_full, receipt_time);
                         if (was_full)
                             ++drops;
                         else
@@ -411,11 +400,11 @@ namespace Ros_CSharp
                     }
                 }
 
-                if (link.Latched)
+                if (t != null && link.Latched)
                 {
                     LatchInfo li = new LatchInfo
                     {
-                        message = msg,
+                        message = t,
                         link = link,
                         connection_header = connection_header,
                         receipt_time = receipt_time
@@ -426,29 +415,8 @@ namespace Ros_CSharp
                         latched_messages.Add(link, li);
                 }
 
-                cached_deserializers.Clear();
                 return drops;
             }
-        }
-
-        public MessageDeserializer<T> MakeDeserializer<T>(MsgTypes type, SubscriptionCallbackHelper<T> helper, T m,
-            IDictionary connection_header) where T : IRosMessage, new()
-        {
-            if (type == MsgTypes.Unknown) return null;
-            //return ROS.MakeDeserializer(ROS.MakeMessage(type));
-            return new MessageDeserializer<T>(helper, m, connection_header);
-        }
-
-        public IMessageDeserializer MakeDeserializer(MsgTypes type, ISubscriptionCallbackHelper helper, IRosMessage m,
-            IDictionary connection_header)
-        {
-            if (type == MsgTypes.Unknown) return null;
-            //return ROS.MakeDeserializer(ROS.MakeMessage(type));
-            return
-                (IMessageDeserializer)
-                    Activator.CreateInstance(
-                        typeof (MessageDeserializer<>).MakeGenericType(
-                            ROS.MakeMessage(type).GetType()), helper, m, connection_header);
         }
 
         public void Dispose()
@@ -490,17 +458,9 @@ namespace Ros_CSharp
                                 if (latched_messages.ContainsKey(link))
                                 {
                                     LatchInfo latch_info = latched_messages[link];
-                                    IMessageDeserializer deserializer = null;
-                                    if (cached_deserializers.ContainsKey(ti))
-                                        deserializer = cached_deserializers[ti];
-                                    else
-                                    {
-                                        deserializer = MakeDeserializer(ti, info.helper, latched_messages[link].message, latch_info.connection_header);
-                                        cached_deserializers.Add(ti, deserializer);
-                                    }
                                     bool was_full = false;
                                     bool nonconst_need_copy = false; //callbacks.Count > 1;
-                                    info.subscription_queue.pushitgood(info.helper, deserializer, nonconst_need_copy, ref was_full, ROS.GetTime().data);
+                                    info.subscription_queue.pushitgood(info.helper, latched_messages[link].message, nonconst_need_copy, ref was_full, ROS.GetTime().data);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());
                                 }

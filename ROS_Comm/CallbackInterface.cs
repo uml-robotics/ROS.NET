@@ -57,7 +57,7 @@ namespace Ros_CSharp
         public uint size;
         public string topic;
 
-        public override void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
+        public override void pushitgood(ISubscriptionCallbackHelper helper, IRosMessage message, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
             if (was_full)
                 was_full = false;
@@ -75,7 +75,7 @@ namespace Ros_CSharp
             Item i = new Item
             {
                 helper = helper,
-                deserializer = deserializer,
+                message = message,
                 nonconst_need_copy = nonconst_need_copy,
                 receipt_time = receipt_time
             };
@@ -104,7 +104,7 @@ namespace Ros_CSharp
 
         public class Item
         {
-            public IMessageDeserializer deserializer;
+            public IRosMessage message;
             public ISubscriptionCallbackHelper helper;
             public bool nonconst_need_copy;
             public TimeData receipt_time;
@@ -126,7 +126,7 @@ namespace Ros_CSharp
                 callback_state = false;
                 return CallResult.Invalid;
             }
-            i.helper.call(i.deserializer.deserialize());
+            i.helper.call(i.message);
             callback_state = false;
             return CallResult.Success;
         }
@@ -189,7 +189,7 @@ namespace Ros_CSharp
             }
         }
 
-        public virtual void pushitgood(ISubscriptionCallbackHelper helper, IMessageDeserializer deserializer, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
+        public virtual void pushitgood(ISubscriptionCallbackHelper helper, IRosMessage msg, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
             throw new NotImplementedException();
         }
