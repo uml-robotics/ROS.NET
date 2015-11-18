@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Messages;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -178,7 +178,7 @@ namespace Ros_CSharp
             args.Set(1, ops.service);
             args.Set(2, string.Format("rosrpc://{0}:{1}", network.host, connection_manager.TCPPort));
             args.Set(3, xmlrpc_manager.uri);
-            master.execute("registerService", args, ref result, ref payload, true);
+            master.execute("registerService", args, result, ref payload, true);
             return true;
         }
 
@@ -261,7 +261,7 @@ namespace Ros_CSharp
             args.Set(0, this_node.Name);
             args.Set(1, service);
             args.Set(2, string.Format("rosrpc://{0}:{1}", network.host, connection_manager.TCPPort));
-            master.execute("unregisterService", args, ref result, ref payload, false);
+            master.execute("unregisterService", args, result, ref payload, false);
         }
 
         internal bool lookupService(string name, ref string serv_host, ref int serv_port)
@@ -269,7 +269,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, name);
-            if (!master.execute("lookupService", args, ref result, ref payload, false))
+            if (!master.execute("lookupService", args, result, ref payload, false))
             {
                 EDB.WriteLine("lookupService: Service unknown.");
                 return false;

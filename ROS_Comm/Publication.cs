@@ -1,4 +1,4 @@
-﻿// File: Publication.cs
+// File: Publication.cs
 // Project: ROS_C-Sharp
 // 
 // ROS.NET
@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Messages;
-using XmlRpc_Wrapper;
+using XmlRpc;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
@@ -86,7 +86,8 @@ namespace Ros_CSharp
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, Name);
-            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
+            XmlRpcValue conn_data = new XmlRpcValue();
+            conn_data.SetArray(0);
             lock (subscriber_links_mutex)
             {
                 int cidx = 0;

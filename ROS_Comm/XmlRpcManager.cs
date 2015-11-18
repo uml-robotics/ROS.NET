@@ -19,10 +19,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using XmlRpc_Wrapper;
+//using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+using XmlRpc;
 
 #endregion
 
@@ -137,14 +138,14 @@ namespace Ros_CSharp
 
         public bool validateXmlrpcResponse(string method, XmlRpcValue response, ref XmlRpcValue payload)
         {
-            if (response.Type != TypeEnum.TypeArray)
+			if (response.Type != XmlRpcValue.ValueType.TypeArray)
                 return validateFailed(method, "didn't return an array -- {0}", response);
             if (response.Size != 3)
                 return validateFailed(method, "didn't return a 3-element array -- {0}", response);
-            if (response[0].Type != TypeEnum.TypeInt)
+			if (response[0].Type != XmlRpcValue.ValueType.TypeInt)
                 return validateFailed(method, "didn't return an int as the 1st element -- {0}", response);
             int status_code = response[0].Get<int>();
-            if (response[1].Type != TypeEnum.TypeString)
+			if (response[1].Type != XmlRpcValue.ValueType.TypeString)
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response[1].Get<string>();
             if (status_code != 1)
@@ -227,7 +228,7 @@ namespace Ros_CSharp
                     {
                         name = function_name,
                         function = cb,
-                        wrapper = new XMLRPCCallWrapper(function_name, cb, server)
+                        wrapper = new XmlRpcServerMethod(function_name, cb, server)
                     });
             }
             return true;
@@ -244,33 +245,30 @@ namespace Ros_CSharp
         }
 
 
-        public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
+		public Action<XmlRpcValue> responseStr(IntPtr target, int code, string msg, string response)
         {
-            return p =>
+			return (XmlRpcValue v) =>
                        {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);
                        };
         }
 
-        public Action<IntPtr> responseInt(int code, string msg, int response)
+		public Action<XmlRpcValue> responseInt(int code, string msg, int response)
         {
-            return p =>
+            return (XmlRpcValue v) =>
                        {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);
                        };
         }
 
-        public Action<IntPtr> responseBool(int code, string msg, bool response)
+		public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
         {
-            return p =>
+			return (XmlRpcValue v) =>
                        {
-                           XmlRpcValue v = XmlRpcValue.LookUp(p);
                            v.Set(0, code);
                            v.Set(1, msg);
                            v.Set(2, response);
@@ -381,7 +379,7 @@ namespace Ros_CSharp
         {
             public XMLRPCFunc function;
             public string name = "";
-            public XMLRPCCallWrapper wrapper;
+			public XmlRpcServerMethod wrapper;
         }
 
         #endregion
