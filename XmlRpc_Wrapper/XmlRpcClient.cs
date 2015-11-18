@@ -323,11 +323,6 @@ namespace XmlRpc_Wrapper
 
         #region public function passthroughs
 
-        public bool CheckIdentity(string host, int port, string uri)
-        {
-            return checkident(instance, host, port, uri);
-        }
-
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
             bool r = execute(instance, method, parameters.instance, result.instance);
@@ -425,10 +420,6 @@ namespace XmlRpc_Wrapper
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetEOF", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool geteof(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_CheckIdent", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool checkident(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host, int port, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength",
             CallingConvention = CallingConvention.Cdecl)]

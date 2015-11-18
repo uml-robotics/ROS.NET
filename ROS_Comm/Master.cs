@@ -31,7 +31,7 @@ namespace Ros_CSharp
         public static int port;
         public static string host = "";
         public static string uri = "";
-        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(0);
+        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(5);
 
         public static void init(IDictionary remapping_args)
         {
@@ -110,7 +110,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        internal static XmlRpcClient clientForNode(string nodename)
+        internal static CachedXmlRpcClient clientForNode(string nodename)
         {
             XmlRpcValue args = new XmlRpcValue();
             args.Set(0, this_node.Name);
@@ -132,7 +132,7 @@ namespace Ros_CSharp
 
         public static bool kill(string node)
         {
-            XmlRpcClient cl = clientForNode(node);
+            CachedXmlRpcClient cl = clientForNode(node);
             if (cl == null)
                 return false;
             XmlRpcValue req = new XmlRpcValue(), resp = new XmlRpcValue(), payl = new XmlRpcValue();
@@ -163,7 +163,7 @@ namespace Ros_CSharp
                 int master_port = port;
 
                 //EDB.WriteLine("Trying to connect to master @ " + master_host + ":" + master_port);
-                XmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+                CachedXmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 bool printed = false;
                 bool success = false;
 
@@ -173,12 +173,8 @@ namespace Ros_CSharp
                     if (XmlRpcManager.Instance.shutting_down)
                         return false;
 
-                    // Check if there was an error with the previous attempt
-                    if (!client.IsConnected)
-                        return false;
-
-                    // Call the RPC
-                    success = client.Execute(method, request, response);
+                    // if the client is connected, execute the RPC call
+                    success = client.IsConnected && client.Execute(method, request, response);
 
                     // Set success to false when response validation fails
                     if (success && !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
@@ -210,7 +206,12 @@ namespace Ros_CSharp
                             XmlRpcManager.Instance.releaseXMLRPCClient(client);
                             return false;
                         }
-                        Thread.Sleep(10);
+
+                        //recreate the client, thereby causing it to reinitiate its connection (gross, but effective -- should really be done in xmlrpcwin32)
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        client = null;
+                        Thread.Sleep(50);
+                        client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                     }
                 }
             }
