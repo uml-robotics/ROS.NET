@@ -61,7 +61,6 @@ namespace XmlRpc_Wrapper
         public void Dispose()
         {
             Shutdown();
-            RmRef(ref __instance);
         }
 
         private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
@@ -160,12 +159,12 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public void Shutdown()
+        public bool Shutdown()
         {
-            Shutdown(__instance);
+            return Shutdown(ref __instance);
         }
 
-        public static bool Shutdown(IntPtr ptr)
+        public static bool Shutdown(ref IntPtr ptr)
         {
             if (ptr != IntPtr.Zero)
             {
