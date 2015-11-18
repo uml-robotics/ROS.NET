@@ -459,7 +459,7 @@ namespace Ros_CSharp
                                               {
                                                   _shutdown();
                                                   waitForShutdown();
-                                                  args.Cancel = false;
+                                                  args.Cancel = true;
                                               };
             }
 
