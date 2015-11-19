@@ -199,8 +199,7 @@ namespace XmlRpc_Wrapper
 					m_StrHTTPField[IndexHTTPfield] = buffer.Trim();
 				else
 					m_StrHTTPField[IndexHTTPfield] = buffer.Substring(0, Index).Trim();
-
-				Console.WriteLine("Index = " + IndexHTTPfield + " | champ = " + HTTPfield.Substring(1) + " " + m_StrHTTPField[IndexHTTPfield]);
+				XmlRpcUtil.log(2,"HTTP HEADER DEBUG: {0}","Index = " + IndexHTTPfield + " | champ = " + HTTPfield.Substring(1) + " " + m_StrHTTPField[IndexHTTPfield]);
 			}
 
 			// Affichage de tout les champs
@@ -219,6 +218,7 @@ namespace XmlRpc_Wrapper
     public static class XmlRpcUtil
 	{
 		public static string XMLRPC_VERSION = "XMLRPC++ 0.7";
+        public const int MINIMUM_LOG_LEVEL = 1; //5 == everything, 0 == only fatal
 		public static void error(string format, params object[] list)
 		{
 			Debug.WriteLine(String.Format(format, list));
@@ -226,7 +226,8 @@ namespace XmlRpc_Wrapper
 
 		public static void log(int level, string format, params object[] list)
 		{
-			Debug.WriteLine(String.Format(format, list));
+            if (level <= MINIMUM_LOG_LEVEL)
+			    Debug.WriteLine(String.Format(format, list));
 		}
     }
 }
