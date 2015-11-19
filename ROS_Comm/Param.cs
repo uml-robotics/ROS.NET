@@ -16,7 +16,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using XmlRpc;
+using XmlRpc_Wrapper;
 
 #endregion
 
@@ -418,6 +418,7 @@ namespace Ros_CSharp
         /// <param name="parm">Name of parameter</param>
         /// <param name="result">New value of parameter</param>
         public static void paramUpdateCallback(XmlRpcValue val, XmlRpcValue result)
+        {
             val.Set(0, 1);
             val.Set(1, "");
             val.Set(2, 0);

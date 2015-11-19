@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Xml;
 
-namespace XmlRpc
+namespace XmlRpc_Wrapper
 {
 	/// <summary>
 	/// Incoming connection to XmlRpcServer
