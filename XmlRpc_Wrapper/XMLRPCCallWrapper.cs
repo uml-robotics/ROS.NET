@@ -32,14 +32,14 @@ namespace XmlRpc_Wrapper
         public XmlRpcServer server;
 
         [DebuggerStepThrough]
-		public XmlRpcServerMethod(string function_name, XMLRPCFunc func, XmlRpcServer server)
+        public XmlRpcServerMethod(string function_name, XMLRPCFunc func, XmlRpcServer server)
         {
             name = function_name;
             this.server = server;
             //SegFault();
             FUNC = func;
-			if(server != null)
-				server.AddMethod(this);
+            if(server != null)
+                server.AddMethod(this);
         }
 
 
@@ -55,19 +55,19 @@ namespace XmlRpc_Wrapper
 
         public void SetFunc(XMLRPCFunc func)
         {
-			_FUNC = func;
+            _FUNC = func;
         }
 
         public void Execute(XmlRpcValue parms, XmlRpcValue reseseses)
         {
-			_FUNC(parms, reseseses);
+            _FUNC(parms, reseseses);
         }
 
-		public virtual string Help()
-		{
-			return "no help";
-		}
+        public virtual string Help()
+        {
+            return "no help";
+        }
     }
     //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void XMLRPCFunc(XmlRpcValue parms, XmlRpcValue reseseses);
+    public delegate void XMLRPCFunc(XmlRpcValue parms, XmlRpcValue reseseses);
 }
