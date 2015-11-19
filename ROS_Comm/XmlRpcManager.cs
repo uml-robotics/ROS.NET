@@ -162,9 +162,9 @@ namespace Ros_CSharp
             return false;
         }
 
-        public XmlRpcClient getXMLRPCClient(string host, int port, string uri)
+        public CachedXmlRpcClient getXMLRPCClient(string host, int port, string uri)
         {
-            XmlRpcClient c = null;
+            CachedXmlRpcClient c = null;
             lock (clients_mutex)
             {
                 List<CachedXmlRpcClient> zombies = new List<CachedXmlRpcClient>();
@@ -172,17 +172,13 @@ namespace Ros_CSharp
                 {
                     if (!client.in_use)
                     {
-                        if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 ||
-                            !client.client.IsConnected)
+                        if (DateTime.Now.Subtract(client.last_use_time).TotalSeconds > 30 || client.dead)
                         {
-                            client.client.Shutdown();
                             zombies.Add(client);
                         }
-                        else if (client.client.CheckIdentity(host, port, uri))
+                        else if (client.CheckIdentity(host, port, uri))
                         {
-                            c = client.client;
-                            client.in_use = true;
-                            client.last_use_time = DateTime.Now;
+                            c = client;
                             break;
                         }
                     }
@@ -190,30 +186,22 @@ namespace Ros_CSharp
                 foreach (CachedXmlRpcClient C in zombies)
                 {
                     clients.Remove(C);
-                    C.client.Dispose();
+                    C.Dispose();
                 }
                 if (c == null)
                 {
-                    c = new XmlRpcClient(host, port, uri);
-                    clients.Add(new CachedXmlRpcClient(c) {in_use = true, last_use_time = DateTime.Now});
+                    c = new CachedXmlRpcClient(host, port, uri);
+                    clients.Add(c);
                 }
             }
+            c.AddRef();
             return c;
         }
 
-        public void releaseXMLRPCClient(XmlRpcClient client)
+        public void releaseXMLRPCClient(CachedXmlRpcClient client)
         {
-            lock (clients_mutex)
-            {
-                foreach (CachedXmlRpcClient c in clients)
-                {
-                    if (client == c.client)
-                    {
-                        c.in_use = false;
-                        break;
-                    }
-                }
-            }
+            client.DelRef();
+            client.Dispose();
         }
 
         public void addAsyncConnection(AsyncXmlRpcConnection conn)
@@ -363,11 +351,9 @@ namespace Ros_CSharp
             server.Shutdown();
             foreach (CachedXmlRpcClient c in clients)
             {
-                for (int wait_count = 0; c.in_use && wait_count < 10; wait_count++)
-                {
+                while (c.in_use)
                     Thread.Sleep(10);
-                }
-                c.client.Shutdown();
+                c.Dispose();
             }
             clients.Clear();
             lock (functions_mutex)
@@ -404,15 +390,94 @@ namespace Ros_CSharp
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class CachedXmlRpcClient
+    public class CachedXmlRpcClient : IDisposable
     {
-        public XmlRpcClient client;
-        public bool in_use;
+        private XmlRpcClient client;
+
+        public bool in_use
+        {
+            get { lock (busyMutex) return refs != 0; }
+        }
+
         public DateTime last_use_time;
 
-        public CachedXmlRpcClient(XmlRpcClient c)
+        private object busyMutex = new object();
+        private volatile int refs = 0;
+
+        internal bool dead
+        {
+            get { return client == null; }
+        }
+
+        public CachedXmlRpcClient(string host, int port, string uri) : this(new XmlRpcClient(host,port,uri))
+        {
+        }
+
+        private CachedXmlRpcClient(XmlRpcClient c)
         {
             client = c;
         }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            lock (busyMutex)
+            {
+                if (refs != 0)
+                    throw new Exception("XmlRpcClient disposed while in use!");
+            }
+            if (client != null)
+            {
+                client.Dispose();
+                client = null;
+            }
+        }
+
+        internal void AddRef()
+        {
+            lock (busyMutex)
+            {
+                refs++;
+            }
+            last_use_time = DateTime.Now;
+        }
+
+        internal void DelRef()
+        {
+            lock (busyMutex)
+            {
+                refs--;
+            }
+        }
+
+        public bool CheckIdentity(string host, int port, string uri)
+        {
+            return port == client.Port && string.Equals(host, client.Host) && string.Equals(uri, client.Uri);
+        }
+
+        #region XmlRpcClient passthrough functions and properties
+
+        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
+        {
+            return client.Execute(method, parameters, result);
+        }
+
+        public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
+        {
+            return client.ExecuteNonBlock(method, parameters);
+        }
+
+        public bool ExecuteCheckDone(XmlRpcValue result)
+        {
+            return client.ExecuteCheckDone(result);
+        }
+
+        public bool IsConnected
+        {
+            get { return client.IsConnected; }
+        }
+        #endregion
     }
 }
