@@ -26,6 +26,9 @@ const char XmlRpc::XMLRPC_VERSION[] = "XMLRPC++ 0.7";
 // Default log verbosity: 0 for no messages through 5 (writes everything)
 int XmlRpcLogHandler::_verbosity = 0;
 
+// Function pointer for passage of log massages back to managed code
+extern EricRulz OUTREF;
+
 // Default log handler
 static class DefaultLogHandler : public XmlRpcLogHandler {
 public:
@@ -34,7 +37,11 @@ public:
 #ifdef USE_WINDOWS_DEBUG
     if (level <= _verbosity) { OutputDebugString(msg); OutputDebugString("\n"); }
 #else
-    if (level <= _verbosity) std::cout << msg << std::endl; 
+    if (level <= _verbosity)
+    {
+        if (OUTREF)
+            OUTREF(msg);
+    }
 #endif  
   }
 
@@ -52,7 +59,8 @@ public:
 #ifdef USE_WINDOWS_DEBUG
     OutputDebugString(msg); OutputDebugString("\n");
 #else
-//    std::cerr << msg << std::endl; 
+    if (OUTREF)
+        OUTREF(msg);
 #endif  
     // As far as I can tell, throwing an exception here is a bug, unless
     // the intention is that the program should exit.  Throughout the code,
@@ -70,14 +78,6 @@ public:
 // Error handler singleton
 XmlRpcErrorHandler* XmlRpcErrorHandler::_errorHandler = &defaultErrorHandler;
 
-extern EricRulz OUTREF;	
-
-void XmlRpcUtil::OUTFN(const char *str)
-{
-	if (OUTREF)
-		OUTREF(str);
-}
-
 // Easy API for log verbosity
 int XmlRpc::getVerbosity() { return XmlRpcLogHandler::getVerbosity(); }
 void XmlRpc::setVerbosity(int level) { XmlRpcLogHandler::setVerbosity(level); }
@@ -91,7 +91,6 @@ void XmlRpcUtil::log(int level, const char* fmt, ...)
   buf[sizeof(buf)-1] = 0;
   if (level <= XmlRpcLogHandler::getVerbosity())
   {
-    OUTFN(buf);
     XmlRpcLogHandler::getLogHandler()->log(level, buf);
   }
 }
@@ -104,7 +103,6 @@ void XmlRpcUtil::error(const char* fmt, ...)
   char buf[1024];
   vsnprintf(buf,sizeof(buf)-1,fmt,va);
   buf[sizeof(buf)-1] = 0;
-  OUTFN(buf);
   XmlRpcErrorHandler::getErrorHandler()->error(buf);
 }
 
@@ -215,8 +213,8 @@ XmlRpcUtil::xmlDecode(const std::string& encoded)
     if (encoded[iAmp] == AMP && iAmp+1 < iSize) {
       int iEntity;
       for (iEntity=0; xmlEntity[iEntity] != 0; ++iEntity)
-	//if (encoded.compare(iAmp+1, xmlEntLen[iEntity], xmlEntity[iEntity]) == 0)
-	if (strncmp(ens+iAmp+1, xmlEntity[iEntity], xmlEntLen[iEntity]) == 0)
+        //if (encoded.compare(iAmp+1, xmlEntLen[iEntity], xmlEntity[iEntity]) == 0)
+        if (strncmp(ens+iAmp+1, xmlEntity[iEntity], xmlEntLen[iEntity]) == 0)
         {
           decoded += rawEntity[iEntity];
           iAmp += xmlEntLen[iEntity]+1;

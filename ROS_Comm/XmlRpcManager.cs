@@ -54,7 +54,7 @@ namespace Ros_CSharp
 
         public XmlRpcManager()
         {
-            //XmlRpcUtil.ShowOutputFromXmlRpcPInvoke();
+            XmlRpcUtil.ShowOutputFromXmlRpcPInvoke(XmlRpcUtil.XMLRPC_LOG_LEVEL.NOTHING);
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }

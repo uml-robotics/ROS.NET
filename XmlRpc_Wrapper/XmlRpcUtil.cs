@@ -22,15 +22,24 @@ namespace XmlRpc_Wrapper
 {
     public static class XmlRpcUtil
     {
-        private static printint _PRINTINT;
         private static printstr _PRINTSTR;
+
+        public enum XMLRPC_LOG_LEVEL
+        {
+            NOTHING=0,
+            LOW=1,
+            MEDIUM=2,
+            HIGH=3,
+            ULTRA=4,
+            EVERYTHING=5
+        }
 
         private static void thisishowawesomeyouare(string s)
         {
-            Debug.WriteLine("XMLRPC NATIVE OUT: " + s);
+            Console.WriteLine("XmlRpc_Wrapper:: " + s);
         }
 
-        public static void ShowOutputFromXmlRpcPInvoke(printstr handler = null)
+        public static void ShowOutputFromXmlRpcPInvoke(XMLRPC_LOG_LEVEL verb, printstr handler = null)
         {
             if (handler == null)
                 handler = thisishowawesomeyouare;
@@ -39,33 +48,20 @@ namespace XmlRpc_Wrapper
                 _PRINTSTR = thisishowawesomeyouare;
                 SetAwesomeFunctionPtr(_PRINTSTR);
             }
+            SetLogLevel((int)verb);
         }
 
         #region bad voodoo
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void printint(int val);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void printstr(string s);
-
-        [DllImport("XmlRpcWin32.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int IntegerEcho(int val);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoFunctionPtr", CallingConvention = CallingConvention.Cdecl
-            )]
-        private static extern void IntegerEchoFunctionPtr([MarshalAs(UnmanagedType.FunctionPtr)] printint callback);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "IntegerEchoRepeat", CallingConvention = CallingConvention.Cdecl)]
-        private static extern byte IntegerEchoRepeat(int val);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "SetStringOutFunc", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SetAwesomeFunctionPtr(
             [MarshalAs(UnmanagedType.FunctionPtr)] printstr callback);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "StringPassingTest", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void StringTest([In] [Out] [MarshalAs(UnmanagedType.LPStr)] string str);
-
+        [DllImport("XmlRpcWin32.dll", EntryPoint = "SetLogLevel", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SetLogLevel(int verb);
 
         [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcGiblets_Free", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Free(IntPtr val);
