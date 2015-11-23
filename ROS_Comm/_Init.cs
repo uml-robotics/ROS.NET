@@ -61,10 +61,6 @@ namespace Ros_CSharp
 #endif
         }
 
-#if DEBUG
-#else
-#endif
-
         /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
@@ -77,10 +73,6 @@ namespace Ros_CSharp
         {
             _writeline(o);
         }
-
-#if DEBUG
-#else
-#endif
 
         /// Writes a formatted something to System.Console, and fires an optional OtherOutput event for use in the node
         /// <summary>
