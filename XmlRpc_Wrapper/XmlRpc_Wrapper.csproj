@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</ProjectGuid>
+    <ProjectGuid>{4BE4EEC3-8F44-43C6-B586-7B7312F2D687}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XmlRpc_Wrapper</RootNamespace>
