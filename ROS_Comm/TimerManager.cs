@@ -20,208 +20,267 @@ using System.Threading;
 
 namespace Ros_CSharp
 {
+
     /// <summary>
-    ///     The timer manager.
+    /// Timer management utility class
     /// </summary>
     public class TimerManager : IDisposable
     {
         /// <summary>
-        ///     The heardof.
+        /// Holds on to known timer instances
         /// </summary>
-        private Dictionary<Timer, TimerStuff> heardof = new Dictionary<Timer, TimerStuff>();
+        private HashSet<WrappedTimer> heardof = new HashSet<WrappedTimer>();
 
+        /// <summary>
+        /// clean up shop
+        /// </summary>
         public void Dispose()
         {
-            IList<Timer> ts = new List<Timer>(heardof.Keys);
-            for (int i = 0; i < ts.Count; i++)
+            lock (heardof)
             {
-                Timer x = ts[i];
-                RemoveTimer(ref x);
+                //be extra super sure they're all dead
+                foreach (WrappedTimer t in heardof)
+                {
+                    t.Dispose();
+                }
+                heardof.Clear();
             }
-            ts.Clear();
-            heardof.Clear();
         }
 
         /// <summary>
-        ///     The make timer.
+        /// Wrap and start timer a with added functionality, and make sure it dies with this TimerManager
+        /// 
+        /// This DOES NOT START IT.
         /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
         /// <param name="cb">
-        ///     The cb.
+        /// The callback of the wrapped timer
         /// </param>
         /// <param name="d">
-        ///     The d.
+        /// The delay it should have
         /// </param>
         /// <param name="p">
-        ///     The p.
+        /// The period it should have
         /// </param>
-        public void MakeTimer(ref Timer t, TimerCallback cb, int d, int p)
+        public WrappedTimer MakeTimer(TimerCallback cb, int d=Timeout.Infinite, int p=Timeout.Infinite)
         {
-            MakeTimer(ref t, cb, null, d, p);
+            WrappedTimer wt = new WrappedTimer(cb, d, p);
+            MakeTimer(wt);
+            return wt;
+        }
+        
+        /// <summary>
+        /// Wrap a timer a with added functionality, and make sure it dies with this TimerManager
+        /// 
+        /// This DOES NOT START IT.
+        /// </summary>
+        /// <param name="cb">
+        /// The callback of the wrapped timer
+        /// </param>
+        /// <param name="d">
+        /// The delay it should have
+        /// </param>
+        /// <param name="p">
+        /// The period it should have
+        /// </param>
+        /// 
+        public WrappedTimer StartTimer(TimerCallback cb, int d = Timeout.Infinite, int p = Timeout.Infinite)
+        {
+            WrappedTimer wt = MakeTimer(cb, d, p);
+            wt.Start();
+            return wt;
         }
 
-        public void RemoveTimer(ref Timer t)
+        /// <summary>
+        /// Add a wrapped timer to the hashset
+        /// </summary>
+        /// <param name="t">the wrapped timer</param>
+        public void MakeTimer(WrappedTimer t)
         {
-            if (t == null) return;
-            //StopTimer(ref t);
-            if (heardof.ContainsKey(t))
+            lock (heardof)
             {
-                heardof.Remove(t);
+                if (heardof.Contains(t))
+                    throw new Exception("The same timer cannot be tracked twice");
+                heardof.Add(t);
             }
-            WaitHandle wh = new AutoResetEvent(false);
-            t.Dispose(wh);
+        }
+
+        /// <summary>
+        /// Stop tracking a timer, and kill it
+        /// </summary>
+        /// <param name="t">The timer to forget and kill</param>
+        public void RemoveTimer(ref WrappedTimer t)
+        {
+            lock (heardof)
+            {
+                if (heardof.Contains(t))
+                    heardof.Remove(t);
+            }
+            t.Dispose();
             t = null;
-        }
-
-        /// <summary>
-        ///     The make timer.
-        /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
-        /// <param name="cb">
-        ///     The cb.
-        /// </param>
-        /// <param name="state">
-        ///     The state.
-        /// </param>
-        /// <param name="d">
-        ///     The d.
-        /// </param>
-        /// <param name="p">
-        ///     The p.
-        /// </param>
-        public void MakeTimer(ref Timer t, TimerCallback cb, object state, int d, int p)
-        {
-            t = new Timer(cb, state, Timeout.Infinite, Timeout.Infinite);
-            heardof.Add(t, new TimerStuff(cb, d, p));
-        }
-
-        /// <summary>
-        ///     The start timer.
-        /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
-        /// <param name="cb">
-        ///     The cb.
-        /// </param>
-        /// <param name="d">
-        ///     The d.
-        /// </param>
-        /// <param name="p">
-        ///     The p.
-        /// </param>
-        public void StartTimer(ref Timer t, TimerCallback cb, int d, int p)
-        {
-            MakeTimer(ref t, cb, d, p);
-            StartTimer(ref t);
-        }
-
-        /// <summary>
-        ///     The start timer.
-        /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
-        /// <exception cref="Exception">
-        /// </exception>
-        public void StartTimer(ref Timer t)
-        {
-            if (t == null || !heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
-            if (heardof[t].running) return;
-            t.Change(heardof[t].delay, heardof[t].period);
-            heardof[t].running = true;
-        }
-
-        /// <summary>
-        ///     The stop timer.
-        /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
-        /// <exception cref="Exception">
-        /// </exception>
-        public void StopTimer(ref Timer t)
-        {
-            if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
-            if (!heardof[t].running) return;
-            if (t != null)
-            {
-                try
-                {
-                    t.Change(Timeout.Infinite, Timeout.Infinite);
-                    heardof[t].running = false;
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        /// <summary>
-        ///     The is running.
-        /// </summary>
-        /// <param name="t">
-        ///     The t.
-        /// </param>
-        /// <returns>
-        ///     The is running.
-        /// </returns>
-        /// <exception cref="Exception">
-        /// </exception>
-        public bool IsRunning(ref Timer t)
-        {
-            if (t == null) return false;
-            if (!heardof.ContainsKey(t)) throw new Exception("MAKE A TIMER FIRST!");
-            return heardof[t].running;
         }
     }
 
     /// <summary>
-    ///     The timer stuff.
+    /// Wrap the System.Threading.Timer with useful functions and state information
     /// </summary>
-    public class TimerStuff
+    public class WrappedTimer : IDisposable
     {
+        //variable backing for properties
+        private bool _running;
+        private int _period = Timeout.Infinite, _delay = Timeout.Infinite;
         /// <summary>
-        ///     The callback.
+        /// Tastes like it smells
         /// </summary>
-        public TimerCallback callback;
+        internal Timer timer;
+
+        private TimerCallback cb;
 
         /// <summary>
-        ///     The delay.
+        /// This timer's delay
         /// </summary>
-        public int delay;
+        public int delay {
+            get { return _delay; }
+            set
+            {
+                if (timer == null)
+                    throw new Exception("This wrapper is no longer with the living");
+                if (_delay != value && running)
+                    timer.Change(value, _period);
+                _delay = value;
+            }
+        }
 
         /// <summary>
-        ///     The period.
+        /// This timer's period
         /// </summary>
-        public int period;
-
-        /// <summary>
-        ///     The running.
-        /// </summary>
-        public bool running;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="TimerStuff" /> class.
-        /// </summary>
-        /// <param name="cb">
-        ///     The cb.
-        /// </param>
-        /// <param name="d">
-        ///     The d.
-        /// </param>
-        /// <param name="p">
-        ///     The p.
-        /// </param>
-        public TimerStuff(TimerCallback cb, int d, int p)
+        public int period
         {
-            callback = cb;
-            delay = d;
-            period = p;
+            get { return _period; }
+            set
+            {
+                if (timer == null)
+                    throw new Exception("This wrapper is no longer with the living");
+                if (_period != value && running)
+                    timer.Change(_delay, value);
+                _period = value;
+            }
+        }
+
+        /// <summary>
+        /// Is it running
+        /// </summary>
+        public bool running
+        {
+            get { return _running; }
+            set
+            {
+                if (timer == null)
+                    throw new Exception("This wrapper is no longer with the living");
+                if (value && !_running) Start();
+                if (!value && _running) Stop();
+            }
+        }
+
+
+        /// <summary>
+        /// Instantiate the wrapper
+        /// </summary>
+        /// <param name="t">A timer</param>
+        /// <param name="d">Its delay</param>
+        /// <param name="p">Its period</param>
+        public WrappedTimer(TimerCallback cb, int d, int p)
+        {
+            //add a callback between the caller and the timer, so non-periodic timers state becomes false right before the one time their callback happens
+            //(If a timer's period is Timeout.Infinite, it will fire once delay ms after Start is called. If start is recalled before then, nothing changes.
+            //      To reset the time to the next pending callback before the callback happens, use Restart)
+            this.cb = (o) => {
+                if (_period == Timeout.Infinite)
+                    _running = false;
+                cb(o);
+            };
+            timer = new Timer(this.cb, null, Timeout.Infinite, Timeout.Infinite);
+            _delay = d;
+            _period = p;
+        }
+
+        /// <summary>
+        /// Starts the timer with this wrapper's set delay and period.
+        /// </summary>
+        public void Start()
+        {
+            if (timer == null)
+                throw new Exception("This wrapper is no longer with the living");
+            if (running) return;
+            try
+            {
+                timer.Change(_delay, _period);
+                _running = true;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Error starting timer: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// Sets this timers delay and period, and immediately starts it
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="p"></param>
+        public void Start(int d, int p)
+        {
+            if (timer == null)
+                throw new Exception("This wrapper is no longer with the living");
+            _delay = d;
+            _period = p;
+            try
+            {
+                timer.Change(_delay, _period);
+                _running = d != Timeout.Infinite && p != Timeout.Infinite;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error starting timer: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// Stops then Resets the timer, causing any time spent waiting for the next callback to be reset
+        /// </summary>
+        public void Restart()
+        {
+            Stop();
+            Start();
+        }
+
+        /// <summary>
+        /// Stops the timer from firing, while remembering its last set state and period
+        /// </summary>
+        public void Stop()
+        {
+            if (timer == null)
+                throw new Exception("This wrapper is no longer with the living");
+            if (!running) return;
+            try
+            {
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                _running = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error starting timer: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            if (timer == null) return;
+            WaitHandle wh = new AutoResetEvent(false);
+            timer.Dispose(wh);
+            timer = null;
         }
     }
 }

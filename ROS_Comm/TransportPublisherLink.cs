@@ -31,7 +31,7 @@ namespace Ros_CSharp
         private bool needs_retry;
         private DateTime next_retry;
         private TimeSpan retry_period;
-        private Timer retry_timer;
+        private WrappedTimer retry_timer;
 
         public TransportPublisherLink(Subscription parent, string xmlrpc_uri) : base(parent, xmlrpc_uri)
         {
@@ -46,8 +46,7 @@ namespace Ros_CSharp
             dropping = true;
             if (retry_timer != null)
             {
-                ROS.timer_manager.StopTimer(ref retry_timer);
-                retry_timer.Dispose();
+                ROS.timer_manager.RemoveTimer(ref retry_timer);
             }
             connection.drop(Connection.DropReason.Destructing);
         }
@@ -106,9 +105,13 @@ namespace Ros_CSharp
                     needs_retry = true;
                     next_retry = DateTime.Now.Add(retry_period);
                     if (retry_timer == null)
-                        retry_period = TimeSpan.FromMilliseconds(100);
-                    ROS.timer_manager.StartTimer(ref retry_timer, onRetryTimer,
-                        (int) Math.Floor(retry_period.TotalMilliseconds), Timeout.Infinite);
+                    {
+                        retry_timer = ROS.timer_manager.StartTimer(onRetryTimer, 100);
+                    }
+                    else
+                    {
+                        retry_timer.Restart();
+                    }
                 }
                 else
                 {
