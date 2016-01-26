@@ -283,8 +283,9 @@ namespace Ros_CSharp
                 TransformAccum accum = new TransformAccum();
 
                 retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
-                if (error_string != null && retval != TF_STATUS.NO_ERROR)
+                if (retval != TF_STATUS.NO_ERROR)
                 {
+                    error_string = error_string ?? "UNSPECIFIED";
                     switch (retval)
                     {
                         case TF_STATUS.CONNECTIVITY_ERROR:
@@ -304,6 +305,8 @@ namespace Ros_CSharp
                 transform.frame_id = mapped_tgt;
                 transform.stamp = new Time(ROS.ticksToData((long)accum.time));
             }
+            if (transform.origin == null || transform.basis == null)
+                transform = null;
             return retval == TF_STATUS.NO_ERROR;
         }
 
@@ -581,16 +584,21 @@ namespace Ros_CSharp
                 return false;
             lock (framemutex)
             {
-                uint frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
-                TimeCache frame = null;
+                uint frame_number = lookupOrInsertFrameNumber(mapped_transform.frame_id);
+                uint child_frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
+                TimeCache parent_frame=null,frame = null;
                 if (!frames.ContainsKey(frame_number))
                 {
-                    frames[frame_number] = new TimeCache(cache_time);
-                    frame = frames[frame_number];
+                    parent_frame = frames[frame_number] = new TimeCache(cache_time);
+                    parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
+                }
+                if (!frames.ContainsKey(child_frame_number))
+                {
+                    frame = frames[child_frame_number] = new TimeCache(cache_time);
                 }
                 else
-                    frame = frames[frame_number];
-                if (frame.insertData(new TransformStorage(mapped_transform, lookupOrInsertFrameNumber(mapped_transform.frame_id), frame_number)))
+                    frame = frames[child_frame_number];
+                if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
                 {
                     // authority? meh
                 }
@@ -629,12 +637,14 @@ namespace Ros_CSharp
             string mapped_target = resolve(tf_prefix, target_frame);
             string mapped_source = resolve(tf_prefix, source_frame);
 
-            while (ROS.ok && (DateTime.Now.Subtract(start_time).TotalMilliseconds < timeout.TotalMilliseconds))
+            do
             {
                 if (canTransform(mapped_target, mapped_source, time, ref error_msg))
                     return true;
+                if (!ROS.ok || !(DateTime.Now.Subtract(start_time).TotalMilliseconds < timeout.TotalMilliseconds))
+                    break;
                 Thread.Sleep(pollingSleepDuration);
-            }
+            } while (ROS.ok && (DateTime.Now.Subtract(start_time).TotalMilliseconds < timeout.TotalMilliseconds));
             return false;
         }
 
