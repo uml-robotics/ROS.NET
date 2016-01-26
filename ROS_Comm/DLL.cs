@@ -103,12 +103,12 @@ namespace Ros_CSharp
 
         public T Front
         {
-            get { return _first.next.element; }
+            get { lock(this) return _first.next.element; }
         }
 
         public T Back
         {
-            get { return _last.previous.element; }
+            get { lock (this)return _last.previous.element; }
         }
 
         private DLLNode<T> walk(bool forwards, DLLNode<T> node)
@@ -240,6 +240,7 @@ namespace Ros_CSharp
                 while (_popFront() != null)
                 {
                 }
+            count = 0;
         }
     }
 
