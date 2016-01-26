@@ -69,14 +69,21 @@ namespace Ros_CSharp
         {
             if (additions == null)
                 additions = new Queue<tfMessage>();
-            if (tfhandle == null)
-            {
-                tfhandle = new NodeHandle();
-            }
             if (updateThread == null)
             {
                 updateThread = new Thread(() =>
                                               {
+                                                  while ((!ROS.initialized || !ROS.started || !ROS.ok) && !ROS.shutting_down)
+                                                  {
+                                                      Thread.Sleep(100);
+                                                  }
+                                                  if (ROS.shutting_down)
+                                                      return;
+                                                  if (tfhandle == null)
+                                                  {
+                                                      tfhandle = new NodeHandle();
+                                                  }
+                                                  tfhandle.subscribe<tfMessage>("/tf", 0, tfCallback);
                                                   while (ROS.ok)
                                                   {
                                                       Queue<tfMessage> local;
@@ -94,7 +101,7 @@ namespace Ros_CSharp
                                                               {
                                                                   if (TFsUpdated != null)
                                                                   {
-                                                                      TFsUpdated(t);
+                                                                      TFsUpdated.DynamicInvoke(t);
                                                                   }
                                                               }
                                                           }
@@ -104,7 +111,6 @@ namespace Ros_CSharp
                                               });
                 updateThread.Start();
             }
-            tfhandle.subscribe<tfMessage>("/tf", 0, tfCallback);
         }
 
         public static tf_node instance
@@ -159,16 +165,12 @@ namespace Ros_CSharp
         private SortedList<uint, TimeCache> frames = new SortedList<uint, TimeCache>();
 
         private bool interpolating;
-        private tf_node tfnode = null;
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
             frameIDs["NO_PARENT"] = 0;
             frameids_reverse[0] = "NO_PARENT";
-            if (ROS.initialized)
-            {
-                tf_node.instance.TFsUpdated += Update;
-            }
+            tf_node.instance.TFsUpdated += Update;
             this.interpolating = interpolating;
             cache_time = ct;
         }
