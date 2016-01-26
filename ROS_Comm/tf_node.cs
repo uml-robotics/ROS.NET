@@ -261,13 +261,14 @@ namespace Ros_CSharp
 
         public bool lookupTransform(string target_frame, string source_frame, Time time, out emTransform transform, ref string error_string)
         {
-            transform = new emTransform();
+            transform = null;
 
             string mapped_tgt = resolve(tf_prefix, target_frame);
             string mapped_src = resolve(tf_prefix, source_frame);
 
             if (mapped_tgt == mapped_src)
             {
+                transform = new emTransform();
                 transform.origin = new emVector3();
                 transform.basis = new emQuaternion();
                 transform.child_frame_id = mapped_src;
@@ -299,16 +300,24 @@ namespace Ros_CSharp
                         case TF_STATUS.LOOKUP_ERROR:
                             ROS.Error("LOOKUP: " + error_string);
                             break;
+                        default:
+                            if (accum.result_quat == null || accum.result_vec == null)
+                            {
+                                ROS.Error("ACCUM WALK FAIL!");
+                            }
+                            break;
                     }
                 }
-                transform.origin = accum.result_vec;
-                transform.basis = accum.result_quat;
-                transform.child_frame_id = mapped_src;
-                transform.frame_id = mapped_tgt;
-                transform.stamp = new Time(ROS.ticksToData((long)accum.time));
+                if (accum.result_vec != null && accum.result_quat != null)
+                {
+                    transform = new emTransform();
+                    transform.origin = accum.result_vec;
+                    transform.basis = accum.result_quat;
+                    transform.child_frame_id = mapped_src;
+                    transform.frame_id = mapped_tgt;
+                    transform.stamp = new Time(ROS.ticksToData((long) accum.time));
+                }
             }
-            if (transform.origin == null || transform.basis == null)
-                transform = null;
             return retval == TF_STATUS.NO_ERROR;
         }
 
@@ -599,10 +608,34 @@ namespace Ros_CSharp
                     frame = frames[child_frame_number] = new TimeCache(cache_time);
                 }
                 else
+                {
+                    //if we're revising a frame, that was previously labelled as having no parent, clear that knowledge from the time cache
                     frame = frames[child_frame_number];
+                    string error_str = null;
+                    if (frame.getParent(mapped_transform.stamp.data, ref error_str) == 0)
+                        frame.clearList();
+                }
+                uint before = frame.getListLength();
                 if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
                 {
-                    // authority? meh
+                    //check for simtime jumping backwards and blow up the outside world if it happens
+                    if (frame.getListLength() < before)
+                    {
+                        IList<uint> toremove = new List<uint>(frames.Keys);
+                        foreach (uint i in toremove)
+                        {
+                            if (i != 0 && i != child_frame_number)
+                            {
+                                frames.Remove(i);
+                                uint dontcare;
+                                string dontcare2;
+                                frameIDs.TryRemove(frameids_reverse[i], out dontcare);
+                                frameids_reverse.TryRemove(i, out dontcare2);
+                            }
+                        }
+                        parent_frame = frames[frame_number] = new TimeCache(cache_time);
+                        parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
+                    }
                 }
                 else
                     return false;
@@ -830,7 +863,8 @@ namespace Ros_CSharp
             ulong preprune = storage.Count, postprune = 0;
             while ((postprune = storage.Count) > 0 && storage.Front.stamp + max_storage_time < latest_time)
                 storage.popFront();
-            //Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
+            if (preprune - postprune != 0)
+                Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
         }
 
         public bool getData(TimeData time_, ref TransformStorage data_out, ref string error_str)
@@ -869,7 +903,12 @@ namespace Ros_CSharp
         public bool insertData(TransformStorage new_data)
         {
             if (storage.Count > 0 && storage.Front.stamp > new_data.stamp + max_storage_time)
-                return false;
+                if (SimTime.instance.IsTimeSimulated)
+                {
+                    storage.Clear();
+                }
+                else
+                    return false;
 
             storage.insert(new_data, (a, b) => a.stamp > new_data.stamp);
             pruneList();

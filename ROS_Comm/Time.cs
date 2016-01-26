@@ -22,6 +22,11 @@ namespace Ros_CSharp
         private bool checkedSimTime = false;
         private bool simTime = false;
 
+        public bool IsTimeSimulated
+        {
+            get { return simTime; }
+        }
+
         private void SimTimeCallback(Messages.rosgraph_msgs.Clock time)
         {
             if (!checkedSimTime)
