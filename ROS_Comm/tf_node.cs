@@ -58,59 +58,20 @@ namespace Ros_CSharp
     {
         private static tf_node _instance;
         private static object singleton_mutex = new object();
-
-        private Queue<tfMessage> additions;
-        private object addlock = new object();
-        private object frameslock = new object();
-        private NodeHandle tfhandle;
-        private Thread updateThread;
+        private static bool subscribed = false;
 
         private tf_node()
         {
-            if (additions == null)
-                additions = new Queue<tfMessage>();
-            if (updateThread == null)
-            {
-                updateThread = new Thread(() =>
-                                              {
-                                                  while ((!ROS.initialized || !ROS.started || !ROS.ok) && !ROS.shutting_down)
-                                                  {
-                                                      Thread.Sleep(100);
-                                                  }
-                                                  if (ROS.shutting_down)
-                                                      return;
-                                                  if (tfhandle == null)
-                                                  {
-                                                      tfhandle = new NodeHandle();
-                                                  }
-                                                  tfhandle.subscribe<tfMessage>("/tf", 0, tfCallback);
-                                                  while (ROS.ok)
-                                                  {
-                                                      Queue<tfMessage> local;
-                                                      lock (addlock)
-                                                      {
-                                                          local = new Queue<tfMessage>(additions);
-                                                          additions.Clear();
-                                                      }
-                                                      if (local.Count > 0)
-                                                      {
-                                                          while (local.Count > 0)
-                                                          {
-                                                              tfMessage msg = local.Dequeue();
-                                                              foreach (gm.TransformStamped t in msg.transforms)
-                                                              {
-                                                                  if (TFsUpdated != null)
-                                                                  {
-                                                                      TFsUpdated.DynamicInvoke(t);
-                                                                  }
-                                                              }
-                                                          }
-                                                      }
-                                                      Thread.Sleep(1);
-                                                  }
-                                              });
-                updateThread.Start();
-            }
+        }
+
+        internal void Subscribe(NodeHandle nh)
+        {
+            lock(singleton_mutex)
+                if (!subscribed)
+                {
+                    subscribed = true;
+                    nh.subscribe<tfMessage>("/tf", 0, tfCallback);
+                }
         }
 
         public static tf_node instance
@@ -136,11 +97,13 @@ namespace Ros_CSharp
 
         private void tfCallback(tfMessage msg)
         {
-            lock (addlock)
-                additions.Enqueue(msg);
+            if (TFsUpdated != null)
+            {
+                TFsUpdated(msg);
+            }
         }
 
-        internal delegate void TFUpdate(gm.TransformStamped msg);
+        internal delegate void TFUpdate(tfMessage msg);
     }
 
     public enum TF_STATUS
@@ -161,24 +124,25 @@ namespace Ros_CSharp
 
         private ConcurrentDictionary<string, uint> frameIDs = new ConcurrentDictionary<string, uint>();
         private ConcurrentDictionary<uint, string> frameids_reverse = new ConcurrentDictionary<uint, string>();
-        private object framemutex = new object();
-        private SortedList<uint, TimeCache> frames = new SortedList<uint, TimeCache>();
+        private ConcurrentDictionary<uint, TimeCache> frames = new ConcurrentDictionary<uint, TimeCache>();
 
         private bool interpolating;
 
-        public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
+        public Transformer(NodeHandle nh, bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
             frameIDs["NO_PARENT"] = 0;
             frameids_reverse[0] = "NO_PARENT";
+            tf_node.instance.Subscribe(nh);
             tf_node.instance.TFsUpdated += Update;
             this.interpolating = interpolating;
             cache_time = ct;
         }
 
-        private void Update(gm.TransformStamped msg)
+        private void Update(tfMessage msg)
         {
-            if (!setTransform(new emTransform(msg)))
-                ROS.Warn("Failed to setTransform in transformer update function");
+            foreach (gm.TransformStamped tf in msg.transforms)
+                if (!setTransform(new emTransform(tf)))
+                    ROS.Warn("Failed to setTransform in transformer update function");
         }
 
         public static string resolve(string prefix, string frame_name)
@@ -201,13 +165,10 @@ namespace Ros_CSharp
 
         public void clear()
         {
-            lock (framemutex)
-            {
-                foreach (TimeCache tc in frames.Values)
-                    tc.clearList();
-                frameIDs.Clear();
-                frameids_reverse.Clear();
-            }
+            foreach (TimeCache tc in frames.Values)
+                tc.clearList();
+            frameIDs.Clear();
+            frameids_reverse.Clear();
         }
 
         public void lookupTransform(String target_frame, String source_frame, Time time, out emTransform transform)
@@ -236,8 +197,7 @@ namespace Ros_CSharp
 
         public uint getFrameID(string frame)
         {
-            lock (framemutex)
-                return getFrameIDInternal(frame);
+            return getFrameIDInternal(frame);
         }
 
         public bool frameExists(string frame)
@@ -278,45 +238,42 @@ namespace Ros_CSharp
             }
 
             TF_STATUS retval;
-            lock (framemutex)
+            uint target_id = getFrameIDInternal(mapped_tgt);
+            uint source_id = getFrameIDInternal(mapped_src);
+
+            TransformAccum accum = new TransformAccum();
+
+            retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
+            if (retval != TF_STATUS.NO_ERROR)
             {
-                uint target_id = getFrameIDInternal(mapped_tgt);
-                uint source_id = getFrameIDInternal(mapped_src);
-
-                TransformAccum accum = new TransformAccum();
-
-                retval = walkToTopParent(accum, TimeCache.toLong(time.data), target_id, source_id, ref error_string);
-                if (retval != TF_STATUS.NO_ERROR)
+                error_string = error_string ?? "UNSPECIFIED";
+                switch (retval)
                 {
-                    error_string = error_string ?? "UNSPECIFIED";
-                    switch (retval)
-                    {
-                        case TF_STATUS.CONNECTIVITY_ERROR:
-                            ROS.Error("NO CONNECTIONSZSZ: " + error_string);
-                            break;
-                        case TF_STATUS.EXTRAPOLATION_ERROR:
-                            ROS.Error("EXTRAPOLATION: " + error_string);
-                            break;
-                        case TF_STATUS.LOOKUP_ERROR:
-                            ROS.Error("LOOKUP: " + error_string);
-                            break;
-                        default:
-                            if (accum.result_quat == null || accum.result_vec == null)
-                            {
-                                ROS.Error("ACCUM WALK FAIL!");
-                            }
-                            break;
-                    }
+                    case TF_STATUS.CONNECTIVITY_ERROR:
+                        ROS.Error("NO CONNECTIONSZSZ: " + error_string);
+                        break;
+                    case TF_STATUS.EXTRAPOLATION_ERROR:
+                        ROS.Error("EXTRAPOLATION: " + error_string);
+                        break;
+                    case TF_STATUS.LOOKUP_ERROR:
+                        ROS.Error("LOOKUP: " + error_string);
+                        break;
+                    default:
+                        if (accum.result_quat == null || accum.result_vec == null)
+                        {
+                            ROS.Error("ACCUM WALK FAIL!");
+                        }
+                        break;
                 }
-                if (accum.result_vec != null && accum.result_quat != null)
-                {
-                    transform = new emTransform();
-                    transform.origin = accum.result_vec;
-                    transform.basis = accum.result_quat;
-                    transform.child_frame_id = mapped_src;
-                    transform.frame_id = mapped_tgt;
-                    transform.stamp = new Time(ROS.ticksToData((long) accum.time));
-                }
+            }
+            if (accum.result_vec != null && accum.result_quat != null)
+            {
+                transform = new emTransform();
+                transform.origin = accum.result_vec;
+                transform.basis = accum.result_quat;
+                transform.child_frame_id = mapped_src;
+                transform.frame_id = mapped_tgt;
+                transform.stamp = new Time(ROS.ticksToData((long) accum.time));
             }
             return retval == TF_STATUS.NO_ERROR;
         }
@@ -593,53 +550,52 @@ namespace Ros_CSharp
                 return false;
             if (mapped_transform.frame_id == "/")
                 return false;
-            lock (framemutex)
+            uint frame_number = lookupOrInsertFrameNumber(mapped_transform.frame_id);
+            uint child_frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
+            TimeCache parent_frame=null,frame = null;
+            if (!frames.ContainsKey(frame_number))
             {
-                uint frame_number = lookupOrInsertFrameNumber(mapped_transform.frame_id);
-                uint child_frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
-                TimeCache parent_frame=null,frame = null;
-                if (!frames.ContainsKey(frame_number))
+                parent_frame = frames[frame_number] = new TimeCache(cache_time);
+                parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
+            }
+            if (!frames.ContainsKey(child_frame_number))
+            {
+                frame = frames[child_frame_number] = new TimeCache(cache_time);
+            }
+            else
+            {
+                //if we're revising a frame, that was previously labelled as having no parent, clear that knowledge from the time cache
+                frame = frames[child_frame_number];
+            }
+            uint before = frame.getListLength();
+            if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
+            {
+                //check for simtime jumping backwards and blow up the outside world if it happens
+                if (frame.getListLength() < before)
                 {
+                    IList<uint> toremove = new List<uint>(frames.Keys);
+                    foreach (uint i in toremove)
+                    {
+                        if (i != 0 && i != child_frame_number)
+                        {
+                            TimeCache dead = null;
+                            if (frames.TryRemove(i, out dead))
+                            {
+                                dead.clearList();
+                                dead = null;
+                            }
+                            uint dontcare;
+                            string dontcare2;
+                            frameIDs.TryRemove(frameids_reverse[i], out dontcare);
+                            frameids_reverse.TryRemove(i, out dontcare2);
+                        }
+                    }
                     parent_frame = frames[frame_number] = new TimeCache(cache_time);
                     parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
                 }
-                if (!frames.ContainsKey(child_frame_number))
-                {
-                    frame = frames[child_frame_number] = new TimeCache(cache_time);
-                }
-                else
-                {
-                    //if we're revising a frame, that was previously labelled as having no parent, clear that knowledge from the time cache
-                    frame = frames[child_frame_number];
-                    string error_str = null;
-                    if (frame.getParent(mapped_transform.stamp.data, ref error_str) == 0)
-                        frame.clearList();
-                }
-                uint before = frame.getListLength();
-                if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
-                {
-                    //check for simtime jumping backwards and blow up the outside world if it happens
-                    if (frame.getListLength() < before)
-                    {
-                        IList<uint> toremove = new List<uint>(frames.Keys);
-                        foreach (uint i in toremove)
-                        {
-                            if (i != 0 && i != child_frame_number)
-                            {
-                                frames.Remove(i);
-                                uint dontcare;
-                                string dontcare2;
-                                frameIDs.TryRemove(frameids_reverse[i], out dontcare);
-                                frameids_reverse.TryRemove(i, out dontcare2);
-                            }
-                        }
-                        parent_frame = frames[frame_number] = new TimeCache(cache_time);
-                        parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
-                    }
-                }
-                else
-                    return false;
             }
+            else
+                return false;
             return true;
         }
 
@@ -711,13 +667,10 @@ namespace Ros_CSharp
             string mapped_target = resolve(tf_prefix, target_frame);
             string mapped_source = resolve(tf_prefix, source_frame);
             if (mapped_target == mapped_source) return true;
-            lock (framemutex)
-            {
-                if (!frameExistsInternal(mapped_target) || !frameExistsInternal(mapped_source)) return false;
-                uint target_id = getFrameIDInternal(mapped_target);
-                uint source_id = getFrameIDInternal(mapped_source);
-                return canTransformNoLock(target_id, source_id, time, ref error_msg);
-            }
+            if (!frameExistsInternal(mapped_target) || !frameExistsInternal(mapped_source)) return false;
+            uint target_id = getFrameIDInternal(mapped_target);
+            uint source_id = getFrameIDInternal(mapped_source);
+            return canTransformNoLock(target_id, source_id, time, ref error_msg);
         }
 
         private bool canTransformNoLock(uint target_id, uint source_id, Time time, ref string error_msg)
@@ -733,8 +686,7 @@ namespace Ros_CSharp
 
         private bool canTransformInternal(uint target_id, uint source_id, Time time, ref string error_msg)
         {
-            lock (framemutex)
-                return canTransformNoLock(target_id, source_id, time, ref error_msg);
+            return canTransformNoLock(target_id, source_id, time, ref error_msg);
         }
     }
 
@@ -753,7 +705,7 @@ namespace Ros_CSharp
     public class TimeCache
     {
         private const int MIN_INTERPOLATION_DISTANCE = 5;
-        private const uint MAX_LENGTH_LINKED_LIST = 10000000;
+        private const uint MAX_LENGTH_LINKED_LIST = 10; //10000000;
         private const Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
 
         private ulong max_storage_time;
