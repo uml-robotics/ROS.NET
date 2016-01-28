@@ -68,10 +68,12 @@ namespace Ros_CSharp
                                {
                                    Thread.Sleep(100);
                                }
+                               NodeHandle nh = new NodeHandle();
                                if (!ROS.shutting_down)
                                {
-                                   simTimeSubscriber = ROS.GlobalNodeHandle.subscribe<Messages.rosgraph_msgs.Clock>("/clock", 1, SimTimeCallback);
+                                   simTimeSubscriber = nh.subscribe<Messages.rosgraph_msgs.Clock>("/clock", 1, SimTimeCallback);
                                }
+                               ROS.waitForShutdown();
                            }).Start();
         }
     }
