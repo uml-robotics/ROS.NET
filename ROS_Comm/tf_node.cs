@@ -812,11 +812,8 @@ namespace Ros_CSharp
         private void pruneList()
         {
             ulong latest_time = storage.Back.stamp;
-            ulong preprune = storage.Count, postprune = 0;
-            while ((postprune = storage.Count) > 0 && storage.Front.stamp + max_storage_time < latest_time)
+            while (storage.Count > 0 && storage.Front.stamp + max_storage_time < latest_time)
                 storage.popFront();
-            if (preprune - postprune != 0)
-                Console.WriteLine("Pruned " + (preprune - postprune) + " transforms. " + postprune + " remain");
         }
 
         public bool getData(TimeData time_, ref TransformStorage data_out, ref string error_str)
