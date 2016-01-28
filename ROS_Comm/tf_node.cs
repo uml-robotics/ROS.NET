@@ -514,29 +514,8 @@ namespace Ros_CSharp
             uint before = frame.getListLength();
             if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
             {
-                //check for simtime jumping backwards and blow up the outside world if it happens
-                if (frame.getListLength() < before)
-                {
-                    IList<uint> toremove = new List<uint>(frames.Keys);
-                    foreach (uint i in toremove)
-                    {
-                        if (i != 0 && i != child_frame_number)
-                        {
-                            TimeCache dead = null;
-                            if (frames.TryRemove(i, out dead))
-                            {
-                                dead.clearList();
-                                dead = null;
-                            }
-                            uint dontcare;
-                            string dontcare2;
-                            frameIDs.TryRemove(frameids_reverse[i], out dontcare);
-                            frameids_reverse.TryRemove(i, out dontcare2);
-                        }
-                    }
-                    parent_frame = frames[frame_number] = new TimeCache(cache_time);
-                    parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
-                }
+                parent_frame = frames[frame_number] = new TimeCache(cache_time);
+                parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
             }
             else
                 return false;
