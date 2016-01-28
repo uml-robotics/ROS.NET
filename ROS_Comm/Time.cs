@@ -41,7 +41,7 @@ namespace Ros_CSharp
                 }
             }
             if (simTime && SimTimeEvent != null)
-                SimTimeEvent(TimeSpan.FromMilliseconds(time.clock.data.sec*1000.0 + (time.clock.data.nsec/100000000.0)));
+                SimTimeEvent.DynamicInvoke(TimeSpan.FromMilliseconds(time.clock.data.sec*1000.0 + (time.clock.data.nsec/100000000.0)));
 
         }
 
@@ -49,14 +49,14 @@ namespace Ros_CSharp
         {
             get 
             {
-                if (_instance == null)
+                lock (_instanceLock)
                 {
-                    lock (_instanceLock)
+                    if (_instance == null)
                     {
-                        if (_instance == null) _instance = new SimTime();
+                        _instance = new SimTime();
                     }
+                    return _instance;
                 }
-                return _instance;
             }
         }
 
@@ -68,14 +68,10 @@ namespace Ros_CSharp
                                {
                                    Thread.Sleep(100);
                                }
-                               Thread.Sleep(1000);
                                if (!ROS.shutting_down)
                                {
-                                   nh = new NodeHandle();
-                                   simTimeSubscriber = nh.subscribe<Messages.rosgraph_msgs.Clock>("/clock", 1, SimTimeCallback);
+                                   simTimeSubscriber = ROS.GlobalNodeHandle.subscribe<Messages.rosgraph_msgs.Clock>("/clock", 1, SimTimeCallback);
                                }
-                               ROS.waitForShutdown();
-                               simTimeSubscriber.shutdown();
                            }).Start();
         }
     }

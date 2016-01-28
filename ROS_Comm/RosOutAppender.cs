@@ -12,6 +12,8 @@
 
 #region USINGZ
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,10 +39,11 @@ namespace Ros_CSharp
             FATAL = 16
         }
 
-        public Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
+        public ConcurrentQueue<IRosMessage> log_queue = new ConcurrentQueue<IRosMessage>();
         public Thread publish_thread;
-        public object queue_mutex = new object();
         public bool shutting_down;
+
+        private Log logmsg = new Log() {msg = new m.String(), name = new m.String(this_node.Name), file = new m.String(), function = new m.String(), topics=new m.String[0]};
 
         public RosOutAppender()
         {
@@ -53,11 +56,8 @@ namespace Ros_CSharp
 
         public void shutdown()
         {
-            lock (queue_mutex)
-            {
-                shutting_down = true;
-                publish_thread.Join();
-            }
+            shutting_down = true;
+            publish_thread.Join();
         }
 
         public void Append(string m, int level = 1)
@@ -68,43 +68,32 @@ namespace Ros_CSharp
         public void Append(string m, ROSOUT_LEVEL lvl, int level = 1)
         {
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
-            Log l = new Log {msg = new m.String(m), level = ((byte) ((int) lvl)), name = new m.String(this_node.Name), file = new m.String(sf.GetFileName()), function = new m.String(sf.GetMethod().Name), line = (uint) sf.GetFileLineNumber()};
-            string[] advert = this_node.AdvertisedTopics().ToArray();
-            l.topics = new m.String[advert.Length];
-            for (int i = 0; i < advert.Length; i++)
-                l.topics[i] = new m.String(advert[i]);
-            lock (queue_mutex)
-                log_queue.Enqueue(l);
+            logmsg.msg.data = m;
+            logmsg.level = ((byte) ((int) lvl));
+            logmsg.file.data = sf.GetFileName();
+            logmsg.function.data = sf.GetMethod().Name;
+            logmsg.line = (uint) sf.GetFileLineNumber();
+            IEnumerable<string> advert = this_node.AdvertisedTopics();
+            if (advert.Count() != logmsg.topics.Length)
+            {
+                logmsg.topics = new m.String[advert.Count()];
+                int i = 0;
+                advert.ToList().ForEach((ad) => logmsg.topics[i++] = new m.String(ad));
+            }
+            log_queue.Enqueue(logmsg);
         }
 
         public void logThread()
         {
-            List<IRosMessage> localqueue = new List<IRosMessage>();
+            string n = names.resolve("/rosout");
+            IRosMessage msg = null;
             while (!shutting_down)
             {
-                bool nothingtolog = false;
-                lock (queue_mutex)
+                while (!shutting_down && log_queue.TryDequeue(out msg))
                 {
-                    if (log_queue.Count > 0)
-                    {
-                        if (shutting_down) return;
-                        localqueue.AddRange(log_queue);
-                        log_queue.Clear();
-                    }
-                    else
-                        nothingtolog = true;
-                }
-                if (nothingtolog)
-                {
-                    Thread.Sleep(10);
-                    continue;
+                    TopicManager.Instance.publish(n, msg);
                 }
                 if (shutting_down) return;
-                foreach (IRosMessage msg in localqueue)
-                {
-                    TopicManager.Instance.publish(names.resolve("/rosout"), msg);
-                }
-                localqueue.Clear();
                 Thread.Sleep(100);
             }
         }
