@@ -49,63 +49,6 @@ namespace Ros_CSharp
         }
     }
 
-    // Listenes to the /tf topic, need subscriber
-    // for each Transform in /tf, create a new frame. Frame has a (frame)child and (frame)id
-    // provide translation from 2 frames, user requests from /map to /base_link for example, must identify route
-    // base_link.child = odom, odom.child = map
-    // map-> odom + odom->base_link
-    internal class tf_node
-    {
-        private static tf_node _instance;
-        private static object singleton_mutex = new object();
-        private static bool subscribed = false;
-
-        private tf_node()
-        {
-        }
-
-        internal void Subscribe(NodeHandle nh)
-        {
-            lock(singleton_mutex)
-                if (!subscribed)
-                {
-                    subscribed = true;
-                    nh.subscribe<tfMessage>("/tf", 0, tfCallback);
-                }
-        }
-
-        public static tf_node instance
-        {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get
-            {
-                if (_instance == null)
-                {
-                    lock (singleton_mutex)
-                    {
-                        if (_instance == null)
-                            _instance = new tf_node();
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        internal event TFUpdate TFsUpdated;
-
-        private void tfCallback(tfMessage msg)
-        {
-            if (TFsUpdated != null)
-            {
-                TFsUpdated(msg);
-            }
-        }
-
-        internal delegate void TFUpdate(tfMessage msg);
-    }
-
     public enum TF_STATUS
     {
         NO_ERROR,
@@ -121,6 +64,7 @@ namespace Ros_CSharp
         private const double DEFAULT_CACHE_TIME = 1000000000;
         private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
         private ulong cache_time;
+        private NodeHandle nh;
 
         private ConcurrentDictionary<string, uint> frameIDs = new ConcurrentDictionary<string, uint>();
         private ConcurrentDictionary<uint, string> frameids_reverse = new ConcurrentDictionary<uint, string>();
@@ -128,12 +72,12 @@ namespace Ros_CSharp
 
         private bool interpolating;
 
-        public Transformer(NodeHandle nh, bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
+        public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
             frameIDs["NO_PARENT"] = 0;
             frameids_reverse[0] = "NO_PARENT";
-            tf_node.instance.Subscribe(nh);
-            tf_node.instance.TFsUpdated += Update;
+            nh = new NodeHandle();
+            nh.subscribe<tfMessage>("/tf", 0, Update);
             this.interpolating = interpolating;
             cache_time = ct;
         }
@@ -214,8 +158,8 @@ namespace Ros_CSharp
         {
             string error_string = null;
             bool result = lookupTransform(target_frame, source_frame, time, out transform, ref error_string);
-            if (!result && error_string != null)
-                ROS.Error(error_string);
+            /*if (!result && error_string != null)
+                ROS.Error(error_string);*/
             return result;
         }
 
@@ -250,18 +194,18 @@ namespace Ros_CSharp
                 switch (retval)
                 {
                     case TF_STATUS.CONNECTIVITY_ERROR:
-                        ROS.Error("NO CONNECTIONSZSZ: " + error_string);
+                        error_string = "NO CONNECTIONSZSZ: " + error_string;
                         break;
                     case TF_STATUS.EXTRAPOLATION_ERROR:
-                        ROS.Error("EXTRAPOLATION: " + error_string);
+                        error_string = "EXTRAPOLATION: " + error_string;
                         break;
                     case TF_STATUS.LOOKUP_ERROR:
-                        ROS.Error("LOOKUP: " + error_string);
+                        error_string = "LOOKUP: " + error_string;
                         break;
                     default:
                         if (accum.result_quat == null || accum.result_vec == null)
                         {
-                            ROS.Error("ACCUM WALK FAIL!");
+                            error_string = "ACCUM WALK FAIL!";
                         }
                         break;
                 }
@@ -705,7 +649,7 @@ namespace Ros_CSharp
     public class TimeCache
     {
         private const int MIN_INTERPOLATION_DISTANCE = 5;
-        private const uint MAX_LENGTH_LINKED_LIST = 10; //10000000;
+        private const uint MAX_LENGTH_LINKED_LIST = 10000000;
         private const Int64 DEFAULT_MAX_STORAGE_TIME = 1000000000;
 
         private ulong max_storage_time;
