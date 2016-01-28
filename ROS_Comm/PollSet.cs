@@ -33,21 +33,8 @@ namespace Ros_CSharp
 
         #endregion
 
-        public const int POLLERR = 0x008;
-        public const int POLLHUP = 0x010;
-        public const int POLLNVAL = 0x020;
-        public const int POLLIN = 0x001;
-        public const int POLLOUT = 0x004;
-
-        public List<Socket> just_deleted = new List<Socket>();
-        public object just_deleted_mutex = new object();
         private Socket[] localpipeevents = new Socket[2];
         public AutoResetEvent signal_mutex = new AutoResetEvent(true);
-
-        public Dictionary<uint, SocketInfo> socket_info = new Dictionary<uint, SocketInfo>();
-        public object socket_info_mutex = new object();
-        public bool sockets_changed;
-        public List<PollFD> ufds = new List<PollFD>();
 
         public PollSet()
         {
@@ -59,7 +46,7 @@ namespace Ros_CSharp
             localpipeevents[0].Blocking = false;
             localpipeevents[1].Blocking = false;
             addSocket(localpipeevents[0], onLocalPipeEvents);
-            addEvents(localpipeevents[0].FD, POLLIN);
+            addEvents(localpipeevents[0].FD, Socket.POLLIN);
         }
 
         /// <summary>
@@ -78,6 +65,7 @@ namespace Ros_CSharp
                 localpipeevents[1].Close();
                 localpipeevents[1] = null;
             }
+            Socket.AllOfThem.ToList().ForEach((s) => s.Value.Dispose());
             signal_mutex.Set();
             if (DisposingEvent != null)
                 DisposingEvent();
@@ -109,157 +97,51 @@ namespace Ros_CSharp
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            SocketInfo info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
-            lock (socket_info_mutex)
-            {
-                if (socket_info.ContainsKey(info.sock))
-                    return false;
-                socket_info.Add(info.sock, info);
-                sockets_changed = true;
-            }
+            s.Info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
             signal();
             return true;
         }
 
         public bool delSocket(Socket s)
         {
-            lock (socket_info_mutex)
-            {
-                uint fd = s.FD;
-                if (!socket_info.ContainsKey(fd))
-                    return false;
-                socket_info.Remove(fd);
-                lock (just_deleted_mutex)
-                {
-                    just_deleted.Add(s);
-                }
-                sockets_changed = true;
-            }
+            s.Dispose();
             signal();
             return true;
         }
 
         public bool addEvents(uint s, int events)
         {
-            lock (socket_info_mutex)
-            {
-                if (!socket_info.ContainsKey(s))
-                    return false;
-                socket_info[s].events |= events;
-            }
+            Socket.Get(s).Info.events |= events;
             signal();
             return true;
         }
 
         public bool delEvents(uint sock, int events)
         {
-            lock (socket_info_mutex)
-            {
-                if (!socket_info.ContainsKey(sock))
-                    return false;
-                socket_info[sock].events &= ~events;
-            }
+            Socket.Get(sock).Info.events &= ~events;
             signal();
             return true;
         }
 
         public void update(int poll_timeout)
         {
-            createNativePollSet();
-            int udfscount = ufds.Count;
-            //int ret = 0;
-            for (int i = 0; i < ufds.Count; i++)
+            for (uint i = 0; i < Socket.AllOfThem.Count; i++)
             {
-                Socket sock = Socket.Get(ufds[i].sock);
-                if (sock == null || !sock.Connected)
-                {
-                    ufds[i].revents |= POLLHUP;
-                }
-                else if (sock == null || sock.SafePoll(poll_timeout, SelectMode.SelectError))
-                {
-                    ufds[i].revents |= POLLERR;
-                }
-                else
-                {
-                    if (sock != null && sock.SafePoll(poll_timeout, SelectMode.SelectWrite))
-                    {
-                        ufds[i].revents |= POLLOUT;
-                    }
-                    if (sock != null && sock.SafePoll(poll_timeout, SelectMode.SelectRead))
-                    {
-                        ufds[i].revents |= POLLIN;
-                    }
-                }
-            }
-            if (udfscount == 0)
-                return;
-            for (int i = 0; i < udfscount; i++)
-            {
-                if (ufds[i].revents == 0)
-                {
-                    continue;
-                }
+                Socket s = Socket.AllOfThem.ElementAt((int)i).Value;
 
-                SocketUpdateFunc func = null;
-                int events = 0;
-                lock (socket_info_mutex)
-                {
-                    if (!socket_info.ContainsKey(ufds[i].sock)) continue;
-                    SocketInfo info = socket_info[ufds[i].sock];
-                    func = info.func;
-                    events = info.events;
-                }
+                if (s.Info == null) continue;
 
-                int revents = ufds[i].revents;
-
-                if (func != null &&
-                    ((events & revents) != 0 || (revents & POLLERR) != 0 || (revents & POLLHUP) != 0 ||
-                     (revents & POLLNVAL) != 0))
-                {
-                    bool skip = false;
-                    if ((revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
-                    {
-                        lock (just_deleted_mutex)
-                        {
-                            if (just_deleted.Contains(Socket.Get(ufds[i].sock)))
-                                skip = true;
-                        }
-                    }
-
-                    if (!skip)
-                    {
-                        func(revents & (events | POLLERR | POLLHUP | POLLNVAL));
-                    }
-                }
-
-                ufds[i].revents = 0;
+                //thundering herd of honeybadgers
+                s.Poll(poll_timeout);
             }
 
-            lock (just_deleted_mutex)
-            {
-                just_deleted.Clear();
-            }
-        }
-
-        public void createNativePollSet()
-        {
-            lock (socket_info_mutex)
-            {
-                if (!sockets_changed)
-                    return;
-                foreach (SocketInfo info in socket_info.Values.Where(info => !ufds.Exists(p => p.sock == info.sock)))
-                {
-                    ufds.Add(new PollFD {events = info.events, sock = info.sock, revents = 0});
-                }
-                List<PollFD> gtfo = ufds.Where(fd => !socket_info.ContainsKey(fd.sock)).ToList();
-                foreach (PollFD fd in gtfo)
-                    ufds.Remove(fd);
-            }
+            //let the honeybadgers cross the road
+            Thread.Sleep(poll_timeout);
         }
 
         public void onLocalPipeEvents(int stuff)
         {
-            if ((stuff & POLLIN) != 0)
+            if ((stuff & Socket.POLLIN) != 0)
             {
                 byte[] b = new byte[1];
                 while (localpipeevents[0].Poll(1, SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
@@ -274,8 +156,7 @@ namespace Ros_CSharp
         public override string ToString()
         {
             string s = "";
-            lock (socket_info_mutex)
-                s = socket_info.Values.Aggregate(s, (current, si) => current + ("" + si.sock + ", "));
+            s = Socket.AllOfThem.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
             s = s.Remove(s.Length - 3, 2);
             return s;
         }
@@ -283,16 +164,11 @@ namespace Ros_CSharp
 
     public class SocketInfo
     {
+        public int revents;
         public int events;
         public PollSet.SocketUpdateFunc func;
         public uint sock;
         public TcpTransport transport;
-    }
-
-    public class PollFD
-    {
-        public int events;
-        public int revents;
-        public uint sock;
+        public AutoResetEvent poll_mutex = new AutoResetEvent(true);
     }
 }

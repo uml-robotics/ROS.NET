@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using n = System.Net;
@@ -27,13 +28,18 @@ namespace Ros_CSharp.CustomSocket
 #endif
     public class Socket : ns.Socket
     {
-        private static SortedList<uint, Socket> _socklist = new SortedList<uint, Socket>();
+        private static ConcurrentDictionary<uint, Socket> _socklist = new ConcurrentDictionary<uint, Socket>();
         private static uint nextfakefd = 1;
-        private static List<uint> _freelist = new List<uint>();
+        private static ConcurrentBag<uint> _freelist = new ConcurrentBag<uint>();
         private uint _fakefd;
 
         private string attemptedConnectionEndpoint;
         private bool disposed;
+
+        public static ConcurrentDictionary<uint, Socket> AllOfThem
+        {
+            get { return _socklist; }
+        }
 
         public Socket(ns.Socket sock)
             : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
@@ -43,20 +49,16 @@ namespace Ros_CSharp.CustomSocket
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
-            lock (_socklist)
-            {
-                _socklist.Add(FD, this);
-            }
+            _poller = new Action<int>(_poll);
+            _socklist.TryAdd(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
         public Socket(ns.SocketInformation socketInformation)
             : base(socketInformation)
         {
-            lock (_socklist)
-            {
-                _socklist.Add(FD, this);
-            }
+            _poller = new Action<int>(_poll);
+            _socklist.TryAdd(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
@@ -75,8 +77,7 @@ namespace Ros_CSharp.CustomSocket
                     {
                         if (_freelist.Count > 0)
                         {
-                            _fakefd = _freelist[0];
-                            _freelist.RemoveAt(0);
+                            _freelist.TryTake(out _fakefd);
                         }
                         else
                             _fakefd = (nextfakefd++);
@@ -139,22 +140,18 @@ namespace Ros_CSharp.CustomSocket
 
         public static Socket Get(uint fd)
         {
-            lock (_socklist)
-            {
-                if (_socklist == null || !_socklist.ContainsKey(fd))
-                    return null;
-                return _socklist[fd];
-            }
+            if (_socklist == null || !_socklist.ContainsKey(fd))
+                return null;
+            return _socklist[fd];
         }
 
         private static void remove(uint fd)
         {
-            lock (_socklist)
-            {
-                if (_socklist == null || !_socklist.ContainsKey(fd))
-                    return;
-                _socklist.Remove(fd);
-            }
+            if (_socklist == null || !_socklist.ContainsKey(fd))
+                return;
+            Socket s = null;
+            _socklist.TryRemove(fd, out s);
+            s.Dispose();
         }
 
         protected override void Dispose(bool disposing)
@@ -196,7 +193,7 @@ namespace Ros_CSharp.CustomSocket
 #endif
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(attemptedConnectionEndpoint))
+            if (String.IsNullOrEmpty(attemptedConnectionEndpoint))
             {
                 if (!Connected)
                     attemptedConnectionEndpoint = "";
@@ -209,5 +206,79 @@ namespace Ros_CSharp.CustomSocket
             }
             return "" + _fakefd + " -- " + attemptedConnectionEndpoint;
         }
+
+
+        public const int POLLERR = 0x008;
+        public const int POLLHUP = 0x010;
+        public const int POLLNVAL = 0x020;
+        public const int POLLIN = 0x001;
+        public const int POLLOUT = 0x004;
+
+        private void _poll(int poll_timeout)
+        {
+            if (!disposed && !Connected)
+            {
+                Info.revents |= POLLHUP;
+            }
+            else if (disposed || SafePoll(poll_timeout, ns.SelectMode.SelectError))
+            {
+                Info.revents |= POLLERR;
+            }
+            else
+            {
+                if (!disposed && SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
+                {
+                    Info.revents |= POLLOUT;
+                }
+                if (!disposed && SafePoll(poll_timeout, ns.SelectMode.SelectRead))
+                {
+                    Info.revents |= POLLIN;
+                }
+            }
+            if (Info.revents == 0)
+            {
+                return;
+            }
+
+            PollSet.SocketUpdateFunc func = Info.func;
+            int events = Info.events;
+            int revents = Info.revents;
+
+            if (Info.func != null &&
+                ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
+                (Info.revents & POLLNVAL) != 0))
+            {
+                bool skip = false;
+                if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
+                {
+                    if (IsDisposed)
+                    skip = true;
+                }
+
+                if (!skip)
+                {
+                    func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
+                }
+            }
+
+            Info.revents = 0;
+            Info.poll_mutex.Set();
+        }
+
+        private Action<int> _poller;
+
+        public void Poll(int poll_timeout)
+        {
+            if (_poller != null && Info.poll_mutex.WaitOne(0))
+            {
+                _poller.BeginInvoke(poll_timeout, (iar) =>
+                                                      {
+                                                          _poller.EndInvoke(iar);
+                                                          Info.poll_mutex.Set();
+                                                      }, null);
+            }
+        }
+
+        public SocketInfo Info = null;
     }
 }

@@ -35,7 +35,8 @@ namespace Ros_CSharp
         private static PollManager _instance;
         private static object singleton_mutex = new object();
         public PollSet poll_set;
-        public List<Poll_Signal> poll_signal = new List<Poll_Signal>();
+        private List<Poll_Signal> signals = new List<Poll_Signal>();
+        public event Poll_Signal poll_signal;
 
         public bool shutting_down;
         public object signal_mutex = new object();
@@ -66,33 +67,33 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
+                if (signals.Contains(poll))
+                {
+                    throw new Exception("DOUBLE LISTENER ADDITION");
+                }
                 Console.WriteLine("Adding pollthreadlistener " + poll.Method);
-                if (!poll_signal.Contains(poll)) poll_signal.Add(poll);
-                signal();
+                poll_signal += poll;
             }
+            signal();
         }
 
         private void signal()
         {
-            List<Poll_Signal> local;
-            lock (signal_mutex)
-            {
-                local = new List<Poll_Signal>(poll_signal);
-            }
-            foreach (Poll_Signal s in local)
-            {
-                s.BeginInvoke(iar => ((Poll_Signal) iar.AsyncState).EndInvoke(iar), s);
-            }
+            poll_signal.DynamicInvoke();
         }
 
         public void removePollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
+                if (signals.Contains(poll))
+                {
+                    throw new Exception("DOUBLE LISTENER REMOVAL");
+                }
                 Console.WriteLine("Removing pollthreadlistener " + poll.Method);
-                if (poll_signal.Contains(poll)) poll_signal.Remove(poll);
-                signal();
+                poll_signal -= poll;
             }
+            signal();
         }
 
         private void threadFunc()
@@ -120,6 +121,7 @@ namespace Ros_CSharp
             shutting_down = true;
             poll_set = null;
             thread.Join();
+            signals.Clear();
             poll_signal = null;
         }
     }
