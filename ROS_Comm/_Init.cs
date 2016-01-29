@@ -591,19 +591,19 @@ namespace Ros_CSharp
 
             if (started)
             {
-                GlobalNodeHandle.shutdown();
+                started = false;
+                _ok = false;
                 TopicManager.Instance.shutdown();
                 ServiceManager.Instance.shutdown();
-                PollManager.Instance.shutdown();
                 XmlRpcManager.Instance.shutdown();
+                ConnectionManager.Instance.shutdown();
+                PollManager.Instance.shutdown();
+                GlobalCallbackQueue.Disable();
+                GlobalCallbackQueue.Clear();
+                GlobalNodeHandle.shutdown();
                 if (rosoutappender != null)
                     rosoutappender.shutdown();
             }
-            started = false;
-            _ok = false;
-
-            GlobalCallbackQueue.Disable();
-            GlobalCallbackQueue.Clear();
         }
 
         /// <summary>

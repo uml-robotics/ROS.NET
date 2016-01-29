@@ -14,6 +14,7 @@
 
 #region USINGZ
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -100,6 +101,7 @@ namespace Ros_CSharp
 
         public void Clear(Connection.DropReason reason)
         {
+            removeDroppedConnections();
             List<Connection> local_connections = null;
             lock (connections_mutex)
             {
@@ -108,9 +110,9 @@ namespace Ros_CSharp
             }
             foreach (Connection c in local_connections)
             {
-                c.drop(reason);
+                if (!c.dropped)
+                    c.drop(reason);
             }
-
             lock (dropped_connections_mutex)
                 dropped_connections.Clear();
         }
@@ -133,6 +135,7 @@ namespace Ros_CSharp
             {
                 foreach (Connection c in local_dropped)
                 {
+                    Console.WriteLine("Removing dropped connection: " + c.CallerID);
                     connections.Remove(c);
                 }
             }
@@ -140,6 +143,7 @@ namespace Ros_CSharp
 
         public void shutdown()
         {
+            acceptor.Stop();
             if (tcpserver_transport != null)
             {
 #if TCPSERVER
@@ -150,7 +154,6 @@ namespace Ros_CSharp
                 tcpserver_transport = null;
 #endif
             }
-
             poll_manager.removePollThreadListener(poll_conn);
 
             Clear(Connection.DropReason.Destructing);

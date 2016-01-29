@@ -65,10 +65,9 @@ namespace Ros_CSharp
                 localpipeevents[1].Close();
                 localpipeevents[1] = null;
             }
-            Socket.AllOfThem.ToList().ForEach((s) => s.Value.Dispose());
-            signal_mutex.Set();
             if (DisposingEvent != null)
                 DisposingEvent();
+            signal_mutex.Set();
         }
 
         public delegate void DisposingDelegate();
@@ -125,18 +124,7 @@ namespace Ros_CSharp
 
         public void update(int poll_timeout)
         {
-            for (uint i = 0; i < Socket.AllOfThem.Count; i++)
-            {
-                Socket s = Socket.AllOfThem.ElementAt((int)i).Value;
-
-                if (s.Info == null) continue;
-
-                //thundering herd of honeybadgers
-                s.Poll(poll_timeout);
-            }
-
-            //let the honeybadgers cross the road
-            Thread.Sleep(poll_timeout);
+            Socket.Poll(poll_timeout);
         }
 
         public void onLocalPipeEvents(int stuff)
@@ -169,6 +157,5 @@ namespace Ros_CSharp
         public PollSet.SocketUpdateFunc func;
         public uint sock;
         public TcpTransport transport;
-        public AutoResetEvent poll_mutex = new AutoResetEvent(true);
     }
 }

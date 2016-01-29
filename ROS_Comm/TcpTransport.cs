@@ -620,25 +620,22 @@ namespace Ros_CSharp
         public void close()
         {
             DisconnectFunc disconnect_cb = null;
-            if (!closed)
+            lock (close_mutex)
             {
-                lock (close_mutex)
+                if (!closed)
                 {
-                    if (!closed)
-                    {
-                        closed = true;
-                        if (poll_set != null)
-                            poll_set.delSocket(sock);
-                        if (sock.Connected)
-                            sock.Shutdown(SocketShutdown.Both);
-                        sock.Close();
-                        sock = null;
-                        disconnect_cb = this.disconnect_cb;
-                        this.disconnect_cb = null;
-                        read_cb = null;
-                        write_cb = null;
-                        accept_cb = null;
-                    }
+                    closed = true;
+                    if (poll_set != null)
+                        poll_set.delSocket(sock);
+                    if (sock.Connected)
+                        sock.Shutdown(SocketShutdown.Both);
+                    sock.Close();
+                    sock = null;
+                    disconnect_cb = this.disconnect_cb;
+                    this.disconnect_cb = null;
+                    read_cb = null;
+                    write_cb = null;
+                    accept_cb = null;
                 }
             }
             if (disconnect_cb != null)

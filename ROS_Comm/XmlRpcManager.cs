@@ -360,9 +360,12 @@ namespace Ros_CSharp
             {
                 functions.Clear();
             }
-            foreach (AsyncXmlRpcConnection ass in connections)
+            if (server.instance != IntPtr.Zero)
             {
-                ass.removeFromDispatch(server.Dispatch);
+                foreach (AsyncXmlRpcConnection ass in connections)
+                {
+                    ass.removeFromDispatch(server.Dispatch);
+                }
             }
             connections.Clear();
             lock (added_connections_mutex)

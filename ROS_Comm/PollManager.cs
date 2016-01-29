@@ -79,7 +79,7 @@ namespace Ros_CSharp
 
         private void signal()
         {
-            poll_signal.DynamicInvoke();
+            poll_signal();
         }
 
         public void removePollThreadListener(Poll_Signal poll)
@@ -106,23 +106,49 @@ namespace Ros_CSharp
 
                 poll_set.update(10);
             }
+            Console.WriteLine("PollManager thread IS FREE");
         }
 
 
         public void Start()
         {
-            shutting_down = false;
-            thread = new Thread(threadFunc);
-            thread.Start();
+            if (thread == null)
+            {
+                shutting_down = false;
+                thread = new Thread(threadFunc);
+                thread.Start();
+            }
         }
 
         public void shutdown()
         {
-            shutting_down = true;
-            poll_set = null;
-            thread.Join();
-            signals.Clear();
-            poll_signal = null;
+            if (thread != null && !shutting_down)
+            {
+                shutting_down = true;
+                poll_set.Dispose();
+                poll_set = null;
+                lock (signal_mutex)
+                {
+                    signals.ForEach((s) =>
+                                        {
+                                            Console.WriteLine("PollManager cleanup: removing " + s.Method);
+                                            poll_signal -= s;
+                                            signal();
+                                        });
+                }
+                if (!thread.Join(2000))
+                {
+                    Console.WriteLine("PollManager had 2 seconds to drink the coolaid, and didn't. Trying the \"funnel method\".");
+                    try
+                    {
+                        thread.Abort();
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+                thread = null;
+            }
         }
     }
 }

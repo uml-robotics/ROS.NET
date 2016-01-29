@@ -28,6 +28,7 @@ namespace Ros_CSharp.CustomSocket
 #endif
     public class Socket : ns.Socket
     {
+        private static event Action<int> PollSignal; 
         private static ConcurrentDictionary<uint, Socket> _socklist = new ConcurrentDictionary<uint, Socket>();
         private static uint nextfakefd = 1;
         private static ConcurrentBag<uint> _freelist = new ConcurrentBag<uint>();
@@ -49,7 +50,7 @@ namespace Ros_CSharp.CustomSocket
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
-            _poller = new Action<int>(_poll);
+            PollSignal += _poll;
             _socklist.TryAdd(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
@@ -57,7 +58,7 @@ namespace Ros_CSharp.CustomSocket
         public Socket(ns.SocketInformation socketInformation)
             : base(socketInformation)
         {
-            _poller = new Action<int>(_poll);
+            PollSignal += _poll;
             _socklist.TryAdd(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
@@ -151,7 +152,6 @@ namespace Ros_CSharp.CustomSocket
                 return;
             Socket s = null;
             _socklist.TryRemove(fd, out s);
-            s.Dispose();
         }
 
         protected override void Dispose(bool disposing)
@@ -165,6 +165,7 @@ namespace Ros_CSharp.CustomSocket
                     remove(_fakefd);
                     _freelist.Add(_fakefd);
                     _fakefd = 0;
+                    PollSignal -= _poll;
                     base.Dispose(disposing);
                 }
             }
@@ -172,20 +173,17 @@ namespace Ros_CSharp.CustomSocket
 
         public bool SafePoll(int timeout, ns.SelectMode sm)
         {
-            lock (this)
+            bool res = false;
+            try
             {
-                bool res = false;
-                try
-                {
-                    res = !disposed && Poll(timeout, sm);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    res = !disposed && sm == ns.SelectMode.SelectError;
-                }
-                return res;
+                res = Poll(timeout, sm);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                res = !disposed && sm == ns.SelectMode.SelectError;
+            }
+            return res;
         }
 
 #if !TRACE
@@ -204,7 +202,7 @@ namespace Ros_CSharp.CustomSocket
                         attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
                 }
             }
-            return "" + _fakefd + " -- " + attemptedConnectionEndpoint;
+            return "" + _fakefd + " -- " + attemptedConnectionEndpoint + (Info != null ? " for " + Info.transport._topic : "");
         }
 
 
@@ -216,67 +214,53 @@ namespace Ros_CSharp.CustomSocket
 
         private void _poll(int poll_timeout)
         {
-            if (!disposed && !Connected)
+            lock (this)
             {
-                Info.revents |= POLLHUP;
-            }
-            else if (disposed || SafePoll(poll_timeout, ns.SelectMode.SelectError))
-            {
-                Info.revents |= POLLERR;
-            }
-            else
-            {
-                if (!disposed && SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
+                if (Info == null) return;
+                if (!Connected || disposed)
                 {
-                    Info.revents |= POLLOUT;
+                    Info.revents |= POLLHUP;
                 }
-                if (!disposed && SafePoll(poll_timeout, ns.SelectMode.SelectRead))
+                else
                 {
-                    Info.revents |= POLLIN;
+                    if (SafePoll(poll_timeout, ns.SelectMode.SelectError))
+                        Info.revents |= POLLERR;
+                    if (SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
+                        Info.revents |= POLLOUT;
+                    if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
+                        Info.revents |= POLLIN;
                 }
-            }
-            if (Info.revents == 0)
-            {
-                return;
-            }
-
-            PollSet.SocketUpdateFunc func = Info.func;
-            int events = Info.events;
-            int revents = Info.revents;
-
-            if (Info.func != null &&
-                ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
-                (Info.revents & POLLNVAL) != 0))
-            {
-                bool skip = false;
-                if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
+                if (Info.revents == 0)
                 {
-                    if (IsDisposed)
-                    skip = true;
+                    return;
                 }
 
-                if (!skip)
-                {
-                    func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                }
-            }
+                PollSet.SocketUpdateFunc func = Info.func;
 
-            Info.revents = 0;
-            Info.poll_mutex.Set();
+                if (Info.func != null &&
+                    ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
+                     (Info.revents & POLLNVAL) != 0))
+                {
+                    bool skip = false;
+                    if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
+                    {
+                        if (disposed || !Connected)
+                            skip = true;
+                    }
+
+                    if (!skip)
+                    {
+                        func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
+                    }
+                }
+
+                Info.revents = 0;
+            }
         }
 
-        private Action<int> _poller;
-
-        public void Poll(int poll_timeout)
+        public static void Poll(int poll_timeout)
         {
-            if (_poller != null && Info.poll_mutex.WaitOne(0))
-            {
-                _poller.BeginInvoke(poll_timeout, (iar) =>
-                                                      {
-                                                          _poller.EndInvoke(iar);
-                                                          Info.poll_mutex.Set();
-                                                      }, null);
-            }
+            PollSignal.DynamicInvoke(poll_timeout);
         }
 
         public SocketInfo Info = null;
