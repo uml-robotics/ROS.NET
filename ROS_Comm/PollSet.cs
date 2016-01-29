@@ -43,7 +43,6 @@ namespace Ros_CSharp
             localpipeevents[1] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             localpipeevents[1].Connect(localpipeevents[0].LocalEndPoint);
             localpipeevents[0].Connect(localpipeevents[1].LocalEndPoint);
-            localpipeevents[0].Blocking = false;
             localpipeevents[1].Blocking = false;
             addSocket(localpipeevents[0], onLocalPipeEvents);
             addEvents(localpipeevents[0].FD, Socket.POLLIN);
@@ -157,5 +156,6 @@ namespace Ros_CSharp
         public PollSet.SocketUpdateFunc func;
         public uint sock;
         public TcpTransport transport;
+        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
     }
 }

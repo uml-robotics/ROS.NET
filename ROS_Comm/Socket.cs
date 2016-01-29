@@ -16,6 +16,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using n = System.Net;
 using ns = System.Net.Sockets;
 
@@ -214,53 +215,55 @@ namespace Ros_CSharp.CustomSocket
 
         private void _poll(int poll_timeout)
         {
-            lock (this)
+            if (Info == null || !Info.poll_mutex.WaitOne(0)) return;
+            if (this.ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
+            if (!Connected || disposed)
             {
-                if (Info == null) return;
-                if (!Connected || disposed)
-                {
-                    Info.revents |= POLLHUP;
-                }
-                else
-                {
-                    if (SafePoll(poll_timeout, ns.SelectMode.SelectError))
-                        Info.revents |= POLLERR;
-                    if (SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
-                        Info.revents |= POLLOUT;
-                    if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
-                        Info.revents |= POLLIN;
-                }
-                if (Info.revents == 0)
-                {
-                    return;
-                }
-
-                PollSet.SocketUpdateFunc func = Info.func;
-
-                if (Info.func != null &&
-                    ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
-                     (Info.revents & POLLNVAL) != 0))
-                {
-                    bool skip = false;
-                    if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
-                    {
-                        if (disposed || !Connected)
-                            skip = true;
-                    }
-
-                    if (!skip)
-                    {
-                        func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    }
-                }
-
-                Info.revents = 0;
+                Info.revents |= POLLHUP;
             }
+            else
+            {
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectError))
+                    Info.revents |= POLLERR;
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
+                    Info.revents |= POLLOUT;
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
+                    Info.revents |= POLLIN;
+            }
+            if (Info.revents == 0)
+            {
+                Info.poll_mutex.Set();
+                return;
+            }
+
+            PollSet.SocketUpdateFunc func = Info.func;
+
+            if (Info.func != null &&
+                ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
+                    (Info.revents & POLLNVAL) != 0))
+            {
+                bool skip = false;
+                if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
+                {
+                    if (disposed || !Connected)
+                        skip = true;
+                }
+
+                if (!skip)
+                {
+                    //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
+                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), func.EndInvoke, null);
+                }
+            }
+
+            Info.revents = 0;
+            Info.poll_mutex.Set();
         }
 
         public static void Poll(int poll_timeout)
         {
-            PollSignal.DynamicInvoke(poll_timeout);
+            if (PollSignal != null)
+                PollSignal(poll_timeout);
         }
 
         public SocketInfo Info = null;
