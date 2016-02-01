@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using m = Messages.std_msgs;
@@ -29,8 +30,7 @@ namespace Ros_CSharp
         public Connection connection;
         private bool header_written;
         private int max_queue;
-        private Queue<MessageAndSerializerFunc> outbox = new Queue<MessageAndSerializerFunc>();
-        private object outbox_mutex = new object();
+        private ConcurrentQueue<MessageAndSerializerFunc> outbox = new ConcurrentQueue<MessageAndSerializerFunc>();
         private new Publication parent;
         private bool queue_full;
         private bool writing_message;
@@ -109,17 +109,15 @@ namespace Ros_CSharp
 
         internal override void enqueueMessage(MessageAndSerializerFunc holder)
         {
-            lock (outbox_mutex)
+            if (max_queue > 0 && outbox.Count >= max_queue)
             {
-                if (max_queue > 0 && outbox.Count >= max_queue)
-                {
-                    outbox.Dequeue();
-                    queue_full = true;
-                }
-                else
-                    queue_full = false;
-                outbox.Enqueue(holder);
+                MessageAndSerializerFunc dontcare;
+                outbox.TryDequeue(out dontcare);
+                queue_full = true;
             }
+            else
+                queue_full = false;
+            outbox.Enqueue(holder);
 
             startMessageWrite(false);
         }
@@ -156,18 +154,15 @@ namespace Ros_CSharp
         private void startMessageWrite(bool immediate_write)
         {
             MessageAndSerializerFunc holder = null;
-            lock (outbox_mutex)
+            if (writing_message || !header_written)
+                return;
+            if (outbox.Count > 0)
             {
-                if (writing_message || !header_written)
-                    return;
-                if (outbox.Count > 0)
-                {
-                    writing_message = true;
-                    holder = outbox.Dequeue();
-                }
-                if (outbox.Count < max_queue)
-                    queue_full = false;
+                writing_message = true;
+                outbox.TryDequeue(out holder);
             }
+            if (outbox.Count < max_queue)
+                queue_full = false;
             if (holder != null)
             {
                 if (holder.msg.Serialized == null)
