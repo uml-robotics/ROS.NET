@@ -252,18 +252,25 @@ namespace Ros_CSharp.CustomSocket
                 if (!skip)
                 {
                     //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), func.EndInvoke, null);
+                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), (iar) =>
+                                                                                                      {
+                                                                                                          func.EndInvoke(iar);
+                                                                                                          Info.revents = 0;
+                                                                                                          Info.poll_mutex.Set();
+                                                                                                      }, null);
+                    //func.DynamicInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
                 }
             }
-
-            Info.revents = 0;
-            Info.poll_mutex.Set();
+            /*Info.revents = 0;
+            Info.poll_mutex.Set();*/
         }
 
         public static void Poll(int poll_timeout)
         {
             if (PollSignal != null)
+            {
                 PollSignal(poll_timeout);
+            }
         }
 
         public SocketInfo Info = null;
