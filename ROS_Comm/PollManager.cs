@@ -118,7 +118,7 @@ namespace Ros_CSharp
 
                 if (shutting_down) return;
 
-                poll_set.update(0);
+                poll_set.update(10);
             }
             Console.WriteLine("PollManager thread IS FREE");
         }
