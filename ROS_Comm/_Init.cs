@@ -595,9 +595,9 @@ namespace Ros_CSharp
                 _ok = false;
                 TopicManager.Instance.shutdown();
                 ServiceManager.Instance.shutdown();
+                PollManager.Instance.shutdown();
                 XmlRpcManager.Instance.shutdown();
                 ConnectionManager.Instance.shutdown();
-                PollManager.Instance.shutdown();
                 GlobalCallbackQueue.Disable();
                 GlobalCallbackQueue.Clear();
                 GlobalNodeHandle.shutdown();

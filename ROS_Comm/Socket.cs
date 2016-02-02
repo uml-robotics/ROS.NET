@@ -177,9 +177,10 @@ namespace Ros_CSharp.CustomSocket
             bool res = false;
             try
             {
-                res = Poll(timeout, sm);
+                if (!disposed)
+                    res = Poll(timeout, sm);
             }
-            catch (Exception e)
+            catch (ns.SocketException e)
             {
                 Console.WriteLine(e);
                 res = !disposed && sm == ns.SelectMode.SelectError;
