@@ -27,28 +27,29 @@ namespace Ros_CSharp
         {
             remapping = new Hashtable();
             List<string> toremove = new List<string>();
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i].Contains(":="))
+            if (args != null)
+                for (int i = 0; i < args.Length; i++)
                 {
-                    string[] chunks = args[i].Split(new[] {':'}, 2); // Handles master URIs with semi-columns such as http://IP
-                    chunks[1] = chunks[1].TrimStart('=').Trim();
-                    chunks[0] = chunks[0].Trim();
-                    remapping.Add(chunks[0], chunks[1]);
-                    switch (chunks[0])
+                    if (args[i].Contains(":="))
                     {
-                            //if already defined, then it was defined by the program, so leave it
-                        case "__master":
-                            if (string.IsNullOrEmpty(ROS.ROS_MASTER_URI)) ROS.ROS_MASTER_URI = chunks[1].Trim();
-                            break;
-                        case "__hostname":
-                            if (string.IsNullOrEmpty(ROS.ROS_HOSTNAME)) ROS.ROS_HOSTNAME = chunks[1].Trim();
-                            break;
+                        string[] chunks = args[i].Split(new[] {':'}, 2); // Handles master URIs with semi-columns such as http://IP
+                        chunks[1] = chunks[1].TrimStart('=').Trim();
+                        chunks[0] = chunks[0].Trim();
+                        remapping.Add(chunks[0], chunks[1]);
+                        switch (chunks[0])
+                        {
+                                //if already defined, then it was defined by the program, so leave it
+                            case "__master":
+                                if (string.IsNullOrEmpty(ROS.ROS_MASTER_URI)) ROS.ROS_MASTER_URI = chunks[1].Trim();
+                                break;
+                            case "__hostname":
+                                if (string.IsNullOrEmpty(ROS.ROS_HOSTNAME)) ROS.ROS_HOSTNAME = chunks[1].Trim();
+                                break;
+                        }
+                        toremove.Add(args[i]);
                     }
-                    toremove.Add(args[i]);
+                    args = args.Except(toremove).ToArray();
                 }
-                args = args.Except(toremove).ToArray();
-            }
 
             //If ROS.ROS_MASTER_URI was not explicitely set by the program calling Init, and was not passed in as a remapping argument, then try to find it in ENV.
             if (string.IsNullOrEmpty(ROS.ROS_MASTER_URI))
