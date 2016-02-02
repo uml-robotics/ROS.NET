@@ -180,7 +180,7 @@ namespace Ros_CSharp
             publisher_links.Add(pub);
         }
 
-        public bool pubUpdate(List<string> pubs)
+        public bool pubUpdate(IEnumerable<string> pubs)
         {
             lock (shutdown_mutex)
             {
@@ -189,7 +189,11 @@ namespace Ros_CSharp
             }
             bool retval = true;
 #if DEBUG
+#if DUMP
             EDB.WriteLine("Publisher update for [" + name + "]: " + publisher_links.Aggregate(pubs.Aggregate("", (current, s) => current + (s + ", "))+" already have these connections: ", (current, spc) => current + spc.XmlRpc_Uri));
+#else
+            EDB.WriteLine("Publisher update for [" + name + "]");
+#endif
 #endif
             List<string> additions = new List<string>();
             List<PublisherLink> subtractions = new List<PublisherLink>();
@@ -209,33 +213,32 @@ namespace Ros_CSharp
                         if (!found) additions.Add(up_i);
                     }
                 }
-
-                foreach (PublisherLink link in subtractions)
+            }
+            foreach (PublisherLink link in subtractions)
+            {
+                if (link.XmlRpc_Uri != XmlRpcManager.Instance.uri)
                 {
-                    if (link.XmlRpc_Uri != XmlRpcManager.Instance.uri)
-                    {
 #if DEBUG
-                        EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
-                                      "] at [" + link.XmlRpc_Uri + "]");
+                    EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
+                                    "] at [" + link.XmlRpc_Uri + "]");
 #endif
-                        link.drop();
-                    }
-                    else
-                    {
-                        EDB.WriteLine("NOT DISCONNECTING FROM MYSELF FOR TOPIC " + name);
-                    }
+                    link.drop();
                 }
-
-                foreach (string i in additions)
+                else
                 {
-                    if (XmlRpcManager.Instance.uri != i)
-                    {
-                        retval &= NegotiateConnection(i);
-                        //EDB.WriteLine("NEGOTIATINGING");
-                    }
-                    else
-                        EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
+                    EDB.WriteLine("NOT DISCONNECTING FROM MYSELF FOR TOPIC " + name);
                 }
+            }
+
+            foreach (string i in additions)
+            {
+                if (XmlRpcManager.Instance.uri != i)
+                {
+                    retval &= NegotiateConnection(i);
+                    //EDB.WriteLine("NEGOTIATINGING");
+                }
+                else
+                    EDB.WriteLine("Skipping myself (" + name + ", " + XmlRpcManager.Instance.uri + ")");
             }
             return retval;
         }
