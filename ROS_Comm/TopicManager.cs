@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -38,12 +39,10 @@ namespace Ros_CSharp
 
         private static TopicManager _instance;
         private static object singleton_mutex = new object();
-        private List<Publication> advertised_topics = new List<Publication>();
-        private object advertised_topics_mutex = new object();
+        private ConcurrentDictionary<string, Publication> advertised_topics = new ConcurrentDictionary<string,Publication>();
         private bool shutting_down;
         private object shutting_down_mutex = new object();
-        private object subs_mutex = new object();
-        private List<Subscription> subscriptions = new List<Subscription>();
+        private ConcurrentDictionary<string, Subscription> subscriptions = new ConcurrentDictionary<string,Subscription>();
 
         public static TopicManager Instance
         {
@@ -90,10 +89,7 @@ namespace Ros_CSharp
             lock (shutting_down_mutex)
             {
                 if (shutting_down) return;
-                lock (subs_mutex)
-                {
-                    shutting_down = true;
-                }
+                shutting_down = true;
                 XmlRpcManager.Instance.unbind("publisherUpdate");
                 XmlRpcManager.Instance.unbind("requestTopic");
                 XmlRpcManager.Instance.unbind("getBusStats");
@@ -101,26 +97,20 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.unbind("getSubscriptions");
                 XmlRpcManager.Instance.unbind("getPublications");
 
-                lock (advertised_topics_mutex)
+                foreach (Publication p in advertised_topics.Values)
                 {
-                    foreach (Publication p in advertised_topics)
-                    {
-                        if (!p.Dropped)
-                            unregisterPublisher(p.Name);
-                        p.drop();
-                    }
-                    advertised_topics.Clear();
+                    if (!p.Dropped)
+                        unregisterPublisher(p.Name);
+                    p.drop();
                 }
+                advertised_topics.Clear();
 
-                lock (subs_mutex)
+                foreach (Subscription s in subscriptions.Values)
                 {
-                    foreach (Subscription s in subscriptions)
-                    {
-                        unregisterSubscriber(s.name);
-                        s.shutdown();
-                    }
-                    subscriptions.Clear();
+                    unregisterSubscriber(s.name);
+                    s.shutdown();
                 }
+                subscriptions.Clear();
             }
         }
 
@@ -130,10 +120,7 @@ namespace Ros_CSharp
         /// <param name="topics">List of topics to update</param>
         public void getAdvertisedTopics(out IEnumerable<string> topics)
         {
-            lock (advertised_topics_mutex)
-            {
-                topics = advertised_topics.Select(a => a.Name);
-            }
+            topics = advertised_topics.Keys;
         }
 
         /// <summary>
@@ -142,10 +129,7 @@ namespace Ros_CSharp
         /// <param name="topics"></param>
         public void getSubscribedTopics(out IEnumerable<string> topics)
         {
-            lock (subs_mutex)
-            {
-                topics = subscriptions.Select(s => s.name);
-            }
+            topics = subscriptions.Keys;
         }
 
         /// <summary>
@@ -155,10 +139,10 @@ namespace Ros_CSharp
         /// <returns></returns>
         public Publication lookupPublication(string topic)
         {
-            lock (advertised_topics_mutex)
-            {
-                return lookupPublicationWithoutLock(topic);
-            }
+            Publication  p = null;
+            if (advertised_topics.TryGetValue(topic, out p) && p != null)
+                return p;
+            return null;
         }
 
         /// <summary>
@@ -195,42 +179,34 @@ namespace Ros_CSharp
         {
             if (!isValid(ops)) return false;
             Publication pub = null;
-            lock (advertised_topics_mutex)
+            if (shutting_down)
+                return false;
+            pub = lookupPublicationWithoutLock(ops.topic);
+            if (pub != null)
             {
-                if (shutting_down)
-                    return false;
-                pub = lookupPublicationWithoutLock(ops.topic);
-                if (pub != null)
+                if (pub.Md5sum != ops.md5sum)
                 {
-                    if (pub.Md5sum != ops.md5sum)
-                    {
-                        EDB.WriteLine
-                            ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]",
-                                ops.topic, ops.md5sum,
-                                ops.datatype, pub.Md5sum, pub.DataType);
-                        return false;
-                    }
+                    EDB.WriteLine
+                        ("Tried to advertise on topic [{0}] with md5sum [{1}] and datatype [{2}], but the topic is already advertised as md5sum [{3}] and datatype [{4}]",
+                            ops.topic, ops.md5sum,
+                            ops.datatype, pub.Md5sum, pub.DataType);
+                    return false;
                 }
-                else
-                    pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size,
-                        ops.latch, ops.has_header);
-                pub.addCallbacks(callbacks);
-                advertised_topics.Add(pub);
+            }
+            else
+                pub = new Publication(ops.topic, ops.datatype, ops.md5sum, ops.message_definition, ops.queue_size,
+                    ops.latch, ops.has_header);
+            pub.addCallbacks(callbacks);
+            if (!advertised_topics.TryAdd(ops.topic, pub))
+            {
+                throw new Exception("Failed to advertise");
             }
 
             bool found = false;
             Subscription sub = null;
-            lock (subs_mutex)
+            if (subscriptions.TryGetValue(ops.topic, out sub))
             {
-                foreach (Subscription s in subscriptions)
-                {
-                    if (s.name == ops.topic && md5sumsMatch(s.md5sum, ops.md5sum) && !s.IsDropped)
-                    {
-                        found = true;
-                        sub = s;
-                        break;
-                    }
-                }
+                found = md5sumsMatch(sub.md5sum, ops.md5sum) && !sub.IsDropped;
             }
 
             if (found)
@@ -245,13 +221,10 @@ namespace Ros_CSharp
 
         public bool subscribe<T>(SubscribeOptions<T> ops) where T : IRosMessage, new()
         {
-            lock (subs_mutex)
-            {
-                if (addSubCallback(ops))
-                    return true;
-                if (shutting_down)
-                    return false;
-            }
+            if (addSubCallback(ops))
+                return true;
+            if (shutting_down)
+                return false;
             if (ops.md5sum == "")
                 throw subscribeFail(ops, "with an empty md5sum");
             if (ops.datatype == "")
@@ -269,9 +242,9 @@ namespace Ros_CSharp
                 return false;
             }
 
-            lock (subs_mutex)
+            if (!subscriptions.TryAdd(ops.topic, s))
             {
-                subscriptions.Add(s);
+                Console.WriteLine("Failed to subscribe");
             }
             return true;
         }
@@ -284,29 +257,16 @@ namespace Ros_CSharp
         public bool unsubscribe(string topic, ISubscriptionCallbackHelper sbch)
         {
             Subscription sub = null;
-            lock (subs_mutex)
-            {
-                if (shutting_down) return false;
-                foreach (Subscription s in subscriptions)
-                {
-                    if (s.name == topic)
-                    {
-                        sub = s;
-                        break;
-                    }
-                }
-            }
+            if (shutting_down) return false;
+            subscriptions.TryGetValue(topic, out sub);
             if (sub == null) return false;
             sub.removeCallback(sbch);
             if (sub.NumCallbacks == 0)
             {
-                lock (subs_mutex)
-                {
-                    subscriptions.Remove(sub);
+                subscriptions.TryRemove(topic, out sub);
 
-                    if (!unregisterSubscriber(topic))
+                if (!unregisterSubscriber(topic))
                         EDB.WriteLine("Couldn't unregister subscriber for topic [" + topic + "]");
-                }
 
                 sub.shutdown();
                 return true;
@@ -316,37 +276,21 @@ namespace Ros_CSharp
 
         public int getNumPublishers(string topic)
         {
-            lock (subs_mutex)
-            {
-                if (shutting_down) return 0;
+            if (shutting_down) return 0;
 
-                foreach (Subscription t in subscriptions)
-                {
-                    if (!t.IsDropped && t.name == topic)
-                        return t.NumPublishers;
-                }
-            }
-            return 0;
+            return (from t in subscriptions.Values where !t.IsDropped && t.name == topic select t.NumPublishers).FirstOrDefault();
         }
 
         public int getNumSubscribers(string topic)
         {
-            lock (advertised_topics_mutex)
-            {
-                if (shutting_down) return 0;
-                Publication p = lookupPublicationWithoutLock(topic);
-                if (p != null)
-                    return p.NumSubscribers;
-                return 0;
-            }
+            if (shutting_down) return 0;
+            Publication p = lookupPublicationWithoutLock(topic);
+            return p != null ? p.NumSubscribers : 0;
         }
 
         public int getNumSubscriptions()
         {
-            lock (subs_mutex)
-            {
-                return subscriptions.Count;
-            }
+            return subscriptions.Count;
         }
 
         public void publish<M>(string topic, M message) where M : IRosMessage, new()
@@ -426,15 +370,13 @@ namespace Ros_CSharp
             bool found_topic = false;
             Subscription sub = null;
             if (shutting_down) return false;
-            foreach (Subscription s in subscriptions)
+            if (subscriptions.TryGetValue(ops.topic, out sub))
             {
-                sub = s;
-                if (!sub.IsDropped && sub.name == ops.topic)
+                if (!sub.IsDropped)
                 {
                     found_topic = true;
                     if (md5sumsMatch(ops.md5sum, sub.md5sum))
                         found = true;
-                    break;
                 }
             }
             if (found_topic && !found)
@@ -490,7 +432,7 @@ namespace Ros_CSharp
 
         public bool isTopicAdvertised(string topic)
         {
-            return advertised_topics.Count(o => o.Name == topic) > 0;
+            return advertised_topics.ContainsKey(topic);
         }
 
         public bool registerSubscriber(Subscription s, string datatype)
@@ -515,17 +457,12 @@ namespace Ros_CSharp
             bool self_subscribed = false;
             Publication pub = null;
             string sub_md5sum = s.md5sum;
-            lock (advertised_topics_mutex)
+            if (advertised_topics.TryGetValue(s.name, out pub) && pub != null)
             {
-                foreach (Publication p in advertised_topics)
+                string pub_md5sum = pub.Md5sum;
+                if (md5sumsMatch(pub_md5sum, sub_md5sum) && !pub.Dropped)
                 {
-                    pub = p;
-                    string pub_md5sum = pub.Md5sum;
-                    if (pub.Name == s.name && md5sumsMatch(pub_md5sum, sub_md5sum) && !pub.Dropped)
-                    {
-                        self_subscribed = true;
-                        break;
-                    }
+                    self_subscribed = true;
                 }
             }
 
@@ -555,7 +492,7 @@ namespace Ros_CSharp
 
         public Publication lookupPublicationWithoutLock(string topic)
         {
-            return advertised_topics.FirstOrDefault(p => p.Name == topic && !p.Dropped);
+            return lookupPublication(topic);
         }
 
         public void getBusStats(ref XmlRpcValue stats)
@@ -567,20 +504,14 @@ namespace Ros_CSharp
             subscribe_stats.Size = 0;
             service_stats.Size = 0;
             int pidx = 0;
-            lock (advertised_topics_mutex)
+            foreach (Publication t in advertised_topics.Values)
             {
-                foreach (Publication t in advertised_topics)
-                {
-                    publish_stats.Set(pidx++, t.GetStats());
-                }
+                publish_stats.Set(pidx++, t.GetStats());
             }
             int sidx = 0;
-            lock (subs_mutex)
+            foreach (Subscription t in subscriptions.Values)
             {
-                foreach (Subscription t in subscriptions)
-                {
-                    subscribe_stats.Set(sidx++, t.getStats());
-                }
+                subscribe_stats.Set(sidx++, t.getStats());
             }
             stats.Set(0, publish_stats);
             stats.Set(1, subscribe_stats);
@@ -591,48 +522,36 @@ namespace Ros_CSharp
         {
             XmlRpcValue info = XmlRpcValue.LookUp(i);
             info.Size = 0;
-            lock (advertised_topics_mutex)
+            foreach (Publication t in advertised_topics.Values)
             {
-                foreach (Publication t in advertised_topics)
-                {
-                    t.getInfo(info);
-                }
+                t.getInfo(info);
             }
-            lock (subs_mutex)
+            foreach (Subscription t in subscriptions.Values)
             {
-                foreach (Subscription t in subscriptions)
-                {
-                    t.getInfo(info);
-                }
+                t.getInfo(info);
             }
         }
 
         public void getSubscriptions(ref XmlRpcValue subs)
         {
             subs.Size = 0;
-            lock (subs_mutex)
+            int sidx = 0;
+            foreach (Subscription t in subscriptions.Values)
             {
-                int sidx = 0;
-                foreach (Subscription t in subscriptions)
-                {
-                    subs.Set(sidx++, new XmlRpcValue(t.name, t.datatype));
-                }
+                subs.Set(sidx++, new XmlRpcValue(t.name, t.datatype));
             }
         }
 
         public void getPublications(ref XmlRpcValue pubs)
         {
             pubs.Size = 0;
-            lock (advertised_topics_mutex)
+            int sidx = 0;
+            foreach (Publication t in advertised_topics.Values)
             {
-                int sidx = 0;
-                foreach (Publication t in advertised_topics)
-                {
-                    XmlRpcValue pub = new XmlRpcValue();
-                    pub.Set(0, t.Name);
-                    pub.Set(1, t.DataType);
-                    pubs.Set(sidx++, pub);
-                }
+                XmlRpcValue pub = new XmlRpcValue();
+                pub.Set(0, t.Name);
+                pub.Set(1, t.DataType);
+                pubs.Set(sidx++, pub);
             }
         }
 
@@ -640,18 +559,8 @@ namespace Ros_CSharp
         {
             EDB.WriteLine("TopicManager is updating publishers for " + topic);
             Subscription sub = null;
-            lock (subs_mutex)
-            {
-                if (shutting_down) return false;
-                foreach (Subscription s in subscriptions)
-                {
-                    if (s.name != topic || s.IsDropped)
-                        continue;
-                    sub = s;
-                    break;
-                }
-            }
-            if (sub != null)
+            if (shutting_down) return false;
+            if (subscriptions.TryGetValue(topic, out sub) && sub != null && !sub.IsDropped)
                 return sub.pubUpdate(pubs);
             EDB.WriteLine("got a request for updating publishers of topic " + topic +
                           ", but I don't have any subscribers to that topic.");
@@ -729,31 +638,19 @@ namespace Ros_CSharp
         public bool unadvertise(string topic, SubscriberCallbacks callbacks)
         {
             Publication pub = null;
-            lock (advertised_topics_mutex)
+            if (shutting_down) return false;
+            if (advertised_topics.TryGetValue(topic, out pub) && pub != null && !pub.Dropped)
             {
-                if (shutting_down) return false;
-                foreach (Publication p in advertised_topics)
-                {
-                    if (p.Name == topic && !p.Dropped)
-                    {
-                        pub = p;
-                        break;
-                    }
-                }
-            }
-            if (pub == null)
-                return false;
-            pub.removeCallbacks(callbacks);
-            lock (advertised_topics_mutex)
-            {
+                pub.removeCallbacks(callbacks);
                 if (pub.NumCallbacks == 0)
                 {
                     unregisterPublisher(pub.Name);
                     pub.drop();
-                    advertised_topics.Remove(pub);
+                    advertised_topics.TryRemove(topic, out pub);
                 }
+                return true;
             }
-            return true;
+            return false;
         }
     }
 }
