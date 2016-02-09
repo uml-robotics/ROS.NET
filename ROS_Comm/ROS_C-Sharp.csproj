@@ -100,7 +100,6 @@
     <Compile Include="LocalPublisherLink.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Master.cs" />
-    <Compile Include="MessageEvent.cs" />
     <Compile Include="names.cs" />
     <Compile Include="network.cs" />
     <Compile Include="NodeHandle.cs" />
