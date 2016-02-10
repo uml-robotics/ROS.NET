@@ -47,9 +47,7 @@ namespace Ros_CSharp
         public static event otheroutput OtherOutput;
 
         //does the actual writing
-#if !TRACE
         [DebuggerStepThrough]
-#endif
         private static void _writeline(object o)
         {
             if (OtherOutput != null)
@@ -66,9 +64,7 @@ namespace Ros_CSharp
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
         /// </summary>
         /// <param name="o"> A string or something to print </param>
-#if !TRACE
         [DebuggerStepThrough]
-#endif
         public static void WriteLine(object o)
         {
             _writeline(o);
@@ -80,9 +76,7 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format">Format string</param>
         /// <param name="args">Stuff to format</param>
-#if !TRACE
         [DebuggerStepThrough]
-#endif
         public static void WriteLine(string format, params object[] args)
         {
             if (args != null && args.Length > 0)
@@ -360,9 +354,7 @@ namespace Ros_CSharp
         ///     ROS_WARN(...)
         /// </summary>
         /// <param name="o"> ... </param>
-#if !TRACE
         [DebuggerStepThrough]
-#endif
         public static void Warn(object o, int level = 1)
         {
             Console.WriteLine("[Warn] " + o);
@@ -377,9 +369,7 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format"> format string </param>
         /// <param name="args"> ... </param>
-#if !TRACE
         [DebuggerStepThrough]
-#endif
         public static void Warn(string format, params object[] args)
         {
             Warn((object) string.Format(format, args), 2);
