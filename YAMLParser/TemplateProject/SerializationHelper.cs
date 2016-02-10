@@ -476,10 +476,10 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         else
                         {
                             int len = Marshal.SizeOf(TT);
-                            IntPtr pIP = IntPtr.Zero;
+                            IntPtr pIP = IntPtr.Zero, sIP = IntPtr.Zero;
                             if (currpos + len * chunklen <= bytes.Length)
                             {
-                                pIP = Marshal.AllocHGlobal(len * chunklen);
+                                sIP = pIP = Marshal.AllocHGlobal(len * chunklen);
                                 Marshal.Copy(bytes, currpos, pIP, len * chunklen);
                             }
                             object o = null;
@@ -492,6 +492,8 @@ Console.WriteLine("//deserialize: " + T.FullName);
                                     pIP = new IntPtr(pIP.ToInt32() + len);
                             }
                             infos[currinfo].SetValue(thestructure, val);
+                            if (sIP != IntPtr.Zero)
+                                Marshal.FreeHGlobal(sIP);
                             currpos += chunklen * len;
                         }
                     }
