@@ -138,7 +138,9 @@ namespace Ros_CSharp
             lock (write_callback_mutex)
             {
                 if (write_callback != null)
-                    throw new Exception("NOYOUBLO");
+                    writeTransport();
+                if (write_callback != null)
+                    throw new Exception("Not finished writing previous data on this connection");
                 write_callback = finished_func;
                 write_buffer = data;
                 write_size = size;
