@@ -184,7 +184,7 @@ namespace XmlRpc_Wrapper
                         break;
                 }
 
-                XmlRpcUtil.log(4, "Trying to get size of something without a size! -- type={0}", _type);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "Trying to get size of something without a size! -- type={0}", _type);
                 throw new XmlRpcException("type error");
             }
         }

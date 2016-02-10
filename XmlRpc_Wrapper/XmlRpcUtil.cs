@@ -220,16 +220,8 @@ namespace XmlRpc_Wrapper
                 {
                     XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "HTTP HEADER: field \"{0}\" has a length of 0", HHField.ToString());
                 }
-                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "HTTP HEADER: Index={0} | champ={1} = {2}", f, HTTPfield.Substring(1), m_StrHTTPField[f]);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "HTTP HEADER: Index={0} | champ={1} = {2}", f, HTTPfield.Substring(1), m_StrHTTPField[HHField]);
             }
-
-            // Affichage de tout les champs
-            /*for (int j = 0; j < m_StrHTTPField.Length; j++)
-            {
-                HHField = (HTTPHeaderField)j;
-                Console.WriteLine("m_StrHTTPField[" + j + "]; " + HHField + " = " + m_StrHTTPField[j]);
-            }
-            */
 
             #endregion
         }

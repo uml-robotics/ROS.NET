@@ -168,7 +168,7 @@ namespace XmlRpc_Wrapper
         // might be a fault).
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            XmlRpcUtil.log(1, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
             lock (this)
             {
                 //result = null;
@@ -205,7 +205,7 @@ namespace XmlRpc_Wrapper
                     return false;
                 }
 
-                XmlRpcUtil.log(1, "XmlRpcClient::execute: method {0} completed.", method);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method {0} completed.", method);
                 _response = "";
                 _executing = false;
             }
@@ -219,7 +219,7 @@ namespace XmlRpc_Wrapper
         // might be a fault).
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            XmlRpcUtil.log(1, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
 
             // This is not a thread-safe operation, if you want to do multithreading, use separate
             // clients for each thread. If you want to protect yourself from multiple threads
@@ -260,7 +260,7 @@ namespace XmlRpc_Wrapper
             {
                 // Hopefully the caller can determine that parsing failed.
             }
-            XmlRpcUtil.log(1, "XmlRpcClient::execute: method completed.");
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method completed.");
             _response = "";
             return true;
         }
@@ -288,7 +288,7 @@ namespace XmlRpc_Wrapper
 
         public override void Close()
         {
-            XmlRpcUtil.log(1, "XmlRpcClient::Close()");
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::Close()");
         }
 
         public override Socket getSocket()
@@ -299,7 +299,7 @@ namespace XmlRpc_Wrapper
         //done and works
         private void Initialize(string host, int port, string uri /*=0*/)
         {
-            XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {1}.", host, port);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient new client: host {0}, port {1}.", host, port);
 
             _host = host;
             _port = port;
@@ -324,7 +324,7 @@ namespace XmlRpc_Wrapper
         // Close the owned fd
         public void close()
         {
-            XmlRpcUtil.log(4, "XmlRpcClient::close.");
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::close.");
             _connectionState = ConnectionState.NO_CONNECTION;
 
             _disp.Exit();
@@ -461,7 +461,7 @@ namespace XmlRpc_Wrapper
             string body = generateRequestStr(methodName, parameters);
 
             string header = generateHeader(body);
-            XmlRpcUtil.log(4, "XmlRpcClient::generateRequest: header is {0} bytes, content-length is {1}.", header.Length, body.Length);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::generateRequest: header is {0} bytes, content-length is {1}.", header.Length, body.Length);
 
             _request = header + body;
             return true;
@@ -489,7 +489,7 @@ namespace XmlRpc_Wrapper
         private bool writeRequest()
         {
             if (_bytesWritten == 0)
-                XmlRpcUtil.log(5, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts + 1, _request);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts + 1, _request);
             // Try to write the request
             try
             {
@@ -594,7 +594,7 @@ namespace XmlRpc_Wrapper
                     dataLen = stream.Read(data, 0, left);
                     if (dataLen == 0)
                     {
-                        Debug.WriteLine("XmlRpcClient::readResponse: Stream was closed");
+                        XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::readResponse: Stream was closed");
                         return false;
                     }
                 }
@@ -606,7 +606,7 @@ namespace XmlRpc_Wrapper
                 _response += Encoding.Default.GetString(data, 0, dataLen);
             }
             // Otherwise, parse and dispatch the request
-            XmlRpcUtil.log(3, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
 
             _connectionState = ConnectionState.IDLE;
 

@@ -126,7 +126,7 @@ namespace XmlRpc_Wrapper
                 _port = ((IPEndPoint) listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
-                XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", _port);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::bindAndListen: server listening on port {0}", _port);
             }
             catch (Exception ex)
             {
@@ -164,7 +164,7 @@ namespace XmlRpc_Wrapper
             try
             {
                 TcpClient s = listener.AcceptTcpClient();
-                XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: creating a connection");
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
                 _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
             }
             catch (SocketException ex)
@@ -256,7 +256,7 @@ namespace XmlRpc_Wrapper
             string _response = "";
             XmlRpcValue parms = new XmlRpcValue(), resultValue = new XmlRpcValue();
             string methodName = parseRequest(parms, _request);
-            XmlRpcUtil.log(2, "XmlRpcServerConnection::executeRequest: server calling method '{0}'", methodName);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServerConnection::executeRequest: server calling method '{0}'", methodName);
 
             try
             {
@@ -268,7 +268,7 @@ namespace XmlRpc_Wrapper
             }
             catch (XmlRpcException fault)
             {
-                XmlRpcUtil.log(2, "XmlRpcServerConnection::executeRequest: fault {0}.", fault.Message);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServerConnection::executeRequest: fault {0}.", fault.Message);
                 _response = generateFaultResponse(fault.Message, fault.getCode());
             }
             return _response;
@@ -299,7 +299,7 @@ namespace XmlRpc_Wrapper
             string body = RESPONSE_1 + resultXml + RESPONSE_2;
             string header = generateHeader(body);
             string result = header + body;
-            XmlRpcUtil.log(5, "XmlRpcServerConnection::generateResponse:\n{0}\n", result);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcServerConnection::generateResponse:\n{0}\n", result);
             return result;
         }
 
