@@ -1,4 +1,4 @@
-﻿// File: Publication.cs
+// File: Publication.cs
 // Project: ROS_C-Sharp
 // 
 // ROS.NET
@@ -86,7 +86,8 @@ namespace Ros_CSharp
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, Name);
-            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
+            XmlRpcValue conn_data = new XmlRpcValue();
+            conn_data.SetArray(0);
             lock (subscriber_links_mutex)
             {
                 int cidx = 0;

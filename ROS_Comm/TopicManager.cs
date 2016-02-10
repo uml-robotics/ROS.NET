@@ -215,7 +215,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, ref result, ref payload, true);
+            master.execute("registerPublisher", args, result, ref payload, true);
             return true;
         }
 
@@ -397,12 +397,12 @@ namespace Ros_CSharp
             for (int proto_idx = 0; proto_idx < protos.Size; proto_idx++)
             {
                 XmlRpcValue proto = protos[proto_idx];
-                if (proto.Type != TypeEnum.TypeArray)
+				if (proto.Type != XmlRpcValue.ValueType.TypeArray)
                 {
                     EDB.WriteLine("requestTopic protocol list was not a list of lists");
                     return false;
                 }
-                if (proto[0].Type != TypeEnum.TypeString)
+				if (proto[0].Type != XmlRpcValue.ValueType.TypeString)
                 {
                     EDB.WriteLine(
                         "requestTopic received a protocol list in which a sublist did not start with a string");
@@ -442,7 +442,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
             XmlRpcValue result = new XmlRpcValue();
             XmlRpcValue payload = new XmlRpcValue();
-            if (!master.execute("registerSubscriber", args, ref result, ref payload, true))
+            if (!master.execute("registerSubscriber", args, result, ref payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
@@ -477,7 +477,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterSubscriber", args, ref result, ref payload, false);
+            master.execute("unregisterSubscriber", args, result, ref payload, false);
             return true;
         }
 
@@ -486,7 +486,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, ref result, ref payload, false);
+            master.execute("unregisterPublisher", args, result, ref payload, false);
             return true;
         }
 
@@ -495,14 +495,14 @@ namespace Ros_CSharp
             return lookupPublication(topic);
         }
 
-        public void getBusStats(ref XmlRpcValue stats)
+        public void getBusStats(XmlRpcValue stats)
         {
             XmlRpcValue publish_stats = new XmlRpcValue(),
                 subscribe_stats = new XmlRpcValue(),
                 service_stats = new XmlRpcValue();
-            publish_stats.Size = 0;
-            subscribe_stats.Size = 0;
-            service_stats.Size = 0;
+            publish_stats.SetArray(0);//.Size = 0;
+			publish_stats.SetArray(0);//subscribe_stats.Size = 0;
+			publish_stats.SetArray(0); //service_stats.Size = 0;
             int pidx = 0;
             foreach (Publication t in advertised_topics.Values)
             {
@@ -518,10 +518,9 @@ namespace Ros_CSharp
             stats.Set(2, service_stats);
         }
 
-        public void getBusInfo(IntPtr i)
+         public void getBusInfo(XmlRpcValue info)
         {
-            XmlRpcValue info = XmlRpcValue.LookUp(i);
-            info.Size = 0;
+            info.SetArray(0);
             foreach (Publication t in advertised_topics.Values)
             {
                 t.getInfo(info);
@@ -534,7 +533,7 @@ namespace Ros_CSharp
 
         public void getSubscriptions(ref XmlRpcValue subs)
         {
-            subs.Size = 0;
+            subs.SetArray(0);
             int sidx = 0;
             foreach (Subscription t in subscriptions.Values)
             {
@@ -544,7 +543,8 @@ namespace Ros_CSharp
 
         public void getPublications(ref XmlRpcValue pubs)
         {
-            pubs.Size = 0;
+            //pubs.Size = 0;
+			pubs.SetArray(0);
             int sidx = 0;
             foreach (Publication t in advertised_topics.Values)
             {
@@ -567,9 +567,10 @@ namespace Ros_CSharp
             return false;
         }
 
-        public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		//public void pubUpdateCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void pubUpdateCallback(XmlRpcValue parm, XmlRpcValue result)
         {
-            XmlRpcValue parm = XmlRpcValue.Create(ref parms);
+            //XmlRpcValue parm = XmlRpcValue.Create(ref parms);
             List<string> pubs = new List<string>();
             for (int idx = 0; idx < parm[2].Size; idx++)
                 pubs.Add(parm[2][idx].Get<string>());
@@ -582,42 +583,47 @@ namespace Ros_CSharp
             }
         }
 
-        public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        //public void requestTopicCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void requestTopicCallback(XmlRpcValue parm, XmlRpcValue res)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
-            result = res.instance;
+            //XmlRpcValue res = XmlRpcValue.Create(ref result)
+			//	, parm = XmlRpcValue.Create(ref parms);
+            //result = res.instance;
             if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
             {
                 const string last_error = "Unknown error";
 
-                XmlRpcManager.Instance.responseInt(0, last_error, 0)(result);
+                XmlRpcManager.Instance.responseInt(0, last_error, 0)(res);
             }
         }
 
-        public void getBusStatusCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		//public void getBusStatusCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void getBusStatusCallback(XmlRpcValue parm, XmlRpcValue res)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            //XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "");
             XmlRpcValue response = new XmlRpcValue();
-            getBusStats(ref response);
+            getBusStats(response);
             res.Set(2, response);
         }
 
-        public void getBusInfoCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		//public void getBusInfoCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void getBusInfoCallback(XmlRpcValue parm, XmlRpcValue res)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            //XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "");
             XmlRpcValue response = new XmlRpcValue();
-            IntPtr resp = response.instance;
-            getBusInfo(resp);
+            //IntPtr resp = response.instance;
+			getBusInfo(response);
             res.Set(2, response);
         }
 
-        public void getSubscriptionsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		//public void getSubscriptionsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void getSubscriptionsCallback(XmlRpcValue parm, XmlRpcValue res)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            //XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "subscriptions");
             XmlRpcValue response = new XmlRpcValue();
@@ -625,9 +631,10 @@ namespace Ros_CSharp
             res.Set(2, response);
         }
 
-        public void getPublicationsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        //public void getPublicationsCallback([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+		public void getPublicationsCallback(XmlRpcValue parm, XmlRpcValue res)
         {
-            XmlRpcValue res = XmlRpcValue.Create(ref result);
+            //XmlRpcValue res = XmlRpcValue.Create(ref result);
             res.Set(0, 1);
             res.Set(1, "publications");
             XmlRpcValue response = new XmlRpcValue();

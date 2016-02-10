@@ -1,4 +1,4 @@
-﻿// File: _Init.cs
+// File: _Init.cs
 // Project: ROS_C-Sharp
 // 
 // ROS.NET
@@ -485,11 +485,10 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="p"> pointer to unmanaged XmlRpcValue containing params </param>
         /// <param name="r"> pointer to unmanaged XmlRpcValue that will contain return value </param>
-        private static void shutdownCallback(IntPtr p, IntPtr r)
+        private static void shutdownCallback(XmlRpcValue parms, XmlRpcValue r)
         {
-            XmlRpcValue parms = XmlRpcValue.LookUp(p);
             int num_params = 0;
-            if (parms.Type == TypeEnum.TypeArray)
+            if (parms.Type == XmlRpcValue.ValueType.TypeArray)
                 num_params = parms.Size;
             if (num_params > 1)
             {
