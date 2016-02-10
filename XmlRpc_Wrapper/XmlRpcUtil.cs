@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
@@ -89,7 +90,8 @@ namespace XmlRpc_Wrapper
         Transfer_Encoding = 48,
         Vary = 49,
         Warning = 50,
-        WWW_Authenticate = 51
+        WWW_Authenticate = 51,
+        HEADER_VALUE_MAX_PLUS_ONE = 52
     };
 
     /// <summary>
@@ -186,29 +188,39 @@ namespace XmlRpc_Wrapper
 
         #region METHODES
 
+        private ConcurrentDictionary<HTTPHeaderField,string> HeaderFieldToStrings = new ConcurrentDictionary<HTTPHeaderField,string>();
+
         private void HTTPHeaderParse(string Header)
         {
             #region HTTP HEADER REQUEST & RESPONSE
 
-            HTTPHeaderField HHField;
-            string HTTPfield, buffer;
-            int Index;
-            foreach (int IndexHTTPfield in Enum.GetValues(typeof (HTTPHeaderField)))
+            for (int f=(int)HTTPHeaderField.Accept; f<(int)HTTPHeaderField.HEADER_VALUE_MAX_PLUS_ONE; f++)
             {
-                HHField = (HTTPHeaderField) IndexHTTPfield;
-                HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": "; //Ajout de \n devant pour ?viter les doublons entre cookie et set_cookie
+                HTTPHeaderField HHField = (HTTPHeaderField) f;
+                string HTTPfield = null;
+                if (!HeaderFieldToStrings.TryGetValue(HHField, out HTTPfield))
+                {
+                    HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": ";
+                    HeaderFieldToStrings.TryAdd(HHField, HTTPfield);
+                }
+
                 // Si le champ n'est pas pr?sent dans la requ?te, on passe au champ suivant
-                Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
+                int Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
                 if (Index == -1)
                     continue;
 
-                buffer = Header.Substring(Index + HTTPfield.Length);
-                Index = buffer.IndexOf("\r\n");
+                string buffer = Header.Substring(Index + HTTPfield.Length);
+                Index = buffer.IndexOf("\r\n", StringComparison.OrdinalIgnoreCase);
                 if (Index == -1)
-                    m_StrHTTPField[IndexHTTPfield] = buffer.Trim();
+                    m_StrHTTPField[f] = buffer.Trim();
                 else
-                    m_StrHTTPField[IndexHTTPfield] = buffer.Substring(0, Index).Trim();
-                XmlRpcUtil.log(2, "HTTP HEADER DEBUG: {0}", "Index = " + IndexHTTPfield + " | champ = " + HTTPfield.Substring(1) + " " + m_StrHTTPField[IndexHTTPfield]);
+                    m_StrHTTPField[f] = buffer.Substring(0, Index).Trim();
+
+                if (m_StrHTTPField[f].Length == 0)
+                {
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "HTTP HEADER: field \"{0}\" has a length of 0", HHField.ToString());
+                }
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "HTTP HEADER: Index={0} | champ={1} = {2}", f, HTTPfield.Substring(1), m_StrHTTPField[f]);
             }
 
             // Affichage de tout les champs
