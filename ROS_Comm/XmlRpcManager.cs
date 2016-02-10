@@ -55,7 +55,18 @@ namespace Ros_CSharp
 
         public XmlRpcManager()
         {
-            XmlRpcUtil.SetLogLevel(XmlRpcUtil.XMLRPC_LOG_LEVEL.CRITICAL);
+            XmlRpcUtil.SetLogLevel(
+#if !DEBUG
+                    XmlRpcUtil.XMLRPC_LOG_LGEVEL.ERROR
+#else
+#if TRACE
+                    XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO
+#else
+                    XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING
+#endif
+#endif
+                );
+
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
