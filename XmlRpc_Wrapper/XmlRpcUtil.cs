@@ -1,4 +1,4 @@
-﻿// File: XmlRpcUtil.cs
+// File: XmlRpcUtil.cs
 // Project: XmlRpc_Wrapper
 // 
 // ROS.NET
@@ -125,7 +125,7 @@ namespace XmlRpc_Wrapper
         #region CONSTRUCTEUR
 
         /// <summary>
-        ///     Constructeur par défaut - non utilisé
+        ///     Constructeur par d?faut - non utilis?
         /// </summary>
         private HTTPHeader()
         {
@@ -138,7 +138,7 @@ namespace XmlRpc_Wrapper
                 IndexHeaderEnd = 0;
                 string Header;
 
-                // Si la taille de requête est supérieur ou égale à 1460, alors toutes la chaine est l'entête http
+                // Si la taille de requ?te est sup?rieur ou ?gale ? 1460, alors toutes la chaine est l'ent?te http
                 if (HTTPRequest.Length >= 1460)
                 {
                     Header = HTTPRequest;
@@ -165,7 +165,7 @@ namespace XmlRpc_Wrapper
                 //int IndexHeaderEnd;
                 string Header;
 
-                // Si la taille de requête est supérieur ou égale à 1460, alors toutes la chaine est l'entête http
+                // Si la taille de requ?te est sup?rieur ou ?gale ? 1460, alors toutes la chaine est l'ent?te http
                 if (HTTPRequest.Length >= 1460)
                     Header = HTTPRequest;
                 else
@@ -196,8 +196,8 @@ namespace XmlRpc_Wrapper
             foreach (int IndexHTTPfield in Enum.GetValues(typeof (HTTPHeaderField)))
             {
                 HHField = (HTTPHeaderField) IndexHTTPfield;
-                HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": "; //Ajout de \n devant pour éviter les doublons entre cookie et set_cookie
-                // Si le champ n'est pas présent dans la requête, on passe au champ suivant
+                HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": "; //Ajout de \n devant pour ?viter les doublons entre cookie et set_cookie
+                // Si le champ n'est pas pr?sent dans la requ?te, on passe au champ suivant
                 Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
                 if (Index == -1)
                     continue;
@@ -225,10 +225,31 @@ namespace XmlRpc_Wrapper
         #endregion
     }
 
+    [DebuggerStepThrough]
     public static class XmlRpcUtil
     {
-        public const int MINIMUM_LOG_LEVEL = 1; //5 == everything, 0 == only fatal
+        public enum XMLRPC_LOG_LEVEL
+        {
+            CRITICAL = 0,
+            ERROR = 1,
+            WARNING = 2,
+            INFO = 3,
+            DEBUG = 4,
+            SPEW = 5
+        }
+
         public static string XMLRPC_VERSION = "XMLRPC++ 0.7";
+        private static XMLRPC_LOG_LEVEL MINIMUM_LOG_LEVEL = XMLRPC_LOG_LEVEL.ERROR;
+
+        public static void SetLogLevel(XMLRPC_LOG_LEVEL level)
+        {
+            MINIMUM_LOG_LEVEL = level;
+        }
+
+        public static void SetLogLevel(int level)
+        {
+            SetLogLevel((XMLRPC_LOG_LEVEL) level);
+        }
 
         public static void error(string format, params object[] list)
         {
@@ -236,6 +257,11 @@ namespace XmlRpc_Wrapper
         }
 
         public static void log(int level, string format, params object[] list)
+        {
+            log((XMLRPC_LOG_LEVEL) level, format, list);
+        }
+
+        public static void log(XMLRPC_LOG_LEVEL level, string format, params object[] list)
         {
             if (level <= MINIMUM_LOG_LEVEL)
                 Debug.WriteLine(String.Format(format, list));

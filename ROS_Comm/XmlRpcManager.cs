@@ -55,7 +55,7 @@ namespace Ros_CSharp
 
         public XmlRpcManager()
         {
-            XmlRpcUtil.ShowOutputFromXmlRpcPInvoke(XmlRpcUtil.XMLRPC_LOG_LEVEL.NOTHING);
+            XmlRpcUtil.SetLogLevel(XmlRpcUtil.XMLRPC_LOG_LEVEL.CRITICAL);
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
         }
@@ -358,7 +358,7 @@ namespace Ros_CSharp
             {
                 functions.Clear();
             }
-            if (server.instance != IntPtr.Zero)
+            if (server != null)
             {
                 foreach (AsyncXmlRpcConnection ass in connections)
                 {
