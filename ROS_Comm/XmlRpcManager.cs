@@ -466,7 +466,7 @@ namespace Ros_CSharp
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-            return client != null && port == client.Port && string.Equals(host, client.Host) && string.Equals(uri, client.Uri);
+            return client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
         }
 
         #region XmlRpcClient passthrough functions and properties
