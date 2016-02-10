@@ -8,22 +8,22 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 #if DEBUG
 //#define XMLRPC_DEBUG
 #endif
+//using XmlRpc_Wrapper;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-//using XmlRpc_Wrapper;
+using XmlRpc_Wrapper;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
-using XmlRpc_Wrapper;
 
 #endregion
 
@@ -138,14 +138,14 @@ namespace Ros_CSharp
 
         public bool validateXmlrpcResponse(string method, XmlRpcValue response, ref XmlRpcValue payload)
         {
-			if (response.Type != XmlRpcValue.ValueType.TypeArray)
+            if (response.Type != XmlRpcValue.ValueType.TypeArray)
                 return validateFailed(method, "didn't return an array -- {0}", response);
             if (response.Size != 3)
                 return validateFailed(method, "didn't return a 3-element array -- {0}", response);
-			if (response[0].Type != XmlRpcValue.ValueType.TypeInt)
+            if (response[0].Type != XmlRpcValue.ValueType.TypeInt)
                 return validateFailed(method, "didn't return an int as the 1st element -- {0}", response);
             int status_code = response[0].Get<int>();
-			if (response[1].Type != XmlRpcValue.ValueType.TypeString)
+            if (response[1].Type != XmlRpcValue.ValueType.TypeString)
                 return validateFailed(method, "didn't return a string as the 2nd element -- {0}", response);
             string status_string = response[1].Get<string>();
             if (status_code != 1)
@@ -245,17 +245,7 @@ namespace Ros_CSharp
         }
 
 
-		public Action<XmlRpcValue> responseStr(IntPtr target, int code, string msg, string response)
-        {
-			return (XmlRpcValue v) =>
-                       {
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
-        }
-
-		public Action<XmlRpcValue> responseInt(int code, string msg, int response)
+        public Action<XmlRpcValue> responseStr(IntPtr target, int code, string msg, string response)
         {
             return (XmlRpcValue v) =>
                        {
@@ -265,9 +255,19 @@ namespace Ros_CSharp
                        };
         }
 
-		public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
+        public Action<XmlRpcValue> responseInt(int code, string msg, int response)
         {
-			return (XmlRpcValue v) =>
+            return (XmlRpcValue v) =>
+                       {
+                           v.Set(0, code);
+                           v.Set(1, msg);
+                           v.Set(2, response);
+                       };
+        }
+
+        public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
+        {
+            return (XmlRpcValue v) =>
                        {
                            v.Set(0, code);
                            v.Set(1, msg);
@@ -382,7 +382,7 @@ namespace Ros_CSharp
         {
             public XMLRPCFunc function;
             public string name = "";
-			public XmlRpcServerMethod wrapper;
+            public XmlRpcServerMethod wrapper;
         }
 
         #endregion
@@ -403,14 +403,14 @@ namespace Ros_CSharp
         public DateTime last_use_time;
 
         private object busyMutex = new object();
-        private volatile int refs = 0;
+        private volatile int refs;
 
         internal bool dead
         {
             get { return client == null; }
         }
 
-        public CachedXmlRpcClient(string host, int port, string uri) : this(new XmlRpcClient(host,port,uri))
+        public CachedXmlRpcClient(string host, int port, string uri) : this(new XmlRpcClient(host, port, uri))
         {
         }
 
@@ -420,7 +420,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
@@ -479,6 +479,7 @@ namespace Ros_CSharp
         {
             get { return client.IsConnected; }
         }
+
         #endregion
     }
 }

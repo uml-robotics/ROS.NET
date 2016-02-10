@@ -8,15 +8,13 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using n = System.Net;
 using ns = System.Net.Sockets;
 
@@ -29,7 +27,7 @@ namespace Ros_CSharp.CustomSocket
 #endif
     public class Socket : ns.Socket
     {
-        private static event Action<int> PollSignal; 
+        private static event Action<int> PollSignal;
         private static ConcurrentDictionary<uint, Socket> _socklist = new ConcurrentDictionary<uint, Socket>();
         private static uint nextfakefd = 1;
         private static ConcurrentBag<uint> _freelist = new ConcurrentBag<uint>();
@@ -217,7 +215,7 @@ namespace Ros_CSharp.CustomSocket
         private void _poll(int poll_timeout)
         {
             if (Info == null || !Info.poll_mutex.WaitOne(0)) return;
-            if (this.ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
+            if (ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
             if (!Connected || disposed)
             {
                 Info.revents |= POLLHUP;
@@ -241,7 +239,7 @@ namespace Ros_CSharp.CustomSocket
 
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
-                    (Info.revents & POLLNVAL) != 0))
+                 (Info.revents & POLLNVAL) != 0))
             {
                 bool skip = false;
                 if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
@@ -253,7 +251,7 @@ namespace Ros_CSharp.CustomSocket
                 if (!skip)
                 {
                     //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), (iar) =>
+                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), iar =>
                                                                                                       {
                                                                                                           func.EndInvoke(iar);
                                                                                                           Info.revents = 0;

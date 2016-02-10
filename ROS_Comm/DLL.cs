@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -103,12 +103,12 @@ namespace Ros_CSharp
 
         public T Front
         {
-            get { lock(this) return _first.next.element; }
+            get { lock (this) return _first.next.element; }
         }
 
         public T Back
         {
-            get { lock (this)return _last.previous.element; }
+            get { lock (this) return _last.previous.element; }
         }
 
         private DLLNode<T> walk(bool forwards, DLLNode<T> node)

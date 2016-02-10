@@ -8,12 +8,11 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -151,11 +150,11 @@ namespace Ros_CSharp
 
     public class SocketInfo
     {
-        public int revents;
         public int events;
         public PollSet.SocketUpdateFunc func;
+        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
+        public int revents;
         public uint sock;
         public TcpTransport transport;
-        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
     }
 }

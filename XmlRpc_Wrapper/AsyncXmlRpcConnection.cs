@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 namespace XmlRpc_Wrapper
 {

@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -20,19 +20,18 @@ using System.Threading;
 
 namespace Ros_CSharp
 {
-
     /// <summary>
-    /// Timer management utility class
+    ///     Timer management utility class
     /// </summary>
     public class TimerManager : IDisposable
     {
         /// <summary>
-        /// Holds on to known timer instances
+        ///     Holds on to known timer instances
         /// </summary>
         private HashSet<WrappedTimer> heardof = new HashSet<WrappedTimer>();
 
         /// <summary>
-        /// clean up shop
+        ///     clean up shop
         /// </summary>
         public void Dispose()
         {
@@ -48,41 +47,38 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Wrap and start timer a with added functionality, and make sure it dies with this TimerManager
-        /// 
-        /// This DOES NOT START IT.
+        ///     Wrap and start timer a with added functionality, and make sure it dies with this TimerManager
+        ///     This DOES NOT START IT.
         /// </summary>
         /// <param name="cb">
-        /// The callback of the wrapped timer
+        ///     The callback of the wrapped timer
         /// </param>
         /// <param name="d">
-        /// The delay it should have
+        ///     The delay it should have
         /// </param>
         /// <param name="p">
-        /// The period it should have
+        ///     The period it should have
         /// </param>
-        public WrappedTimer MakeTimer(TimerCallback cb, int d=Timeout.Infinite, int p=Timeout.Infinite)
+        public WrappedTimer MakeTimer(TimerCallback cb, int d = Timeout.Infinite, int p = Timeout.Infinite)
         {
             WrappedTimer wt = new WrappedTimer(cb, d, p);
             MakeTimer(wt);
             return wt;
         }
-        
+
         /// <summary>
-        /// Wrap a timer a with added functionality, and make sure it dies with this TimerManager
-        /// 
-        /// This DOES NOT START IT.
+        ///     Wrap a timer a with added functionality, and make sure it dies with this TimerManager
+        ///     This DOES NOT START IT.
         /// </summary>
         /// <param name="cb">
-        /// The callback of the wrapped timer
+        ///     The callback of the wrapped timer
         /// </param>
         /// <param name="d">
-        /// The delay it should have
+        ///     The delay it should have
         /// </param>
         /// <param name="p">
-        /// The period it should have
+        ///     The period it should have
         /// </param>
-        /// 
         public WrappedTimer StartTimer(TimerCallback cb, int d = Timeout.Infinite, int p = Timeout.Infinite)
         {
             WrappedTimer wt = MakeTimer(cb, d, p);
@@ -91,7 +87,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Add a wrapped timer to the hashset
+        ///     Add a wrapped timer to the hashset
         /// </summary>
         /// <param name="t">the wrapped timer</param>
         public void MakeTimer(WrappedTimer t)
@@ -105,7 +101,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Stop tracking a timer, and kill it
+        ///     Stop tracking a timer, and kill it
         /// </summary>
         /// <param name="t">The timer to forget and kill</param>
         public void RemoveTimer(ref WrappedTimer t)
@@ -121,24 +117,49 @@ namespace Ros_CSharp
     }
 
     /// <summary>
-    /// Wrap the System.Threading.Timer with useful functions and state information
+    ///     Wrap the System.Threading.Timer with useful functions and state information
     /// </summary>
     public class WrappedTimer : IDisposable
     {
         //variable backing for properties
+        private int _delay = Timeout.Infinite;
+        private int _period = Timeout.Infinite;
         private bool _running;
-        private int _period = Timeout.Infinite, _delay = Timeout.Infinite;
-        /// <summary>
-        /// Tastes like it smells
-        /// </summary>
-        internal Timer timer;
 
         private TimerCallback cb;
 
         /// <summary>
-        /// This timer's delay
+        ///     Tastes like it smells
         /// </summary>
-        public int delay {
+        internal Timer timer;
+
+        /// <summary>
+        ///     Instantiate the wrapper
+        /// </summary>
+        /// <param name="t">A timer</param>
+        /// <param name="d">Its delay</param>
+        /// <param name="p">Its period</param>
+        public WrappedTimer(TimerCallback cb, int d, int p)
+        {
+            //add a callback between the caller and the timer, so non-periodic timers state becomes false right before the one time their callback happens
+            //(If a timer's period is Timeout.Infinite, it will fire once delay ms after Start is called. If start is recalled before then, nothing changes.
+            //      To reset the time to the next pending callback before the callback happens, use Restart)
+            this.cb = o =>
+                          {
+                              if (_period == Timeout.Infinite)
+                                  _running = false;
+                              cb(o);
+                          };
+            timer = new Timer(this.cb, null, Timeout.Infinite, Timeout.Infinite);
+            _delay = d;
+            _period = p;
+        }
+
+        /// <summary>
+        ///     This timer's delay
+        /// </summary>
+        public int delay
+        {
             get { return _delay; }
             set
             {
@@ -151,7 +172,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// This timer's period
+        ///     This timer's period
         /// </summary>
         public int period
         {
@@ -167,7 +188,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Is it running
+        ///     Is it running
         /// </summary>
         public bool running
         {
@@ -181,30 +202,20 @@ namespace Ros_CSharp
             }
         }
 
-
         /// <summary>
-        /// Instantiate the wrapper
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="t">A timer</param>
-        /// <param name="d">Its delay</param>
-        /// <param name="p">Its period</param>
-        public WrappedTimer(TimerCallback cb, int d, int p)
+        public void Dispose()
         {
-            //add a callback between the caller and the timer, so non-periodic timers state becomes false right before the one time their callback happens
-            //(If a timer's period is Timeout.Infinite, it will fire once delay ms after Start is called. If start is recalled before then, nothing changes.
-            //      To reset the time to the next pending callback before the callback happens, use Restart)
-            this.cb = (o) => {
-                if (_period == Timeout.Infinite)
-                    _running = false;
-                cb(o);
-            };
-            timer = new Timer(this.cb, null, Timeout.Infinite, Timeout.Infinite);
-            _delay = d;
-            _period = p;
+            if (timer == null) return;
+            WaitHandle wh = new AutoResetEvent(false);
+            timer.Dispose(wh);
+            timer = null;
         }
 
+
         /// <summary>
-        /// Starts the timer with this wrapper's set delay and period.
+        ///     Starts the timer with this wrapper's set delay and period.
         /// </summary>
         public void Start()
         {
@@ -216,14 +227,14 @@ namespace Ros_CSharp
                 timer.Change(_delay, _period);
                 _running = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("Error starting timer: " + ex);
             }
         }
 
         /// <summary>
-        /// Sets this timers delay and period, and immediately starts it
+        ///     Sets this timers delay and period, and immediately starts it
         /// </summary>
         /// <param name="d"></param>
         /// <param name="p"></param>
@@ -245,7 +256,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Stops then Resets the timer, causing any time spent waiting for the next callback to be reset
+        ///     Stops then Resets the timer, causing any time spent waiting for the next callback to be reset
         /// </summary>
         public void Restart()
         {
@@ -254,7 +265,7 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        /// Stops the timer from firing, while remembering its last set state and period
+        ///     Stops the timer from firing, while remembering its last set state and period
         /// </summary>
         public void Stop()
         {
@@ -270,17 +281,6 @@ namespace Ros_CSharp
             {
                 Console.WriteLine("Error starting timer: " + ex);
             }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            if (timer == null) return;
-            WaitHandle wh = new AutoResetEvent(false);
-            timer.Dispose(wh);
-            timer = null;
         }
     }
 }

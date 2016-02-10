@@ -8,13 +8,12 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Messages;
 using m = Messages.std_msgs;
@@ -38,7 +37,7 @@ namespace Ros_CSharp
             size = queue_size;
         }
 
-        public Callback(CallbackDelegate<T> f) : base()
+        public Callback(CallbackDelegate<T> f)
         {
             Event += func;
             base.Event += b => f(b as T);
@@ -52,7 +51,7 @@ namespace Ros_CSharp
         public bool allow_concurrent_callbacks;
 
         public volatile ConcurrentQueue<Item> queue = new ConcurrentQueue<Item>();
-        private volatile bool callback_state = false;
+        private volatile bool callback_state;
 
         public uint size;
         public string topic;
@@ -104,8 +103,8 @@ namespace Ros_CSharp
 
         public class Item
         {
-            public IRosMessage message;
             public ISubscriptionCallbackHelper helper;
+            public IRosMessage message;
             public bool nonconst_need_copy;
             public TimeData receipt_time;
         }
@@ -138,7 +137,7 @@ namespace Ros_CSharp
     public class CallbackInterface
     {
         private static object uidlock = new object();
-        private static UInt64 nextuid = 0;
+        private static UInt64 nextuid;
         private UInt64 uid;
 
         public CallbackInterface()
@@ -171,7 +170,7 @@ namespace Ros_CSharp
         }
 
         #endregion
-        
+
         public CallbackInterface(ICallbackDelegate f) : this()
         {
             Event += f;

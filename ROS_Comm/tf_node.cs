@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -17,7 +17,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using MathNet.Numerics.LinearAlgebra.Complex;
 using MathNet.Spatial;
 using Messages;
 using Messages.std_msgs;
@@ -64,13 +63,13 @@ namespace Ros_CSharp
         private const double DEFAULT_CACHE_TIME = 1000000000;
         private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
         private ulong cache_time;
-        private NodeHandle nh;
 
         private ConcurrentDictionary<string, uint> frameIDs = new ConcurrentDictionary<string, uint>();
         private ConcurrentDictionary<uint, string> frameids_reverse = new ConcurrentDictionary<uint, string>();
         private ConcurrentDictionary<uint, TimeCache> frames = new ConcurrentDictionary<uint, TimeCache>();
 
         private bool interpolating;
+        private NodeHandle nh;
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
@@ -496,7 +495,7 @@ namespace Ros_CSharp
                 return false;
             uint frame_number = lookupOrInsertFrameNumber(mapped_transform.frame_id);
             uint child_frame_number = lookupOrInsertFrameNumber(mapped_transform.child_frame_id);
-            TimeCache parent_frame=null,frame = null;
+            TimeCache parent_frame = null, frame = null;
             if (!frames.ContainsKey(frame_number))
             {
                 parent_frame = frames[frame_number] = new TimeCache(cache_time);
@@ -568,7 +567,7 @@ namespace Ros_CSharp
             return waitForTransform(target_frame, source_frame, time, timeout, pollingSleepDuration, ref error_msg);
         }
 
-        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration=null)
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration = null)
         {
             string error_msg = null;
             return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, pollingSleepDuration, ref error_msg);
@@ -646,7 +645,7 @@ namespace Ros_CSharp
 
         public static ulong toLong(TimeData td)
         {
-            return (ulong)ROS.ticksFromData(td);
+            return (ulong) ROS.ticksFromData(td);
         }
 
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
@@ -991,9 +990,9 @@ namespace Ros_CSharp
 
         public struct Euler
         {
-            public double yaw;
             public double pitch;
             public double roll;
+            public double yaw;
         }
     }
 
@@ -1093,7 +1092,7 @@ namespace Ros_CSharp
         public emVector3 quatRotate(emQuaternion rotation, emVector3 v)
         {
             emQuaternion q = rotation*v;
-            q*=rotation.inverse();
+            q *= rotation.inverse();
             return new emVector3(q.x, q.y, q.z);
         }
     }
@@ -1255,10 +1254,10 @@ namespace Ros_CSharp
 
         public static emQuaternion operator *(emQuaternion q, emVector3 w)
         {
-            return new emQuaternion( q.w * w.x + q.y * w.z - q.z * w.y,
-                 q.w * w.y + q.z * w.x - q.x * w.z,
-                 q.w * w.z + q.x * w.y - q.y * w.x,
-                 -q.x * w.x - q.y * w.y - q.z * w.z);
+            return new emQuaternion(q.w*w.x + q.y*w.z - q.z*w.y,
+                q.w*w.y + q.z*w.x - q.x*w.z,
+                q.w*w.z + q.x*w.y - q.y*w.x,
+                -q.x*w.x - q.y*w.y - q.z*w.z);
         }
 
         public static emQuaternion operator /(emQuaternion v1, float s)
@@ -1298,7 +1297,7 @@ namespace Ros_CSharp
 
         public override string ToString()
         {
-            return string.Format("quat=({0:F4},{1:F4},{2:F4},{3:F4})"/*, rpy={4}"*/, w, x, y, z/*, getRPY()*/);
+            return string.Format("quat=({0:F4},{1:F4},{2:F4},{3:F4})" /*, rpy={4}"*/, w, x, y, z /*, getRPY()*/);
         }
 
         public emVector3 getRPY()

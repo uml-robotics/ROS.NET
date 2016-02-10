@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Xml;
 
 #endregion
@@ -29,6 +28,7 @@ namespace XmlRpc_Wrapper
     public class XmlRpcServer : XmlRpcSource
     {
         #region Reference Tracking + unmanaged pointer management
+
         public void Shutdown()
         {
             _disp.Clear();
@@ -37,45 +37,46 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+        private static string SYSTEM_MULTICALL = "system.multicall";
+        private static string METHODNAME = "methodName";
+        private static string PARAMS = "params";
 
-        int _port;
-        static string SYSTEM_MULTICALL = "system.multicall";
-        static string METHODNAME = "methodName";
-        static string PARAMS = "params";
-
-        static string FAULTCODE = "faultCode";
-        static string FAULTSTRING = "faultString";
+        private static string FAULTCODE = "faultCode";
+        private static string FAULTSTRING = "faultString";
+        private static string LIST_METHODS = "system.listMethods";
+        private static string METHOD_HELP = "system.methodHelp";
+        private static string MULTICALL = "system.multicall";
+        private XmlRpcDispatch _disp = new XmlRpcDispatch();
+        // Whether the introspection API is supported by this server
+        private bool _introspectionEnabled;
+        private XmlRpcServerMethod _listMethods;
+        private XmlRpcServerMethod _methodHelp;
+        private Dictionary<string, XmlRpcServerMethod> _methods = new Dictionary<string, XmlRpcServerMethod>();
+        private int _port;
+        private TcpListener listener;
 
         public int Port
         {
-            [DebuggerStepThrough]
-            get
-            {
-                return _port;
-            }
+            [DebuggerStepThrough] get { return _port; }
         }
 
         public XmlRpcDispatch Dispatch
         {
-            [DebuggerStepThrough]
-            get
-            {
-                return _disp;
-            }
+            [DebuggerStepThrough] get { return _disp; }
         }
 
         public void AddMethod(XmlRpcServerMethod method)
         {
-            this._methods.Add(method.name, method);
+            _methods.Add(method.name, method);
         }
 
         public void RemoveMethod(XmlRpcServerMethod method)
         {
-            foreach (var rec in this._methods)
+            foreach (var rec in _methods)
             {
                 if (method == rec.Value)
                 {
-                    this._methods.Remove(rec.Key);
+                    _methods.Remove(rec.Key);
                     break;
                 }
             }
@@ -83,7 +84,7 @@ namespace XmlRpc_Wrapper
 
         public void RemoveMethod(string name)
         {
-            this._methods.Remove(name);
+            _methods.Remove(name);
         }
 
         public void Work(double msTime)
@@ -98,8 +99,8 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcServerMethod FindMethod(string name)
         {
-            if (this._methods.ContainsKey(name))
-                return this._methods[name];
+            if (_methods.ContainsKey(name))
+                return _methods[name];
             return null;
         }
 
@@ -107,25 +108,25 @@ namespace XmlRpc_Wrapper
         {
             return BindAndListen(port, 5);
         }
-        
+
         public override Socket getSocket()
         {
             return listener != null ? listener.Server : null;
         }
-        
+
 
         public bool BindAndListen(int port, int backlog)
         {
             IPAddress address = new IPAddress(0); // INADDR_ANY
             try
             {
-                this._port = port;
+                _port = port;
                 listener = new TcpListener(address, port);
                 listener.Start(backlog);
-                this._port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
+                _port = ((IPEndPoint) listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
-                XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", this._port);
+                XmlRpcUtil.log(2, "XmlRpcServer::bindAndListen: server listening on port {0}", _port);
             }
             catch (Exception ex)
             {
@@ -133,25 +134,15 @@ namespace XmlRpc_Wrapper
             }
             return true;
         }
-        
-        TcpListener listener;
-        // Event dispatcher
-        XmlRpcDispatch _disp = new XmlRpcDispatch();
-        // Whether the introspection API is supported by this server
-        bool _introspectionEnabled;
-        // Collection of methods. This could be a set keyed on method name if we wanted...
-        Dictionary<string, XmlRpcServerMethod> _methods = new Dictionary<string,XmlRpcServerMethod>();
-        // system methods
-        XmlRpcServerMethod _listMethods;
-        XmlRpcServerMethod _methodHelp;
 
         // Handle input on the server socket by accepting the connection
         // and reading the rpc request.
-        override public XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
+        public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
-          acceptConnection();
-          return XmlRpcDispatch.EventType.ReadableEvent;        // Continue to monitor this fd
+            acceptConnection();
+            return XmlRpcDispatch.EventType.ReadableEvent; // Continue to monitor this fd
         }
+
         /*
         private void acceptClient(IAsyncResult ar)
         {
@@ -165,24 +156,25 @@ namespace XmlRpc_Wrapper
                 XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
             }
         }*/
-        
+
         // Accept a client connection request and create a connection to
         // handle method calls from the client.
-        void acceptConnection()
-        {    
-            try{
-                TcpClient s = this.listener.AcceptTcpClient();
+        private void acceptConnection()
+        {
+            try
+            {
+                TcpClient s = listener.AcceptTcpClient();
                 XmlRpcUtil.log(2, "XmlRpcServer::acceptConnection: creating a connection");
-                _disp.AddSource(this.createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
+                _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
             }
-            catch(SocketException ex)
+            catch (SocketException ex)
             {
                 XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
             }
         }
-        
+
         // Create a new connection object for processing requests from a specific client.
-        XmlRpcServerConnection createConnection(TcpClient s)
+        private XmlRpcServerConnection createConnection(TcpClient s)
         {
             // Specify that the connection object be deleted when it is closed
             return new XmlRpcServerConnection(s, this, true);
@@ -192,17 +184,17 @@ namespace XmlRpc_Wrapper
         {
             _disp.RemoveSource(sc);
         }
-        
+
 
         // Stop processing client requests
-        void exit()
+        private void exit()
         {
             _disp.Exit();
         }
 
 
         // Close the server socket file descriptor and stop monitoring connections
-        void shutdown()
+        private void shutdown()
         {
             // This closes and destroys all connections as well as closing this socket
             _disp.Clear();
@@ -210,51 +202,8 @@ namespace XmlRpc_Wrapper
 
 
         // Introspection support
-        static string LIST_METHODS = "system.listMethods";
-        static string METHOD_HELP = "system.methodHelp";
-        static string MULTICALL = "system.multicall";
 
 
-        // List all methods available on a server
-        class ListMethods : XmlRpcServerMethod
-        {
-        public
-          ListMethods(XmlRpcServer s)
-                : base(LIST_METHODS, null, s) { this.FUNC = execute; }
-
-            void execute(XmlRpcValue parms, XmlRpcValue result)
-            {
-                server.listMethods(result);
-            }
-
-            string help() { return "List all methods available on a server as an array of strings"; }
-        };
-
-
-        // Retrieve the help string for a named method
-        class MethodHelp : XmlRpcServerMethod
-        {
-            public MethodHelp(XmlRpcServer s) : base(METHOD_HELP, null, s) 
-            {
-                this.FUNC = execute;
-            }
-
-            void execute(XmlRpcValue parms, XmlRpcValue result)
-            {
-            if (parms[0].Type != XmlRpcValue.ValueType.TypeString)
-                throw new XmlRpcException(METHOD_HELP + ": Invalid argument type");
-
-            XmlRpcServerMethod m = server.FindMethod(parms[0].GetString());
-            if (m == null)
-                throw new XmlRpcException(METHOD_HELP + ": Unknown method name");
-
-            result.Set(m.Help());
-            }
-
-            public override string Help() { return ("Retrieve the help string for a named method"); }
-        };
-
-    
         // Specify whether introspection is enabled or not. Default is enabled.
         public void enableIntrospection(bool enabled)
         {
@@ -265,11 +214,13 @@ namespace XmlRpc_Wrapper
 
             if (enabled)
             {
-                if ( _listMethods == null)
+                if (_listMethods == null)
                 {
                     _listMethods = new ListMethods(this);
                     _methodHelp = new MethodHelp(this);
-                } else {
+                }
+                else
+                {
                     AddMethod(_listMethods);
                     AddMethod(_methodHelp);
                 }
@@ -282,10 +233,10 @@ namespace XmlRpc_Wrapper
         }
 
 
-        void listMethods(XmlRpcValue result)
+        private void listMethods(XmlRpcValue result)
         {
             int i = 0;
-            result.SetArray(_methods.Count+1);
+            result.SetArray(_methods.Count + 1);
 
             foreach (var rec in _methods)
             {
@@ -298,6 +249,7 @@ namespace XmlRpc_Wrapper
             // Multicall support is built into XmlRpcServerConnection
             result.Set(i, MULTICALL);
         }
+
         // Run the method, generate _response string
         public string executeRequest(string _request)
         {
@@ -308,13 +260,11 @@ namespace XmlRpc_Wrapper
 
             try
             {
-
                 if (!executeMethod(methodName, parms, resultValue) &&
-                        !executeMulticall(methodName, parms, resultValue))
+                    !executeMulticall(methodName, parms, resultValue))
                     _response = generateFaultResponse(methodName + ": unknown method name");
                 else
                     _response = generateResponse(resultValue.toXml());
-
             }
             catch (XmlRpcException fault)
             {
@@ -323,6 +273,7 @@ namespace XmlRpc_Wrapper
             }
             return _response;
         }
+
         // Execute a named method with the specified params.
         public bool executeMethod(string methodName, XmlRpcValue parms, XmlRpcValue result)
         {
@@ -338,6 +289,7 @@ namespace XmlRpc_Wrapper
 
             return true;
         }
+
         // Create a response from results xml
         public string generateResponse(string resultXml)
         {
@@ -349,10 +301,10 @@ namespace XmlRpc_Wrapper
             string result = header + body;
             XmlRpcUtil.log(5, "XmlRpcServerConnection::generateResponse:\n{0}\n", result);
             return result;
-            
         }
+
         // Parse the method name and the argument values from the request.
-        string parseRequest(XmlRpcValue parms, string _request)
+        private string parseRequest(XmlRpcValue parms, string _request)
         {
             bool success = true;
             string methodName = "unknown";
@@ -428,7 +380,7 @@ namespace XmlRpc_Wrapper
                 }*/
                 //_request = "";
             }
-            
+
             /*
             int offset = 0;   // Number of chars parsed from the request
 
@@ -447,8 +399,9 @@ namespace XmlRpc_Wrapper
             */
             return methodName;
         }
+
         // Prepend http headers
-        string generateHeader(string body)
+        private string generateHeader(string body)
         {
             string header = "HTTP/1.1 200 OK\r\nServer: ";
             header += XmlRpcUtil.XMLRPC_VERSION;
@@ -475,6 +428,7 @@ namespace XmlRpc_Wrapper
 
             return header + body;
         }
+
         // Execute multiple calls and return the results in an array.
         public bool executeMulticall(string methodNameRoot, XmlRpcValue parms, XmlRpcValue result)
         {
@@ -490,7 +444,7 @@ namespace XmlRpc_Wrapper
             for (int i = 0; i < nc; ++i)
             {
                 if (!parms[0][i].hasMember(METHODNAME) ||
-                        !parms[0][i].hasMember(PARAMS))
+                    !parms[0][i].hasMember(PARAMS))
                 {
                     result[i].Set(FAULTCODE, -1);
                     result[i].Set(FAULTSTRING, SYSTEM_MULTICALL + ": Invalid argument (expected a struct with members methodName and params)");
@@ -512,7 +466,6 @@ namespace XmlRpc_Wrapper
                     }
                     else
                         result[i] = resultValue;
-
                 }
                 catch (XmlRpcException fault)
                 {
@@ -523,5 +476,52 @@ namespace XmlRpc_Wrapper
 
             return true;
         }
+
+        private class ListMethods : XmlRpcServerMethod
+        {
+            public
+                ListMethods(XmlRpcServer s)
+                : base(LIST_METHODS, null, s)
+            {
+                FUNC = execute;
+            }
+
+            private void execute(XmlRpcValue parms, XmlRpcValue result)
+            {
+                server.listMethods(result);
+            }
+
+            private string help()
+            {
+                return "List all methods available on a server as an array of strings";
+            }
+        };
+
+
+        // Retrieve the help string for a named method
+        private class MethodHelp : XmlRpcServerMethod
+        {
+            public MethodHelp(XmlRpcServer s) : base(METHOD_HELP, null, s)
+            {
+                FUNC = execute;
+            }
+
+            private void execute(XmlRpcValue parms, XmlRpcValue result)
+            {
+                if (parms[0].Type != XmlRpcValue.ValueType.TypeString)
+                    throw new XmlRpcException(METHOD_HELP + ": Invalid argument type");
+
+                XmlRpcServerMethod m = server.FindMethod(parms[0].GetString());
+                if (m == null)
+                    throw new XmlRpcException(METHOD_HELP + ": Unknown method name");
+
+                result.Set(m.Help());
+            }
+
+            public override string Help()
+            {
+                return ("Retrieve the help string for a named method");
+            }
+        };
     }
 }

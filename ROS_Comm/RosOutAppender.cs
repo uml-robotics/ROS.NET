@@ -8,11 +8,10 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,10 +39,9 @@ namespace Ros_CSharp
         }
 
         public ConcurrentQueue<IRosMessage> log_queue = new ConcurrentQueue<IRosMessage>();
+        private Log logmsg = new Log {msg = new m.String(), name = new m.String(this_node.Name), file = new m.String(), function = new m.String(), topics = new m.String[0]};
         public Thread publish_thread;
         public bool shutting_down;
-
-        private Log logmsg = new Log() {msg = new m.String(), name = new m.String(this_node.Name), file = new m.String(), function = new m.String(), topics=new m.String[0]};
 
         public RosOutAppender()
         {
@@ -78,7 +76,7 @@ namespace Ros_CSharp
             {
                 logmsg.topics = new m.String[advert.Count()];
                 int i = 0;
-                advert.ToList().ForEach((ad) => logmsg.topics[i++] = new m.String(ad));
+                advert.ToList().ForEach(ad => logmsg.topics[i++] = new m.String(ad));
             }
             log_queue.Enqueue(logmsg);
         }

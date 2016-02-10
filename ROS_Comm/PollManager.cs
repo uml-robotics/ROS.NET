@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -35,11 +35,10 @@ namespace Ros_CSharp
         private static PollManager _instance;
         private static object singleton_mutex = new object();
         public PollSet poll_set;
-        private List<Poll_Signal> signals = new List<Poll_Signal>();
-        public event Poll_Signal poll_signal;
 
         public bool shutting_down;
         public object signal_mutex = new object();
+        private List<Poll_Signal> signals = new List<Poll_Signal>();
         public TcpTransport tcpserver_transport;
         private Thread thread;
 
@@ -62,6 +61,8 @@ namespace Ros_CSharp
                 return _instance;
             }
         }
+
+        public event Poll_Signal poll_signal;
 
         public void addPollThreadListener(Poll_Signal poll)
         {
@@ -143,7 +144,7 @@ namespace Ros_CSharp
                 poll_set = null;
                 lock (signal_mutex)
                 {
-                    signals.ForEach((s) =>
+                    signals.ForEach(s =>
                                         {
                                             Console.WriteLine("PollManager cleanup: removing " + s.Method);
                                             poll_signal -= s;

@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -185,34 +185,31 @@ namespace Ros_CSharp
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return true;
                     }
-                    else
+                    if (!wait_for_master)
                     {
-                        if (!wait_for_master)
-                        {
-                            XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                            return false;
-                        }
-
-                        if (!printed)
-                        {
-                            EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                master_port, (wait_for_master ? "Retrying..." : ""));
-                            printed = true;
-                        }
-                        if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
-                        {
-                            EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                retryTimeout.TotalSeconds);
-                            XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                            return false;
-                        }
-
-                        //recreate the client, thereby causing it to reinitiate its connection (gross, but effective -- should really be done in xmlrpcwin32)
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        client = null;
-                        Thread.Sleep(50);
-                        client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+                        return false;
                     }
+
+                    if (!printed)
+                    {
+                        EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                            master_port, (wait_for_master ? "Retrying..." : ""));
+                        printed = true;
+                    }
+                    if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
+                    {
+                        EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                            retryTimeout.TotalSeconds);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
+
+                    //recreate the client, thereby causing it to reinitiate its connection (gross, but effective -- should really be done in xmlrpcwin32)
+                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                    client = null;
+                    Thread.Sleep(50);
+                    client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 }
             }
             catch (Exception e)

@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -136,7 +136,7 @@ namespace Ros_CSharp
         private static TimeSpan lastSimTime;
         //last sim time received time (wall)
         private static TimeSpan lastSimTimeReceived;
-        
+
 
         public static bool shutting_down
         {
@@ -174,17 +174,19 @@ namespace Ros_CSharp
         }
 
         #region time helpers
+
         internal static long ticksFromData(TimeData data)
         {
-            return data.sec * TimeSpan.TicksPerSecond + (uint)Math.Floor(data.nsec / 100.0);
+            return data.sec*TimeSpan.TicksPerSecond + (uint) Math.Floor(data.nsec/100.0);
         }
 
         internal static TimeData ticksToData(long ticks)
         {
-            uint seconds = (((uint)Math.Floor(ticks / (1.0 * TimeSpan.TicksPerSecond))));
-            uint nanoseconds = ((uint)Math.Floor((double)(ticks - (seconds * TimeSpan.TicksPerSecond))) * 100);
+            uint seconds = (((uint) Math.Floor(ticks/(1.0*TimeSpan.TicksPerSecond))));
+            uint nanoseconds = ((uint) Math.Floor((double) (ticks - (seconds*TimeSpan.TicksPerSecond)))*100);
             return new TimeData(seconds, nanoseconds);
         }
+
         #endregion
 
         /// <summary>
@@ -209,7 +211,7 @@ namespace Ros_CSharp
 
         public static T GetTime<T>(TimeSpan ts) where T : IRosMessage, new()
         {
-            T test = Activator.CreateInstance(typeof(T), GetTime(ts)) as T;
+            T test = Activator.CreateInstance(typeof (T), GetTime(ts)) as T;
             return test;
         }
 

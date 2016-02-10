@@ -1,67 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// File: XmlRpcServerConnection.cs
+// Project: XmlRpc_Wrapper
+// 
+// ROS.NET
+// Eric McCann <emccann@cs.uml.edu>
+// UMass Lowell Robotics Laboratory
+// 
+// Reimplementation of the ROS (ros.org) ros_cpp client in C#.
+// 
+// Created: 02/10/2016
+// Updated: 02/10/2016
+
+#region USINGZ
+
+using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Xml;
+
+#endregion
 
 namespace XmlRpc_Wrapper
 {
     /// <summary>
-    /// Incoming connection to XmlRpcServer
+    ///     Incoming connection to XmlRpcServer
     /// </summary>
     public class XmlRpcServerConnection : XmlRpcSource
     {
         // The XmlRpc server that accepted this connection
-        XmlRpcServer server;
-        // Possible IO states for the connection
-        enum ServerConnectionState 
-        { 
-            READ_HEADER, 
-            READ_REQUEST,
-            WRITE_RESPONSE 
-        };
-        ServerConnectionState _connectionState;
+
+        private int _bytesWritten;
+        private ServerConnectionState _connectionState;
 
         // Request headers
-        string _header;
 
         // Number of bytes expected in the request body (parsed from header)
-        int _contentLength;
+        private int _contentLength;
+        private string _header;
 
         // Request body
-        string _request;
-
-        // Response
-        //string _response;
-
-        // Number of bytes of the response written so far
-        int _bytesWritten;
 
         // Whether to keep the current client connection open for further requests
-        bool _keepAlive;
+        private bool _keepAlive;
+        private string _request;
+        private XmlRpcServer server;
 
-        TcpClient socket;
-        
+        private TcpClient socket;
+
         // The server delegates handling client requests to a serverConnection object.
-        public XmlRpcServerConnection(TcpClient fd, XmlRpcServer server, bool deleteOnClose /*= false*/) 
-        //: base(fd, deleteOnClose)
+        public XmlRpcServerConnection(TcpClient fd, XmlRpcServer server, bool deleteOnClose /*= false*/)
+            //: base(fd, deleteOnClose)
         {
-            XmlRpcUtil.log(2,"XmlRpcServerConnection: new socket %d.", fd);
+            XmlRpcUtil.log(2, "XmlRpcServerConnection: new socket %d.", fd);
             this.server = server;
-            this.socket = fd;
+            socket = fd;
             _connectionState = ServerConnectionState.READ_HEADER;
-            this.KeepOpen = true;
+            KeepOpen = true;
             _keepAlive = true;
         }
 
 
         ~XmlRpcServerConnection()
         {
-            XmlRpcUtil.log(4,"XmlRpcServerConnection dtor.");
+            XmlRpcUtil.log(4, "XmlRpcServerConnection dtor.");
             server.removeConnection(this);
         }
 
@@ -71,18 +72,18 @@ namespace XmlRpc_Wrapper
         public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
             if (_connectionState == ServerConnectionState.READ_HEADER)
-                if ( ! readHeader()) return 0;
+                if (! readHeader()) return 0;
             if (_connectionState == ServerConnectionState.READ_REQUEST)
-                if ( ! readRequest()) return 0;
+                if (! readRequest()) return 0;
 
             if (_connectionState == ServerConnectionState.WRITE_RESPONSE)
-                if ( ! writeResponse(_request)) return 0;
+                if (! writeResponse(_request)) return 0;
 
-            return (_connectionState == ServerConnectionState.WRITE_RESPONSE) 
+            return (_connectionState == ServerConnectionState.WRITE_RESPONSE)
                 ? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
         }
 
-        bool readHeader()
+        private bool readHeader()
         {
             // Read available data
             bool eof;
@@ -110,7 +111,7 @@ namespace XmlRpc_Wrapper
                 return false;
             if (dataLen > 0)
             {
-                _header += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+                _header += Encoding.Default.GetString(data, 0, dataLen);
             }
             if (_header.Length < 10)
                 return false;
@@ -118,33 +119,33 @@ namespace XmlRpc_Wrapper
 
             if (header.IndexHeaderEnd == 0)
                 return false;
-            var value = header.HTTPField[(int)HTTPHeaderField.Content_Length];
-            if(int.TryParse(value, out this._contentLength))
+            var value = header.HTTPField[(int) HTTPHeaderField.Content_Length];
+            if (int.TryParse(value, out _contentLength))
             {
-                _request = _header.Substring(header.IndexHeaderEnd+4);
+                _request = _header.Substring(header.IndexHeaderEnd + 4);
             }
-        
+
             XmlRpcUtil.log(3, "KeepAlive: {0}", _keepAlive);
-            _header = ""; 
+            _header = "";
             _connectionState = ServerConnectionState.READ_REQUEST;
-            return true;    // Continue monitoring this source
+            return true; // Continue monitoring this source
         }
 
         public override void Close()
         {
             XmlRpcUtil.log(3, "XmlRpcServerConnection is closing");
-            if (this.socket != null)
+            if (socket != null)
             {
-                this.socket.Close();
-                this.socket = null;
+                socket.Close();
+                socket = null;
             }
         }
 
-        bool readRequest()
+        private bool readRequest()
         {
-            if (this._request == null)
-                this._request = "";
-            int left = this._contentLength - _request.Length;
+            if (_request == null)
+                _request = "";
+            int left = _contentLength - _request.Length;
             int dataLen = 0;
             if (left > 0)
             {
@@ -164,20 +165,20 @@ namespace XmlRpc_Wrapper
                     XmlRpcUtil.error("XmlRpcServerConnection::readRequest: error while reading the rest of data ({0}).", ex.Message);
                     return false;
                 }
-                _request += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+                _request += Encoding.Default.GetString(data, 0, dataLen);
             }
             // Otherwise, parse and dispatch the request
             XmlRpcUtil.log(3, "XmlRpcServerConnection::readRequest read {0} bytes.", _request.Length);
 
             _connectionState = ServerConnectionState.WRITE_RESPONSE;
 
-            return true;    // Continue monitoring this source
+            return true; // Continue monitoring this source
         }
 
-        bool writeResponse(string request)
+        private bool writeResponse(string request)
         {
             string response = server.executeRequest(request);
-            if (response.Length == 0) 
+            if (response.Length == 0)
             {
                 XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: empty response.");
                 return false;
@@ -209,7 +210,7 @@ namespace XmlRpc_Wrapper
             XmlRpcUtil.log(3, "XmlRpcServerConnection::writeResponse: wrote {0} of {0} bytes.", _bytesWritten, response.Length);
 
             // Prepare to read the next request
-            if (_bytesWritten == response.Length) 
+            if (_bytesWritten == response.Length)
             {
                 _header = "";
                 _request = "";
@@ -217,12 +218,19 @@ namespace XmlRpc_Wrapper
                 _connectionState = ServerConnectionState.READ_HEADER;
             }
 
-            return _keepAlive;    // Continue monitoring this source if true
+            return _keepAlive; // Continue monitoring this source if true
         }
 
         public override Socket getSocket()
         {
-            return this.socket.Client;
+            return socket.Client;
         }
+
+        private enum ServerConnectionState
+        {
+            READ_HEADER,
+            READ_REQUEST,
+            WRITE_RESPONSE
+        };
     }
 }

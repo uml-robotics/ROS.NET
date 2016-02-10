@@ -7,17 +7,13 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 //#define REFDEBUGWrapper
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading;
 
 #endregion
 
@@ -25,7 +21,6 @@ namespace XmlRpc_Wrapper
 {
     public class XmlRpcServerMethod //: IDisposable
     {
-
         private XMLRPCFunc _FUNC;
 
         public string name;
@@ -38,7 +33,7 @@ namespace XmlRpc_Wrapper
             this.server = server;
             //SegFault();
             FUNC = func;
-            if(server != null)
+            if (server != null)
                 server.AddMethod(this);
         }
 
@@ -68,6 +63,7 @@ namespace XmlRpc_Wrapper
             return "no help";
         }
     }
+
     //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void XMLRPCFunc(XmlRpcValue parms, XmlRpcValue reseseses);
 }

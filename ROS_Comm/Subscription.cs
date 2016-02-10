@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -221,7 +221,7 @@ namespace Ros_CSharp
                 {
 #if DEBUG
                     EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
-                                    "] at [" + link.XmlRpc_Uri + "]");
+                                  "] at [" + link.XmlRpc_Uri + "]");
 #endif
                     link.drop();
                 }
@@ -270,7 +270,7 @@ namespace Ros_CSharp
             }
 #if DEBUG
             EDB.WriteLine("Began asynchronous xmlrpc connection to http://" + peer_host + ":" + peer_port + "/ for topic [" + name +
-                              "]");
+                          "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri, Params);
             lock (pending_connections_mutex)

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -16,9 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 
 #endregion
 
@@ -39,28 +37,25 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
-        class DispatchRecord
-        {
-            public XmlRpcSource client;
-            public XmlRpcDispatch.EventType mask;
-        }
-
-        List<DispatchRecord> sources = new List<DispatchRecord>();
+        private bool _doClear;
+        private double _endTime;
+        private bool _inWork;
+        private List<DispatchRecord> sources = new List<DispatchRecord>();
 
         public void SegFault()
         {
             // 
         }
 
-        public void AddSource(XmlRpcSource source, XmlRpcDispatch.EventType eventMask)
+        public void AddSource(XmlRpcSource source, EventType eventMask)
         {
-            sources.Add(new DispatchRecord(){client = source, mask = eventMask});
+            sources.Add(new DispatchRecord {client = source, mask = eventMask});
             //addsource(instance, source.instance, (uint) eventMask);
         }
 
         public void RemoveSource(XmlRpcSource source)
         {
-            foreach(var record in sources)
+            foreach (var record in sources)
             {
                 if (record.client == source)
                 {
@@ -70,7 +65,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public void SetSourceEvents(XmlRpcSource source, XmlRpcDispatch.EventType eventMask)
+        public void SetSourceEvents(XmlRpcSource source, EventType eventMask)
         {
             foreach (var record in sources)
             {
@@ -81,9 +76,9 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        void CheckSources(List<DispatchRecord> sources, double timeout, List<XmlRpcSource> toRemove)
+        private void CheckSources(List<DispatchRecord> sources, double timeout, List<XmlRpcSource> toRemove)
         {
-            XmlRpcDispatch.EventType defaultMask = XmlRpcDispatch.EventType.ReadableEvent | XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception;
+            EventType defaultMask = EventType.ReadableEvent | EventType.WritableEvent | EventType.Exception;
 
             ArrayList checkRead = new ArrayList();
             ArrayList checkWrite = new ArrayList();
@@ -95,12 +90,12 @@ namespace XmlRpc_Wrapper
                 if (sock == null)
                     continue;
                 var mask = src.mask;
-                if ((mask & XmlRpcDispatch.EventType.ReadableEvent) != 0)
-                    checkRead.Add(sock);// FD_SET(fd, &inFd);
-                if ((mask & XmlRpcDispatch.EventType.WritableEvent) != 0)
+                if ((mask & EventType.ReadableEvent) != 0)
+                    checkRead.Add(sock); // FD_SET(fd, &inFd);
+                if ((mask & EventType.WritableEvent) != 0)
                     checkWrite.Add(sock);
                 //FD_SET(fd, &outFd);
-                if ((mask & XmlRpcDispatch.EventType.Exception) != 0)
+                if ((mask & EventType.Exception) != 0)
                     checkExc.Add(sock);
             }
 
@@ -113,7 +108,7 @@ namespace XmlRpc_Wrapper
                 //struct timeval tv;
                 //tv.tv_sec = (int)floor(timeout);
                 //tv.tv_usec = ((int)floor(1000000.0 * (timeout-floor(timeout)))) % 1000000;
-                Socket.Select(checkRead, checkWrite, checkExc, (int)(timeout * 1000000.0));
+                Socket.Select(checkRead, checkWrite, checkExc, (int) (timeout*1000000.0));
                 //nEvents = select(maxFd+1, &inFd, &outFd, &excFd, &tv);
             }
 
@@ -131,17 +126,17 @@ namespace XmlRpc_Wrapper
             foreach (var record in sourcesCopy)
             {
                 XmlRpcSource src = record.client;
-                XmlRpcDispatch.EventType newMask = defaultMask;// (unsigned) -1;
+                EventType newMask = defaultMask; // (unsigned) -1;
                 Socket sock = src.getSocket();
                 if (sock == null)
-                    continue;    // Seems like this is serious error
+                    continue; // Seems like this is serious error
                 // If you select on multiple event types this could be ambiguous
                 if (checkRead.Contains(sock))
-                    newMask &= src.HandleEvent(XmlRpcDispatch.EventType.ReadableEvent);
+                    newMask &= src.HandleEvent(EventType.ReadableEvent);
                 if (checkWrite.Contains(sock))
-                    newMask &= src.HandleEvent(XmlRpcDispatch.EventType.WritableEvent);
+                    newMask &= src.HandleEvent(EventType.WritableEvent);
                 if (checkExc.Contains(sock))
-                    newMask &= src.HandleEvent(XmlRpcDispatch.EventType.Exception);
+                    newMask &= src.HandleEvent(EventType.Exception);
 
                 // Find the source again.  It may have moved as a result of the way
                 // that sources are removed and added in the call stack starting
@@ -188,15 +183,15 @@ namespace XmlRpc_Wrapper
 
                 foreach (var src in toRemove)
                 {
-                    this.RemoveSource(src);
+                    RemoveSource(src);
                     if (!src.KeepOpen)
                         src.Close();
                 }
-                
+
                 if (_doClear)
                 {
                     var closeList = sources;
-                    this.sources = new List<DispatchRecord>();
+                    sources = new List<DispatchRecord>();
                     foreach (var it in closeList)
                     {
                         it.client.Close();
@@ -207,7 +202,7 @@ namespace XmlRpc_Wrapper
 
                 // Check whether end time has passed
                 if (0 <= _endTime && getTime() > _endTime)
-                  break;
+                    break;
             }
             _inWork = false;
             //work(instance, msTime);
@@ -239,13 +234,15 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        double _endTime = 0.0;
-        bool _doClear;
-        bool _inWork;
-
         public double getTime()
         {
-            return 0.001 * Environment.TickCount;
+            return 0.001*Environment.TickCount;
+        }
+
+        private class DispatchRecord
+        {
+            public XmlRpcSource client;
+            public EventType mask;
         }
     }
 }

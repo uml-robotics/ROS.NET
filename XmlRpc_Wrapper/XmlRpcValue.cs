@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -16,16 +16,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Xml;
 
 #endregion
 
 namespace XmlRpc_Wrapper
-{    
+{
     //TODO: OPERATOR GARBAGE?
     [Serializable]
-    public class XmlRpcValue// : IDisposable
+    public class XmlRpcValue // : IDisposable
     {
         public enum ValueType
         {
@@ -41,15 +40,74 @@ namespace XmlRpc_Wrapper
             TypeIDFK
         }
 
+        /*
+        [DebuggerStepThrough]
+        public XmlRpcValue(XmlRpcValue value)
+            : this(value.instance)
+        {
+            this._type = value._type;
+
+            switch (_type) 
+            {    // Ensure there is a valid value for the type
+            case ValueType.TypeString:   asString = ""; 
+                break;
+            case ValueType.TypeDateTime: 
+                asTime = value.asTime;
+                break;
+            case ValueType.TypeBase64:
+                Array.Copy(value.asBinary, asBinary, value.asBinary.Length);
+                break;
+            case ValueType.TypeArray:
+                asArray = new ValueArray();   
+                break;
+            case ValueType.TypeStruct:   asStruct = new ValueStruct(); 
+                break;
+            }
+            this.variantValue = value.variantValue;
+        }*/
+        /*
+        [DebuggerStepThrough]
+        public XmlRpcValue(IntPtr existingptr)
+        {
+            if (existingptr == IntPtr.Zero)
+                throw new Exception("SUCK IS CONTAGEOUS!");
+            __instance = existingptr;
+            AddRef(existingptr);
+        }
+        */
+        private static string VALUE_TAG = "value";
+        private static string BOOLEAN_TAG = "boolean";
+        private static string DOUBLE_TAG = "double";
+        private static string INT_TAG = "int";
+        private static string I4_TAG = "i4";
+        private static string STRING_TAG = "string";
+        private static string DATETIME_TAG = "dateTime.iso8601";
+        private static string BASE64_TAG = "base64";
+        private static string ARRAY_TAG = "array";
+        private static string DATA_TAG = "data";
+        private static string STRUCT_TAG = "struct";
+        private static string MEMBER_TAG = "member";
+        private static string NAME_TAG = "name";
+
+        // Format strings
+        private string _doubleFormat = "%.16g";
+
+        // Type tag and values
+        private ValueType _type;
+        public XmlRpcValue[] asArray;
+        public byte[] asBinary;
+
+        public bool asBool;
+        public double asDouble;
+        public int asInt;
+        public string asString;
+        public Dictionary<string, XmlRpcValue> asStruct;
+        public tm asTime;
+
         [DebuggerStepThrough]
         public XmlRpcValue()
         {
-           _type = ValueType.TypeInvalid;
-        }
-
-        public void Dump()
-        {
-            // Dunno what to do here
+            _type = ValueType.TypeInvalid;
         }
 
         [DebuggerStepThrough]
@@ -90,8 +148,8 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public XmlRpcValue(int value)
         {
-            asInt = value;            
-            _type = ValueType.TypeInt;            
+            asInt = value;
+            _type = ValueType.TypeInt;
         }
 
         [DebuggerStepThrough]
@@ -107,85 +165,90 @@ namespace XmlRpc_Wrapper
             asString = value;
             _type = ValueType.TypeString;
         }
-        /*
-        [DebuggerStepThrough]
-        public XmlRpcValue(XmlRpcValue value)
-            : this(value.instance)
-        {
-            this._type = value._type;
 
-            switch (_type) 
-            {    // Ensure there is a valid value for the type
-            case ValueType.TypeString:   asString = ""; 
-                break;
-            case ValueType.TypeDateTime: 
-                asTime = value.asTime;
-                break;
-            case ValueType.TypeBase64:
-                Array.Copy(value.asBinary, asBinary, value.asBinary.Length);
-                break;
-            case ValueType.TypeArray:
-                asArray = new ValueArray();   
-                break;
-            case ValueType.TypeStruct:   asStruct = new ValueStruct(); 
-                break;
+        public int Length
+        {
+            get
+            {
+                switch (_type)
+                {
+                    case ValueType.TypeString:
+                        return asString.Length;
+                    case ValueType.TypeBase64:
+                        return asBinary.Length;
+                    case ValueType.TypeArray:
+                        return asArray.Length;
+                    case ValueType.TypeStruct:
+                        return asStruct.Count;
+                    default:
+                        break;
+                }
+
+                XmlRpcUtil.log(4, "Trying to get size of something without a size! -- type={0}", _type);
+                throw new XmlRpcException("type error");
             }
-            this.variantValue = value.variantValue;
-        }*/
-        /*
-        [DebuggerStepThrough]
-        public XmlRpcValue(IntPtr existingptr)
-        {
-            if (existingptr == IntPtr.Zero)
-                throw new Exception("SUCK IS CONTAGEOUS!");
-            __instance = existingptr;
-            AddRef(existingptr);
         }
-        */
-        static string VALUE_TAG = "value";
-        static string BOOLEAN_TAG = "boolean";
-        static string DOUBLE_TAG = "double";
-        static string INT_TAG = "int";
-        static string I4_TAG = "i4";
-        static string STRING_TAG = "string";
-        static string DATETIME_TAG = "dateTime.iso8601";
-        static string BASE64_TAG = "base64";
-        static string ARRAY_TAG = "array";
-        static string DATA_TAG = "data";
-        static string STRUCT_TAG = "struct";
-        static string MEMBER_TAG = "member";
-        static string NAME_TAG = "name";
-        
-        // Format strings
-        string _doubleFormat = "%.16g";
 
-        // Type tag and values
-        ValueType _type;
-
-        public class tm 
+        public bool Valid
         {
-            public int tm_sec;     /* seconds after the minute - [0,59] */
-            public int tm_min;     /* minutes after the hour - [0,59] */
-            public int tm_hour;    /* hours since midnight - [0,23] */
-            public int tm_mday;    /* day of the month - [1,31] */
-            public int tm_mon;     /* months since January - [0,11] */
-            public int tm_year;    /* years since 1900 */
-            public int tm_wday;    /* days since Sunday - [0,6] */
-            public int tm_yday;    /* days since January 1 - [0,365] */
-            public int tm_isdst;   /* daylight savings time flag */
-        };
-        
-        public string asString;
-        public tm asTime;
-        public int asInt;
-        public bool asBool;
-        public double asDouble;
-        public byte[] asBinary;
-        public XmlRpcValue[] asArray;
-        public Dictionary<string, XmlRpcValue> asStruct;
+            [DebuggerStepThrough] get { return _type != ValueType.TypeInvalid; }
+        }
+
+        public ValueType Type
+        {
+            [DebuggerStepThrough] get { return _type; }
+        }
+
+        public int Size
+        {
+            [DebuggerStepThrough]
+            get
+            {
+                if (!Valid || Type == ValueType.TypeInvalid || Type == ValueType.TypeIDFK)
+                {
+                    return 0;
+                }
+                if (Type != ValueType.TypeString && Type != ValueType.TypeStruct && Type != ValueType.TypeArray)
+                    return 0;
+                if (Type == ValueType.TypeArray)
+                    return asArray.Length;
+                if (Type == ValueType.TypeString)
+                    return asString.Length;
+                if (Type == ValueType.TypeStruct)
+                    return asStruct.Count;
+                return 0;
+            }
+        }
+
+        public XmlRpcValue this[int key]
+        {
+            [DebuggerStepThrough]
+            get
+            {
+                EnsureArraySize(key);
+                return Get(key);
+            }
+            [DebuggerStepThrough]
+            set
+            {
+                EnsureArraySize(key);
+                Set(key, value);
+            }
+        }
+
+        public XmlRpcValue this[string key]
+        {
+            [DebuggerStepThrough] get { return Get(key); }
+            [DebuggerStepThrough] set { Set(key, value); }
+        }
+
+        public void Dump()
+        {
+            // Dunno what to do here
+        }
 
         // Clean up
-        void invalidate()
+        private void invalidate()
         {
             _type = ValueType.TypeInvalid;
             asStruct = null;
@@ -196,106 +259,116 @@ namespace XmlRpc_Wrapper
             asTime = null;
         }
 
-        void assertArray(int size)
+        private void assertArray(int size)
         {
-            if (_type == ValueType.TypeInvalid) 
+            if (_type == ValueType.TypeInvalid)
             {
                 _type = ValueType.TypeArray;
                 asArray = new XmlRpcValue[size];
-            } else if (_type == ValueType.TypeArray) 
+            }
+            else if (_type == ValueType.TypeArray)
             {
                 if (asArray.Length < size)
-                    Array.Resize<XmlRpcValue>(ref this.asArray, size);
-            } else
+                    Array.Resize(ref asArray, size);
+            }
+            else
                 throw new XmlRpcException("type error: expected an array");
         }
 
-        void assertStruct()
+        private void assertStruct()
         {
-            if (_type == ValueType.TypeInvalid) {
+            if (_type == ValueType.TypeInvalid)
+            {
                 _type = ValueType.TypeStruct;
-                asStruct = new  Dictionary<string, XmlRpcValue>();
-            } else if (_type != ValueType.TypeStruct)
+                asStruct = new Dictionary<string, XmlRpcValue>();
+            }
+            else if (_type != ValueType.TypeStruct)
                 throw new XmlRpcException("type error: expected a struct");
         }
 
-      // Predicate for tm equality
-        static bool tmEq(tm t1, tm t2) 
+        // Predicate for tm equality
+        private static bool tmEq(tm t1, tm t2)
         {
-        return t1.tm_sec == t2.tm_sec && t1.tm_min == t2.tm_min &&
-                t1.tm_hour == t2.tm_hour && t1.tm_mday == t2.tm_mday &&
-                t1.tm_mon == t2.tm_mon && t1.tm_year == t2.tm_year;
+            return t1.tm_sec == t2.tm_sec && t1.tm_min == t2.tm_min &&
+                   t1.tm_hour == t2.tm_hour && t1.tm_mday == t2.tm_mday &&
+                   t1.tm_mon == t2.tm_mon && t1.tm_year == t2.tm_year;
         }
-    
+
         public override bool Equals(object obj)
         {
-            XmlRpcValue other = (XmlRpcValue)obj;
-      
+            XmlRpcValue other = (XmlRpcValue) obj;
+
             if (_type != other._type)
                 return false;
 
-            switch (_type) {
-                case ValueType.TypeBoolean:  return asBool == other.asBool;
-                case ValueType.TypeInt:      return asInt == other.asInt;
-                case ValueType.TypeDouble:   return asDouble == other.asDouble;
-                case ValueType.TypeDateTime: return tmEq(asTime, other.asTime);
-                case ValueType.TypeString:   return asString.Equals(other.asString);
-                case ValueType.TypeBase64:   return asBinary == other.asBinary;
-                case ValueType.TypeArray:    return asArray == other.asArray;
+            switch (_type)
+            {
+                case ValueType.TypeBoolean:
+                    return asBool == other.asBool;
+                case ValueType.TypeInt:
+                    return asInt == other.asInt;
+                case ValueType.TypeDouble:
+                    return asDouble == other.asDouble;
+                case ValueType.TypeDateTime:
+                    return tmEq(asTime, other.asTime);
+                case ValueType.TypeString:
+                    return asString.Equals(other.asString);
+                case ValueType.TypeBase64:
+                    return asBinary == other.asBinary;
+                case ValueType.TypeArray:
+                    return asArray == other.asArray;
 
-                // The map<>::operator== requires the definition of value< for kcc
-                case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
+                    // The map<>::operator== requires the definition of value< for kcc
+                case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
                 {
                     if (asStruct.Count != other.asStruct.Count)
-                    return false;
+                        return false;
                     var aenum = asStruct.GetEnumerator();
-                    var benum = other.asStruct.GetEnumerator();            
-            
-                    while (aenum.MoveNext() && benum.MoveNext()) 
+                    var benum = other.asStruct.GetEnumerator();
+
+                    while (aenum.MoveNext() && benum.MoveNext())
                     {
                         if (!aenum.Current.Value.Equals(benum.Current.Value))
                             return false;
                     }
                     return true;
                 }
-                default: break;
+                default:
+                    break;
             }
-            return true;    // Both invalid values ...
+            return true; // Both invalid values ...
         }
-    
-        // Works for strings, binary data, arrays, and structs.
-        public int Length
-        {
-            get
-            {
-                switch (_type) 
-                {
-                    case ValueType.TypeString: return asString.Length;
-                    case ValueType.TypeBase64: return asBinary.Length;
-                    case ValueType.TypeArray:  return asArray.Length;
-                    case ValueType.TypeStruct: return asStruct.Count;
-                    default: break;
-                }
 
-                XmlRpcUtil.log(4, "Trying to get size of something without a size! -- type={0}", _type);
-                throw new XmlRpcException("type error");
-            }
-        }
+        // Works for strings, binary data, arrays, and structs.
 
         public void Copy(XmlRpcValue other)
         {
             switch (other._type)
             {
-                case ValueType.TypeBoolean: asBool = other.asBool; break;
-                case ValueType.TypeInt: asInt = other.asInt; break;
-                case ValueType.TypeDouble: asDouble = other.asDouble; break;
-                case ValueType.TypeDateTime: asTime = other.asTime; break;
-                case ValueType.TypeString: asString = other.asString; break;
-                case ValueType.TypeBase64: asBinary = other.asBinary; break;
-                case ValueType.TypeArray: asArray = other.asArray; break;
+                case ValueType.TypeBoolean:
+                    asBool = other.asBool;
+                    break;
+                case ValueType.TypeInt:
+                    asInt = other.asInt;
+                    break;
+                case ValueType.TypeDouble:
+                    asDouble = other.asDouble;
+                    break;
+                case ValueType.TypeDateTime:
+                    asTime = other.asTime;
+                    break;
+                case ValueType.TypeString:
+                    asString = other.asString;
+                    break;
+                case ValueType.TypeBase64:
+                    asBinary = other.asBinary;
+                    break;
+                case ValueType.TypeArray:
+                    asArray = other.asArray;
+                    break;
 
-                // The map<>::operator== requires the definition of value< for kcc
-                case ValueType.TypeStruct:   //return *_value.asStruct == *other._value.asStruct;
+                    // The map<>::operator== requires the definition of value< for kcc
+                case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
                     asStruct = other.asStruct;
                     break;
             }
@@ -308,10 +381,10 @@ namespace XmlRpc_Wrapper
             return _type == ValueType.TypeStruct && asStruct.ContainsKey(name);
         }
 
-        void parseString(XmlNode node)
+        private void parseString(XmlNode node)
         {
-            this._type = ValueType.TypeString;
-            this.asString = node.InnerText;
+            _type = ValueType.TypeString;
+            asString = node.InnerText;
         }
 
         public bool fromXml(XmlNode value)
@@ -323,33 +396,33 @@ namespace XmlRpc_Wrapper
                 //XmlElement value = node["value"];
                 if (value == null)
                     return false;
-                
+
                 string tex = value.InnerText;
                 XmlElement val;
                 if ((val = value[BOOLEAN_TAG]) != null)
                 {
-                    this._type = ValueType.TypeBoolean;
+                    _type = ValueType.TypeBoolean;
                     int tmp = 0;
                     if (!int.TryParse(tex, out tmp))
                         return false;
-                    if(tmp != 0 && tmp != 1)
+                    if (tmp != 0 && tmp != 1)
                         return false;
-                    this.asBool = (tmp == 0 ? false : true);
+                    asBool = (tmp == 0 ? false : true);
                 }
                 else if ((val = value[I4_TAG]) != null)
                 {
-                    this._type = ValueType.TypeInt;
+                    _type = ValueType.TypeInt;
                     return int.TryParse(tex, out asInt);
                 }
                 else if ((val = value[INT_TAG]) != null)
                 {
-                    this._type = ValueType.TypeInt;
+                    _type = ValueType.TypeInt;
                     return int.TryParse(tex, out asInt);
                 }
                 else if ((val = value[DOUBLE_TAG]) != null)
                 {
-                    this._type = ValueType.TypeDouble;
-                    return double.TryParse(tex, out this.asDouble);
+                    _type = ValueType.TypeDouble;
+                    return double.TryParse(tex, out asDouble);
                 }
                 else if ((val = value[DATETIME_TAG]) != null)
                 {
@@ -361,8 +434,8 @@ namespace XmlRpc_Wrapper
                 }
                 else if ((val = value[STRING_TAG]) != null)
                 {
-                    this._type = ValueType.TypeString;
-                    this.asString = tex;
+                    _type = ValueType.TypeString;
+                    asString = tex;
                 }
                 else if ((val = value[ARRAY_TAG]) != null)
                 {
@@ -385,8 +458,8 @@ namespace XmlRpc_Wrapper
                 }
                 else
                 {
-                    this._type = ValueType.TypeString;
-                    this.asString = tex;
+                    _type = ValueType.TypeString;
+                    asString = tex;
                 }
             }
             catch (Exception ex)
@@ -412,11 +485,12 @@ namespace XmlRpc_Wrapper
             string result = strm.ToString();
             return result;
         }
+
         public XmlNode toXml(XmlDocument doc, XmlNode parent)
         {
             XmlElement root = doc.CreateElement(VALUE_TAG);
             XmlElement el = null;
-            switch (this._type)
+            switch (_type)
             {
                 case ValueType.TypeBoolean:
                     el = doc.CreateElement(BOOLEAN_TAG);
@@ -434,15 +508,15 @@ namespace XmlRpc_Wrapper
                     el = doc.CreateElement(DATETIME_TAG);
                     el.AppendChild(doc.CreateTextNode(asTime.ToString()));
                     break;
-                case ValueType.TypeString: 
+                case ValueType.TypeString:
                     //asString = other.asString; 
                     el = doc.CreateElement(STRING_TAG);
                     el.AppendChild(doc.CreateTextNode(asString));
                     break;
-                case ValueType.TypeBase64: 
+                case ValueType.TypeBase64:
                     //asBinary = other.asBinary; 
                     el = doc.CreateElement(BASE64_TAG);
-                    var base64 = System.Convert.ToBase64String(asBinary);
+                    var base64 = Convert.ToBase64String(asBinary);
                     el.AppendChild(doc.CreateTextNode(base64));
                     break;
                 case ValueType.TypeArray:
@@ -456,7 +530,7 @@ namespace XmlRpc_Wrapper
                     break;
                 case ValueType.TypeStruct:
                     el = doc.CreateElement(STRUCT_TAG);
-                    foreach (var record in this.asStruct)
+                    foreach (var record in asStruct)
                     {
                         var member = doc.CreateElement(MEMBER_TAG);
                         var name = doc.CreateElement(NAME_TAG);
@@ -468,50 +542,11 @@ namespace XmlRpc_Wrapper
                     break;
             }
 
-            if(el != null)
+            if (el != null)
                 root.AppendChild(el);
 
             parent.AppendChild(root);
             return root;
-        }
-
-        public bool Valid
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                return this._type != ValueType.TypeInvalid;
-            }
-        }
-    
-        public ValueType Type
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                return _type;
-            }
-        }
-
-        public int Size
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                if (!Valid || Type == ValueType.TypeInvalid || Type == ValueType.TypeIDFK)
-                {
-                    return 0;
-                }
-                if (Type != ValueType.TypeString && Type != ValueType.TypeStruct && Type != ValueType.TypeArray)
-                    return 0;
-                if (Type == ValueType.TypeArray)
-                    return asArray.Length;
-                else if (Type == ValueType.TypeString)
-                    return asString.Length;
-                else if (Type == ValueType.TypeStruct)
-                    return asStruct.Count;
-                return 0;
-            }
         }
 
         [DebuggerStepThrough]
@@ -519,13 +554,13 @@ namespace XmlRpc_Wrapper
         {
             if (t is string)
             {
-                this._type = ValueType.TypeString;
-                this.asString = (string)(object)t;
+                _type = ValueType.TypeString;
+                asString = (string) (object) t;
             }
             else if (0 is T)
             {
-                this._type = ValueType.TypeInt;
-                this.asInt = (int)(object)t;
+                _type = ValueType.TypeInt;
+                asInt = (int) (object) t;
             }
             else if (this is T)
             {
@@ -533,13 +568,13 @@ namespace XmlRpc_Wrapper
             }
             else if (t is bool)
             {
-                asBool = (bool)(object)t;
-                this._type = ValueType.TypeBoolean;
+                asBool = (bool) (object) t;
+                _type = ValueType.TypeBoolean;
             }
             else if (0d is T)
             {
-                asDouble = (double)(object)t;
-                this._type = ValueType.TypeDouble;
+                asDouble = (double) (object) t;
+                _type = ValueType.TypeDouble;
             }
             else if (t is XmlRpcValue)
             {
@@ -553,38 +588,14 @@ namespace XmlRpc_Wrapper
                 throw new Exception("Converting to array existing value");
             if (asArray != null)
             {
-                if (asArray.Length < size+1)
-                    Array.Resize(ref asArray, size+1);
+                if (asArray.Length < size + 1)
+                    Array.Resize(ref asArray, size + 1);
             }
             else
-                asArray = new XmlRpcValue[size+1];
-            this._type = ValueType.TypeArray;
-        }
-    
-        public XmlRpcValue this[int key]
-        {
-            [DebuggerStepThrough]
-            get 
-            {
-                EnsureArraySize(key);
-                return Get(key); 
-            }
-            [DebuggerStepThrough]
-            set 
-            {
-                EnsureArraySize(key);
-                Set(key, value); 
-            }
+                asArray = new XmlRpcValue[size + 1];
+            _type = ValueType.TypeArray;
         }
 
-        public XmlRpcValue this[string key]
-        {
-            [DebuggerStepThrough]
-            get { return Get(key); }
-            [DebuggerStepThrough]
-            set { Set(key, value); }
-        }
-        
         [DebuggerStepThrough]
         public void Set<T>(int key, T t)
         {
@@ -598,8 +609,8 @@ namespace XmlRpc_Wrapper
 
         public void SetArray(int maxSize)
         {
-            this._type = ValueType.TypeArray;
-            this.asArray = new XmlRpcValue[maxSize];
+            _type = ValueType.TypeArray;
+            asArray = new XmlRpcValue[maxSize];
         }
 
         [DebuggerStepThrough]
@@ -688,6 +699,20 @@ namespace XmlRpc_Wrapper
         {
             return asDouble;
         }
+
+        public class tm
+        {
+            public int tm_hour; /* hours since midnight - [0,23] */
+            public int tm_isdst; /* daylight savings time flag */
+            public int tm_mday; /* day of the month - [1,31] */
+            public int tm_min; /* minutes after the hour - [0,59] */
+            public int tm_mon; /* months since January - [0,11] */
+            public int tm_sec; /* seconds after the minute - [0,59] */
+            public int tm_wday; /* days since Sunday - [0,6] */
+            public int tm_yday; /* days since January 1 - [0,365] */
+            public int tm_year; /* years since 1900 */
+        };
+
         /*
         [DebuggerStepThrough]
         public override string ToString()

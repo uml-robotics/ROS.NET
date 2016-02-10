@@ -7,18 +7,17 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 //#define REFDEBUG
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Xml;
 
 #endregion
@@ -28,18 +27,38 @@ namespace XmlRpc_Wrapper
     [DebuggerStepThrough]
     public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
-        TcpClient socket;
-
         // Static data
-        static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
-        static string REQUEST_END_METHODNAME = "</methodName>\r\n";
-        static string PARAMS_TAG = "<params>";
-        static string PARAMS_ETAG = "</params>";
-        static string PARAM_TAG = "<param>";
-        static string PARAM_ETAG = "</param>";
-        static string REQUEST_END = "</methodCall>\r\n";
-        
+        private static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
+        private static string REQUEST_END_METHODNAME = "</methodName>\r\n";
+        private static string PARAMS_TAG = "<params>";
+        private static string PARAMS_ETAG = "</params>";
+        private static string PARAM_TAG = "<param>";
+        private static string PARAM_ETAG = "</param>";
+        private static string REQUEST_END = "</methodCall>\r\n";
+
         public string HostUri = "";
+        private int _bytesWritten;
+        private ConnectionState _connectionState;
+        private int _contentLength;
+
+        // Event dispatcher
+        private XmlRpcDispatch _disp = new XmlRpcDispatch();
+        private bool _eof;
+        private bool _executing;
+        private string _header;
+        private string _host;
+        private bool _isFault;
+        private bool _keepOpen;
+        private int _port;
+        private string _request;
+        private string _response;
+
+        //HttpWebRequest webRequester;
+
+        // Number of times the client has attempted to send the request
+        private int _sendAttempts;
+        private string _uri;
+        private TcpClient socket;
 
         [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port, string Uri)
@@ -57,7 +76,7 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
         {
-            if (!WHOLESHEBANG.Contains("://")) 
+            if (!WHOLESHEBANG.Contains("://"))
                 throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
             WHOLESHEBANG = WHOLESHEBANG.Remove(0, WHOLESHEBANG.IndexOf("://") + 3);
             WHOLESHEBANG.Trim('/');
@@ -78,7 +97,7 @@ namespace XmlRpc_Wrapper
         {
             [DebuggerStepThrough] get { return socket != null && socket.Connected; }
         }
-        
+
         public string Host
         {
             [DebuggerStepThrough] get { return _host; }
@@ -111,31 +130,27 @@ namespace XmlRpc_Wrapper
 
         public int SendAttempts
         {
-            [DebuggerStepThrough]
-            get { return _sendAttempts; }
+            [DebuggerStepThrough] get { return _sendAttempts; }
         }
 
         public int BytesWritten
         {
-            [DebuggerStepThrough]
-            get { return _bytesWritten; }
+            [DebuggerStepThrough] get { return _bytesWritten; }
         }
 
         public bool Executing
         {
-            [DebuggerStepThrough]
-            get { return _executing; }
+            [DebuggerStepThrough] get { return _executing; }
         }
 
         public bool EOF
         {
-            [DebuggerStepThrough]
-            get { return _eof; }
+            [DebuggerStepThrough] get { return _eof; }
         }
 
         public int ContentLength
         {
-            [DebuggerStepThrough] get { return this._contentLength; }
+            [DebuggerStepThrough] get { return _contentLength; }
         }
 
         #endregion
@@ -144,7 +159,7 @@ namespace XmlRpc_Wrapper
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-            return this._host.Equals(host) && this._port == port && this._uri.Equals(uri);// checkident(instance, host, port, uri);
+            return _host.Equals(host) && _port == port && _uri.Equals(uri); // checkident(instance, host, port, uri);
         }
 
         // Execute the named procedure on the remote server.
@@ -182,7 +197,7 @@ namespace XmlRpc_Wrapper
                 }
 
                 double msTime = -1.0;
-                this._disp.Work(msTime);
+                _disp.Work(msTime);
 
                 if (_connectionState != ConnectionState.IDLE || !parseResponse(result, _response))
                 {
@@ -249,46 +264,27 @@ namespace XmlRpc_Wrapper
             _response = "";
             return true;
         }
-        
+
         #endregion
 
         // Server location
-        int _port;
-        string _host;
-        string _uri;
 
-        string getHost() { return _host; }
-        string getUri()  { return _uri; }
-        int getPort() { return _port; }
-    
+        private string getHost()
+        {
+            return _host;
+        }
+
+        private string getUri()
+        {
+            return _uri;
+        }
+
+        private int getPort()
+        {
+            return _port;
+        }
+
         // The xml-encoded request, http header of response, and response xml
-        string _request;
-        string _header;
-        string _response;
-
-        //HttpWebRequest webRequester;
-
-        // Number of times the client has attempted to send the request
-        int _sendAttempts;
-
-        // Number of bytes of the request that have been written to the socket so far
-        int _bytesWritten;
-
-        // True if we are currently executing a request. If you want to multithread,
-        // each thread should have its own client.
-        bool _executing;
-
-        // True if the server closed the connection
-        bool _eof;
-
-        // True if a fault response was returned by the server
-        bool _isFault;
-
-        // Number of bytes expected in the response body (parsed from response header)
-        int _contentLength;
-
-        // Event dispatcher
-        XmlRpcDispatch _disp = new XmlRpcDispatch();
 
         public override void Close()
         {
@@ -297,10 +293,11 @@ namespace XmlRpc_Wrapper
 
         public override Socket getSocket()
         {
-            return this.socket != null ? this.socket.Client : null;
+            return socket != null ? socket.Client : null;
         }
+
         //done and works
-        void Initialize(string host, int port, string uri/*=0*/)
+        private void Initialize(string host, int port, string uri /*=0*/)
         {
             XmlRpcUtil.log(1, "XmlRpcClient new client: host {0}, port {1}.", host, port);
 
@@ -314,7 +311,7 @@ namespace XmlRpc_Wrapper
             _connectionState = ConnectionState.CONNECTING;
             _executing = false;
             _eof = false;
-            
+
             if (doConnect())
             {
                 _connectionState = ConnectionState.IDLE;
@@ -329,11 +326,11 @@ namespace XmlRpc_Wrapper
         {
             XmlRpcUtil.log(4, "XmlRpcClient::close.");
             _connectionState = ConnectionState.NO_CONNECTION;
-        
+
             _disp.Exit();
             //_disp.removeSource(this);
             //XmlRpcSource::close();
-            if(socket != null)
+            if (socket != null)
             {
                 socket.Close();
                 //reader = null;
@@ -341,21 +338,12 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        string getSocketError()
+        private string getSocketError()
         {
             return "UnknownError";
         }
+
         // Possible IO states for the connection
-        enum ConnectionState 
-        {
-            NO_CONNECTION, 
-            CONNECTING, 
-            WRITE_REQUEST, 
-            READ_HEADER, 
-            READ_RESPONSE, 
-            IDLE 
-        };
-        ConnectionState _connectionState;
         // XmlRpcSource interface implementation
         // Handle server responses. Called by the event dispatcher during execute.
         public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
@@ -364,36 +352,36 @@ namespace XmlRpc_Wrapper
             {
                 if (_connectionState == ConnectionState.WRITE_REQUEST && _bytesWritten == 0)
                     XmlRpcUtil.error("Error in XmlRpcClient::handleEvent: could not connect to server ({0}).",
-                                    getSocketError());
+                        getSocketError());
                 else
                     XmlRpcUtil.error("Error in XmlRpcClient::handleEvent (state {0}): {1}.",
-                                    _connectionState, getSocketError());
+                        _connectionState, getSocketError());
                 return 0;
             }
 
             if (_connectionState == ConnectionState.WRITE_REQUEST)
-                if ( ! writeRequest()) return 0;
+                if (! writeRequest()) return 0;
 
             if (_connectionState == ConnectionState.READ_HEADER)
-                if ( ! readHeader()) return 0;
+                if (! readHeader()) return 0;
 
             if (_connectionState == ConnectionState.READ_RESPONSE)
-                if ( ! readResponse()) return 0;
+                if (! readResponse()) return 0;
 
             // This should probably always ask for Exception events too
-            return (_connectionState == ConnectionState.WRITE_REQUEST) 
+            return (_connectionState == ConnectionState.WRITE_REQUEST)
                 ? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
         }
 
         // Create the socket connection to the server if necessary
-        bool setupConnection()
+        private bool setupConnection()
         {
             // If an error occurred last time through, or if the server closed the connection, close our end
             if ((_connectionState != ConnectionState.NO_CONNECTION && _connectionState != ConnectionState.IDLE) || _eof)
                 close();
             _eof = false;
             if (_connectionState == ConnectionState.NO_CONNECTION)
-                if (! doConnect()) 
+                if (! doConnect())
                     return false;
 
             // Prepare to write the request
@@ -401,14 +389,14 @@ namespace XmlRpc_Wrapper
             _bytesWritten = 0;
 
             // Notify the dispatcher to listen on this source (calls handleEvent when the socket is writable)
-            _disp.RemoveSource(this);       // Make sure nothing is left over
+            _disp.RemoveSource(this); // Make sure nothing is left over
             _disp.AddSource(this, XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception);
 
             return true;
         }
 
         // Connect to the xmlrpc server
-        bool doConnect()
+        private bool doConnect()
         {
             if (socket == null)
             {
@@ -423,14 +411,9 @@ namespace XmlRpc_Wrapper
             }
             if (!socket.Connected)
             {
-                this.close();
-                XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", this.getSocketError());
+                close();
+                XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", getSocketError());
                 return false;
-            }
-            else
-            {
-                //writer = new StreamWriter(socket.GetStream());
-                //reader = new StreamReader(socket.GetStream());
             }
             return true;
         }
@@ -440,7 +423,7 @@ namespace XmlRpc_Wrapper
             Close();
         }
 
-        string generateRequestStr(string methodName, XmlRpcValue parameters)
+        private string generateRequestStr(string methodName, XmlRpcValue parameters)
         {
             string body = REQUEST_BEGIN;
             body += methodName;
@@ -471,8 +454,9 @@ namespace XmlRpc_Wrapper
             body += REQUEST_END;
             return body;
         }
+
         // Encode the request to call the specified method with the specified parameters into xml
-        bool generateRequest(string methodName, XmlRpcValue parameters)
+        private bool generateRequest(string methodName, XmlRpcValue parameters)
         {
             string body = generateRequestStr(methodName, parameters);
 
@@ -484,7 +468,7 @@ namespace XmlRpc_Wrapper
         }
 
         // Prepend http headers
-        string generateHeader(string body)
+        private string generateHeader(string body)
         {
             string header = "POST " + _uri + " HTTP/1.1\r\nUser-Agent: ";
             header += XmlRpcUtil.XMLRPC_VERSION;
@@ -502,10 +486,10 @@ namespace XmlRpc_Wrapper
             return header + buff;
         }
 
-        bool writeRequest()
+        private bool writeRequest()
         {
             if (_bytesWritten == 0)
-                XmlRpcUtil.log(5, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts+1, _request);
+                XmlRpcUtil.log(5, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts + 1, _request);
             // Try to write the request
             try
             {
@@ -529,27 +513,25 @@ namespace XmlRpc_Wrapper
                 }
                 _bytesWritten = _request.Length;
             }
-            catch(System.IO.IOException ex)
-            {    
-                XmlRpcUtil.error("Error in XmlRpcClient::writeRequest: write error ({0}).",ex.Message);
+            catch (IOException ex)
+            {
+                XmlRpcUtil.error("Error in XmlRpcClient::writeRequest: write error ({0}).", ex.Message);
                 return false;
             }
-    
+
             XmlRpcUtil.log(3, "XmlRpcClient::writeRequest: wrote {0} of {1} bytes.", _bytesWritten, _request.Length);
 
             // Wait for the result
-            if (_bytesWritten == _request.Length) 
+            if (_bytesWritten == _request.Length)
             {
-            _header = "";
-            _response = "";
-            _connectionState = ConnectionState.READ_HEADER;
+                _header = "";
+                _response = "";
+                _connectionState = ConnectionState.READ_HEADER;
             }
             return true;
         }
 
-        bool _keepOpen;
-
-        bool readHeader()
+        private bool readHeader()
         {
             // Read available data
             bool eof;
@@ -577,7 +559,7 @@ namespace XmlRpc_Wrapper
                 return false;
             if (dataLen > 0)
             {
-                _header += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+                _header += Encoding.Default.GetString(data, 0, dataLen);
             }
             if (_header.Length < 10)
                 return false;
@@ -585,8 +567,8 @@ namespace XmlRpc_Wrapper
 
             if (header.IndexHeaderEnd == 0)
                 return false;
-            var value = header.HTTPField[(int)HTTPHeaderField.Content_Length];
-            if (int.TryParse(value, out this._contentLength))
+            var value = header.HTTPField[(int) HTTPHeaderField.Content_Length];
+            if (int.TryParse(value, out _contentLength))
             {
                 _response = _header.Substring(header.IndexHeaderEnd + 4);
             }
@@ -594,14 +576,14 @@ namespace XmlRpc_Wrapper
             //XmlRpcUtil.log(3, "KeepAlive: {0}", _keepAlive);
             _header = "";
             _connectionState = ConnectionState.READ_RESPONSE;
-            return true;    // Continue monitoring this source
+            return true; // Continue monitoring this source
         }
 
-        bool readResponse()
+        private bool readResponse()
         {
-            if (this._response == null)
-                this._response = "";
-            int left = this._contentLength - _response.Length;
+            if (_response == null)
+                _response = "";
+            int left = _contentLength - _response.Length;
             int dataLen = 0;
             if (left > 0)
             {
@@ -621,18 +603,18 @@ namespace XmlRpc_Wrapper
                     XmlRpcUtil.error("XmlRpcClient::readResponse: error while reading the rest of data ({0}).", ex.Message);
                     return false;
                 }
-                _response += System.Text.Encoding.Default.GetString(data, 0, dataLen);
+                _response += Encoding.Default.GetString(data, 0, dataLen);
             }
             // Otherwise, parse and dispatch the request
             XmlRpcUtil.log(3, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
 
             _connectionState = ConnectionState.IDLE;
 
-            return false;    // Continue monitoring this source
+            return false; // Continue monitoring this source
         }
 
         // Convert the response xml into a result value
-        bool parseResponse(XmlRpcValue result, string _response)
+        private bool parseResponse(XmlRpcValue result, string _response)
         {
             bool success = true;
             //XmlRpcValue result = null;
@@ -654,7 +636,7 @@ namespace XmlRpc_Wrapper
 
                 XmlElement pars = responseNode["params"];
                 XmlElement fault = responseNode["fault"];
-                
+
                 //result = new XmlRpcValue();
                 if (pars != null)
                 {
@@ -671,7 +653,7 @@ namespace XmlRpc_Wrapper
                             result[i++] = value;
                         }
                     }
-                    else if(selection.Count == 1)
+                    else if (selection.Count == 1)
                     {
                         result.fromXml(selection[0]["value"]);
                     }
@@ -690,5 +672,15 @@ namespace XmlRpc_Wrapper
             }
             return success;
         }
+
+        private enum ConnectionState
+        {
+            NO_CONNECTION,
+            CONNECTING,
+            WRITE_REQUEST,
+            READ_HEADER,
+            READ_RESPONSE,
+            IDLE
+        };
     }
 }

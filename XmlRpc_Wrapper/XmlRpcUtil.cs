@@ -7,14 +7,14 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/06/2013
-// Updated: 07/23/2014
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Text;
 
 #endregion
 
@@ -22,18 +22,18 @@ namespace XmlRpc_Wrapper
 {
     public class XmlRpcException : Exception
     {
+        private int errorCode = -1;
+
         public XmlRpcException(string msg, int errCode = -1)
-            :base(msg)
+            : base(msg)
         {
-            this.errorCode = errCode;
+            errorCode = errCode;
         }
 
         public int getCode()
         {
             return errorCode;
         }
-
-        int errorCode = -1;
     }
 
     public enum HTTPHeaderField
@@ -93,12 +93,13 @@ namespace XmlRpc_Wrapper
     };
 
     /// <summary>
-    /// Does HTTP header parsing
-    /// Taken from ... somewhere. 
+    ///     Does HTTP header parsing
+    ///     Taken from ... somewhere.
     /// </summary>
-    class HTTPHeader
+    internal class HTTPHeader
     {
         #region PROPERTIES
+
         private string[] m_StrHTTPField = new string[52];
         private byte[] m_byteData = new byte[4096];
 
@@ -107,24 +108,28 @@ namespace XmlRpc_Wrapper
             get { return m_StrHTTPField; }
             set { m_StrHTTPField = value; }
         }
+
         public byte[] Data
         {
             get { return m_byteData; }
             set { m_byteData = value; }
         }
-        #endregion
-        // convertion
-        System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
 
-        public int LastIndex = 0;
+        #endregion
+
+        // convertion
         public int IndexHeaderEnd = 0;
+        public int LastIndex = 0;
+        private ASCIIEncoding encoding = new ASCIIEncoding();
 
         #region CONSTRUCTEUR
+
         /// <summary>
-        /// Constructeur par défaut - non utilisé
+        ///     Constructeur par défaut - non utilisé
         /// </summary>
         private HTTPHeader()
-        { }
+        {
+        }
 
         public HTTPHeader(string HTTPRequest)
         {
@@ -148,7 +153,8 @@ namespace XmlRpc_Wrapper
                 HTTPHeaderParse(Header);
             }
             catch (Exception)
-            { }
+            {
+            }
         }
 
         public HTTPHeader(byte[] ByteHTTPRequest)
@@ -172,11 +178,14 @@ namespace XmlRpc_Wrapper
                 HTTPHeaderParse(Header);
             }
             catch (Exception)
-            { }
+            {
+            }
         }
+
         #endregion
 
         #region METHODES
+
         private void HTTPHeaderParse(string Header)
         {
             #region HTTP HEADER REQUEST & RESPONSE
@@ -184,9 +193,9 @@ namespace XmlRpc_Wrapper
             HTTPHeaderField HHField;
             string HTTPfield, buffer;
             int Index;
-            foreach (int IndexHTTPfield in Enum.GetValues(typeof(HTTPHeaderField)))
+            foreach (int IndexHTTPfield in Enum.GetValues(typeof (HTTPHeaderField)))
             {
-                HHField = (HTTPHeaderField)IndexHTTPfield;
+                HHField = (HTTPHeaderField) IndexHTTPfield;
                 HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": "; //Ajout de \n devant pour éviter les doublons entre cookie et set_cookie
                 // Si le champ n'est pas présent dans la requête, on passe au champ suivant
                 Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
@@ -199,7 +208,7 @@ namespace XmlRpc_Wrapper
                     m_StrHTTPField[IndexHTTPfield] = buffer.Trim();
                 else
                     m_StrHTTPField[IndexHTTPfield] = buffer.Substring(0, Index).Trim();
-                XmlRpcUtil.log(2,"HTTP HEADER DEBUG: {0}","Index = " + IndexHTTPfield + " | champ = " + HTTPfield.Substring(1) + " " + m_StrHTTPField[IndexHTTPfield]);
+                XmlRpcUtil.log(2, "HTTP HEADER DEBUG: {0}", "Index = " + IndexHTTPfield + " | champ = " + HTTPfield.Substring(1) + " " + m_StrHTTPField[IndexHTTPfield]);
             }
 
             // Affichage de tout les champs
@@ -209,16 +218,18 @@ namespace XmlRpc_Wrapper
                 Console.WriteLine("m_StrHTTPField[" + j + "]; " + HHField + " = " + m_StrHTTPField[j]);
             }
             */
-            #endregion
 
+            #endregion
         }
+
         #endregion
     }
 
     public static class XmlRpcUtil
     {
-        public static string XMLRPC_VERSION = "XMLRPC++ 0.7";
         public const int MINIMUM_LOG_LEVEL = 1; //5 == everything, 0 == only fatal
+        public static string XMLRPC_VERSION = "XMLRPC++ 0.7";
+
         public static void error(string format, params object[] list)
         {
             Debug.WriteLine(String.Format(format, list));
