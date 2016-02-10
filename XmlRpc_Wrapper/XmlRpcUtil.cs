@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -100,15 +101,30 @@ namespace XmlRpc_Wrapper
     /// </summary>
     internal class HTTPHeader
     {
+        [Flags]
+        internal enum STATUS
+        {
+            UNINITIALIZED,
+            PARTIAL_HEADER,
+            COMPLETE_HEADER
+        }
+
+        private Dictionary<HTTPHeaderField, string> m_StrHTTPField = new Dictionary<HTTPHeaderField, string>();
+        private byte[] m_byteData = new byte[4096];
+        private string m_headerSoFar = "";
+
         #region PROPERTIES
 
-        private string[] m_StrHTTPField = new string[52];
-        private byte[] m_byteData = new byte[4096];
+        internal STATUS m_headerStatus { get; private set; }
 
-        public string[] HTTPField
+        public string Header
+        {
+            get { return m_headerSoFar; }
+        }
+
+        public Dictionary<HTTPHeaderField, string> HTTPField
         {
             get { return m_StrHTTPField; }
-            set { m_StrHTTPField = value; }
         }
 
         public byte[] Data
@@ -117,12 +133,30 @@ namespace XmlRpc_Wrapper
             set { m_byteData = value; }
         }
 
-        #endregion
+        public string DataString { get; private set; }
 
-        // convertion
-        public int IndexHeaderEnd = 0;
-        public int LastIndex = 0;
-        private ASCIIEncoding encoding = new ASCIIEncoding();
+        public int ContentLength {
+            get
+            {
+                int ret = -1;
+                string value;
+                if (m_StrHTTPField.TryGetValue(HTTPHeaderField.Content_Length, out value) && int.TryParse(value, out ret))
+                    return ret;
+                return -1;
+            }
+        }
+
+        public bool ContentComplete {
+            get
+            {
+                int contentlength = ContentLength;
+                if (contentlength <= 0) return false;
+
+                return DataString != null && DataString.Length >= contentlength;
+            }
+        }
+
+        #endregion
 
         #region CONSTRUCTEUR
 
@@ -131,62 +165,78 @@ namespace XmlRpc_Wrapper
         /// </summary>
         private HTTPHeader()
         {
+            DataString = "";
+            m_headerStatus = STATUS.UNINITIALIZED;
         }
 
-        public HTTPHeader(string HTTPRequest)
+        public HTTPHeader(string HTTPRequest) : this()
         {
-            try
-            {
-                IndexHeaderEnd = 0;
-                string Header;
+            Append(HTTPRequest);
+        }
 
+        /// <summary>
+        /// Either HTTPRequest contains the header AND some data, or it contains part or all of the header. Accumulate pieces of the header in case it spans multiple reads.
+        /// </summary>
+        /// <param name="HTTPRequest"></param>
+        /// <returns></returns>
+        public STATUS Append(string HTTPRequest)
+        {
+            if (m_headerStatus != STATUS.COMPLETE_HEADER)
+            {
                 // Si la taille de requ?te est sup?rieur ou ?gale ? 1460, alors toutes la chaine est l'ent?te http
                 if (HTTPRequest.Length >= 1460)
                 {
-                    Header = HTTPRequest;
+                    m_headerSoFar += HTTPRequest;
+                    m_headerStatus = STATUS.PARTIAL_HEADER;
                 }
                 else
                 {
-                    IndexHeaderEnd = HTTPRequest.IndexOf("\r\n\r\n");
-                    Header = HTTPRequest.Substring(0, IndexHeaderEnd);
-                    Data = encoding.GetBytes(HTTPRequest.Substring(IndexHeaderEnd + 4));
-                }
+                    int betweenHeaderAndData = HTTPRequest.IndexOf("\r\n\r\n", System.StringComparison.OrdinalIgnoreCase);
+                    if (betweenHeaderAndData > 0)
+                    {
+                        m_headerStatus = STATUS.COMPLETE_HEADER;
+                        //found the boundary between header and data
+                        m_headerSoFar += HTTPRequest.Substring(0, betweenHeaderAndData);
+                        HTTPHeaderParse(m_headerSoFar);
 
-                HTTPHeaderParse(Header);
+                        //shorten the request so we can fall through
+                        HTTPRequest = HTTPRequest.Substring(betweenHeaderAndData + 4);
+                        //
+                        // FALL THROUGH to header complete case
+                        //
+                    }
+                    else
+                    {
+                        m_headerSoFar += HTTPRequest;
+                        m_headerStatus = STATUS.PARTIAL_HEADER;
+                        HTTPHeaderParse(m_headerSoFar);
+                        return m_headerStatus;
+                    }
+                }
             }
-            catch (Exception)
+
+            if (m_headerStatus == STATUS.COMPLETE_HEADER)
             {
+                if (ContentComplete)
+                    throw new Exception("Should not still be appending!");
+
+                DataString += HTTPRequest;
+                if (ContentComplete)
+                {
+                    Data = Encoding.ASCII.GetBytes(DataString);
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "DONE READING CONTENT");
+                }
             }
+            return m_headerStatus;
         }
 
-        public HTTPHeader(byte[] ByteHTTPRequest)
+        public HTTPHeader(byte[] ByteHTTPRequest) : this(Encoding.ASCII.GetString(ByteHTTPRequest))
         {
-            string HTTPRequest = encoding.GetString(ByteHTTPRequest);
-            try
-            {
-                //int IndexHeaderEnd;
-                string Header;
-
-                // Si la taille de requ?te est sup?rieur ou ?gale ? 1460, alors toutes la chaine est l'ent?te http
-                if (HTTPRequest.Length >= 1460)
-                    Header = HTTPRequest;
-                else
-                {
-                    IndexHeaderEnd = HTTPRequest.IndexOf("\r\n\r\n");
-                    Header = HTTPRequest.Substring(0, IndexHeaderEnd);
-                    Data = encoding.GetBytes(HTTPRequest.Substring(IndexHeaderEnd + 4));
-                }
-
-                HTTPHeaderParse(Header);
-            }
-            catch (Exception)
-            {
-            }
         }
 
         #endregion
 
-        #region METHODES
+        #region HTTP Header parsing stuff
 
         private ConcurrentDictionary<HTTPHeaderField,string> HeaderFieldToStrings = new ConcurrentDictionary<HTTPHeaderField,string>();
 
@@ -194,29 +244,33 @@ namespace XmlRpc_Wrapper
         {
             #region HTTP HEADER REQUEST & RESPONSE
 
+            HTTPHeaderField HHField;
+            string HTTPfield = null;
+            int Index;
+            string buffer;
             for (int f=(int)HTTPHeaderField.Accept; f<(int)HTTPHeaderField.HEADER_VALUE_MAX_PLUS_ONE; f++)
             {
-                HTTPHeaderField HHField = (HTTPHeaderField) f;
-                string HTTPfield = null;
-                if (!HeaderFieldToStrings.TryGetValue(HHField, out HTTPfield))
+                HHField = (HTTPHeaderField) f;
+                HTTPfield = null;
+                if (!HeaderFieldToStrings.TryGetValue(HHField, out HTTPfield) || HTTPField == null)
                 {
                     HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": ";
                     HeaderFieldToStrings.TryAdd(HHField, HTTPfield);
                 }
 
                 // Si le champ n'est pas pr?sent dans la requ?te, on passe au champ suivant
-                int Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
+                Index = Header.IndexOf(HTTPfield, StringComparison.OrdinalIgnoreCase);
                 if (Index == -1)
                     continue;
 
-                string buffer = Header.Substring(Index + HTTPfield.Length);
+                buffer = Header.Substring(Index + HTTPfield.Length);
                 Index = buffer.IndexOf("\r\n", StringComparison.OrdinalIgnoreCase);
                 if (Index == -1)
-                    m_StrHTTPField[f] = buffer.Trim();
+                    m_StrHTTPField[HHField] = buffer.Trim();
                 else
-                    m_StrHTTPField[f] = buffer.Substring(0, Index).Trim();
+                    m_StrHTTPField[HHField] = buffer.Substring(0, Index).Trim();
 
-                if (m_StrHTTPField[f].Length == 0)
+                if (m_StrHTTPField[HHField].Length == 0)
                 {
                     XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "HTTP HEADER: field \"{0}\" has a length of 0", HHField.ToString());
                 }

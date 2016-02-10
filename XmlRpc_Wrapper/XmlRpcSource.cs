@@ -15,6 +15,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 
 #endregion
 
@@ -32,6 +33,11 @@ namespace XmlRpc_Wrapper
         {
             get { return _keepOpen; }
             set { _keepOpen = value; }
+        }
+
+        public virtual NetworkStream getStream()
+        {
+            return null;
         }
 
         public virtual Socket getSocket()
@@ -59,6 +65,49 @@ namespace XmlRpc_Wrapper
         public void setKeepOpen(bool b = true)
         {
             _keepOpen = b;
+        }
+
+        internal virtual bool readHeader(ref HTTPHeader header)
+        {
+            // Read available data
+            int dataLen = 0;
+            var stream = getStream();
+            if (stream == null)
+            {
+                throw new Exception("Could not access network stream");
+            }
+            byte[] data = new byte[4096];
+            try
+            {
+                dataLen = stream.Read(data, 0, data.Length);
+
+                if (dataLen == 0)
+                    return false; // If it is disconnect
+
+                if (header == null)
+                {
+                    header = new HTTPHeader(Encoding.ASCII.GetString(data, 0, dataLen));
+                    if (header.m_headerStatus == HTTPHeader.STATUS.UNINITIALIZED)
+                        return false; //should only happen if the constructor's invocation of Append did not happen as desired
+                }
+                else if (header.Append(Encoding.ASCII.GetString(data, 0, dataLen)) == HTTPHeader.STATUS.PARTIAL_HEADER)
+                    return true; //if we successfully append a piece of the header, return true, but DO NOT change states 
+            }
+            catch (SocketException ex)
+            {
+                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+                return false;
+            }
+
+            if (header.m_headerStatus != HTTPHeader.STATUS.COMPLETE_HEADER)
+                return false;
+
+            return true;
         }
 
         #region IDisposable Members

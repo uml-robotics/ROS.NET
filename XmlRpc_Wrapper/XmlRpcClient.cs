@@ -24,7 +24,9 @@ using System.Xml;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
         // Static data
@@ -39,19 +41,18 @@ namespace XmlRpc_Wrapper
         public string HostUri = "";
         private int _bytesWritten;
         private ConnectionState _connectionState;
-        private int _contentLength;
+
+        private HTTPHeader header;
 
         // Event dispatcher
         private XmlRpcDispatch _disp = new XmlRpcDispatch();
         private bool _eof;
         private bool _executing;
-        private string _header;
         private string _host;
         private bool _isFault;
         private bool _keepOpen;
         private int _port;
         private string _request;
-        private string _response;
 
         //HttpWebRequest webRequester;
 
@@ -60,20 +61,21 @@ namespace XmlRpc_Wrapper
         private string _uri;
         private TcpClient socket;
 
-        [DebuggerStepThrough]
+        public override NetworkStream getStream()
+        {
+            return socket.GetStream();
+        }
+
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
             Initialize(HostName, Port, Uri);
-            //socket.GetStream();
         }
 
-        [DebuggerStepThrough]
         public XmlRpcClient(string HostName, int Port)
             : this(HostName, Port, "/")
         {
         }
 
-        [DebuggerStepThrough]
         public XmlRpcClient(string WHOLESHEBANG)
         {
             if (!WHOLESHEBANG.Contains("://"))
@@ -120,12 +122,12 @@ namespace XmlRpc_Wrapper
 
         public string Header
         {
-            [DebuggerStepThrough] get { return _header; }
+            [DebuggerStepThrough] get { return header.Header; }
         }
 
         public string Response
         {
-            [DebuggerStepThrough] get { return _response; }
+            [DebuggerStepThrough] get { return header.DataString; }
         }
 
         public int SendAttempts
@@ -150,7 +152,7 @@ namespace XmlRpc_Wrapper
 
         public int ContentLength
         {
-            [DebuggerStepThrough] get { return _contentLength; }
+            [DebuggerStepThrough] get { return header.ContentLength; }
         }
 
         #endregion
@@ -199,14 +201,13 @@ namespace XmlRpc_Wrapper
                 double msTime = -1.0;
                 _disp.Work(msTime);
 
-                if (_connectionState != ConnectionState.IDLE || !parseResponse(result, _response))
+                if (_connectionState != ConnectionState.IDLE || !parseResponse(result, header.DataString))
                 {
                     _executing = false;
                     return false;
                 }
 
                 XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method {0} completed.", method);
-                _response = "";
                 _executing = false;
             }
             _executing = false;
@@ -256,12 +257,11 @@ namespace XmlRpc_Wrapper
             // Are we done yet?
             if (_connectionState != ConnectionState.IDLE)
                 return false;
-            if (!parseResponse(result, _response))
+            if (!parseResponse(result, header.DataString))
             {
                 // Hopefully the caller can determine that parsing failed.
             }
             XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method completed.");
-            _response = "";
             return true;
         }
 
@@ -363,7 +363,7 @@ namespace XmlRpc_Wrapper
                 if (! writeRequest()) return 0;
 
             if (_connectionState == ConnectionState.READ_HEADER)
-                if (! readHeader()) return 0;
+                if (! readHeader(ref header)) return 0;
 
             if (_connectionState == ConnectionState.READ_RESPONSE)
                 if (! readResponse()) return 0;
@@ -371,6 +371,21 @@ namespace XmlRpc_Wrapper
             // This should probably always ask for Exception events too
             return (_connectionState == ConnectionState.WRITE_REQUEST)
                 ? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
+        }
+
+        internal override bool readHeader(ref HTTPHeader header)
+        {
+            if (base.readHeader(ref header))
+            {
+                if (header.m_headerStatus == HTTPHeader.STATUS.COMPLETE_HEADER)
+                {
+                    _connectionState = XmlRpcClient.ConnectionState.READ_RESPONSE;
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         // Create the socket connection to the server if necessary
@@ -519,71 +534,20 @@ namespace XmlRpc_Wrapper
                 return false;
             }
 
-            XmlRpcUtil.log(3, "XmlRpcClient::writeRequest: wrote {0} of {1} bytes.", _bytesWritten, _request.Length);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::writeRequest: wrote {0} of {1} bytes.", _bytesWritten, _request.Length);
 
             // Wait for the result
             if (_bytesWritten == _request.Length)
             {
-                _header = "";
-                _response = "";
                 _connectionState = ConnectionState.READ_HEADER;
+                header = null;
             }
             return true;
         }
 
-        private bool readHeader()
-        {
-            // Read available data
-            bool eof;
-
-            byte[] data = new byte[1024];
-            int dataLen = 0;
-            //string data = "";
-            try
-            {
-                var stream = socket.GetStream();
-                dataLen = stream.Read(data, 0, 1024);
-            }
-            catch (SocketException ex)
-            {
-                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
-                return false;
-            }
-            /// If it is disconnect
-            if (dataLen == 0)
-                return false;
-            if (dataLen > 0)
-            {
-                _header += Encoding.Default.GetString(data, 0, dataLen);
-            }
-            if (_header.Length < 10)
-                return false;
-            HTTPHeader header = new HTTPHeader(_header);
-
-            if (header.IndexHeaderEnd == 0)
-                return false;
-            var value = header.HTTPField[(int) HTTPHeaderField.Content_Length];
-            if (int.TryParse(value, out _contentLength))
-            {
-                _response = _header.Substring(header.IndexHeaderEnd + 4);
-            }
-
-            //XmlRpcUtil.log(3, "KeepAlive: {0}", _keepAlive);
-            _header = "";
-            _connectionState = ConnectionState.READ_RESPONSE;
-            return true; // Continue monitoring this source
-        }
-
         private bool readResponse()
         {
-            if (_response == null)
-                _response = "";
-            int left = _contentLength - _response.Length;
+            int left = header.ContentLength - header.DataString.Length;
             int dataLen = 0;
             if (left > 0)
             {
@@ -603,14 +567,20 @@ namespace XmlRpc_Wrapper
                     XmlRpcUtil.error("XmlRpcClient::readResponse: error while reading the rest of data ({0}).", ex.Message);
                     return false;
                 }
-                _response += Encoding.Default.GetString(data, 0, dataLen);
+                header.Append(Encoding.ASCII.GetString(data, 0, dataLen));
             }
-            // Otherwise, parse and dispatch the request
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
+            if (header.ContentComplete)
+            {
+                // Otherwise, parse and dispatch the request
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
 
-            _connectionState = ConnectionState.IDLE;
+                _connectionState = ConnectionState.IDLE;
 
-            return false; // Continue monitoring this source
+                return false; // no need to continue monitoring because we're done reading the response
+            }
+
+            // Continue monitoring this source
+            return true;
         }
 
         // Convert the response xml into a result value
