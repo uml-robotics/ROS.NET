@@ -92,7 +92,7 @@ namespace XmlRpc_Wrapper
             {
                 if (header.m_headerStatus == HTTPHeader.STATUS.COMPLETE_HEADER)
                 {
-                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "KeepAlive: {0}", _keepAlive);
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "KeepAlive: {0}", _keepAlive);
                     _connectionState = ServerConnectionState.READ_REQUEST;
                 }
 
@@ -137,7 +137,7 @@ namespace XmlRpc_Wrapper
                 header.Append(Encoding.ASCII.GetString(data, 0, dataLen));
             }
             // Otherwise, parse and dispatch the request
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcServerConnection::readRequest read {0} bytes.", dataLen);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcServerConnection::readRequest read {0} bytes.", dataLen);
 
             if (!header.ContentComplete)
             {
@@ -183,7 +183,14 @@ namespace XmlRpc_Wrapper
                 XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: write error ({0}).", ex.Message);
                 return false;
             }
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcServerConnection::writeResponse: wrote {0} of {0} bytes.", _bytesWritten, response.Length);
+
+            /*catch (Exception ex)
+            {
+                XmlRpcUtil.error("XmlRpcServerConnection::writeResponse: write error ({0}).", ex.Message);
+                return false;
+            }*/
+
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcServerConnection::writeResponse: wrote {0} of {0} bytes.", _bytesWritten, response.Length);
 
             // Prepare to read the next request
             if (_bytesWritten == response.Length)

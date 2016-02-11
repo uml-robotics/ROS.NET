@@ -170,7 +170,7 @@ namespace XmlRpc_Wrapper
         // might be a fault).
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
             lock (this)
             {
                 //result = null;
@@ -207,7 +207,7 @@ namespace XmlRpc_Wrapper
                     return false;
                 }
 
-                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method {0} completed.", method);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::execute: method {0} completed.", method);
                 _executing = false;
             }
             _executing = false;
@@ -220,7 +220,7 @@ namespace XmlRpc_Wrapper
         // might be a fault).
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
 
             // This is not a thread-safe operation, if you want to do multithreading, use separate
             // clients for each thread. If you want to protect yourself from multiple threads
@@ -261,7 +261,7 @@ namespace XmlRpc_Wrapper
             {
                 // Hopefully the caller can determine that parsing failed.
             }
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::execute: method completed.");
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::execute: method completed.");
             return true;
         }
 
@@ -288,7 +288,7 @@ namespace XmlRpc_Wrapper
 
         public override void Close()
         {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::Close()");
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::Close()");
         }
 
         public override Socket getSocket()
@@ -299,7 +299,7 @@ namespace XmlRpc_Wrapper
         //done and works
         private void Initialize(string host, int port, string uri /*=0*/)
         {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient new client: host {0}, port {1}.", host, port);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient new client: host {0}, port {1}.", host, port);
 
             _host = host;
             _port = port;

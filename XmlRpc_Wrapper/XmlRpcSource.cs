@@ -21,9 +21,13 @@ using System.Text;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
     [DebuggerStepThrough]
+#endif
     public abstract class XmlRpcSource : IDisposable
     {
+        private const int READ_BUFFER_LENGTH = 4096;
+
         private bool _deleteOnClose;
 
         // In the client, keep connections open if you intend to make multiple calls.
@@ -76,10 +80,10 @@ namespace XmlRpc_Wrapper
             {
                 throw new Exception("Could not access network stream");
             }
-            byte[] data = new byte[4096];
+            byte[] data = new byte[READ_BUFFER_LENGTH];
             try
             {
-                dataLen = stream.Read(data, 0, data.Length);
+                dataLen = stream.Read(data, 0, READ_BUFFER_LENGTH);
 
                 if (dataLen == 0)
                     return false; // If it is disconnect
