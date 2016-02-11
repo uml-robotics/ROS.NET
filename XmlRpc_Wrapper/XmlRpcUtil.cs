@@ -218,7 +218,15 @@ namespace XmlRpc_Wrapper
             if (m_headerStatus == STATUS.COMPLETE_HEADER)
             {
                 if (ContentComplete)
-                    throw new Exception("Should not still be appending!");
+                {
+                    //this isn't right... restart with empty header and see if it works
+                    m_headerStatus = STATUS.UNINITIALIZED;
+                    Data = new byte[0];
+                    DataString = "";
+                    m_headerSoFar = "";
+                    m_StrHTTPField.Clear();
+                    return Append(HTTPRequest);
+                }
 
                 DataString += HTTPRequest;
                 if (ContentComplete)
