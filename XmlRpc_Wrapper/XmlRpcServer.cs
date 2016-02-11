@@ -403,16 +403,13 @@ namespace XmlRpc_Wrapper
         // Prepend http headers
         private string generateHeader(string body)
         {
-            string header = "HTTP/1.1 200 OK\r\nServer: ";
-            header += XmlRpcUtil.XMLRPC_VERSION;
-            header += "\r\nContent-Type: text/xml\r\nContent-length: ";
-
-            string buffLen = String.Format("{0}\r\n\r\n", body.Length);
-            //char buffLen[40];
-
-            //sprintf(buffLen,"%d\r\n\r\n", (int)body.size());
-
-            return header + buffLen;
+            return string.Format(
+                "HTTP/1.1 200 OK\r\n" +
+                "Server: {0}\r\n" +
+                "Content-Type: text/xml\r\n" +
+                "Content-length: {1}\r\n\r\n",
+                XmlRpcUtil.XMLRPC_VERSION,
+                body.Length);
         }
 
         public string generateFaultResponse(string errorMsg, int errorCode = -1)
