@@ -235,8 +235,6 @@ namespace Ros_CSharp.CustomSocket
                 return;
             }
 
-            PollSet.SocketUpdateFunc func = Info.func;
-
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
                  (Info.revents & POLLNVAL) != 0))
@@ -251,17 +249,20 @@ namespace Ros_CSharp.CustomSocket
                 if (!skip)
                 {
                     //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), iar =>
-                                                                                                      {
-                                                                                                          func.EndInvoke(iar);
-                                                                                                          Info.revents = 0;
-                                                                                                          Info.poll_mutex.Set();
-                                                                                                      }, null);
+                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), _pollComplete, Info);
                     //func.DynamicInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
                 }
             }
             /*Info.revents = 0;
             Info.poll_mutex.Set();*/
+        }
+
+        private void _pollComplete(IAsyncResult iar)
+        {
+            SocketInfo i = (SocketInfo) iar.AsyncState;
+            i.func.EndInvoke(iar);
+            i.revents = 0;
+            i.poll_mutex.Set();
         }
 
         public static void Poll(int poll_timeout)
