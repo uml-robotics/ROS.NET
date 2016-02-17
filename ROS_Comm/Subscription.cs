@@ -442,7 +442,7 @@ namespace Ros_CSharp
 
             lock (callbacks_mutex)
             {
-                CallbackInfo<M> info = new CallbackInfo<M> {helper = helper, callback = queue, subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks)};
+                CallbackInfo<M> info = new CallbackInfo<M> {helper = helper, callback = queue, subscription_queue = new Callback<M>(helper.Callback.func, topiclol, queue_size, allow_concurrent_callbacks)};
                 //if (!helper.isConst())
                 //{
                 ++nonconst_callbacks;
