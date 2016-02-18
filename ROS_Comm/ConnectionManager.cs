@@ -193,7 +193,7 @@ namespace Ros_CSharp
 #if TCPSERVER
         public void CheckAndAccept(object nothing)
         {
-            while (tcpserver_transport.Pending())
+            while (tcpserver_transport != null && tcpserver_transport.Pending())
             {
                 tcpRosAcceptConnection(new TcpTransport(
                     tcpserver_transport.
