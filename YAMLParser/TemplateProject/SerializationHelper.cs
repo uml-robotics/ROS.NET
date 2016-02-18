@@ -122,19 +122,35 @@ namespace Messages
             }
         }
 
+        private static Dictionary<Type, bool> SizeKnowledge = new Dictionary<Type, bool>();
+
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static bool IsSizeKnown(Type T, bool recurse)
         {
-            if (T == typeof(string) || T == typeof(String) ||
+            lock (SizeKnowledge)
+            {
+                bool b = false;
+                if (SizeKnowledge.TryGetValue(T, out b))
+                    return b;
+                return IsSizeKnownNoLock(T, recurse);
+            }
+        }
+
+#if !TRACE
+        [DebuggerStepThrough]
+#endif
+        private static bool IsSizeKnownNoLock(Type T, bool recurse)
+        {
+            if (T == typeof (string) || T == typeof (String) ||
                 (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
-                return false;
+                return (SizeKnowledge[T] = false);
             if (T.FullName.Contains("System.") || T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
-                return true;
-            if (!recurse || !T.FullName.Contains("Messages")) return true;
-            FieldInfo[] infos = T.GetFields();
+                return (SizeKnowledge[T] = true);
+            if (!recurse || !T.FullName.Contains("Messages")) return (SizeKnowledge[T] = true);
             bool b = true;
+            FieldInfo[] infos = T.GetFields();
             foreach (FieldInfo info in infos)
             {
                 string fullName = info.FieldType.FullName;
@@ -145,15 +161,15 @@ namespace Messages
                     {
                         MsgTypes MT = GetMessageType(info.FieldType);
                         IRosMessage TI = IRosMessage.generate(MT);
-                        b &= IsSizeKnown(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
+                        b &= IsSizeKnownNoLock(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
                     }
                     else
-                        b &= !info.FieldType.IsArray && info.FieldType != typeof(string);
+                        b &= !info.FieldType.IsArray && info.FieldType != typeof (string);
                 }
                 if (!b)
                     break;
             }
-            return b;
+            return (SizeKnowledge[T] = b);
         }
 
         internal static T Deserialize<T>(byte[] bytes) where T : IRosMessage, new()
@@ -512,7 +528,8 @@ Console.WriteLine("//deserialize: " + T.FullName);
                             IRosMessage msg = (IRosMessage)Activator.CreateInstance(ft);
                             Type t = GetType(msg.GetType().FullName);
                             bool knownsize = IsSizeKnown(t, false) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
-                            if (!knownsize && t.GetField("data").FieldType == typeof(string))
+                            FieldInfo datafield = t.GetField("data");
+                            if (!knownsize && (datafield != null && datafield.FieldType == typeof(string)))
                             {
                                 int len = -4;
                                 if (currpos + 4 <= bytes.Length)
