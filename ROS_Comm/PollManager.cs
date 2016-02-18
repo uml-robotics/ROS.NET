@@ -70,8 +70,9 @@ namespace Ros_CSharp
             {
                 if (signals.Contains(poll))
                 {
-                    throw new Exception("DOUBLE LISTENER ADDITION");
+                    return;
                 }
+                signals.Add(poll);
                 Console.WriteLine("Adding pollthreadlistener " + poll.Method);
                 poll_signal += poll;
             }
@@ -80,17 +81,30 @@ namespace Ros_CSharp
 
         private void signal()
         {
-            poll_signal();
+            lock (signal_mutex)
+            {
+                foreach (Poll_Signal signal in signals)
+                {
+                    signal.BeginInvoke(signalComplete, signal);
+                }
+            }
+        }
+
+        private void signalComplete(IAsyncResult iar)
+        {
+            Poll_Signal ps = (Poll_Signal) iar.AsyncState;
+            ps.EndInvoke(iar);
         }
 
         public void removePollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
-                if (signals.Contains(poll))
+                if (!signals.Contains(poll))
                 {
                     throw new Exception("DOUBLE LISTENER REMOVAL");
                 }
+                signals.Remove(poll);
                 Console.WriteLine("Removing pollthreadlistener " + poll.Method);
                 poll_signal -= poll;
             }
