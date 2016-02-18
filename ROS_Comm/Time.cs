@@ -41,12 +41,11 @@ namespace Ros_CSharp
                                {
                                    Thread.Sleep(100);
                                }
-                               NodeHandle nh = new NodeHandle();
+                               nh = new NodeHandle();
                                if (!ROS.shutting_down)
                                {
                                    simTimeSubscriber = nh.subscribe<Clock>("/clock", 1, SimTimeCallback);
                                }
-                               ROS.waitForShutdown();
                            }).Start();
         }
 
@@ -86,7 +85,7 @@ namespace Ros_CSharp
                 }
             }
             if (simTime && SimTimeEvent != null)
-                SimTimeEvent.DynamicInvoke(TimeSpan.FromMilliseconds(time.clock.data.sec*1000.0 + (time.clock.data.nsec/100000000.0)));
+                SimTimeEvent.Invoke(TimeSpan.FromMilliseconds(time.clock.data.sec*1000.0 + (time.clock.data.nsec/100000000.0)));
         }
     }
 }
