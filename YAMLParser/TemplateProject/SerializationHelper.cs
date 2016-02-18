@@ -51,19 +51,27 @@ namespace Messages
             }
         }
 
+    static Dictionary<string, Type> GetTypeTypeMemo = new Dictionary<string, Type>();
 #if !TRACE
     [DebuggerStepThrough]
 #endif
         public static Type GetType(string s)
         {
-            Type ret;
-            MsgTypes mt = GetMessageType(s);
-            if (mt == MsgTypes.Unknown)
-                ret = Type.GetType(s, true, true);
-            else
-                ret = IRosMessage.generate(mt).GetType();
-            //            Console.WriteLine(s + "=" + ret.Name);
-            return ret;
+            lock (GetTypeTypeMemo)
+            {
+                if (GetTypeTypeMemo.ContainsKey(s))
+                    return GetTypeTypeMemo[s];
+                Type ret;
+                MsgTypes mt = GetMessageType(s);
+                if (mt == MsgTypes.Unknown)
+                {
+                    System.Diagnostics.Debug.WriteLine("GetType is falling back to using Type.GetType! YUCK");
+                    ret = Type.GetType(s, true, true);
+                }
+                else
+                    ret = IRosMessage.generate(mt).GetType();
+                return (GetTypeTypeMemo[s] = ret);
+            }
         }
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
