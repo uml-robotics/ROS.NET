@@ -75,20 +75,39 @@ namespace Ros_CSharp
 
         internal void notify_all()
         {
-            sem.Release();
+            int sizeafter = 0;
+            try
+            {
+                sizeafter = sem.Release(1);
+                sizeafter = sem.Release(int.MaxValue - sizeafter - 1);
+            }
+            catch (System.Threading.SemaphoreFullException e)
+            {
+                //no-op
+                System.Diagnostics.Debug.WriteLine(e);
+            }
         }
 
         internal void notify_one()
         {
-            sem.Release(1);
+            try
+            {
+                sem.Release(1);
+            }
+            catch (System.Threading.SemaphoreFullException e)
+            {
+                //no-op
+                System.Diagnostics.Debug.WriteLine(e);
+            }
         }
 
         public IDInfo getIDInfo(UInt64 id)
         {
             lock (id_info_mutex)
             {
-                if (id_info.ContainsKey(id))
-                    return id_info[id];
+                IDInfo value;
+                if (id_info.TryGetValue(id, out value))
+                    return value;
             }
             return null;
         }
@@ -145,7 +164,7 @@ namespace Ros_CSharp
         {
             while (ROS.ok)
             {
-                if (!callAvailable())
+                if (!callAvailable(ROS.WallDuration))
                     break;
             }
             Console.WriteLine("CallbackQueue thread broke out!");
