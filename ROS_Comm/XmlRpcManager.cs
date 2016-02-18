@@ -488,7 +488,7 @@ namespace Ros_CSharp
 
         public bool IsConnected
         {
-            get { return client.IsConnected; }
+            get { return client != null && client.IsConnected; }
         }
 
         #endregion
