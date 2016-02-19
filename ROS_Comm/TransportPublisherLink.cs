@@ -84,8 +84,7 @@ namespace Ros_CSharp
             dropping = true;
             connection.drop(Connection.DropReason.Destructing);
             if (parent != null)
-                lock (parent)
-                    parent.removePublisherLink(this);
+                parent.removePublisherLink(this);
             else
             {
                 EDB.WriteLine("TransportPublisherLink met an untimely demise.");
@@ -97,30 +96,27 @@ namespace Ros_CSharp
             EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- " + reason);
             if (dropping || conn != connection)
                 return;
-            lock (parent)
+            if (reason == Connection.DropReason.TransportDisconnect)
             {
-                if (reason == Connection.DropReason.TransportDisconnect)
+                needs_retry = true;
+                next_retry = DateTime.Now.Add(retry_period);
+                if (retry_timer == null)
                 {
-                    needs_retry = true;
-                    next_retry = DateTime.Now.Add(retry_period);
-                    if (retry_timer == null)
-                    {
-                        retry_timer = ROS.timer_manager.StartTimer(onRetryTimer, 100);
-                    }
-                    else
-                    {
-                        retry_timer.Restart();
-                    }
+                    retry_timer = ROS.timer_manager.StartTimer(onRetryTimer, 100);
                 }
                 else
                 {
-                    if (reason == Connection.DropReason.HeaderError)
-                    {
-                        EDB.WriteLine("SOMETHING BE WRONG WITH THE HEADER FOR: " +
-                                      (parent != null ? parent.name : "unknown"));
-                    }
-                    drop();
+                    retry_timer.Restart();
                 }
+            }
+            else
+            {
+                if (reason == Connection.DropReason.HeaderError)
+                {
+                    EDB.WriteLine("SOMETHING BE WRONG WITH THE HEADER FOR: " +
+                                    (parent != null ? parent.name : "unknown"));
+                }
+                drop();
             }
         }
 
@@ -145,8 +141,7 @@ namespace Ros_CSharp
             stats.messages_received++;
             m.connection_header = getHeader().Values;
             if (parent != null)
-                lock (parent)
-                    stats.drops += parent.handleMessage(m, ser, nocopy, connection.header.Values, this);
+                stats.drops += parent.handleMessage(m, ser, nocopy, connection.header.Values, this);
         }
 
         private void onHeaderWritten(Connection conn)
@@ -154,7 +149,7 @@ namespace Ros_CSharp
             //do nothing
         }
 
-        private void onMessageLength(Connection conn, ref byte[] buffer, uint size, bool success)
+        private void onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
@@ -175,7 +170,7 @@ namespace Ros_CSharp
             connection.read(len, onMessage);
         }
 
-        private void onMessage(Connection conn, ref byte[] buffer, uint size, bool success)
+        private void onMessage(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success || conn == null || conn != connection) return;
             if (success)
@@ -198,20 +193,17 @@ namespace Ros_CSharp
                 retry_period =
                     TimeSpan.FromSeconds((retry_period.TotalSeconds > 20) ? 20 : (2*retry_period.TotalSeconds));
                 needs_retry = false;
-                lock (parent)
-                {
-                    TcpTransport old_transport = connection.transport;
-                    string host = old_transport.connected_host;
-                    int port = old_transport.connected_port;
+                TcpTransport old_transport = connection.transport;
+                string host = old_transport.connected_host;
+                int port = old_transport.connected_port;
 
-                    TcpTransport transport = new TcpTransport();
-                    if (transport.connect(host, port))
-                    {
-                        Connection conn = new Connection();
-                        conn.initialize(transport, false, null);
-                        initialize(conn);
-                        ConnectionManager.Instance.addConnection(conn);
-                    }
+                TcpTransport transport = new TcpTransport();
+                if (transport.connect(host, port))
+                {
+                    Connection conn = new Connection();
+                    conn.initialize(transport, false, null);
+                    initialize(conn);
+                    ConnectionManager.Instance.addConnection(conn);
                 }
             }
         }

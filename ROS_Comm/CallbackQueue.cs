@@ -341,23 +341,25 @@ namespace Ros_CSharp
 
     public class TLS
     {
-        private volatile ConcurrentQueue<CallbackQueueInterface.ICallbackInfo> _queue = new ConcurrentQueue<CallbackQueueInterface.ICallbackInfo>();
+        private volatile List<CallbackQueueInterface.ICallbackInfo> _queue = new List<CallbackQueueInterface.ICallbackInfo>();
         public UInt64 calling_in_this_thread = 0xffffffffffffffff;
 
         public int Count
         {
-            get { return _queue.Count; }
+            get { 
+                lock(_queue)
+                    return _queue.Count; }
         }
 
         public CallbackQueueInterface.ICallbackInfo head
         {
             get
             {
-                if (Count == 0) return null;
-                CallbackQueueInterface.ICallbackInfo icb;
-                if (_queue.TryPeek(out icb))
-                    return icb;
-                throw new Exception("Peek failed");
+                lock (_queue)
+                {
+                    if (_queue.Count == 0) return null;
+                    return _queue[0];
+                }
             }
         }
 
@@ -365,27 +367,34 @@ namespace Ros_CSharp
         {
             get
             {
-                if (Count == 0) return null;
-                return _queue.Last();
+                lock (_queue)
+                {
+                    if (_queue.Count == 0) return null;
+                    return _queue[_queue.Count - 1];
+                }
             }
         }
 
         public CallbackQueueInterface.ICallbackInfo dequeue()
         {
-            CallbackQueueInterface.ICallbackInfo icb;
-            if (_queue.TryDequeue(out icb))
-                return icb;
-            throw new Exception("Dequeue failed");
+            CallbackQueueInterface.ICallbackInfo tmp;
+            lock (_queue)
+            {
+                if (_queue.Count == 0) return null;
+                tmp = _queue[0];
+                _queue.RemoveAt(0);
+            }
+            return tmp;
         }
 
         public void enqueue(CallbackQueueInterface.ICallbackInfo info)
         {
             if (info.Callback == null)
                 return;
-
+            lock(_queue)
             if (!_queue.Contains(info))
             {
-                _queue.Enqueue(info);
+                _queue.Add(info);
             }
             else
             {
@@ -395,10 +404,13 @@ namespace Ros_CSharp
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
         {
-            if (!_queue.Contains(info))
-                return null;
-            _queue = new ConcurrentQueue<CallbackQueueInterface.ICallbackInfo>(_queue.Except(new[] {info}));
-            return info;
+            lock(_queue)
+            {
+                if (!_queue.Contains(info))
+                    return null;
+                _queue.Remove(info);
+                return info;
+            }
         }
     }
 

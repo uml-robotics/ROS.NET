@@ -128,7 +128,7 @@ namespace Ros_CSharp
         }
 
 
-        public virtual void onRequestLength(Connection conn, ref byte[] buffer, uint size, bool success)
+        public virtual void onRequestLength(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success) return;
 
@@ -145,7 +145,7 @@ namespace Ros_CSharp
             connection.read(len, onRequest);
         }
 
-        public virtual void onRequest(Connection conn, ref byte[] buffer, uint size, bool success)
+        public virtual void onRequest(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success) return;
             if (conn != connection)

@@ -441,7 +441,7 @@ namespace Ros_CSharp
             }
         }
 
-        public int read(ref byte[] buffer, uint pos, uint length)
+        public int read(byte[] buffer, uint pos, uint length)
         {
             lock (close_mutex)
             {
