@@ -14,7 +14,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -123,6 +122,7 @@ namespace Ros_CSharp
         public void update(int poll_timeout)
         {
             Socket.Poll(poll_timeout);
+            Thread.Sleep(poll_timeout);
         }
 
         public void onLocalPipeEvents(int stuff)
@@ -142,7 +142,7 @@ namespace Ros_CSharp
         public override string ToString()
         {
             string s = "";
-            s = Socket.AllOfThem.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
+            s = Socket.FDs;
             s = s.Remove(s.Length - 3, 2);
             return s;
         }
