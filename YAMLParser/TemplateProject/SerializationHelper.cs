@@ -27,7 +27,7 @@ namespace Messages
 
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static MsgTypes GetMessageType(Type t)
         {
@@ -37,7 +37,7 @@ namespace Messages
                 lock (GetMessageTypeMemo)
                 {
                     if (!GetMessageTypeMemo.ContainsKey(t))
-                        GetMessageTypeMemo.Add(t, (MsgTypes) Enum.Parse(typeof (MsgTypes), "std_msgs__Bool")); //ERIC
+                        GetMessageTypeMemo.Add(t, (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
                 }
             if (GetMessageTypeMemo.ContainsKey(t))
                 return GetMessageTypeMemo[t];
@@ -51,9 +51,9 @@ namespace Messages
             }
         }
 
-    static Dictionary<string, Type> GetTypeTypeMemo = new Dictionary<string, Type>();
+        static Dictionary<string, Type> GetTypeTypeMemo = new Dictionary<string, Type>();
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static Type GetType(string s)
         {
@@ -77,7 +77,7 @@ namespace Messages
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
 
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static MsgTypes GetMessageType(string s)
         {
@@ -143,7 +143,7 @@ namespace Messages
 #endif
         private static bool IsSizeKnownNoLock(Type T, bool recurse)
         {
-            if (T == typeof (string) || T == typeof (String) ||
+            if (T == typeof(string) || T == typeof(String) ||
                 (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
                 return (SizeKnowledge[T] = false);
             if (T.FullName.Contains("System.") || T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
@@ -164,7 +164,7 @@ namespace Messages
                         b &= IsSizeKnownNoLock(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
                     }
                     else
-                        b &= !info.FieldType.IsArray && info.FieldType != typeof (string);
+                        b &= !info.FieldType.IsArray && info.FieldType != typeof(string);
                 }
                 if (!b)
                     break;
@@ -204,8 +204,7 @@ namespace Messages
             return null;
         }
 
-        private static Dictionary<MsgTypes, FieldInfo[]> speedyFields = new Dictionary<MsgTypes, FieldInfo[]>();
-        private static Dictionary<MsgTypes, List<string>> importantfieldnames = new Dictionary<MsgTypes, List<string>>();
+        private static Dictionary<Type, FieldInfo[]> speedyFields = new Dictionary<Type, FieldInfo[]>();
         public static FieldInfo[] GetFields(Type T, ref object instance, out IRosMessage msg)
         {
             if (instance == null)
@@ -215,17 +214,21 @@ namespace Messages
                 else
                     instance = Activator.CreateInstance(T);
             }
+
             IRosMessage MSG = instance as IRosMessage;
-            if (MSG == null)
+            msg = MSG;
+            lock (speedyFields)
             {
-                msg = MSG;
-                return instance.GetType().GetFields();
-            }
-            MsgTypes MT = MSG.msgtype;
-            if (MT != MsgTypes.Unknown)
-            {
-                msg = MSG;
-                return msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray();
+                if (speedyFields.ContainsKey(T))
+                    return speedyFields[T];
+                if (MSG == null || MSG.msgtype == MsgTypes.Unknown)
+                {
+                    return (speedyFields[T] = instance.GetType().GetFields());
+                }
+                else if (MSG != null)
+                {
+                    return (speedyFields[T] = msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray());
+                }
             }
             throw new Exception("GetFields is weaksauce");
         }
@@ -323,7 +326,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         currpos += 4;
                     }
                     PWNED = new bool[num];
-                    for (int i = 0; i < num; i++ )
+                    for (int i = 0; i < num; i++)
                     {
                         PWNED[i] = bytes[i + currpos] > 0;
                     }
@@ -480,7 +483,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                             }
                             infos[currinfo].SetValue(thestructure, val);
                         }
-                        else if (TT == typeof (string))
+                        else if (TT == typeof(string))
                         {
                             for (int i = 0; i < chunklen; i++)
                             {
@@ -743,10 +746,10 @@ Console.WriteLine("//deserialize: " + T.FullName);
                 int arraylength = 0;
                 Array valArray = val as Array;
                 List<byte> thechunk = new List<byte>();
-                for(int i=0;i<valArray.GetLength(0);i++)
+                for (int i = 0; i < valArray.GetLength(0); i++)
                 {
                     if (valArray.GetValue(i) == null)
-                        valArray.SetValue(Activator.CreateInstance(T.GetElementType()),i);
+                        valArray.SetValue(Activator.CreateInstance(T.GetElementType()), i);
                     Type TT = valArray.GetValue(i).GetType();
                     MsgTypes mt = GetMessageType(TT);
                     bool piecelengthknown = mt != MsgTypes.std_msgs__String;
@@ -775,7 +778,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
         public MsgTypes message_type;
 
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
             string lengths, bool meta, MsgTypes mt)
