@@ -347,29 +347,15 @@ namespace Ros_CSharp
             }
         }
 
-        public void publish<M>(string topic, M message) where M : IRosMessage, new()
+        public void publish(Publication p, IRosMessage msg, SerializeFunc serfunc = null)
         {
-            Publication p = null;
-            publish(topic, message.Serialize, message, ref p);
-        }
-
-        public void publish(string topic, IRosMessage message)
-        {
-            Publication p = null;
-            publish(topic, message.Serialize, message, ref p);
-        }
-
-        public void publish(string topic, IRosMessage message, ref Publication p)
-        {
-            publish(topic, message.Serialize, message, ref p);
-        }
-
-        public void publish(string topic, SerializeFunc serfunc, IRosMessage msg, ref Publication p)
-        {
-            if (msg == null) return;
+            if (msg == null)
+                return;
+            if (serfunc == null)
+                serfunc = msg.Serialize;
             if (p == null)
-                p = lookupPublication(topic);
-            if (p != null)
+                throw new Exception("TopicManager.publish(...) - Publication cannot be null!");
+            if (p.connection_header == null)
             {
                 p.connection_header = new Header {Values = new Hashtable()};
                 p.connection_header.Values["type"] = p.DataType;
@@ -378,7 +364,7 @@ namespace Ros_CSharp
                 p.connection_header.Values["callerid"] = this_node.Name;
                 p.connection_header.Values["latching"] = p.Latch;
             }
-            if (p == null || !ROS.ok || shutting_down) return;
+            if (!ROS.ok || shutting_down) return;
             if (p.HasSubscribers || p.Latch)
             {
                 bool nocopy = false;
