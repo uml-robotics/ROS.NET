@@ -162,13 +162,30 @@ namespace Ros_CSharp
             if (status_code != 1)
                 return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string,
                     response);
-            if (response[2].Type == XmlRpcValue.ValueType.TypeArray)
+            switch (response[2].Type)
             {
-                payload.SetArray(0);
-                for (int i = 0; i < response[2].Length; i++)
+                case XmlRpcValue.ValueType.TypeArray:
                 {
-                    payload.Set(i, response[2][i]);
+                    payload.SetArray(0);
+                    for (int i = 0; i < response[2].Length; i++)
+                    {
+                        payload.Set(i, response[2][i]);
+                    }
                 }
+                    break;
+                case XmlRpcValue.ValueType.TypeInt:
+                    payload.asInt = response[2].asInt;
+                    break;
+                case XmlRpcValue.ValueType.TypeDouble:
+                    payload.asDouble = response[2].asDouble;
+                    break;
+                case XmlRpcValue.ValueType.TypeString:
+                    payload.asString = response[2].asString;
+                    break;
+                case XmlRpcValue.ValueType.TypeInvalid:
+                    break;
+                default:
+                    throw new Exception("Unhandled valid xmlrpc payload type: " + response[2].Type);
             }
             return true;
         }
