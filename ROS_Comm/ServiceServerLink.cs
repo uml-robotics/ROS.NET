@@ -316,7 +316,7 @@ namespace Ros_CSharp
                 info.call_finished = true;
             }
 
-            resp = resp.Deserialize(resp.Serialized);
+            resp.Deserialize(resp.Serialized);
 
             if (!string.IsNullOrEmpty(info.exception))
             {
@@ -362,7 +362,7 @@ namespace Ros_CSharp
             IRosMessage iresp = srv.ResponseMessage;
             bool r = call(srv.RequestMessage, ref iresp);
             if (iresp != null)
-                srv.ResponseMessage = srv.ResponseMessage.Deserialize(iresp.Serialized);
+                srv.ResponseMessage.Deserialize(iresp.Serialized);
             else
                 srv.ResponseMessage = null; //std_servs.Empty, I hope?
             return r;

@@ -386,12 +386,13 @@ namespace Ros_CSharp
                 IRosMessage t = null;
                 ulong drops = 0;
                 TimeData receipt_time = ROS.GetTime().data;
+                msg.Deserialize(msg.Serialized);
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
                     if (nocopy || ser)
                     {
-                        t = msg.Deserialize(msg.Serialized);
+                        t = msg;
                         t.connection_header = msg.connection_header;
                         t.Serialized = null;
                         bool was_full = false;

@@ -100,10 +100,11 @@ namespace Ros_CSharp
 
                 ServiceCallbackHelperParams<MReq, MRes> parms = new ServiceCallbackHelperParams<MReq, MRes>
                 {
-                    request = new MReq().Deserialize(buffer) as MReq,
+                    request = new MReq(),
                     response = new MRes(),
                     connection_header = link.connection.header.Values
                 };
+                parms.request.Deserialize(buffer);
 
                 try
                 {

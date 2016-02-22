@@ -29,9 +29,10 @@ $EXTRACONSTRUCTOR
 				
 		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
-		{		
-			return SerializationHelper.Deserialize<$WHATAMI>(SERIALIZEDSTUFF, null);
+		public override void Deserialize(byte[] SERIALIZEDSTUFF)
+		{
+			int dontcare = 0;
+			SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]

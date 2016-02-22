@@ -48,24 +48,11 @@ namespace Messages
 
 	$REQUESTEXTRACONSTRUCTOR		
 					
-			//[System.Diagnostics.DebuggerStepThrough]
-			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			public override void Deserialize(byte[] SERIALIZEDSTUFF)
 			{		
-				return SerializationHelper.Deserialize<$WHATAMI.Request>(SERIALIZEDSTUFF, null);
+				int dontcare = 0;
+				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
 			}
-
-			/*		
-			[System.Diagnostics.DebuggerStepThrough]
-			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
-			{			
-				return SerializationHelper.Deserialize<$WHATAMI.Request>(SERIALIZEDSTUFF, null);
-			}
-			
-			[System.Diagnostics.DebuggerStepThrough]
-			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
-			{			
-				//$REQUESTDESERIALIZATIONCODEHERE
-			}*/
 
 			[System.Diagnostics.DebuggerStepThrough]
 			public override byte[] Serialize()
@@ -100,23 +87,11 @@ namespace Messages
 	$RESPONSEEXTRACONSTRUCTOR		
 					
 			//[System.Diagnostics.DebuggerStepThrough]
-			public override IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+			public override void Deserialize(byte[] SERIALIZEDSTUFF)
 			{		
-				return SerializationHelper.Deserialize<$WHATAMI.Response>(SERIALIZEDSTUFF, null);
+				int dontcare = 0;
+				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
 			}
-
-					
-			/*[System.Diagnostics.DebuggerStepThrough]
-			public static override $WHATAMI DeserializeIt(byte[] SERIALIZEDSTUFF)
-			{			
-				return SerializationHelper.Deserialize<$WHATAMI.Response>(SERIALIZEDSTUFF, null);
-			}
-			
-			[System.Diagnostics.DebuggerStepThrough]
-			public override void DeserializeYourself(byte[] SERIALIZEDSTUFF)
-			{			
-				//$RESPONSEDESERIALIZATIONCODEHERE
-			}*/
 
 			[System.Diagnostics.DebuggerStepThrough]
 			public override byte[] Serialize()

@@ -112,14 +112,14 @@ namespace Messages
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
             int dontcare = 0;
-            SerializationHelper.deserialize(GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+            SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
         }
 
 #if !TRACE
     [DebuggerStepThrough]
 #endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual IRosMessage Deserialize(byte[] SERIALIZEDSTUFF)
+        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
         {
             throw new NotImplementedException();
         }
