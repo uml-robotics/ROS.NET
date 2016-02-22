@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -441,7 +441,7 @@ namespace Ros_CSharp
             }
         }
 
-        public int read(ref byte[] buffer, uint pos, uint length)
+        public int read(byte[] buffer, uint pos, uint length)
         {
             lock (close_mutex)
             {

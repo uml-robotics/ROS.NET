@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -178,7 +178,7 @@ namespace Ros_CSharp
             args.Set(1, ops.service);
             args.Set(2, string.Format("rosrpc://{0}:{1}", network.host, connection_manager.TCPPort));
             args.Set(3, xmlrpc_manager.uri);
-            master.execute("registerService", args, ref result, ref payload, true);
+            master.execute("registerService", args, result, payload, true);
             return true;
         }
 
@@ -261,7 +261,7 @@ namespace Ros_CSharp
             args.Set(0, this_node.Name);
             args.Set(1, service);
             args.Set(2, string.Format("rosrpc://{0}:{1}", network.host, connection_manager.TCPPort));
-            master.execute("unregisterService", args, ref result, ref payload, false);
+            master.execute("unregisterService", args, result, payload, false);
         }
 
         internal bool lookupService(string name, ref string serv_host, ref int serv_port)
@@ -269,7 +269,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, name);
-            if (!master.execute("lookupService", args, ref result, ref payload, false))
+            if (!master.execute("lookupService", args, result, payload, false))
             {
                 EDB.WriteLine("lookupService: Service unknown.");
                 return false;

@@ -60,7 +60,7 @@ namespace rosmaster
 
                  Ros_CSharp.master.host = api.Replace("http://","").Replace("/","").Split(':')[0];
                  Ros_CSharp.master.port =  int.Parse( api.Replace("http://", "").Replace("/", "").Split(':')[1]);
-                 Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false );
+                 Ros_CSharp.master.execute("publisherUpdate", args, result, payload, false );
                 
                 return new List<string>(new []{"http://ERIC:1337"});
             }
@@ -76,7 +76,7 @@ namespace rosmaster
 
                 Ros_CSharp.master.host = api.Replace("http://", "").Replace("/", "").Split(':')[0];
                 Ros_CSharp.master.port = int.Parse(api.Replace("http://", "").Replace("/", "").Split(':')[1]);
-                Ros_CSharp.master.execute("publisherUpdate", args, ref result, ref payload, false);
+                Ros_CSharp.master.execute("publisherUpdate", args, result, payload, false);
             }
 
             public ROSMasterHandler()

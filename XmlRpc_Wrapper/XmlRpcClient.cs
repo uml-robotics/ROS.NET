@@ -7,16 +7,18 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 09/01/2015
-// Updated: 10/07/2015
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 //#define REFDEBUG
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.IO;
+using System.Net.Sockets;
+using System.Text;
+using System.Xml;
 
 #endregion
 
@@ -25,181 +27,59 @@ namespace XmlRpc_Wrapper
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class XmlRpcClient : IDisposable
+    public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
-        protected IntPtr __instance;
-
-        public IntPtr instance
-        {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return __instance; }
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                set
-            {
-                if (__instance != IntPtr.Zero)
-                    RmRef(ref __instance);
-                if (value != IntPtr.Zero)
-                    AddRef(value);
-                __instance = value;
-            }
-        }
-
-        public void SegFault()
-        {
-            if (__instance == IntPtr.Zero)
-            {
-                throw new Exception("BOOM");
-            }
-        }
-
-        #region Reference Tracking + unmanaged pointer management
-
-        public void Dispose()
-        {
-            Shutdown();
-        }
-
-        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
-        private static object reflock = new object();
-#if REFDEBUG
-        private static Thread refdumper;
-        private static void dumprefs()
-        {
-            while (true)
-            {
-                Dictionary<IntPtr, int> dainbrammage = null;
-                lock (reflock)
-                {
-                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
-                }
-                Console.WriteLine("REF DUMP");
-                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
-                {
-                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
-                }
-                Thread.Sleep(500);
-            }
-        }
-#endif
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public static XmlRpcDispatch LookUp(IntPtr ptr)
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                AddRef(ptr);
-                return new XmlRpcDispatch(ptr);
-            }
-            return null;
-        }
-
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        private static void AddRef(IntPtr ptr)
-        {
-#if REFDEBUG
-            if (refdumper == null)
-            {
-                refdumper = new Thread(dumprefs);
-                refdumper.IsBackground = true;
-                refdumper.Start();
-            }
-#endif
-            lock (reflock)
-            {
-                if (!_refs.ContainsKey(ptr))
-                {
-#if REFDEBUG
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
-#endif
-                    _refs.Add(ptr, 1);
-                }
-                else
-                {
-#if REFDEBUG
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
-#endif
-                    _refs[ptr]++;
-                }
-            }
-        }
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        private static void RmRef(ref IntPtr ptr)
-        {
-            lock (reflock)
-            {
-                if (_refs.ContainsKey(ptr))
-                {
-#if REFDEBUG
-                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
-#endif
-                    _refs[ptr]--;
-                    if (_refs[ptr] <= 0)
-                    {
-#if REFDEBUG
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S NOT VERY NICE!");
-#endif
-                        _refs.Remove(ptr);
-                        close(ptr);
-                        XmlRpcUtil.Free(ptr);
-                    }
-                }
-                ptr = IntPtr.Zero;
-            }
-        }
-
-        public bool Shutdown()
-        {
-            return Shutdown(ref __instance);
-        }
-
-        public static bool Shutdown(ref IntPtr ptr)
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                RmRef(ref ptr);
-                return (ptr == IntPtr.Zero);
-            }
-            return true;
-        }
-
-        #endregion
+        // Static data
+        private static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
+        private static string REQUEST_END_METHODNAME = "</methodName>\r\n";
+        private static string PARAMS_TAG = "<params>";
+        private static string PARAMS_ETAG = "</params>";
+        private static string PARAM_TAG = "<param>";
+        private static string PARAM_ETAG = "</param>";
+        private static string REQUEST_END = "</methodCall>\r\n";
 
         public string HostUri = "";
+        private int _bytesWritten;
+        private ConnectionState _connectionState;
 
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public XmlRpcClient(string HostName, int Port, string Uri)
+        private HTTPHeader header;
+
+        // Event dispatcher
+        private XmlRpcDispatch _disp = new XmlRpcDispatch();
+        private bool _eof;
+        private bool _executing;
+        private string _host;
+        private bool _isFault;
+        private bool _keepOpen;
+        private int _port;
+        private string _request;
+
+        //HttpWebRequest webRequester;
+
+        // Number of times the client has attempted to send the request
+        private int _sendAttempts;
+        private string _uri;
+        private TcpClient socket;
+
+        public override NetworkStream getStream()
         {
-            instance = create(HostName, Port, Uri);
+            return socket.GetStream();
         }
 
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
+        public XmlRpcClient(string HostName, int Port, string Uri)
+        {
+            Initialize(HostName, Port, Uri);
+        }
+
         public XmlRpcClient(string HostName, int Port)
             : this(HostName, Port, "/")
         {
         }
 
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
         public XmlRpcClient(string WHOLESHEBANG)
         {
-            if (!WHOLESHEBANG.Contains("://")) throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
+            if (!WHOLESHEBANG.Contains("://"))
+                throw new Exception("INVALID ARGUMENT DIE IN A FIRE!");
             WHOLESHEBANG = WHOLESHEBANG.Remove(0, WHOLESHEBANG.IndexOf("://") + 3);
             WHOLESHEBANG.Trim('/');
             string[] chunks = WHOLESHEBANG.Split(':');
@@ -209,225 +89,569 @@ namespace XmlRpc_Wrapper
             string u = "/";
             if (chunks2.Length > 1 && chunks2[1].Length != 0)
                 u = chunks2[1];
-            instance = create(hn, p, u);
+
+            Initialize(hn, p, u);
         }
 
         #region public get passthroughs
 
         public bool IsConnected
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return isconnected(instance); }
+            [DebuggerStepThrough] get { return socket != null && socket.Connected; }
         }
 
         public string Host
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return Marshal.PtrToStringAnsi(gethost(instance)); }
+            [DebuggerStepThrough] get { return _host; }
         }
 
         public string Uri
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return Marshal.PtrToStringAnsi(geturi(instance)); }
+            [DebuggerStepThrough] get { return _uri; }
         }
 
         public int Port
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getport(instance); }
+            [DebuggerStepThrough] get { return _port; }
         }
 
         public string Request
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return Marshal.PtrToStringAnsi(getrequest(instance)); }
+            [DebuggerStepThrough] get { return _request; }
         }
 
         public string Header
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return Marshal.PtrToStringAnsi(getheader(instance)); }
+            [DebuggerStepThrough] get { return header.Header; }
         }
 
         public string Response
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return Marshal.PtrToStringAnsi(getresponse(instance)); }
+            [DebuggerStepThrough] get { return header.DataString; }
         }
 
         public int SendAttempts
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getsendattempts(instance); }
+            [DebuggerStepThrough] get { return _sendAttempts; }
         }
 
         public int BytesWritten
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getbyteswritten(instance); }
+            [DebuggerStepThrough] get { return _bytesWritten; }
         }
 
         public bool Executing
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getexecuting(instance); }
+            [DebuggerStepThrough] get { return _executing; }
         }
 
         public bool EOF
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return geteof(instance); }
+            [DebuggerStepThrough] get { return _eof; }
         }
 
         public int ContentLength
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getcontentlength(instance); }
-        }
-
-        public IntPtr XmlRpcDispatch
-        {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return getxmlrpcdispatch(instance); }
+            [DebuggerStepThrough] get { return header.ContentLength; }
         }
 
         #endregion
 
         #region public function passthroughs
 
-        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
+        public bool CheckIdentity(string host, int port, string uri)
         {
-            bool r = execute(instance, method, parameters.instance, result.instance);
-            return r;
+            return _host.Equals(host) && _port == port && _uri.Equals(uri); // checkident(instance, host, port, uri);
         }
 
+        // Execute the named procedure on the remote server.
+        // Params should be an array of the arguments for the method.
+        // Returns true if the request was sent and a result received (although the result
+        // might be a fault).
+        public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
+        {
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::Execute: method {0} (_connectionState {0}).", method, _connectionState);
+            lock (this)
+            {
+                //result = null;
+                // This is not a thread-safe operation, if you want to do multithreading, use separate
+                // clients for each thread. If you want to protect yourself from multiple threads
+                // accessing the same client, replace this code with a real mutex.
+                if (_executing)
+                    return false;
+
+                _executing = true;
+                //ClearFlagOnExit cf(_executing);
+
+                _sendAttempts = 0;
+                _isFault = false;
+
+                if (!setupConnection())
+                {
+                    _executing = false;
+                    return false;
+                }
+
+                if (!generateRequest(method, parameters))
+                {
+                    _executing = false;
+                    return false;
+                }
+
+                double msTime = -1.0;
+                _disp.Work(msTime);
+
+                if (_connectionState != ConnectionState.IDLE || !parseResponse(result, header.DataString))
+                {
+                    _executing = false;
+                    return false;
+                }
+
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::execute: method {0} completed.", method);
+                _executing = false;
+            }
+            _executing = false;
+            return true;
+        }
+
+        // Execute the named procedure on the remote server, non-blocking.
+        // Params should be an array of the arguments for the method.
+        // Returns true if the request was sent and a result received (although the result
+        // might be a fault).
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            return executenonblock(instance, method, parameters.instance);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::ExecuteNonBlock: method {0} (_connectionState {0}.", method, _connectionState);
+
+            // This is not a thread-safe operation, if you want to do multithreading, use separate
+            // clients for each thread. If you want to protect yourself from multiple threads
+            // accessing the same client, replace this code with a real mutex.
+
+            XmlRpcValue result = new XmlRpcValue();
+            if (_executing)
+                return false;
+
+            _executing = true;
+
+            _sendAttempts = 0;
+            _isFault = false;
+
+            if (!setupConnection())
+            {
+                _executing = false;
+                return false;
+            }
+
+            if (!generateRequest(method, parameters))
+            {
+                _executing = false;
+                return false;
+            }
+
+            _executing = false;
+            return true;
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
         {
-            return executecheckdone(instance, result.instance);
+            //result.clear();
+            // Are we done yet?
+            if (_connectionState != ConnectionState.IDLE)
+                return false;
+            if (!parseResponse(result, header.DataString))
+            {
+                // Hopefully the caller can determine that parsing failed.
+            }
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::execute: method completed.");
+            return true;
         }
 
-        public UInt16 HandleEvent(UInt16 eventType)
+        #endregion
+
+        // Server location
+
+        private string getHost()
         {
-            return handleevent(instance, eventType);
+            return _host;
         }
 
-        #endregion
+        private string getUri()
+        {
+            return _uri;
+        }
 
-        #region P/Invoke
+        private int getPort()
+        {
+            return _port;
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Create", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create
-            (
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string host,
-            int port,
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string uri);
+        // The xml-encoded request, http header of response, and response xml
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Close", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void close(IntPtr target);
+        public override void Close()
+        {
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::Close()");
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_Execute", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool execute
-            (IntPtr target,
-                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method,
-                IntPtr parameters,
-                IntPtr result);
+        public override Socket getSocket()
+        {
+            return socket != null ? socket.Client : null;
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteNonBlock",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool executenonblock
-            (IntPtr target,
-                [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method, IntPtr parameters);
+        //done and works
+        private void Initialize(string host, int port, string uri /*=0*/)
+        {
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient new client: host {0}, port {1}.", host, port);
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_ExecuteCheckDone",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool executecheckdone([In] [Out] IntPtr target, [In] [Out] IntPtr result);
+            _host = host;
+            _port = port;
+            if (uri != null)
+                _uri = uri;
+            else
+                _uri = "/RPC2";
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_HandleEvent",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
+            _connectionState = ConnectionState.CONNECTING;
+            _executing = false;
+            _eof = false;
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_IsFault", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool isconnected(IntPtr target);
+            if (doConnect())
+            {
+                _connectionState = ConnectionState.IDLE;
+            }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHost", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr gethost(IntPtr target);
+            // Default to keeping the connection open until an explicit close is done
+            setKeepOpen();
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetUri", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr geturi(IntPtr target);
+        // Close the owned fd
+        public void close()
+        {
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::close.");
+            _connectionState = ConnectionState.NO_CONNECTION;
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetPort", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getport(IntPtr target);
+            _disp.Exit();
+            //_disp.removeSource(this);
+            //XmlRpcSource::close();
+            if (socket != null)
+            {
+                socket.Close();
+                //reader = null;
+                //writer = null;
+            }
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetRequest", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getrequest(IntPtr target);
+        private string getSocketError()
+        {
+            return "UnknownError";
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetHeader", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getheader(IntPtr target);
+        // Possible IO states for the connection
+        // XmlRpcSource interface implementation
+        // Handle server responses. Called by the event dispatcher during execute.
+        public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
+        {
+            if (eventType == XmlRpcDispatch.EventType.Exception)
+            {
+                if (_connectionState == ConnectionState.WRITE_REQUEST && _bytesWritten == 0)
+                    XmlRpcUtil.error("Error in XmlRpcClient::handleEvent: could not connect to server ({0}).",
+                        getSocketError());
+                else
+                    XmlRpcUtil.error("Error in XmlRpcClient::handleEvent (state {0}): {1}.",
+                        _connectionState, getSocketError());
+                return 0;
+            }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetResponse", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getresponse(IntPtr target);
+            if (_connectionState == ConnectionState.WRITE_REQUEST)
+                if (! writeRequest()) return 0;
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetSendAttempts",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getsendattempts(IntPtr target);
+            if (_connectionState == ConnectionState.READ_HEADER)
+                if (! readHeader(ref header)) return 0;
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetBytesWritten",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getbyteswritten(IntPtr target);
+            if (_connectionState == ConnectionState.READ_RESPONSE)
+                if (! readResponse()) return 0;
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetExecuting",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool getexecuting(IntPtr target);
+            // This should probably always ask for Exception events too
+            return (_connectionState == ConnectionState.WRITE_REQUEST)
+                ? XmlRpcDispatch.EventType.WritableEvent : XmlRpcDispatch.EventType.ReadableEvent;
+        }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetEOF", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool geteof(IntPtr target);
+        internal override bool readHeader(ref HTTPHeader header)
+        {
+            if (base.readHeader(ref header))
+            {
+                if (header.m_headerStatus == HTTPHeader.STATUS.COMPLETE_HEADER)
+                {
+                    _connectionState = XmlRpcClient.ConnectionState.READ_RESPONSE;
+                }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetContentLength",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getcontentlength(IntPtr Target);
+                return true;
+            }
 
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcClient_GetXmlRpcDispatch",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getxmlrpcdispatch(IntPtr target);
+            return false;
+        }
 
-        #endregion
+        // Create the socket connection to the server if necessary
+        private bool setupConnection()
+        {
+            // If an error occurred last time through, or if the server closed the connection, close our end
+            if ((_connectionState != ConnectionState.NO_CONNECTION && _connectionState != ConnectionState.IDLE) || _eof)
+                close();
+            _eof = false;
+            if (_connectionState == ConnectionState.NO_CONNECTION)
+                if (! doConnect())
+                    return false;
+
+            // Prepare to write the request
+            _connectionState = ConnectionState.WRITE_REQUEST;
+            _bytesWritten = 0;
+
+            // Notify the dispatcher to listen on this source (calls handleEvent when the socket is writable)
+            _disp.RemoveSource(this); // Make sure nothing is left over
+            _disp.AddSource(this, XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception);
+
+            return true;
+        }
+
+        // Connect to the xmlrpc server
+        private bool doConnect()
+        {
+            if (socket == null)
+            {
+                try
+                {
+                    socket = new TcpClient(_host, _port);
+                }
+                catch (SocketException ex)
+                {
+                    return false;
+                }
+            }
+            if (!socket.Connected)
+            {
+                close();
+                XmlRpcUtil.error("Error in XmlRpcClient::doConnect: Could not connect to server ({0}).", getSocketError());
+                return false;
+            }
+            return true;
+        }
+
+        public void Shutdown()
+        {
+            Close();
+        }
+
+        private string generateRequestStr(string methodName, XmlRpcValue parameters)
+        {
+            string body = REQUEST_BEGIN;
+            body += methodName;
+            body += REQUEST_END_METHODNAME;
+
+            // If params is an array, each element is a separate parameter
+            if (parameters.Valid)
+            {
+                body += PARAMS_TAG;
+                if (parameters.Type == XmlRpcValue.ValueType.TypeArray)
+                {
+                    for (int i = 0; i < parameters.Length; ++i)
+                    {
+                        body += PARAM_TAG;
+                        body += parameters[i].toXml();
+                        body += PARAM_ETAG;
+                    }
+                }
+                else
+                {
+                    body += PARAM_TAG;
+                    body += parameters.toXml();
+                    body += PARAM_ETAG;
+                }
+
+                body += PARAMS_ETAG;
+            }
+            body += REQUEST_END;
+            return body;
+        }
+
+        // Encode the request to call the specified method with the specified parameters into xml
+        private bool generateRequest(string methodName, XmlRpcValue parameters)
+        {
+            string body = generateRequestStr(methodName, parameters);
+
+            string header = generateHeader(body);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::generateRequest: header is {0} bytes, content-length is {1}.", header.Length, body.Length);
+
+            _request = header + body;
+            return true;
+        }
+
+        // Prepend http headers
+        private string generateHeader(string body)
+        {
+            string header = "POST " + _uri + " HTTP/1.1\r\nUser-Agent: ";
+            header += XmlRpcUtil.XMLRPC_VERSION;
+            header += "\r\nHost: ";
+            header += _host;
+
+            string buff = String.Format(":{0}\r\n", _port);
+            //sprintf(buff,":%d\r\n", _port);
+
+
+            header += buff;
+            header += "Content-Type: text/xml\r\nContent-length: ";
+            buff = String.Format("{0}\r\n\r\n", body.Length);
+
+            return header + buff;
+        }
+
+        private bool writeRequest()
+        {
+            if (_bytesWritten == 0)
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcClient::writeRequest (attempt {0}):\n{1}\n", _sendAttempts + 1, _request);
+            // Try to write the request
+            try
+            {
+                if (!socket.Connected)
+                    XmlRpcUtil.error("XmlRpcClient::writeRequest not connected");
+                MemoryStream memstream = new MemoryStream();
+                using (StreamWriter writer = new StreamWriter(memstream))
+                {
+                    writer.Write(_request);
+                    writer.Flush();
+                }
+                var stream = socket.GetStream();
+                try
+                {
+                    var buffer = memstream.GetBuffer();
+                    stream.Write(buffer, 0, buffer.Length);
+                    stream.Flush();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(string.Format("Exception while writing request: {0}", ex.Message));
+                }
+                _bytesWritten = _request.Length;
+            }
+            catch (IOException ex)
+            {
+                XmlRpcUtil.error("Error in XmlRpcClient::writeRequest: write error ({0}).", ex.Message);
+                return false;
+            }
+
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::writeRequest: wrote {0} of {1} bytes.", _bytesWritten, _request.Length);
+
+            // Wait for the result
+            if (_bytesWritten == _request.Length)
+            {
+                _connectionState = ConnectionState.READ_HEADER;
+                header = null;
+            }
+            return true;
+        }
+
+        private bool readResponse()
+        {
+            int left = header.ContentLength - header.DataString.Length;
+            int dataLen = 0;
+            if (left > 0)
+            {
+                byte[] data = new byte[left];
+                try
+                {
+                    var stream = socket.GetStream();
+                    dataLen = stream.Read(data, 0, left);
+                    if (dataLen == 0)
+                    {
+                        XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR, "XmlRpcClient::readResponse: Stream was closed");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    XmlRpcUtil.error("XmlRpcClient::readResponse: error while reading the rest of data ({0}).", ex.Message);
+                    return false;
+                }
+                header.Append(Encoding.ASCII.GetString(data, 0, dataLen));
+            }
+            if (header.ContentComplete)
+            {
+                // Otherwise, parse and dispatch the request
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcClient::readResponse read {0} bytes.", _request.Length);
+
+                _connectionState = ConnectionState.IDLE;
+
+                return false; // no need to continue monitoring because we're done reading the response
+            }
+
+            // Continue monitoring this source
+            return true;
+        }
+
+        // Convert the response xml into a result value
+        private bool parseResponse(XmlRpcValue result, string _response)
+        {
+            bool success = true;
+            //XmlRpcValue result = null;
+            using (XmlReader reader = XmlReader.Create(new StringReader(_response)))
+            {
+                XmlDocument response = new XmlDocument();
+                response.Load(reader);
+                // Parse response xml into result
+                //int offset = 0;
+                XmlNodeList resp = response.GetElementsByTagName("methodResponse");
+                XmlNode responseNode = resp[0];
+
+                //if (!XmlRpcUtil.findTag(METHODRESPONSE_TAG, _response, out offset))
+                if (resp.Count == 0)
+                {
+                    XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no methodResponse. Response:\n{0}", _response);
+                    return false;
+                }
+
+                XmlElement pars = responseNode["params"];
+                XmlElement fault = responseNode["fault"];
+
+                //result = new XmlRpcValue();
+                if (pars != null)
+                {
+                    bool isArray = false;
+                    var selection = pars.SelectNodes("param");
+                    if (selection.Count > 1)
+                    {
+                        result.SetArray(selection.Count);
+                        int i = 0;
+                        foreach (XmlNode par in selection)
+                        {
+                            var value = new XmlRpcValue();
+                            value.fromXml(par["value"]);
+                            result[i++] = value;
+                        }
+                    }
+                    else if (selection.Count == 1)
+                    {
+                        result.fromXml(selection[0]["value"]);
+                    }
+                    else
+                        success = false;
+                }
+                else if (fault != null && result.fromXml(fault))
+                {
+                    success = false;
+                }
+                else
+                {
+                    XmlRpcUtil.error("Error in XmlRpcClient::parseResponse: Invalid response - no param or fault tag. Response:\n{0}", _response);
+                }
+                _response = "";
+            }
+            return success;
+        }
+
+        private enum ConnectionState
+        {
+            NO_CONNECTION,
+            CONNECTING,
+            WRITE_REQUEST,
+            READ_HEADER,
+            READ_RESPONSE,
+            IDLE
+        };
     }
 }

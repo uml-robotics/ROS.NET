@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -36,7 +36,7 @@ namespace Ros_CSharp
         private NodeHandleBackingCollection collection = new NodeHandleBackingCollection();
         private int nh_refcount;
         private object nh_refcount_mutex = new object();
-        private bool no_validate;
+        private bool no_validate = false;
         private bool node_started_by_nh;
         private IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 

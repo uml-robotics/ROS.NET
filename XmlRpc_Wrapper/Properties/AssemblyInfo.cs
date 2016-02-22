@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 04/28/2015
-// Updated: 10/07/2015
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -21,12 +21,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("XmlRpc_Wrapper")]
+[assembly: AssemblyTitle("XmlRpc")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("XmlRpc_Wrapper")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("XmlRpc")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -38,7 +38,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly: Guid("71220da6-4194-4b86-b58c-d9b6e786100b")]
+[assembly: Guid("6a9f1aae-1061-4d6b-bc8b-9858709333fb")]
 
 // Version information for an assembly consists of the following four values:
 //

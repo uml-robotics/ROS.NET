@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -128,7 +128,7 @@ namespace Ros_CSharp
         }
 
 
-        public virtual void onRequestLength(Connection conn, ref byte[] buffer, uint size, bool success)
+        public virtual void onRequestLength(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success) return;
 
@@ -145,7 +145,7 @@ namespace Ros_CSharp
             connection.read(len, onRequest);
         }
 
-        public virtual void onRequest(Connection conn, ref byte[] buffer, uint size, bool success)
+        public virtual void onRequest(Connection conn, byte[] buffer, uint size, bool success)
         {
             if (!success) return;
             if (conn != connection)

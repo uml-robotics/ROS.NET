@@ -7,14 +7,15 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 04/28/2015
-// Updated: 10/07/2015
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
+using System.Text;
 
 #endregion
 
@@ -25,37 +26,92 @@ namespace XmlRpc_Wrapper
 #endif
     public abstract class XmlRpcSource : IDisposable
     {
-        protected IntPtr __instance;
+        private const int READ_BUFFER_LENGTH = 4096;
 
-        public IntPtr instance
-        {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return __instance; }
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                set
-            {
-                if (__instance != IntPtr.Zero)
-                    RmRef(ref __instance);
-                if (value != IntPtr.Zero)
-                    AddRef(value);
-                __instance = value;
-            }
-        }
+        private bool _deleteOnClose;
 
-        public int FD
-        {
-            get { return getfd(instance); }
-            set { setfd(instance, value); }
-        }
+        // In the client, keep connections open if you intend to make multiple calls.
+        private bool _keepOpen;
 
         public bool KeepOpen
         {
-            get { return getkeepopen(instance) != 0; }
-            set { setkeepopen(instance, value); }
+            get { return _keepOpen; }
+            set { _keepOpen = value; }
+        }
+
+        public virtual NetworkStream getStream()
+        {
+            return null;
+        }
+
+        public virtual Socket getSocket()
+        {
+            return null;
+        }
+
+        public virtual void Close()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
+        {
+            throw new NotImplementedException();
+        }
+
+        //! Return whether the file descriptor should be kept open if it is no longer monitored.
+        public bool getKeepOpen()
+        {
+            return _keepOpen;
+        }
+
+        //! Specify whether the file descriptor should be kept open if it is no longer monitored.
+        public void setKeepOpen(bool b = true)
+        {
+            _keepOpen = b;
+        }
+
+        internal virtual bool readHeader(ref HTTPHeader header)
+        {
+            // Read available data
+            int dataLen = 0;
+            var stream = getStream();
+            if (stream == null)
+            {
+                throw new Exception("Could not access network stream");
+            }
+            byte[] data = new byte[READ_BUFFER_LENGTH];
+            try
+            {
+                dataLen = stream.Read(data, 0, READ_BUFFER_LENGTH);
+
+                if (dataLen == 0)
+                    return false; // If it is disconnect
+
+                if (header == null)
+                {
+                    header = new HTTPHeader(Encoding.ASCII.GetString(data, 0, dataLen));
+                    if (header.m_headerStatus == HTTPHeader.STATUS.UNINITIALIZED)
+                        return false; //should only happen if the constructor's invocation of Append did not happen as desired
+                }
+                else if (header.Append(Encoding.ASCII.GetString(data, 0, dataLen)) == HTTPHeader.STATUS.PARTIAL_HEADER)
+                    return true; //if we successfully append a piece of the header, return true, but DO NOT change states 
+            }
+            catch (SocketException ex)
+            {
+                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                XmlRpcUtil.error("XmlRpcServerConnection::readHeader: error while reading header ({0}).", ex.Message);
+                return false;
+            }
+
+            if (header.m_headerStatus != HTTPHeader.STATUS.COMPLETE_HEADER)
+                return false;
+
+            return true;
         }
 
         #region IDisposable Members
@@ -67,53 +123,8 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
-        #region P/Invoke
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_Close", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void close(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetFd", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getfd(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetFd", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void setfd(IntPtr target, int fd);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_GetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern byte getkeepopen(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_SetKeepOpen", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void setkeepopen(IntPtr target, [MarshalAs(UnmanagedType.I1)] bool keepopen);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcSource_HandleEvent", CallingConvention = CallingConvention.Cdecl)]
-        private static extern UInt16 handleevent(IntPtr target, UInt16 eventType);
-
-        #endregion
-
-        public virtual void RmRef(ref IntPtr i)
-        {
-        }
-
-        public virtual void AddRef(IntPtr i)
-        {
-        }
-
-        public void SegFault()
-        {
-            if (__instance == IntPtr.Zero)
-            {
-                throw new Exception("BOOM");
-            }
-        }
-
-        internal virtual void Close()
-        {
-            close(instance);
-        }
-
-        internal virtual UInt16 HandleEvent(UInt16 eventType)
-        {
-            return handleevent(instance, eventType);
-        }
+        // In the server, a new source (XmlRpcServerConnection) is created
+        // for each connected client. When each connection is closed, the
+        // corresponding source object is deleted.
     }
 }

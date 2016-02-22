@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -42,6 +42,7 @@ namespace Ros_CSharp
         private byte[] length_buffer = new byte[4];
         public byte[] read_buffer;
         public ReadFinishedFunc read_callback;
+        private object read_callback_mutex = new object();
         public uint read_filled;
         public object read_mutex = new object();
         public uint read_size;
@@ -107,7 +108,7 @@ namespace Ros_CSharp
         public void read(uint size, ReadFinishedFunc finished_func)
         {
             if (dropped || sendingHeaderError) return;
-            lock (read_mutex)
+            lock (read_callback_mutex)
             {
                 if (read_callback != null)
                     throw new Exception("NOYOUBLO");
@@ -123,8 +124,8 @@ namespace Ros_CSharp
                 read_size = size;
                 read_filled = 0;
                 transport.enableRead();
-                readTransport();
             }
+            readTransport();
         }
 
         public void write(byte[] data, uint size, WriteFinishedFunc finished_func)
@@ -202,7 +203,7 @@ namespace Ros_CSharp
             drop(DropReason.TransportDisconnect);
         }
 
-        private void onHeaderRead(Connection conn, ref byte[] data, uint size, bool success)
+        private void onHeaderRead(Connection conn, byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (!success)
@@ -239,7 +240,7 @@ namespace Ros_CSharp
             if (header_written_callback == null)
                 throw new Exception(
                     "NOBODY CARES ABOUT YOU, YOUR CHILDREN (neither present nor future), NOR YOUR GRANDCHILDREN (neither present nor future)");
-            header_written_callback(conn);
+            header_written_callback.DynamicInvoke(conn);
             header_written_callback = null;
         }
 
@@ -255,7 +256,7 @@ namespace Ros_CSharp
                 read(4, onHeaderLengthRead);
         }
 
-        private void onHeaderLengthRead(Connection conn, ref byte[] data, uint size, bool success)
+        private void onHeaderLengthRead(Connection conn, byte[] data, uint size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (size != 4) throw new Exception("THAT SIZE ISN'T 4! SDKJSDLKJHSDLKJSHD");
@@ -277,52 +278,87 @@ namespace Ros_CSharp
             if (dropped || reading) return;
             lock (read_mutex)
             {
+                if (dropped || reading) return;
                 reading = true;
-                ReadFinishedFunc callback;
-                uint size;
-                while (!dropped && read_callback != null)
+            }
+            ReadFinishedFunc callback;
+            lock(read_callback_mutex)
+                 callback = read_callback;
+            uint size;
+            while (!dropped && callback != null)
+            {
+
+                if (read_buffer == null || callback == null)
+                    throw new Exception("YOU SUCK!");
+
+                lock (read_callback_mutex)
                 {
-                    if (read_buffer == null || read_callback == null)
-                        throw new Exception("YOU SUCK!");
                     uint to_read = read_size - read_filled;
                     if (to_read > 0)
                     {
-                        int bytes_read = transport.read(ref read_buffer, read_filled, to_read);
+                        int bytes_read = transport.read(read_buffer, read_filled, to_read);
                         if (dropped)
+                        {
+                            if (read_callback == null)
+                                transport.disableRead();
+                            lock (read_mutex)
+                                reading = false;
                             return;
+                        }
                         if (bytes_read < 0)
                         {
-                            callback = read_callback;
                             read_callback = null;
                             byte[] buffer = read_buffer;
                             read_buffer = null;
                             size = read_size;
                             read_size = 0;
                             read_filled = 0;
-                            callback(this, ref buffer, size, false);
-                            break;
+                            callback.BeginInvoke(this, buffer, size, false, readTransportComplete, callback);
+                            return;
                         }
+                        callback = read_callback;
                         read_filled += (uint) bytes_read;
                     }
                     else
+                    {
+                        if (read_callback == null)
+                            transport.disableRead();
+                        lock (read_mutex)
+                            reading = false;
                         break;
+                    }
                     if (read_filled == read_size && !dropped)
                     {
-                        callback = read_callback;
                         size = read_size;
                         byte[] buffer = read_buffer;
                         read_buffer = null;
                         read_callback = null;
                         read_size = 0;
-                        callback(this, ref buffer, size, true);
+                        callback.BeginInvoke(this, buffer, size, true, readTransportComplete, callback);
+                        callback = read_callback;
                     }
                     else
+                    {
+                        if (read_callback == null)
+                            transport.disableRead();
+                        lock (read_mutex)
+                            reading = false;
                         break;
+                    }
                 }
+            }
+        }
+
+        private void readTransportComplete(IAsyncResult iar)
+        {
+            lock (read_callback_mutex)
+            {
+                ((ReadFinishedFunc) iar.AsyncState).EndInvoke(iar);
                 if (read_callback == null)
                     transport.disableRead();
-                reading = false;
             }
+            lock(read_mutex)
+                reading = false;
         }
 
         private void writeTransport()
@@ -330,6 +366,8 @@ namespace Ros_CSharp
             if (dropped || writing) return;
             lock (write_mutex)
             {
+                if (dropped || writing)
+                    return;
                 writing = true;
                 bool can_write_more = true;
                 while (write_callback != null && can_write_more && !dropped)
@@ -346,16 +384,15 @@ namespace Ros_CSharp
                         can_write_more = false;
                     if (write_sent == write_size && !dropped)
                     {
-                        WriteFinishedFunc callback;
                         lock (write_callback_mutex)
                         {
-                            callback = write_callback;
+                            WriteFinishedFunc callback = write_callback;
                             write_callback = null;
                             write_buffer = null;
                             write_sent = 0;
                             write_size = 0;
+                            callback(this);
                         }
-                        callback(this);
                     }
                 }
                 writing = false;
@@ -371,5 +408,5 @@ namespace Ros_CSharp
 
     public delegate void WriteFinishedFunc(Connection connection);
 
-    public delegate void ReadFinishedFunc(Connection connection, ref byte[] data, uint size, bool success);
+    public delegate void ReadFinishedFunc(Connection connection, byte[] data, uint size, bool success);
 }

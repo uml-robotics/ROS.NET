@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -48,8 +48,13 @@ namespace Ros_CSharp
 
         public void publish(M msg)
         {
-            msg.Serialized = null;
-            TopicManager.Instance.publish(topic, msg, ref p);
+            if (p == null)
+                p = TopicManager.Instance.lookupPublication(topic);
+            if (p != null)
+            {
+                msg.Serialized = null;
+                TopicManager.Instance.publish(p, msg);
+            }
         }
     }
 

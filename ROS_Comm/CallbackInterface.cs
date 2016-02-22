@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -28,50 +28,35 @@ namespace Ros_CSharp
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class Callback<T> : CallbackInterface where T : IRosMessage, new()
+    internal class Callback<T> : CallbackInterface where T : IRosMessage, new()
     {
         public Callback(CallbackDelegate<T> f, string topic, uint queue_size, bool allow_concurrent_callbacks) : this(f)
         {
-            this.topic = topic;
             this.allow_concurrent_callbacks = allow_concurrent_callbacks;
-            _full = false;
             size = queue_size;
         }
 
-        public Callback(CallbackDelegate<T> f) : base()
+        public Callback(CallbackDelegate<T> f)
         {
-            Event += func;
-            base.Event += b => f(b as T);
+            base.Event += b =>
+                              {
+                                  T t = b as T;
+                                  b = null;
+                                  f.DynamicInvoke(t);
+                              };
         }
 
-#pragma warning disable 67
-        public new event CallbackDelegate<T> Event;
-#pragma warning restore 67
+        public readonly bool allow_concurrent_callbacks;
 
-        public bool _full;
-        public bool allow_concurrent_callbacks;
-
-        public volatile ConcurrentQueue<Item> queue = new ConcurrentQueue<Item>();
-        private volatile bool callback_state = false;
+        public volatile Queue<Item> queue = new Queue<Item>();
+        private volatile bool callback_state;
 
         public uint size;
-        public string topic;
 
         public override void pushitgood(ISubscriptionCallbackHelper helper, IRosMessage message, bool nonconst_need_copy, ref bool was_full, TimeData receipt_time)
         {
             if (was_full)
                 was_full = false;
-            if (fullNoLock())
-            {
-                Item toss;
-                queue.TryDequeue(out toss);
-
-                _full = true;
-                was_full = true;
-            }
-            else
-                _full = false;
-
             Item i = new Item
             {
                 helper = helper,
@@ -79,12 +64,20 @@ namespace Ros_CSharp
                 nonconst_need_copy = nonconst_need_copy,
                 receipt_time = receipt_time
             };
-            queue.Enqueue(i);
+            lock (queue)
+            {
+                if (fullNoLock())
+                {
+                    queue.Dequeue();
+                    was_full = true;
+                }
+                queue.Enqueue(i);
+            }
         }
 
         public override void clear()
         {
-            queue = new ConcurrentQueue<Item>();
+            queue.Clear();
         }
 
         public new virtual bool ready()
@@ -99,13 +92,14 @@ namespace Ros_CSharp
 
         public bool full()
         {
-            return fullNoLock();
+            lock(queue)
+                return fullNoLock();
         }
 
         public class Item
         {
-            public IRosMessage message;
             public ISubscriptionCallbackHelper helper;
+            public IRosMessage message;
             public bool nonconst_need_copy;
             public TimeData receipt_time;
         }
@@ -119,12 +113,11 @@ namespace Ros_CSharp
                 callback_state = true;
             }
             Item i = null;
-            if (queue.Count == 0)
-                return CallResult.Invalid;
-            if (!queue.TryDequeue(out i) || i == null)
+            lock (queue)
             {
-                callback_state = false;
-                return CallResult.Invalid;
+                if (queue.Count == 0)
+                    return CallResult.Invalid;
+                i = queue.Dequeue();
             }
             i.helper.call(i.message);
             callback_state = false;
@@ -138,7 +131,7 @@ namespace Ros_CSharp
     public class CallbackInterface
     {
         private static object uidlock = new object();
-        private static UInt64 nextuid = 0;
+        private static UInt64 nextuid;
         private UInt64 uid;
 
         public CallbackInterface()
@@ -171,7 +164,7 @@ namespace Ros_CSharp
         }
 
         #endregion
-        
+
         public CallbackInterface(ICallbackDelegate f) : this()
         {
             Event += f;
@@ -207,7 +200,7 @@ namespace Ros_CSharp
             return CallResult.Invalid;
         }
 
-        internal virtual bool ready()
+        internal bool ready()
         {
             return true;
         }

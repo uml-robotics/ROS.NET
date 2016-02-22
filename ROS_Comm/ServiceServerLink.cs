@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -232,7 +232,7 @@ namespace Ros_CSharp
             connection.read(5, onResponseOkAndLength);
         }
 
-        private void onResponseOkAndLength(Connection conn, ref byte[] buf, uint size, bool success)
+        private void onResponseOkAndLength(Connection conn, byte[] buf, uint size, bool success)
         {
             if (conn != connection || size != 5)
                 throw new Exception("response or length NOT OK!");
@@ -257,11 +257,11 @@ namespace Ros_CSharp
             else
             {
                 byte[] f = new byte[0];
-                onResponse(conn, ref f, 0, true);
+                onResponse(conn, f, 0, true);
             }
         }
 
-        private void onResponse(Connection conn, ref byte[] buf, uint size, bool success)
+        private void onResponse(Connection conn, byte[] buf, uint size, bool success)
         {
             if (conn != connection) throw new Exception("WRONG CONNECTION");
 

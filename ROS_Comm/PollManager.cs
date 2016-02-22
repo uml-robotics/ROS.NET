@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -35,11 +35,10 @@ namespace Ros_CSharp
         private static PollManager _instance;
         private static object singleton_mutex = new object();
         public PollSet poll_set;
-        private List<Poll_Signal> signals = new List<Poll_Signal>();
-        public event Poll_Signal poll_signal;
 
         public bool shutting_down;
         public object signal_mutex = new object();
+        private List<Poll_Signal> signals = new List<Poll_Signal>();
         public TcpTransport tcpserver_transport;
         private Thread thread;
 
@@ -63,14 +62,17 @@ namespace Ros_CSharp
             }
         }
 
+        public event Poll_Signal poll_signal;
+
         public void addPollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
                 if (signals.Contains(poll))
                 {
-                    throw new Exception("DOUBLE LISTENER ADDITION");
+                    return;
                 }
+                signals.Add(poll);
                 Console.WriteLine("Adding pollthreadlistener " + poll.Method);
                 poll_signal += poll;
             }
@@ -79,17 +81,30 @@ namespace Ros_CSharp
 
         private void signal()
         {
-            poll_signal();
+            lock (signal_mutex)
+            {
+                foreach (Poll_Signal signal in signals)
+                {
+                    signal.BeginInvoke(signalComplete, signal);
+                }
+            }
+        }
+
+        private void signalComplete(IAsyncResult iar)
+        {
+            Poll_Signal ps = (Poll_Signal) iar.AsyncState;
+            ps.EndInvoke(iar);
         }
 
         public void removePollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
             {
-                if (signals.Contains(poll))
+                if (!signals.Contains(poll))
                 {
                     throw new Exception("DOUBLE LISTENER REMOVAL");
                 }
+                signals.Remove(poll);
                 Console.WriteLine("Removing pollthreadlistener " + poll.Method);
                 poll_signal -= poll;
             }
@@ -98,22 +113,8 @@ namespace Ros_CSharp
 
         private void threadFunc()
         {
-#if TRACE
-            DateTime last = DateTime.Now, now;
-            int count=0;
-#endif
             while (!shutting_down)
             {
-#if TRACE
-                now = DateTime.Now;
-                if (now.Subtract(last).TotalMilliseconds > 1000)
-                {
-                    last = now;
-                    Console.WriteLine("PollManager thread running @ {0}Hz", count);
-                    count = 0;
-                }
-                count++;
-#endif
                 signal();
 
                 if (shutting_down) return;
@@ -143,7 +144,7 @@ namespace Ros_CSharp
                 poll_set = null;
                 lock (signal_mutex)
                 {
-                    signals.ForEach((s) =>
+                    signals.ForEach(s =>
                                         {
                                             Console.WriteLine("PollManager cleanup: removing " + s.Method);
                                             poll_signal -= s;

@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -29,30 +29,24 @@ namespace Ros_CSharp
 #endif
     public class SubscriptionCallbackHelper<M> : ISubscriptionCallbackHelper where M : IRosMessage, new()
     {
-        public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb)
+        public SubscriptionCallbackHelper(MsgTypes t, CallbackDelegate<M> cb) : this(new Callback<M>(cb))
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: type and callbackdelegate constructor");
             type = t;
-            base.callback(new Callback<M>(cb));
-            //if you think about this one too hard, you might die.
         }
 
         public SubscriptionCallbackHelper(MsgTypes t)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: type constructor");
             type = t;
         }
 
         public SubscriptionCallbackHelper(CallbackInterface q)
             : base(q)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: callbackinterface constructor");
         }
 
         public override void call(IRosMessage msg)
         {
-            //EDB.WriteLine("SubscriptionCallbackHelper: call");
-            (callback()).func(msg);
+            Callback.func(msg);
         }
     }
 
@@ -61,7 +55,7 @@ namespace Ros_CSharp
 #endif
     public class ISubscriptionCallbackHelper
     {
-        private CallbackInterface _callback;
+        public CallbackInterface Callback { protected set; get; }
 
         public MsgTypes type;
 
@@ -74,24 +68,7 @@ namespace Ros_CSharp
         {
             //EDB.WriteLine("ISubscriptionCallbackHelper: 1 arg constructor");
             //throw new NotImplementedException();
-            _callback = Callback;
-        }
-
-        public virtual CallbackInterface callback()
-        {
-            return _callback;
-        }
-
-        public virtual CallbackInterface callback(CallbackInterface cb)
-        {
-            _callback = cb;
-            return _callback;
-        }
-
-        private void assignSubscriptionConnectionHeader(ref IRosMessage msg, IDictionary p)
-        {
-            // EDB.WriteLine("ISubscriptionCallbackHelper: assignSubscriptionConnectionHeader");
-            msg.connection_header = new Hashtable(p);
+            this.Callback = Callback;
         }
 
         public virtual void call(IRosMessage parms)

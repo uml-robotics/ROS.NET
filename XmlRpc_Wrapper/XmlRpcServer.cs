@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 09/01/2015
-// Updated: 10/07/2015
+// Created: 11/18/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -16,289 +16,92 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Xml;
 
 #endregion
 
 namespace XmlRpc_Wrapper
 {
-    public class XmlRpcServer : IDisposable
+    public class XmlRpcServer : XmlRpcSource
     {
-        protected IntPtr __instance;
-
-        public IntPtr instance
-        {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get { return __instance; }
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                set
-            {
-                if (__instance != IntPtr.Zero)
-                    RmRef(ref __instance);
-                if (value != IntPtr.Zero)
-                    AddRef(value);
-                __instance = value;
-            }
-        }
-
         #region Reference Tracking + unmanaged pointer management
 
-        public void Dispose()
+        public void Shutdown()
         {
-            Shutdown();
-        }
-
-        private static Dictionary<IntPtr, int> _refs = new Dictionary<IntPtr, int>();
-        private static object reflock = new object();
-#if REFDEBUG
-        private static Thread refdumper;
-        private static void dumprefs()
-        {
-            while (true)
-            {
-                Dictionary<IntPtr, int> dainbrammage = null;
-                lock (reflock)
-                {
-                    dainbrammage = new Dictionary<IntPtr, int>(_refs);
-                }
-                Console.WriteLine("REF DUMP");
-                foreach (KeyValuePair<IntPtr, int> reff in dainbrammage)
-                {
-                    Console.WriteLine("\t" + reff.Key + " = " + reff.Value);
-                }
-                Thread.Sleep(500);
-            }
-        }
-#endif
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public static XmlRpcServer LookUp(IntPtr ptr)
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                AddRef(ptr);
-                return new XmlRpcServer(ptr);
-            }
-            return null;
-        }
-
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        private static void AddRef(IntPtr ptr)
-        {
-#if REFDEBUG
-            if (refdumper == null)
-            {
-                refdumper = new Thread(dumprefs);
-                refdumper.IsBackground = true;
-                refdumper.Start();
-            }
-#endif
-            lock (reflock)
-            {
-                if (!_refs.ContainsKey(ptr))
-                {
-#if REFDEBUG
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + 0 + "==> " + 1 + ")");
-#endif
-                    _refs.Add(ptr, 1);
-                }
-                else
-                {
-#if REFDEBUG
-                    Console.WriteLine("Adding a new reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] + 1) + ")");
-#endif
-                    _refs[ptr]++;
-                }
-            }
-        }
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        private static void RmRef(ref IntPtr ptr)
-        {
-            lock (reflock)
-            {
-                if (_refs.ContainsKey(ptr))
-                {
-#if REFDEBUG
-                    Console.WriteLine("Removing a reference to: " + ptr + " (" + _refs[ptr] + "==> " + (_refs[ptr] - 1) + ")");
-#endif
-                    _refs[ptr]--;
-                    if (_refs[ptr] <= 0)
-                    {
-#if REFDEBUG
-                        Console.WriteLine("KILLING " + ptr + " BECAUSE IT'S A NOT VERY NICE!");
-#endif
-                        _refs.Remove(ptr);
-                        shutdown(ptr);
-                        XmlRpcUtil.Free(ptr);
-                    }
-                }
-                ptr = IntPtr.Zero;
-            }
-        }
-
-        public bool Shutdown()
-        {
-            return Shutdown(ref __instance);
-        }
-
-        public static bool Shutdown(ref IntPtr ptr)
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                RmRef(ref ptr);
-                return (ptr == IntPtr.Zero);
-            }
-            return true;
+            _disp.Clear();
+            //Shutdown(__instance);
         }
 
         #endregion
 
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public XmlRpcServer()
-        {
-            instance = create();
-        }
+        private static string SYSTEM_MULTICALL = "system.multicall";
+        private static string METHODNAME = "methodName";
+        private static string PARAMS = "params";
 
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public XmlRpcServer(IntPtr copy)
-        {
-            if (copy != IntPtr.Zero)
-            {
-                instance = copy;
-            }
-        }
+        private static string FAULTCODE = "faultCode";
+        private static string FAULTSTRING = "faultString";
+        private static string LIST_METHODS = "system.listMethods";
+        private static string METHOD_HELP = "system.methodHelp";
+        private static string MULTICALL = "system.multicall";
+        private XmlRpcDispatch _disp = new XmlRpcDispatch();
+        // Whether the introspection API is supported by this server
+        private bool _introspectionEnabled;
+        private XmlRpcServerMethod _listMethods;
+        private XmlRpcServerMethod _methodHelp;
+        private Dictionary<string, XmlRpcServerMethod> _methods = new Dictionary<string, XmlRpcServerMethod>();
+        private int _port;
+        private TcpListener listener;
 
         public int Port
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get
-            {
-                SegFault();
-                return getport(instance);
-            }
+            [DebuggerStepThrough] get { return _port; }
         }
 
         public XmlRpcDispatch Dispatch
         {
-#if !TRACE
-            [DebuggerStepThrough]
-#endif
-                get
+            [DebuggerStepThrough] get { return _disp; }
+        }
+
+        public void AddMethod(XmlRpcServerMethod method)
+        {
+            _methods.Add(method.name, method);
+        }
+
+        public void RemoveMethod(XmlRpcServerMethod method)
+        {
+            foreach (var rec in _methods)
             {
-                SegFault();
-                if (_dispatch == null)
+                if (method == rec.Value)
                 {
-                    IntPtr ret = getdispatch(instance);
-                    if (ret == IntPtr.Zero)
-                        return null;
-                    _dispatch = XmlRpcDispatch.LookUp(ret);
+                    _methods.Remove(rec.Key);
+                    break;
                 }
-                return _dispatch;
             }
-        }
-
-        private XmlRpcDispatch _dispatch;
-
-        #region P/Invoke
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Create", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr create();
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_AddMethod", CallingConvention = CallingConvention.Cdecl
-            )]
-        private static extern void addmethod(IntPtr target, IntPtr method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethod",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethod(IntPtr target, IntPtr method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_RemoveMethodByName",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void removemethodbyname(IntPtr target,
-            [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string method);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_FindMethod",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr findmethod(IntPtr target, [In] [Out] [MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_BindAndListen",
-            CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool bindandlisten(IntPtr target, int port, int backlog);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Work", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void work(IntPtr target, double msTime);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Exit", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void exit(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_Shutdown", CallingConvention = CallingConvention.Cdecl)
-        ]
-        private static extern void shutdown(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetPort", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int getport(IntPtr target);
-
-        [DllImport("XmlRpcWin32.dll", EntryPoint = "XmlRpcServer_GetDispatch",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr getdispatch(IntPtr target);
-
-        #endregion
-
-        public void AddMethod(XMLRPCCallWrapper method)
-        {
-            SegFault();
-            addmethod(instance, method.instance);
-        }
-
-        public void RemoveMethod(XMLRPCCallWrapper method)
-        {
-            SegFault();
-            removemethod(instance, method.instance);
         }
 
         public void RemoveMethod(string name)
         {
-            SegFault();
-            removemethodbyname(instance, name);
+            _methods.Remove(name);
         }
 
         public void Work(double msTime)
         {
-            SegFault();
-            work(instance, msTime);
+            _disp.Work(msTime);
         }
 
         public void Exit()
         {
-            SegFault();
-            exit(instance);
+            _disp.Exit();
         }
 
-        public XMLRPCCallWrapper FindMethod(string name)
+        public XmlRpcServerMethod FindMethod(string name)
         {
-            SegFault();
-            IntPtr ret = findmethod(instance, name);
-            if (ret == IntPtr.Zero) return null;
-            return XMLRPCCallWrapper.LookUp(ret);
+            if (_methods.ContainsKey(name))
+                return _methods[name];
+            return null;
         }
 
         public bool BindAndListen(int port)
@@ -306,20 +109,416 @@ namespace XmlRpc_Wrapper
             return BindAndListen(port, 5);
         }
 
+        public override Socket getSocket()
+        {
+            return listener != null ? listener.Server : null;
+        }
+
+
         public bool BindAndListen(int port, int backlog)
         {
-            SegFault();
-            return bindandlisten(instance, port, backlog);
+            IPAddress address = new IPAddress(0); // INADDR_ANY
+            try
+            {
+                _port = port;
+                listener = new TcpListener(address, port);
+                listener.Start(backlog);
+                _port = ((IPEndPoint) listener.Server.LocalEndPoint).Port;
+                _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
+                //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::bindAndListen: server listening on port {0}", _port);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return true;
         }
 
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public void SegFault()
+        // Handle input on the server socket by accepting the connection
+        // and reading the rpc request.
+        public override XmlRpcDispatch.EventType HandleEvent(XmlRpcDispatch.EventType eventType)
         {
-            if (instance == IntPtr.Zero)
-                throw new Exception("This isn't really a segfault, but your pointer is invalid, so it would have been!");
+            acceptConnection();
+            return XmlRpcDispatch.EventType.ReadableEvent; // Continue to monitor this fd
         }
+
+        /*
+        private void acceptClient(IAsyncResult ar)
+        {
+            try{
+                TcpListener lis = ar.AsyncState as TcpListener;
+                TcpClient cli = lis.EndAcceptTcpClient(ar);
+                _disp.AddSource(this.createConnection(cli), XmlRpcDispatch.EventType.ReadableEvent);
+            }
+            catch (SocketException ex)
+            {
+                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+            }
+        }*/
+
+        // Accept a client connection request and create a connection to
+        // handle method calls from the client.
+        private void acceptConnection()
+        {
+            try
+            {
+                TcpClient s = listener.AcceptTcpClient();
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
+                _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
+            }
+            catch (SocketException ex)
+            {
+                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+            }
+        }
+
+        // Create a new connection object for processing requests from a specific client.
+        private XmlRpcServerConnection createConnection(TcpClient s)
+        {
+            // Specify that the connection object be deleted when it is closed
+            return new XmlRpcServerConnection(s, this, true);
+        }
+
+        public void removeConnection(XmlRpcServerConnection sc)
+        {
+            _disp.RemoveSource(sc);
+        }
+
+
+        // Stop processing client requests
+        private void exit()
+        {
+            _disp.Exit();
+        }
+
+
+        // Close the server socket file descriptor and stop monitoring connections
+        private void shutdown()
+        {
+            // This closes and destroys all connections as well as closing this socket
+            _disp.Clear();
+        }
+
+
+        // Introspection support
+
+
+        // Specify whether introspection is enabled or not. Default is enabled.
+        public void enableIntrospection(bool enabled)
+        {
+            if (_introspectionEnabled == enabled)
+                return;
+
+            _introspectionEnabled = enabled;
+
+            if (enabled)
+            {
+                if (_listMethods == null)
+                {
+                    _listMethods = new ListMethods(this);
+                    _methodHelp = new MethodHelp(this);
+                }
+                else
+                {
+                    AddMethod(_listMethods);
+                    AddMethod(_methodHelp);
+                }
+            }
+            else
+            {
+                RemoveMethod(LIST_METHODS);
+                RemoveMethod(METHOD_HELP);
+            }
+        }
+
+
+        private void listMethods(XmlRpcValue result)
+        {
+            int i = 0;
+            result.SetArray(_methods.Count + 1);
+
+            foreach (var rec in _methods)
+            {
+                result.Set(i++, rec.Key);
+            }
+            /*
+            for (MethodMap::iterator it=_methods.begin(); it != _methods.end(); ++it)
+            result[i++] = it->first;*/
+
+            // Multicall support is built into XmlRpcServerConnection
+            result.Set(i, MULTICALL);
+        }
+
+        // Run the method, generate _response string
+        public string executeRequest(string _request)
+        {
+            string _response = "";
+            XmlRpcValue parms = new XmlRpcValue(), resultValue = new XmlRpcValue();
+            string methodName = parseRequest(parms, _request);
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServerConnection::executeRequest: server calling method '{0}'", methodName);
+
+            try
+            {
+                if (!executeMethod(methodName, parms, resultValue) &&
+                    !executeMulticall(methodName, parms, resultValue))
+                    _response = generateFaultResponse(methodName + ": unknown method name");
+                else
+                    _response = generateResponse(resultValue.toXml());
+            }
+            catch (XmlRpcException fault)
+            {
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServerConnection::executeRequest: fault {0}.", fault.Message);
+                _response = generateFaultResponse(fault.Message, fault.getCode());
+            }
+            return _response;
+        }
+
+        // Execute a named method with the specified params.
+        public bool executeMethod(string methodName, XmlRpcValue parms, XmlRpcValue result)
+        {
+            XmlRpcServerMethod method = FindMethod(methodName);
+
+            if (method == null) return false;
+
+            method.Execute(parms, result);
+
+            // Ensure a valid result value
+            if (!result.Valid)
+                result.Set("");
+
+            return true;
+        }
+
+        // Create a response from results xml
+        public string generateResponse(string resultXml)
+        {
+            string RESPONSE_1 = "<?xml version=\"1.0\"?>\r\n<methodResponse><params><param>\r\n\t";
+            string RESPONSE_2 = "\r\n</param></params></methodResponse>\r\n";
+
+            string body = RESPONSE_1 + resultXml + RESPONSE_2;
+            string header = generateHeader(body);
+            string result = header + body;
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.SPEW, "XmlRpcServerConnection::generateResponse:\n{0}\n", result);
+            return result;
+        }
+
+        // Parse the method name and the argument values from the request.
+        private string parseRequest(XmlRpcValue parms, string _request)
+        {
+            bool success = true;
+            string methodName = "unknown";
+            //XmlRpcValue result = null;
+            using (XmlReader reader = XmlReader.Create(new StringReader(_request)))
+            {
+                XmlDocument xmldoc = new XmlDocument();
+                xmldoc.Load(reader);
+
+                xmldoc.Save("last_request.xml");
+                // Parse response xml into result
+                //int offset = 0;
+                XmlNodeList xmlMethodNameList = xmldoc.GetElementsByTagName("methodName");
+                if (xmlMethodNameList.Count > 0)
+                {
+                    XmlNode xmlMethodName = xmlMethodNameList[0];
+                    methodName = xmlMethodName.InnerText;
+                }
+
+                XmlNodeList xmlParameters = xmldoc.GetElementsByTagName("param");
+
+                parms.SetArray(xmlParameters.Count);
+
+                for (int i = 0; i < xmlParameters.Count; i++)
+                {
+                    var value = new XmlRpcValue();
+                    value.fromXml(xmlParameters[i]["value"]);
+                    parms.asArray[i] = value;
+                }
+                /*
+                XmlNode responseNode = xmlParameters[0];
+
+                //if (!XmlRpcUtil.findTag(METHODRESPONSE_TAG, _response, out offset))
+                if (xmlParameters.Count == 0)
+                {
+                    XmlRpcUtil.error("Error in XmlRpcServer::parseRequest: Invalid request - no methodResponse. Request:\n{0}", _request);
+                    //return false;
+                }
+
+                XmlElement pars = responseNode["params"];
+                XmlElement fault = responseNode["fault"];
+
+                //result = new XmlRpcValue();
+                if (pars != null)
+                {
+                    bool isArray = false;
+                    var selection = pars.SelectNodes("param");
+                    if (selection.Count > 1)
+                    {
+                        parms.SetArray(selection.Count);
+                        int i = 0;
+                        foreach (XmlNode par in selection)
+                        {
+                            var value = new XmlRpcValue();
+                            value.fromXml(par["value"]);
+                            parms[i++] = value;
+                        }
+                    }
+                    else if (selection.Count == 1)
+                    {
+                        parms.fromXml(selection[0]["value"]);
+                    }
+                    else
+                        success = false;
+                }
+                else if (fault != null && parms.fromXml(fault))
+                {
+                    success = false;
+                }
+                else
+                {
+                    XmlRpcUtil.error("Error in XmlRpcServer::parseRequest: Invalid response - no param or fault tag. Request:\n{0}", _request);
+                }*/
+                //_request = "";
+            }
+
+            /*
+            int offset = 0;   // Number of chars parsed from the request
+
+            string methodName = XmlRpcUtil.parseTag(METHODNAME_TAG, _request, offset);
+
+            if (methodName.Length > 0 && XmlRpcUtil.findTag(PARAMS_TAG, _request, offset))
+            {
+                int nArgs = 0;
+                while (XmlRpcUtil.nextTagIs(PARAM_TAG, _request, offset)) {
+                    parms[nArgs++] = new XmlRpcValue(_request, offset);
+                    XmlRpcUtil.nextTagIs(PARAM_ETAG, _request, offset);
+                }    
+
+                XmlRpcUtil.nextTagIs(PARAMS_ETAG, _request, &offset);
+            }
+            */
+            return methodName;
+        }
+
+        // Prepend http headers
+        private string generateHeader(string body)
+        {
+            return string.Format(
+                "HTTP/1.1 200 OK\r\n" +
+                "Server: {0}\r\n" +
+                "Content-Type: text/xml\r\n" +
+                "Content-length: {1}\r\n\r\n",
+                XmlRpcUtil.XMLRPC_VERSION,
+                body.Length);
+        }
+
+        public string generateFaultResponse(string errorMsg, int errorCode = -1)
+        {
+            string RESPONSE_1 = "<?xml version=\"1.0\"?>\r\n<methodResponse><fault>\r\n\t";
+            string RESPONSE_2 = "\r\n</fault></methodResponse>\r\n";
+
+            XmlRpcValue faultStruct = new XmlRpcValue();
+            faultStruct.Set(FAULTCODE, errorCode);
+            faultStruct.Set(FAULTSTRING, errorMsg);
+            string body = RESPONSE_1 + faultStruct.toXml() + RESPONSE_2;
+            string header = generateHeader(body);
+
+            return header + body;
+        }
+
+        // Execute multiple calls and return the results in an array.
+        public bool executeMulticall(string methodNameRoot, XmlRpcValue parms, XmlRpcValue result)
+        {
+            if (methodNameRoot != SYSTEM_MULTICALL) return false;
+
+            // There ought to be 1 parameter, an array of structs
+            if (parms.Length != 1 || parms[0].Type != XmlRpcValue.ValueType.TypeArray)
+                throw new XmlRpcException(SYSTEM_MULTICALL + ": Invalid argument (expected an array)");
+
+            int nc = parms[0].Length;
+            result.SetArray(nc);
+
+            for (int i = 0; i < nc; ++i)
+            {
+                if (!parms[0][i].hasMember(METHODNAME) ||
+                    !parms[0][i].hasMember(PARAMS))
+                {
+                    result[i].Set(FAULTCODE, -1);
+                    result[i].Set(FAULTSTRING, SYSTEM_MULTICALL + ": Invalid argument (expected a struct with members methodName and params)");
+                    continue;
+                }
+
+                string methodName = parms[0][i][METHODNAME].GetString();
+                XmlRpcValue methodParams = parms[0][i][PARAMS];
+
+                XmlRpcValue resultValue = new XmlRpcValue();
+                resultValue.SetArray(1);
+                try
+                {
+                    if (!executeMethod(methodName, methodParams, resultValue[0]) &&
+                        !executeMulticall(methodName, parms, resultValue[0]))
+                    {
+                        result[i].Set(FAULTCODE, -1);
+                        result[i].Set(FAULTSTRING, methodName + ": unknown method name");
+                    }
+                    else
+                        result[i] = resultValue;
+                }
+                catch (XmlRpcException fault)
+                {
+                    result[i].Set(FAULTCODE, 0);
+                    result[i].Set(FAULTSTRING, fault.Message);
+                }
+            }
+
+            return true;
+        }
+
+        private class ListMethods : XmlRpcServerMethod
+        {
+            public
+                ListMethods(XmlRpcServer s)
+                : base(LIST_METHODS, null, s)
+            {
+                FUNC = execute;
+            }
+
+            private void execute(XmlRpcValue parms, XmlRpcValue result)
+            {
+                server.listMethods(result);
+            }
+
+            private string help()
+            {
+                return "List all methods available on a server as an array of strings";
+            }
+        };
+
+
+        // Retrieve the help string for a named method
+        private class MethodHelp : XmlRpcServerMethod
+        {
+            public MethodHelp(XmlRpcServer s) : base(METHOD_HELP, null, s)
+            {
+                FUNC = execute;
+            }
+
+            private void execute(XmlRpcValue parms, XmlRpcValue result)
+            {
+                if (parms[0].Type != XmlRpcValue.ValueType.TypeString)
+                    throw new XmlRpcException(METHOD_HELP + ": Invalid argument type");
+
+                XmlRpcServerMethod m = server.FindMethod(parms[0].GetString());
+                if (m == null)
+                    throw new XmlRpcException(METHOD_HELP + ": Unknown method name");
+
+                result.Set(m.Help());
+            }
+
+            public override string Help()
+            {
+                return ("Retrieve the help string for a named method");
+            }
+        };
     }
 }

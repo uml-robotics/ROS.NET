@@ -8,14 +8,12 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -124,6 +122,7 @@ namespace Ros_CSharp
         public void update(int poll_timeout)
         {
             Socket.Poll(poll_timeout);
+            Thread.Sleep(poll_timeout);
         }
 
         public void onLocalPipeEvents(int stuff)
@@ -143,7 +142,7 @@ namespace Ros_CSharp
         public override string ToString()
         {
             string s = "";
-            s = Socket.AllOfThem.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
+            s = Socket.FDs;
             s = s.Remove(s.Length - 3, 2);
             return s;
         }
@@ -151,11 +150,11 @@ namespace Ros_CSharp
 
     public class SocketInfo
     {
-        public int revents;
         public int events;
         public PollSet.SocketUpdateFunc func;
+        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
+        public int revents;
         public uint sock;
         public TcpTransport transport;
-        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
     }
 }

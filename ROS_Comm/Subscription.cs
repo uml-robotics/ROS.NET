@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -82,7 +82,8 @@ namespace Ros_CSharp
         {
             XmlRpcValue stats = new XmlRpcValue();
             stats.Set(0, name);
-            XmlRpcValue conn_data = new XmlRpcValue {Size = 0};
+            XmlRpcValue conn_data = new XmlRpcValue();
+            conn_data.SetArray(0);
             lock (publisher_links_mutex)
             {
                 int cidx = 0;
@@ -220,7 +221,7 @@ namespace Ros_CSharp
                 {
 #if DEBUG
                     EDB.WriteLine("Disconnecting from publisher [" + link.CallerID + "] of topic [" + name +
-                                    "] at [" + link.XmlRpc_Uri + "]");
+                                  "] at [" + link.XmlRpc_Uri + "]");
 #endif
                     link.drop();
                 }
@@ -269,7 +270,7 @@ namespace Ros_CSharp
             }
 #if DEBUG
             EDB.WriteLine("Began asynchronous xmlrpc connection to http://" + peer_host + ":" + peer_port + "/ for topic [" + name +
-                              "]");
+                          "]");
 #endif
             PendingConnection conn = new PendingConnection(c, this, xmlrpc_uri, Params);
             lock (pending_connections_mutex)
@@ -280,16 +281,16 @@ namespace Ros_CSharp
             return true;
         }
 
-        public void pendingConnectionDone(PendingConnection conn, IntPtr res)
+        public void pendingConnectionDone(PendingConnection conn, XmlRpcValue result)
         {
-            XmlRpcValue result = XmlRpcValue.LookUp(res);
+            //XmlRpcValue result = XmlRpcValue.LookUp(res);
             lock (shutdown_mutex)
             {
                 if (shutting_down || _dropped)
                     return;
             }
             XmlRpcValue proto = new XmlRpcValue();
-            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, proto))
             {
                 conn.failures++;
                 EDB.WriteLine("Negotiating for " + conn.parent.name + " has failed " + conn.failures + " times");
@@ -310,7 +311,7 @@ namespace Ros_CSharp
 #endif
                 return;
             }
-            if (proto.Type != TypeEnum.TypeArray)
+            if (proto.Type != XmlRpcValue.ValueType.TypeArray)
             {
                 EDB.WriteLine("Available protocol info returned from " + xmlrpc_uri + " is not a list.");
                 return;
@@ -322,7 +323,7 @@ namespace Ros_CSharp
             }
             else if (proto_name == "TCPROS")
             {
-                if (proto.Size != 3 || proto[1].Type != TypeEnum.TypeString || proto[2].Type != TypeEnum.TypeInt)
+                if (proto.Size != 3 || proto[1].Type != XmlRpcValue.ValueType.TypeString || proto[2].Type != XmlRpcValue.ValueType.TypeInt)
                 {
                     EDB.WriteLine("publisher implements TCPROS... BADLY! parameters aren't string,int");
                     return;
@@ -441,7 +442,7 @@ namespace Ros_CSharp
 
             lock (callbacks_mutex)
             {
-                CallbackInfo<M> info = new CallbackInfo<M> {helper = helper, callback = queue, subscription_queue = new Callback<M>(helper.callback().func, topiclol, queue_size, allow_concurrent_callbacks)};
+                CallbackInfo<M> info = new CallbackInfo<M> {helper = helper, callback = queue, subscription_queue = new Callback<M>(helper.Callback.func, topiclol, queue_size, allow_concurrent_callbacks)};
                 //if (!helper.isConst())
                 //{
                 ++nonconst_callbacks;

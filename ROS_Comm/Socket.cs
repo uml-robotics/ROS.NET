@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 09/01/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Linq;
 using n = System.Net;
 using ns = System.Net.Sockets;
 
@@ -29,8 +30,8 @@ namespace Ros_CSharp.CustomSocket
 #endif
     public class Socket : ns.Socket
     {
-        private static event Action<int> PollSignal; 
-        private static ConcurrentDictionary<uint, Socket> _socklist = new ConcurrentDictionary<uint, Socket>();
+        private Action<int> PollSignal;
+        private static Dictionary<uint, Socket> _socklist = new Dictionary<uint, Socket>();
         private static uint nextfakefd = 1;
         private static ConcurrentBag<uint> _freelist = new ConcurrentBag<uint>();
         private uint _fakefd;
@@ -38,7 +39,7 @@ namespace Ros_CSharp.CustomSocket
         private string attemptedConnectionEndpoint;
         private bool disposed;
 
-        public static ConcurrentDictionary<uint, Socket> AllOfThem
+        public static Dictionary<uint, Socket> AllOfThem
         {
             get { return _socklist; }
         }
@@ -51,22 +52,35 @@ namespace Ros_CSharp.CustomSocket
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
             : base(addressFamily, socketType, protocolType)
         {
-            PollSignal += _poll;
-            _socklist.TryAdd(FD, this);
+            PollSignal = _poll;
+            lock(_socklist)
+                _socklist.Add(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
         public Socket(ns.SocketInformation socketInformation)
             : base(socketInformation)
         {
-            PollSignal += _poll;
-            _socklist.TryAdd(FD, this);
+            PollSignal = _poll;
+            lock(_socklist)
+                _socklist.Add(FD, this);
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
         public bool IsDisposed
         {
             get { return disposed; }
+        }
+
+        public static string FDs
+        {
+            get
+            {
+                string s = "";
+                lock (_socklist) 
+                    _socklist.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
+                return s;
+            }
         }
 
         public uint FD
@@ -79,7 +93,8 @@ namespace Ros_CSharp.CustomSocket
                     {
                         if (_freelist.Count > 0)
                         {
-                            _freelist.TryTake(out _fakefd);
+                            while (!_freelist.TryTake(out _fakefd))
+                                Thread.Sleep(0);
                         }
                         else
                             _fakefd = (nextfakefd++);
@@ -142,17 +157,22 @@ namespace Ros_CSharp.CustomSocket
 
         public static Socket Get(uint fd)
         {
-            if (_socklist == null || !_socklist.ContainsKey(fd))
-                return null;
-            return _socklist[fd];
+            lock (_socklist)
+            {
+                if (_socklist == null || !_socklist.ContainsKey(fd))
+                    return null;
+                return _socklist[fd];
+            }
         }
 
         private static void remove(uint fd)
         {
-            if (_socklist == null || !_socklist.ContainsKey(fd))
-                return;
-            Socket s = null;
-            _socklist.TryRemove(fd, out s);
+            lock (_socklist)
+            {
+                if (_socklist == null || !_socklist.ContainsKey(fd))
+                    return;
+                _socklist.Remove(fd);
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -166,7 +186,6 @@ namespace Ros_CSharp.CustomSocket
                     remove(_fakefd);
                     _freelist.Add(_fakefd);
                     _fakefd = 0;
-                    PollSignal -= _poll;
                     base.Dispose(disposing);
                 }
             }
@@ -217,7 +236,7 @@ namespace Ros_CSharp.CustomSocket
         private void _poll(int poll_timeout)
         {
             if (Info == null || !Info.poll_mutex.WaitOne(0)) return;
-            if (this.ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
+            if (ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
             if (!Connected || disposed)
             {
                 Info.revents |= POLLHUP;
@@ -237,11 +256,9 @@ namespace Ros_CSharp.CustomSocket
                 return;
             }
 
-            PollSet.SocketUpdateFunc func = Info.func;
-
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
-                    (Info.revents & POLLNVAL) != 0))
+                 (Info.revents & POLLNVAL) != 0))
             {
                 bool skip = false;
                 if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
@@ -253,12 +270,7 @@ namespace Ros_CSharp.CustomSocket
                 if (!skip)
                 {
                     //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), (iar) =>
-                                                                                                      {
-                                                                                                          func.EndInvoke(iar);
-                                                                                                          Info.revents = 0;
-                                                                                                          Info.poll_mutex.Set();
-                                                                                                      }, null);
+                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), _pollComplete, Info);
                     //func.DynamicInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
                 }
             }
@@ -266,11 +278,25 @@ namespace Ros_CSharp.CustomSocket
             Info.poll_mutex.Set();*/
         }
 
+        private void _pollComplete(IAsyncResult iar)
+        {
+            SocketInfo i = (SocketInfo) iar.AsyncState;
+            i.func.EndInvoke(iar);
+            i.revents = 0;
+            i.poll_mutex.Set();
+        }
+
+        private void _pollAsyncComplete(IAsyncResult iar)
+        {
+            PollSignal.EndInvoke(iar);
+        }
+
         public static void Poll(int poll_timeout)
         {
-            if (PollSignal != null)
+            lock (_socklist)
             {
-                PollSignal(poll_timeout);
+                foreach (Socket s in _socklist.Values)
+                    s.PollSignal.BeginInvoke(poll_timeout, s._pollAsyncComplete, null);
             }
         }
 

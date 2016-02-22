@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -56,7 +56,7 @@ namespace Ros_CSharp
         {
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
-            return execute("getPid", args, ref result, ref payload, false);
+            return execute("getPid", args, result, payload, false);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
             args.Set(1, "");
-            if (!execute("getPublishedTopics", args, ref result, ref payload, true))
+            if (!execute("getPublishedTopics", args, result, payload, true))
                 return false;
             topicss.Clear();
             for (int i = 0; i < payload.Size; i++)
@@ -90,7 +90,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(), result = new XmlRpcValue(), payload = new XmlRpcValue();
             args.Set(0, this_node.Name);
 
-            if (!execute("getSystemState", args, ref result, ref payload, true))
+            if (!execute("getSystemState", args, result, payload, true))
             {
                 return false;
             }
@@ -117,9 +117,9 @@ namespace Ros_CSharp
             args.Set(1, nodename);
             XmlRpcValue resp = new XmlRpcValue();
             XmlRpcValue payl = new XmlRpcValue();
-            if (!execute("lookupNode", args, ref resp, ref payl, true))
+            if (!execute("lookupNode", args, resp, payl, true))
                 return null;
-            if (!XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, payl))
                 return null;
             string nodeuri = payl.GetString();
             string nodehost = null;
@@ -138,7 +138,7 @@ namespace Ros_CSharp
             XmlRpcValue req = new XmlRpcValue(), resp = new XmlRpcValue(), payl = new XmlRpcValue();
             req.Set(0, this_node.Name);
             req.Set(1, "Out of respect for Mrs. " + this_node.Name);
-            if (!cl.Execute("shutdown", req, resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, ref payl))
+            if (!cl.Execute("shutdown", req, resp) || !XmlRpcManager.Instance.validateXmlrpcResponse("lookupNode", resp, payl))
                 return false;
             payl.Dump();
             XmlRpcManager.Instance.releaseXMLRPCClient(cl);
@@ -153,7 +153,7 @@ namespace Ros_CSharp
         /// <param name="payload">Location to store the actual data requested, if any.</param>
         /// <param name="wait_for_master">If you recieve an unseccessful status code, keep retrying.</param>
         /// <returns></returns>
-        public static bool execute(string method, XmlRpcValue request, ref XmlRpcValue response, ref XmlRpcValue payload,
+        public static bool execute(string method, XmlRpcValue request, XmlRpcValue response, XmlRpcValue payload,
             bool wait_for_master)
         {
             try
@@ -176,43 +176,50 @@ namespace Ros_CSharp
                     // if the client is connected, execute the RPC call
                     success = client.IsConnected && client.Execute(method, request, response);
 
+                    if (client.IsConnected && !success)
+                    {
+                        if (response != null && response.asArray != null && response.asArray.Length >= 2)
+                            Console.WriteLine("Execute failed: return={0}, desc={1}", response[0].asInt, response[1].asString);
+                        else
+                            Console.WriteLine("response type == " + (response != null ? response.Type.ToString() : "null"));
+                    }
+
                     // Set success to false when response validation fails
-                    if (success && !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, ref payload))
+                    if (success && !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, payload))
                         success = false;
+
+
 
                     if (success)
                     {
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
                         return true;
                     }
-                    else
+                    if (!wait_for_master)
                     {
-                        if (!wait_for_master)
-                        {
-                            XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                            return false;
-                        }
-
-                        if (!printed)
-                        {
-                            EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                                master_port, (wait_for_master ? "Retrying..." : ""));
-                            printed = true;
-                        }
-                        if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
-                        {
-                            EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
-                                retryTimeout.TotalSeconds);
-                            XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                            return false;
-                        }
-
-                        //recreate the client, thereby causing it to reinitiate its connection (gross, but effective -- should really be done in xmlrpcwin32)
                         XmlRpcManager.Instance.releaseXMLRPCClient(client);
-                        client = null;
-                        Thread.Sleep(50);
-                        client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
+                        return false;
                     }
+
+                    if (!printed)
+                    {
+                        EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
+                            master_port, (wait_for_master ? "Retrying..." : ""));
+                        printed = true;
+                    }
+                    if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
+                    {
+                        EDB.WriteLine("[{0}] Timed out trying to connect to the master after [{1}] seconds", method,
+                            retryTimeout.TotalSeconds);
+                        XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                        return false;
+                    }
+
+                    //recreate the client, thereby causing it to reinitiate its connection (gross, but effective -- should really be done in xmlrpcwin32)
+                    XmlRpcManager.Instance.releaseXMLRPCClient(client);
+                    client = null;
+                    Thread.Sleep(250);
+                    client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 }
             }
             catch (Exception e)

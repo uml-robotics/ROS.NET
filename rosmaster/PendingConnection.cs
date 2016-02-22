@@ -37,19 +37,16 @@ namespace rosmaster
                 return;
             if (!check())
                 return;
-            client.SegFault();
-            disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
+            disp.AddSource(client, (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public override void removeFromDispatch(XmlRpcDispatch disp)
         {
-            client.SegFault();
             disp.RemoveSource(client);
         }
 
         public override bool check()
         {
-            client.SegFault();
             XmlRpcValue chk = new XmlRpcValue();
 
             bool res = client.IsConnected;

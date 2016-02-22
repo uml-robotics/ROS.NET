@@ -110,9 +110,8 @@ namespace rosmaster
 
         public XMLRPCFunc tobind(Func<XmlRpcValue> act)
         {
-            return (IntPtr parms, IntPtr result) =>
+            return (XmlRpcValue parm, XmlRpcValue res) =>
             {
-                XmlRpcValue res = XmlRpcValue.Create(ref result);
                 XmlRpcValue rtn = act();
                 res.Set(0, rtn[0]);
                 res.Set(1, rtn[1]);
@@ -122,9 +121,8 @@ namespace rosmaster
 
         public XMLRPCFunc tobind<A>(Func<A, XmlRpcValue> act)
         {
-            return (IntPtr parms, IntPtr result) =>
+            return (XmlRpcValue parm, XmlRpcValue res) =>
             {
-                XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
                 XmlRpcValue rtn = act(parm[0].Get<A>());
                 res.Set(0, rtn[0]);
                 res.Set(1, rtn[1]);
@@ -134,9 +132,8 @@ namespace rosmaster
 
         public XMLRPCFunc tobind<A,B>(Func<A, B, XmlRpcValue> act)
         {
-            return (IntPtr parms, IntPtr result) =>
+            return (XmlRpcValue parm, XmlRpcValue res) =>
             {
-                XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
                 XmlRpcValue rtn = act(parm[0].Get<A>(), parm[1].Get<B>());
                 res.Set(0, rtn[0]);
                 res.Set(1, rtn[1]);
@@ -146,9 +143,8 @@ namespace rosmaster
 
         public XMLRPCFunc tobind<A,B,C>(Func<A, B, C, XmlRpcValue> act)
         {
-            return (IntPtr parms, IntPtr result) =>
+            return (XmlRpcValue parm, XmlRpcValue res) =>
             {
-                XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
                 XmlRpcValue rtn = act(parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>());
                 res.Set(0, rtn[0]);
                 res.Set(1, rtn[1]);
@@ -158,9 +154,8 @@ namespace rosmaster
 
         public XMLRPCFunc tobind<A,B,C,D>(Func<A, B, C, D, XmlRpcValue> act)
         {
-            return (IntPtr parms, IntPtr result) =>
+            return (XmlRpcValue parm, XmlRpcValue res) =>
             {
-                XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
                 XmlRpcValue rtn = act( parm[0].Get<A>(), parm[1].Get<B>(), parm[2].Get<C>(),parm[3].Get<D>());
                 res.Set(0, rtn[0]);
                 res.Set(1, rtn[1]);
@@ -168,33 +163,30 @@ namespace rosmaster
             };
         }
 
-        public Action<IntPtr> responseStr(IntPtr target, int code, string msg, string response)
+        public Action<XmlRpcValue> responseStr(XmlRpcValue target, int code, string msg, string response)
         {
-            return (p) =>
+            return (v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);
             };
         }
 
-        public Action<IntPtr> responseInt(int code, string msg, int response)
+        public Action<XmlRpcValue> responseInt(int code, string msg, int response)
         {
-            return (p) =>
+            return (v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);
             };
         }
 
-        public Action<IntPtr> responseBool(int code, string msg, bool response)
+        public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
         {
-            return (p) =>
+            return (v) =>
             {
-                XmlRpcValue v = XmlRpcValue.LookUp(p);
                 v.Set(0, code);
                 v.Set(1, msg);
                 v.Set(2, response);
@@ -253,7 +245,7 @@ namespace rosmaster
                 XmlRpcValue payload = new XmlRpcValue();
                 payload.Set(0, pair.Key);
                 payload.Set(1, pair.Value);
-                value.Set(index, payload);
+                value.Set(index++, payload);
             }
 
             res.Set(0, 1);
@@ -296,10 +288,9 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void requestTopic([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public void requestTopic([In] [Out] XmlRpcValue parms, [In] [Out] XmlRpcValue result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
-            XmlRpcValue res = XmlRpcValue.Create(ref result), parm = XmlRpcValue.Create(ref parms);
         }
 
         /// <summary>
@@ -307,7 +298,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void pubUpdate([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public void pubUpdate([In] [Out] XmlRpcValue parms, [In] [Out] XmlRpcValue result)
         {
             //throw new Exception("NOT IMPLEMENTED YET!");
             //mlRpcValue parm = XmlRpcValue.Create(ref parms);
@@ -538,7 +529,7 @@ namespace rosmaster
         #endregion
 
         #region Time
-        public XmlRpcValue getTime([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public XmlRpcValue getTime([In] [Out] XmlRpcValue parms, [In] [Out] XmlRpcValue result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
         }
@@ -547,7 +538,7 @@ namespace rosmaster
         /// </summary>
         /// <param name="parms"></param>
         /// <param name="result"></param>
-        public void getSubscriptions([In] [Out] IntPtr parms, [In] [Out] IntPtr result)
+        public void getSubscriptions([In] [Out] XmlRpcValue parms, [In] [Out] XmlRpcValue result)
         {
             throw new Exception("NOT IMPLEMENTED YET!");
         }
@@ -667,12 +658,12 @@ namespace rosmaster
         /// </summary>
         /// <param name="parm"></param>
         /// <param name="result"></param>
-        public static void paramUpdate(IntPtr parm, IntPtr result)
+        public static void paramUpdate(XmlRpcValue parm, XmlRpcValue result)
         {
-            XmlRpcValue val = XmlRpcValue.LookUp(parm);
-            val.Set(0, 1);
-            val.Set(1, "");
-            val.Set(2, 0);
+            throw new Exception("NOT IMPLEMENTED YET!");
+            result.Set(0, 1);
+            result.Set(1, "");
+            result.Set(2, 0);
             //update(XmlRpcValue.LookUp(parm)[1].Get<string>(), XmlRpcValue.LookUp(parm)[2]);
         }
 

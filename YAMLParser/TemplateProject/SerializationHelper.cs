@@ -27,7 +27,7 @@ namespace Messages
 
         static Dictionary<Type, MsgTypes> GetMessageTypeMemo = new Dictionary<Type, MsgTypes>();
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static MsgTypes GetMessageType(Type t)
         {
@@ -37,7 +37,7 @@ namespace Messages
                 lock (GetMessageTypeMemo)
                 {
                     if (!GetMessageTypeMemo.ContainsKey(t))
-                        GetMessageTypeMemo.Add(t, (MsgTypes) Enum.Parse(typeof (MsgTypes), "std_msgs__Bool")); //ERIC
+                        GetMessageTypeMemo.Add(t, (MsgTypes)Enum.Parse(typeof(MsgTypes), "std_msgs__Bool")); //ERIC
                 }
             if (GetMessageTypeMemo.ContainsKey(t))
                 return GetMessageTypeMemo[t];
@@ -51,25 +51,33 @@ namespace Messages
             }
         }
 
+        static Dictionary<string, Type> GetTypeTypeMemo = new Dictionary<string, Type>();
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static Type GetType(string s)
         {
-            Type ret;
-            MsgTypes mt = GetMessageType(s);
-            if (mt == MsgTypes.Unknown)
-                ret = Type.GetType(s, true, true);
-            else
-                ret = IRosMessage.generate(mt).GetType();
-            //            Console.WriteLine(s + "=" + ret.Name);
-            return ret;
+            lock (GetTypeTypeMemo)
+            {
+                if (GetTypeTypeMemo.ContainsKey(s))
+                    return GetTypeTypeMemo[s];
+                Type ret;
+                MsgTypes mt = GetMessageType(s);
+                if (mt == MsgTypes.Unknown)
+                {
+                    System.Diagnostics.Debug.WriteLine("GetType is falling back to using Type.GetType! YUCK");
+                    ret = Type.GetType(s, true, true);
+                }
+                else
+                    ret = IRosMessage.generate(mt).GetType();
+                return (GetTypeTypeMemo[s] = ret);
+            }
         }
 
         static Dictionary<string, MsgTypes> GetMessageTypeMemoString = new Dictionary<string, MsgTypes>();
 
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static MsgTypes GetMessageType(string s)
         {
@@ -114,19 +122,35 @@ namespace Messages
             }
         }
 
+        private static Dictionary<Type, bool> SizeKnowledge = new Dictionary<Type, bool>();
+
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public static bool IsSizeKnown(Type T, bool recurse)
         {
+            lock (SizeKnowledge)
+            {
+                bool b = false;
+                if (SizeKnowledge.TryGetValue(T, out b))
+                    return b;
+                return IsSizeKnownNoLock(T, recurse);
+            }
+        }
+
+#if !TRACE
+        [DebuggerStepThrough]
+#endif
+        private static bool IsSizeKnownNoLock(Type T, bool recurse)
+        {
             if (T == typeof(string) || T == typeof(String) ||
                 (T.FullName != null && T.FullName.Contains("Messages.std_msgs.String")) /*|| T.IsArray ERIC*/)
-                return false;
+                return (SizeKnowledge[T] = false);
             if (T.FullName.Contains("System.") || T.FullName.Contains("Messages.std_msgs.Time") || T.FullName.Contains("Messages.std_msgs.Duration"))
-                return true;
-            if (!recurse || !T.FullName.Contains("Messages")) return true;
-            FieldInfo[] infos = T.GetFields();
+                return (SizeKnowledge[T] = true);
+            if (!recurse || !T.FullName.Contains("Messages")) return (SizeKnowledge[T] = true);
             bool b = true;
+            FieldInfo[] infos = T.GetFields();
             foreach (FieldInfo info in infos)
             {
                 string fullName = info.FieldType.FullName;
@@ -137,7 +161,7 @@ namespace Messages
                     {
                         MsgTypes MT = GetMessageType(info.FieldType);
                         IRosMessage TI = IRosMessage.generate(MT);
-                        b &= IsSizeKnown(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
+                        b &= IsSizeKnownNoLock(TI.GetType(), true); //TI.Fields[info.Name].Type != typeof(string) && TI.Fields[info.Name].Type != typeof(String) && (!TI.Fields[info.Name].IsArray || TI.Fields[info.Name].Length != -1);
                     }
                     else
                         b &= !info.FieldType.IsArray && info.FieldType != typeof(string);
@@ -145,7 +169,7 @@ namespace Messages
                 if (!b)
                     break;
             }
-            return b;
+            return (SizeKnowledge[T] = b);
         }
 
         internal static T Deserialize<T>(byte[] bytes) where T : IRosMessage, new()
@@ -180,8 +204,7 @@ namespace Messages
             return null;
         }
 
-        private static Dictionary<MsgTypes, FieldInfo[]> speedyFields = new Dictionary<MsgTypes, FieldInfo[]>();
-        private static Dictionary<MsgTypes, List<string>> importantfieldnames = new Dictionary<MsgTypes, List<string>>();
+        private static Dictionary<Type, FieldInfo[]> speedyFields = new Dictionary<Type, FieldInfo[]>();
         public static FieldInfo[] GetFields(Type T, ref object instance, out IRosMessage msg)
         {
             if (instance == null)
@@ -191,17 +214,21 @@ namespace Messages
                 else
                     instance = Activator.CreateInstance(T);
             }
+
             IRosMessage MSG = instance as IRosMessage;
-            if (MSG == null)
+            msg = MSG;
+            lock (speedyFields)
             {
-                msg = MSG;
-                return instance.GetType().GetFields();
-            }
-            MsgTypes MT = MSG.msgtype;
-            if (MT != MsgTypes.Unknown)
-            {
-                msg = MSG;
-                return msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray();
+                if (speedyFields.ContainsKey(T))
+                    return speedyFields[T];
+                if (MSG == null || MSG.msgtype == MsgTypes.Unknown)
+                {
+                    return (speedyFields[T] = instance.GetType().GetFields());
+                }
+                else if (MSG != null)
+                {
+                    return (speedyFields[T] = msg.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray());
+                }
             }
             throw new Exception("GetFields is weaksauce");
         }
@@ -299,7 +326,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                         currpos += 4;
                     }
                     PWNED = new bool[num];
-                    for (int i = 0; i < num; i++ )
+                    for (int i = 0; i < num; i++)
                     {
                         PWNED[i] = bytes[i + currpos] > 0;
                     }
@@ -456,7 +483,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
                             }
                             infos[currinfo].SetValue(thestructure, val);
                         }
-                        else if (TT == typeof (string))
+                        else if (TT == typeof(string))
                         {
                             for (int i = 0; i < chunklen; i++)
                             {
@@ -504,7 +531,8 @@ Console.WriteLine("//deserialize: " + T.FullName);
                             IRosMessage msg = (IRosMessage)Activator.CreateInstance(ft);
                             Type t = GetType(msg.GetType().FullName);
                             bool knownsize = IsSizeKnown(t, false) && MSG.Fields != null && !MSG.Fields[infos[currinfo].Name].IsArray || MSG.Fields[infos[currinfo].Name].Length != -1;
-                            if (!knownsize && t.GetField("data").FieldType == typeof(string))
+                            FieldInfo datafield = t.GetField("data");
+                            if (!knownsize && (datafield != null && datafield.FieldType == typeof(string)))
                             {
                                 int len = -4;
                                 if (currpos + 4 <= bytes.Length)
@@ -718,10 +746,10 @@ Console.WriteLine("//deserialize: " + T.FullName);
                 int arraylength = 0;
                 Array valArray = val as Array;
                 List<byte> thechunk = new List<byte>();
-                for(int i=0;i<valArray.GetLength(0);i++)
+                for (int i = 0; i < valArray.GetLength(0); i++)
                 {
                     if (valArray.GetValue(i) == null)
-                        valArray.SetValue(Activator.CreateInstance(T.GetElementType()),i);
+                        valArray.SetValue(Activator.CreateInstance(T.GetElementType()), i);
                     Type TT = valArray.GetValue(i).GetType();
                     MsgTypes mt = GetMessageType(TT);
                     bool piecelengthknown = mt != MsgTypes.std_msgs__String;
@@ -750,7 +778,7 @@ Console.WriteLine("//deserialize: " + T.FullName);
         public MsgTypes message_type;
 
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         public MsgFieldInfo(string name, bool isliteral, Type type, bool isconst, string constval, bool isarray,
             string lengths, bool meta, MsgTypes mt)

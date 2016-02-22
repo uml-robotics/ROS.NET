@@ -8,7 +8,7 @@
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
 // Created: 04/28/2015
-// Updated: 10/07/2015
+// Updated: 02/10/2016
 
 #region USINGZ
 
@@ -43,7 +43,7 @@ namespace Ros_CSharp
 
         public void Dispose()
         {
-            chk.Dispose();
+            chk = null; //.Dispose();
             client.Dispose();
             client = null;
         }
@@ -62,24 +62,21 @@ namespace Ros_CSharp
                 return;
             if (check())
                 return;
-            client.SegFault();
-            disp.AddSource(client, (int) (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
+            disp.AddSource(client, (XmlRpcDispatch.EventType.WritableEvent | XmlRpcDispatch.EventType.Exception));
         }
 
         public override void removeFromDispatch(XmlRpcDispatch disp)
         {
-            client.SegFault();
             disp.RemoveSource(client);
         }
 
         public override bool check()
         {
-            client.SegFault();
             if (parent == null)
                 return false;
             if (client.ExecuteCheckDone(chk))
             {
-                parent.pendingConnectionDone(this, chk.instance);
+                parent.pendingConnectionDone(this, chk);
                 return true;
             }
             return false;
