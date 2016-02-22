@@ -50,8 +50,11 @@ namespace Ros_CSharp
         {
             if (p == null)
                 p = TopicManager.Instance.lookupPublication(topic);
-            msg.Serialized = null;
-            TopicManager.Instance.publish(p, msg);
+            if (p != null)
+            {
+                msg.Serialized = null;
+                TopicManager.Instance.publish(p, msg);
+            }
         }
     }
 
