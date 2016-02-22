@@ -466,6 +466,7 @@ namespace Ros_CSharp
             XmlRpcValue parm2 = new XmlRpcValue(), result2 = new XmlRpcValue();
             parm2.Set(0, this_node.Name);
             parm2.Set(1, mapped_key);
+            v.SetArray(0);
 
             bool ret = master.execute("getParam", parm2, result2, v, false);
 
