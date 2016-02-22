@@ -182,6 +182,9 @@ namespace Ros_CSharp
                 case XmlRpcValue.ValueType.TypeString:
                     payload.asString = response[2].asString;
                     break;
+                case XmlRpcValue.ValueType.TypeBoolean:
+                    payload.asBool = response[2].asBool;
+                    break;
                 case XmlRpcValue.ValueType.TypeInvalid:
                     break;
                 default:
