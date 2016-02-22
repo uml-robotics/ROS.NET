@@ -99,12 +99,12 @@ namespace rosmaster
                         {
                             if (val[ns].isNotANamespace)
                             {
-                                if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeString)
-                                    return new XmlRpcValue(val[ns].fuckyou);
-                                else if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeInt)
-                                    return new XmlRpcValue(val[ns].thisblows);
-                                else if (val[ns].type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
-                                    return new XmlRpcValue(val[ns].jesuschrist);
+                                if (val[ns].type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeString)
+                                    return new XmlRpcValue(val[ns].jordanString);
+                                else if (val[ns].type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeInt)
+                                    return new XmlRpcValue(val[ns].jordanInt);
+                                else if (val[ns].type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeDouble)
+                                    return new XmlRpcValue(val[ns].jordanDouble);
                                 else
                                     throw new Exception("FUCKKKKKKKKKKKKKKKKKKKKKKK");
                             }
@@ -151,15 +151,15 @@ namespace rosmaster
                             }
                         }
                     }
-                    if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeString)
+                    if (value.Type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeString)
                     {
                         d[value_key] = new Param(value.GetString());
                     }
-                    else if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                    else if (value.Type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeInt)
                     {
                         d[value_key] = new Param(value.GetInt());
                     }
-                    else if (value.Type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
+                    else if (value.Type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeDouble)
                     {
                         d[value_key] = new Param(value.GetDouble());
                     }
@@ -286,23 +286,23 @@ namespace rosmaster
             {
                 get
                 {
-                    return Count == 0 && fuckyou != null && thisblows != null && jesuschrist != null;
+                    return Count == 0 && jordanString != null && jordanInt != null && jordanDouble != null;
                 }
             }
 
             //private string _value;
             public XmlRpc_Wrapper.XmlRpcValue _value = null;
-            public XmlRpc_Wrapper.TypeEnum type;
+            public XmlRpc_Wrapper.XmlRpcValue.ValueType type;
             
             public string getString()
             {
                 if (type == null)
                     return null;
-                if (type == XmlRpc_Wrapper.TypeEnum.TypeString)
-                    return fuckyou;
-                else if (type == XmlRpc_Wrapper.TypeEnum.TypeInt)
+                if (type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeString)
+                    return jordanString;
+                else if (type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeInt)
                     return _value.ToString();
-                else if (type == XmlRpc_Wrapper.TypeEnum.TypeDouble)
+                else if (type == XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeDouble)
                     return _value.ToString();
 
                 return null;
@@ -321,9 +321,9 @@ namespace rosmaster
                 else
                     return (object)getString();
             }
-            public String fuckyou = "";
-            public int thisblows;
-            public double jesuschrist;
+            public String jordanString = "";
+            public int jordanInt;
+            public double jordanDouble;
             public Param()
             {
 
@@ -335,18 +335,18 @@ namespace rosmaster
 
             public Param(String sigh)
             {
-                fuckyou = sigh;
-                type = XmlRpc_Wrapper.TypeEnum.TypeString;
+                jordanString = sigh;
+                type = XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeString;
             }
             public Param(int sigh)
             {
-                thisblows = sigh;
-                type = XmlRpc_Wrapper.TypeEnum.TypeInt;
+                jordanInt = sigh;
+                type = XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeInt;
             }
             public Param(double sigh)
             {
-                jesuschrist = sigh;
-                type = XmlRpc_Wrapper.TypeEnum.TypeDouble;
+                jordanDouble = sigh;
+                type = XmlRpc_Wrapper.XmlRpcValue.ValueType.TypeDouble;
             }
             public Param(string key, Param val)
             {
