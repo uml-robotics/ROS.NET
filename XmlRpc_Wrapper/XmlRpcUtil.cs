@@ -183,35 +183,26 @@ namespace XmlRpc_Wrapper
         {
             if (m_headerStatus != STATUS.COMPLETE_HEADER)
             {
-                // Si la taille de requ?te est sup?rieur ou ?gale ? 1460, alors toutes la chaine est l'ent?te http
-                if (HTTPRequest.Length >= 1460)
+                int betweenHeaderAndData = HTTPRequest.IndexOf("\r\n\r\n", System.StringComparison.OrdinalIgnoreCase);
+                if (betweenHeaderAndData > 0)
                 {
-                    m_headerSoFar += HTTPRequest;
-                    m_headerStatus = STATUS.PARTIAL_HEADER;
+                    m_headerStatus = STATUS.COMPLETE_HEADER;
+                    //found the boundary between header and data
+                    m_headerSoFar += HTTPRequest.Substring(0, betweenHeaderAndData);
+                    HTTPHeaderParse(m_headerSoFar);
+
+                    //shorten the request so we can fall through
+                    HTTPRequest = HTTPRequest.Substring(betweenHeaderAndData + 4);
+                    //
+                    // FALL THROUGH to header complete case
+                    //
                 }
                 else
                 {
-                    int betweenHeaderAndData = HTTPRequest.IndexOf("\r\n\r\n", System.StringComparison.OrdinalIgnoreCase);
-                    if (betweenHeaderAndData > 0)
-                    {
-                        m_headerStatus = STATUS.COMPLETE_HEADER;
-                        //found the boundary between header and data
-                        m_headerSoFar += HTTPRequest.Substring(0, betweenHeaderAndData);
-                        HTTPHeaderParse(m_headerSoFar);
-
-                        //shorten the request so we can fall through
-                        HTTPRequest = HTTPRequest.Substring(betweenHeaderAndData + 4);
-                        //
-                        // FALL THROUGH to header complete case
-                        //
-                    }
-                    else
-                    {
-                        m_headerSoFar += HTTPRequest;
-                        m_headerStatus = STATUS.PARTIAL_HEADER;
-                        HTTPHeaderParse(m_headerSoFar);
-                        return m_headerStatus;
-                    }
+                    m_headerSoFar += HTTPRequest;
+                    m_headerStatus = STATUS.PARTIAL_HEADER;
+                    HTTPHeaderParse(m_headerSoFar);
+                    return m_headerStatus;
                 }
             }
 
@@ -246,7 +237,7 @@ namespace XmlRpc_Wrapper
 
         #region HTTP Header parsing stuff
 
-        private ConcurrentDictionary<HTTPHeaderField,string> HeaderFieldToStrings = new ConcurrentDictionary<HTTPHeaderField,string>();
+        private Dictionary<HTTPHeaderField, string> HeaderFieldToStrings = new Dictionary<HTTPHeaderField, string>();
 
         private void HTTPHeaderParse(string Header)
         {
@@ -263,7 +254,7 @@ namespace XmlRpc_Wrapper
                 if (!HeaderFieldToStrings.TryGetValue(HHField, out HTTPfield) || HTTPField == null)
                 {
                     HTTPfield = "\n" + HHField.ToString().Replace('_', '-') + ": ";
-                    HeaderFieldToStrings.TryAdd(HHField, HTTPfield);
+                    HeaderFieldToStrings.Add(HHField, HTTPfield);
                 }
 
                 // Si le champ n'est pas pr?sent dans la requ?te, on passe au champ suivant

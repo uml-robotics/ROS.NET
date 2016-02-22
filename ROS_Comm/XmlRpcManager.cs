@@ -147,7 +147,7 @@ namespace Ros_CSharp
             }
         }
 
-        public bool validateXmlrpcResponse(string method, XmlRpcValue response, ref XmlRpcValue payload)
+        public bool validateXmlrpcResponse(string method, XmlRpcValue response, XmlRpcValue payload)
         {
             if (response.Type != XmlRpcValue.ValueType.TypeArray)
                 return validateFailed(method, "didn't return an array -- {0}", response);
@@ -162,7 +162,14 @@ namespace Ros_CSharp
             if (status_code != 1)
                 return validateFailed(method, "returned an error ({0}): [{1}] -- {2}", status_code, status_string,
                     response);
-            payload = response[2];
+            if (response[2].Type == XmlRpcValue.ValueType.TypeArray)
+            {
+                payload.SetArray(0);
+                for (int i = 0; i < response[2].Length; i++)
+                {
+                    payload.Set(i, response[2][i]);
+                }
+            }
             return true;
         }
 

@@ -238,7 +238,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, ops.topic, ops.datatype, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("registerPublisher", args, result, ref payload, true);
+            master.execute("registerPublisher", args, result, payload, true);
             return true;
         }
 
@@ -353,8 +353,6 @@ namespace Ros_CSharp
                 return;
             if (serfunc == null)
                 serfunc = msg.Serialize;
-            if (p == null)
-                throw new Exception("TopicManager.publish(...) - Publication cannot be null!");
             if (p.connection_header == null)
             {
                 p.connection_header = new Header {Values = new Hashtable()};
@@ -484,7 +482,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, s.name, datatype, uri);
             XmlRpcValue result = new XmlRpcValue();
             XmlRpcValue payload = new XmlRpcValue();
-            if (!master.execute("registerSubscriber", args, result, ref payload, true))
+            if (!master.execute("registerSubscriber", args, result, payload, true))
                 return false;
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
@@ -524,7 +522,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterSubscriber", args, result, ref payload, false);
+            master.execute("unregisterSubscriber", args, result, payload, false);
             return true;
         }
 
@@ -533,7 +531,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, result, ref payload, false);
+            master.execute("unregisterPublisher", args, result, payload, false);
             return true;
         }
 
@@ -548,8 +546,8 @@ namespace Ros_CSharp
                 subscribe_stats = new XmlRpcValue(),
                 service_stats = new XmlRpcValue();
             publish_stats.SetArray(0); //.Size = 0;
-            publish_stats.SetArray(0); //subscribe_stats.Size = 0;
-            publish_stats.SetArray(0); //service_stats.Size = 0;
+            subscribe_stats.SetArray(0); //subscribe_stats.Size = 0;
+            service_stats.SetArray(0); //service_stats.Size = 0;
             int pidx = 0;
             lock (advertised_topics_mutex)
             {
@@ -566,6 +564,9 @@ namespace Ros_CSharp
                     subscribe_stats.Set(sidx++, t.getStats());
                 }
             }
+
+            //TODO: fix for services
+
             stats.Set(0, publish_stats);
             stats.Set(1, subscribe_stats);
             stats.Set(2, service_stats);

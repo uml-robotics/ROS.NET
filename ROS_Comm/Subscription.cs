@@ -290,7 +290,7 @@ namespace Ros_CSharp
                     return;
             }
             XmlRpcValue proto = new XmlRpcValue();
-            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, ref proto))
+            if (!XmlRpcManager.Instance.validateXmlrpcResponse("requestTopic", result, proto))
             {
                 conn.failures++;
                 EDB.WriteLine("Negotiating for " + conn.parent.name + " has failed " + conn.failures + " times");

@@ -514,13 +514,14 @@ namespace XmlRpc_Wrapper
                 using (StreamWriter writer = new StreamWriter(memstream))
                 {
                     writer.Write(_request);
-                    _bytesWritten = _request.Length;
+                    writer.Flush();
                 }
                 var stream = socket.GetStream();
                 try
                 {
                     var buffer = memstream.GetBuffer();
                     stream.Write(buffer, 0, buffer.Length);
+                    stream.Flush();
                 }
                 catch (Exception ex)
                 {
