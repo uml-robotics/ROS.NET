@@ -85,9 +85,11 @@ namespace Ros_CSharp
         {
             string n = names.resolve("/rosout");
             IRosMessage msg = null;
+
             Publication p = TopicManager.Instance.lookupPublication(n);
             while (!shutting_down)
             {
+                if (p == null) p = TopicManager.Instance.lookupPublication(n);
                 while (!shutting_down && log_queue.TryDequeue(out msg))
                 {
                     TopicManager.Instance.publish(p, msg);
