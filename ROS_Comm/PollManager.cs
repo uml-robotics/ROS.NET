@@ -113,22 +113,8 @@ namespace Ros_CSharp
 
         private void threadFunc()
         {
-#if TRACE
-            DateTime last = DateTime.Now, now;
-            int count=0;
-#endif
             while (!shutting_down)
             {
-#if TRACE
-                now = DateTime.Now;
-                if (now.Subtract(last).TotalMilliseconds > 1000)
-                {
-                    last = now;
-                    Console.WriteLine("PollManager thread running @ {0}Hz", count);
-                    count = 0;
-                }
-                count++;
-#endif
                 signal();
 
                 if (shutting_down) return;
