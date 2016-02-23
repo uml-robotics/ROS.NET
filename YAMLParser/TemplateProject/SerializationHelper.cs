@@ -327,7 +327,7 @@ namespace Messages
                         bool isElementMessage = ArrayElementType.FullName.StartsWith("Messages.");
                         Array vals = (info.GetValue(thestructure) as Array);
 #region determine array element size (if determinable)
-                        int chunklen = 0;
+                        int chunklen = -1;
                         if (vals == null)
                         {
                             if (currpos + 4 <= bytes.Length)
@@ -347,14 +347,7 @@ namespace Messages
                             chunklen = vals.Length;
                         }
 
-                        if (knownpiecelength && chunklen == 0)
-                        {
-                            if (ArrayElementMsgType == MsgTypes.Unknown)
-                                chunklen = Marshal.SizeOf(ArrayElementType);
-                            if (chunklen == 0 && vals.Length > 0)
-                                chunklen = Marshal.SizeOf(vals.GetValue(0));
-                        }
-                        if (chunklen == 0)
+                        if (chunklen == -1)
                             throw new Exception("Could not determine number of array elements to deserialize");
 #endregion
                         if (isElementMessage)
@@ -368,7 +361,6 @@ namespace Messages
                                 _deserialize(ref data, ref currpos, ArrayElementType, T, bytes, out len, ElementSizeKnown);
                                 vals.SetValue(data, i);
                             }
-                            info.SetValue(thestructure, vals);
                         }
                         else
                         {
@@ -389,11 +381,11 @@ namespace Messages
                                 if (pIP != IntPtr.Zero)
                                     pIP = new IntPtr(pIP.ToInt32() + len);
                             }
-                            info.SetValue(thestructure, vals);
                             if (sIP != IntPtr.Zero)
                                 Marshal.FreeHGlobal(sIP);
                             currpos += chunklen * len;
                         }
+                        info.SetValue(thestructure, vals);
                     }
 #endregion
                 }
