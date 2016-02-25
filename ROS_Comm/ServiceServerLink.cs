@@ -192,7 +192,7 @@ namespace Ros_CSharp
                 {
                     request = current_call.req;
                 }
-                request.Serialize();
+                request.Serialized = request.Serialize();
                 connection.write(request.Serialized, (uint) request.Serialized.Length, onRequestWritten);
             }
         }
