@@ -25,11 +25,11 @@ namespace DynamicReconfigureSharp
         public DynamicReconfigureStringBox(DynamicReconfigureInterface dynamic, ParamDescription pd, string def)
         {
             this.def = def;
-            name = pd.name.data;
+            name = pd.name;
             this.dynamic = dynamic;
             InitializeComponent();
             description.Text = name + ":";
-            JustTheTip.Content = pd.description.data;
+            JustTheTip.Content = pd.description;
             dynamic.Subscribe(name, changed);
             ignore = false;
             text = Box.Text;

@@ -28,7 +28,7 @@ namespace DynamicReconfigureSharp
 
         public DynamicReconfigureSlider(DynamicReconfigureInterface dynamic, ParamDescription pd, double def, double max, double min, bool isDouble)
         {
-            name = pd.name.data;
+            name = pd.name;
             this.dynamic = dynamic;
             this.isDouble = isDouble;
             InitializeComponent();
@@ -43,7 +43,7 @@ namespace DynamicReconfigureSharp
             else
                 value.Maximum = max;
             description.Text = name + ":";
-            JustTheTip.Content = pd.description.data;
+            JustTheTip.Content = pd.description;
 
             if (isDouble)
             {
@@ -104,11 +104,7 @@ namespace DynamicReconfigureSharp
                 {
                     if (value.Value != d)
                     {
-                        value.Value = d;
-                        //the following was redundant since the "Set" method is 
-                        //going to be called from the ValueChanged event
-                        //if (!ignore)
-                            //dynamic.Set(name, d);                        
+                        value.Value = d;                  
                     }
                 }
             }

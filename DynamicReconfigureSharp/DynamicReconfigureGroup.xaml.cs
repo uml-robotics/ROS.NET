@@ -89,19 +89,19 @@ namespace DynamicReconfigureSharp
 
                 foreach (ParamDescription s in g.parameters)
                 {
-                    string _name = s.name.data;
-                    switch (TYPE_DICT[s.type.data])
+                    string _name = s.name;
+                    switch (TYPE_DICT[s.type])
                     {
                         case DYN_RECFG_TYPE.type_bool:
                         {
-                            var pdef = def.bools.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmax = max.bools.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmin = min.bools.FirstOrDefault(p => p.name.data == s.name.data);
-                            if (s.edit_method.data.Contains("enum_description"))
+                            var pdef = def.bools.FirstOrDefault(p => p.name == s.name);
+                            var pmax = max.bools.FirstOrDefault(p => p.name == s.name);
+                            var pmin = min.bools.FirstOrDefault(p => p.name == s.name);
+                            if (s.edit_method.Contains("enum_description"))
                             {
-                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method);
                                 paramsHolder.Children.Add(d);
-                                dropdowns.Add(s.name.data, d);
+                                dropdowns.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (IntChanged != null)
@@ -112,7 +112,7 @@ namespace DynamicReconfigureSharp
                             {
                                 var d = new DynamicReconfigureCheckbox(dynamic, s, pdef.value);
                                 paramsHolder.Children.Add(d);
-                                checkboxes.Add(s.name.data, d);
+                                checkboxes.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (BoolChanged != null)
@@ -123,14 +123,14 @@ namespace DynamicReconfigureSharp
                             break;
                         case DYN_RECFG_TYPE.type_double:
                         {
-                            var pdef = def.doubles.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmax = max.doubles.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmin = min.doubles.FirstOrDefault(p => p.name.data == s.name.data);
-                            if (s.edit_method.data.Contains("enum_description"))
+                            var pdef = def.doubles.FirstOrDefault(p => p.name == s.name);
+                            var pmax = max.doubles.FirstOrDefault(p => p.name == s.name);
+                            var pmin = min.doubles.FirstOrDefault(p => p.name == s.name);
+                            if (s.edit_method.Contains("enum_description"))
                             {
-                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method);
                                 paramsHolder.Children.Add(d);
-                                dropdowns.Add(s.name.data, d);
+                                dropdowns.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (IntChanged != null)
@@ -141,7 +141,7 @@ namespace DynamicReconfigureSharp
                             {
                                 var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, true);
                                 paramsHolder.Children.Add(d);
-                                sliders.Add(s.name.data, d);
+                                sliders.Add(s.name, d);
                                 d.Instrument(new Action<double>(S =>
                                 {
                                     if (DoubleChanged != null)
@@ -152,14 +152,14 @@ namespace DynamicReconfigureSharp
                             break;
                         case DYN_RECFG_TYPE.type_int:
                         {
-                            var pmax = max.ints.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmin = min.ints.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pdef = def.ints.FirstOrDefault(p => p.name.data == s.name.data);
-                            if (s.edit_method.data.Contains("enum_description"))
+                            var pmax = max.ints.FirstOrDefault(p => p.name == s.name);
+                            var pmin = min.ints.FirstOrDefault(p => p.name == s.name);
+                            var pdef = def.ints.FirstOrDefault(p => p.name == s.name);
+                            if (s.edit_method.Contains("enum_description"))
                             {
-                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method.data);
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method);
                                 paramsHolder.Children.Add(d);
-                                dropdowns.Add(s.name.data, d);
+                                dropdowns.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (IntChanged != null)
@@ -170,7 +170,7 @@ namespace DynamicReconfigureSharp
                             {
                                 var d = new DynamicReconfigureSlider(dynamic, s, pdef.value, pmax.value, pmin.value, false);
                                 paramsHolder.Children.Add(d);
-                                sliders.Add(s.name.data, d);
+                                sliders.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (IntChanged != null)
@@ -181,14 +181,14 @@ namespace DynamicReconfigureSharp
                             break;
                         case DYN_RECFG_TYPE.type_str:
                         {
-                            var pdef = def.strs.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmax = max.strs.FirstOrDefault(p => p.name.data == s.name.data);
-                            var pmin = min.strs.FirstOrDefault(p => p.name.data == s.name.data);
-                            if (s.edit_method.data.Contains("enum_description"))
+                            var pdef = def.strs.FirstOrDefault(p => p.name == s.name);
+                            var pmax = max.strs.FirstOrDefault(p => p.name == s.name);
+                            var pmin = min.strs.FirstOrDefault(p => p.name == s.name);
+                            if (s.edit_method.Contains("enum_description"))
                             {
-                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value.data, pmax.value.data, pmin.value.data, s.edit_method.data);
+                                var d = new DynamicReconfigureStringDropdown(dynamic, s, pdef.value, pmax.value, pmin.value, s.edit_method);
                                 paramsHolder.Children.Add(d);
-                                dropdowns.Add(s.name.data, d);
+                                dropdowns.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (IntChanged != null)
@@ -197,9 +197,9 @@ namespace DynamicReconfigureSharp
                             }
                             else
                             {
-                                var d = new DynamicReconfigureStringBox(dynamic, s, pdef.value.data);
+                                var d = new DynamicReconfigureStringBox(dynamic, s, pdef.value);
                                 paramsHolder.Children.Add(d);
-                                boxes.Add(s.name.data, d);
+                                boxes.Add(s.name, d);
                                 d.Instrument(S =>
                                 {
                                     if (StringChanged != null)

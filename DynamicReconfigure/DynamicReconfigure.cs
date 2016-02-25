@@ -118,37 +118,37 @@ namespace DynamicReconfigure
             {
                 foreach (BoolParameter bp in m.bools)
                 {
-                    lastbool[bp.name.data] = bp.value;
-                    if (boolcbs.ContainsKey(bp.name.data))
+                    lastbool[bp.name] = bp.value;
+                    if (boolcbs.ContainsKey(bp.name))
                     {
-                        lbcbs.Add(boolcbs[bp.name.data], bp.value);
+                        lbcbs.Add(boolcbs[bp.name], bp.value);
                         //boolcbs[bp.name.data].ForEach(a => a(bp.value));
                     }
                 }
                 foreach (IntParameter ip in m.ints)
                 {
-                    lastint[ip.name.data] = ip.value;
-                    if (intcbs.ContainsKey(ip.name.data))
+                    lastint[ip.name] = ip.value;
+                    if (intcbs.ContainsKey(ip.name))
                     {
-                        ibcbs.Add(intcbs[ip.name.data], ip.value);
+                        ibcbs.Add(intcbs[ip.name], ip.value);
                         //intcbs[ip.name.data].ForEach(a => a(ip.value));
                     }
                 }
                 foreach (DoubleParameter dp in m.doubles)
                 {
-                    lastdouble[dp.name.data] = dp.value;
-                    if (doublecbs.ContainsKey(dp.name.data))
+                    lastdouble[dp.name] = dp.value;
+                    if (doublecbs.ContainsKey(dp.name))
                     {
-                        dbcbs.Add(doublecbs[dp.name.data], dp.value);
+                        dbcbs.Add(doublecbs[dp.name], dp.value);
                         //doublecbs[dp.name.data].ForEach(a => a(dp.value));
                     }
                 }
                 foreach (StrParameter sp in m.strs)
                 {
-                    laststring[sp.name.data] = sp.value.data;
-                    if (strcbs.ContainsKey(sp.name.data))
+                    laststring[sp.name] = sp.value;
+                    if (strcbs.ContainsKey(sp.name))
                     {
-                        sbcbs.Add(strcbs[sp.name.data], sp.value.data);
+                        sbcbs.Add(strcbs[sp.name], sp.value);
                         //strcbs[sp.name.data].ForEach(a => a(sp.value.data));
                     }
                 }
@@ -287,22 +287,22 @@ namespace DynamicReconfigure
 
         public void Set(string key, string value, bool synchronous = false)
         {
-            Set(new Config {strs = new[] {new StrParameter {name = new String(key), value = new String(value)}}}, synchronous);
+            Set(new Config {strs = new[] {new StrParameter {name = key, value = value}}}, synchronous);
         }
 
         public void Set(string key, int value, bool synchronous = false)
         {
-            Set(new Config {ints = new[] {new IntParameter {name = new String(key), value = value}}}, synchronous);
+            Set(new Config {ints = new[] {new IntParameter {name = key, value = value}}}, synchronous);
         }
 
         public void Set(string key, double value, bool synchronous = false)
         {
-            Set(new Config {doubles = new[] {new DoubleParameter {name = new String(key), value = value}}}, synchronous);
+            Set(new Config {doubles = new[] {new DoubleParameter {name = key, value = value}}}, synchronous);
         }
 
         public void Set(string key, bool value, bool synchronous = false)
         {
-            Set(new Config {bools = new[] {new BoolParameter {name = new String(key), value = value}}}, synchronous);
+            Set(new Config {bools = new[] {new BoolParameter {name = key, value = value}}}, synchronous);
         }
 
         #region IDisposable Members

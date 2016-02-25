@@ -23,11 +23,11 @@ namespace DynamicReconfigureSharp
         public DynamicReconfigureCheckbox(DynamicReconfigureInterface dynamic, ParamDescription pd, bool def)
         {
             this.def = def;
-            name = pd.name.data;
+            name = pd.name;
             this.dynamic = dynamic;
             InitializeComponent();
             description.Content = name + ":";
-            JustTheTip.Content = pd.description.data;
+            JustTheTip.Content = pd.description;
             _checkBox.IsChecked = def;
             dynamic.Subscribe(name, changed);
             ignore = false;

@@ -178,7 +178,7 @@ namespace DynamicReconfigureSharp
                 }
                 enumdescription.Enum[i] = newval;
             }
-            name = pd.name.data;
+            name = pd.name;
             this.dynamic = dynamic;
             InitializeComponent();
             for (int i = 0; i < enumdescription.Enum.Length; i++)
@@ -218,7 +218,7 @@ namespace DynamicReconfigureSharp
                 }
             }
             description.Content = name + ":";
-            JustTheTip.Content = pd.description.data;
+            JustTheTip.Content = pd.description;
             ignore = false;
         }
 
