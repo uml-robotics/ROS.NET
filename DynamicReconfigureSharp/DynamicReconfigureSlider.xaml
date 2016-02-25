@@ -32,7 +32,7 @@
         </Grid>
         <TextBox Name="box" VerticalAlignment="Center" Grid.Column="2" KeyDown="Box_OnKeyDown" LostFocus="Box_OnLostFocus">
             <i:Interaction.Behaviors>
-                <DynamicReconfigureSharp:AllowableCharactersTextBoxBehavior x:Name="textBehavior" MaxLength="50" />
+                <DynamicReconfigureSharp:AllowableCharactersTextBoxBehavior x:Name="textBehavior" MaxLength="9" />
             </i:Interaction.Behaviors>
         </TextBox>
     </Grid>

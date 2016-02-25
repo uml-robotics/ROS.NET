@@ -25,6 +25,26 @@ namespace DynamicReconfigureSharp
         private double max;
         private double min;
         private string name;
+        private bool dragStarted = false;
+
+        private string Format<T>(T o) where T : struct
+        {
+            var d = o as double?;
+            string fmat = string.Format("{{0:G{0}}}{1}", textBehavior.MaxLength, d != null && isDouble && (int)d.Value == d.Value ? ".0" : "");
+            string ret = string.Format(fmat, o);
+            if (o is int || ret.Length < textBehavior.MaxLength)
+                return ret;
+            //if we have a double that's longer than maxlength,
+            //  see if trimming least significant digits to fit would
+            //    remove the decimal point OR
+            //    cause the number to end with the decimal point
+            //  if neither occurs, truncate the string
+            string shorter = ret.Substring(0, textBehavior.MaxLength);
+            if (shorter.Contains(".") && shorter[textBehavior.MaxLength - 1] != '.')
+                return shorter;
+            return ret;
+        }
+
 
         public DynamicReconfigureSlider(DynamicReconfigureInterface dynamic, ParamDescription pd, double def, double max, double min, bool isDouble)
         {
@@ -45,25 +65,27 @@ namespace DynamicReconfigureSharp
             description.Text = name + ":";
             JustTheTip.Content = pd.description;
 
+            double range = value.Maximum - value.Minimum;
+            minlabel.Content = Format(value.Minimum);
+            maxlabel.Content = Format(value.Maximum);
+            value.Value = this.def = def;
             if (isDouble)
             {
                 textBehavior.RegularExpression = @"^[\-\.0-9]+$";
                 value.IsSnapToTickEnabled = false;
-                value.TickFrequency = 0;
-                minlabel.Content = string.Format("{0:N2}", value.Minimum);
-                maxlabel.Content = string.Format("{0:N2}", value.Maximum);
-                value.Value = this.def = def;
+                value.TickFrequency = range / 10.0;
+                value.LargeChange = range / 10.0;
+                value.SmallChange = range / 100.0;
                 dynamic.Subscribe(name, new Action<double>(changed));
                 ignore = false;
             }
             else
             {
                 textBehavior.RegularExpression = @"^[\-0-9][0-9]*$";
-                value.TickFrequency = 1;
                 value.IsSnapToTickEnabled = true;
-                minlabel.Content = "" + (int) value.Minimum;
-                maxlabel.Content = "" + (int) value.Maximum;
-                value.Value = this.def = def;
+                value.TickFrequency = Math.Max(1, (int) Math.Floor(range  /10.0));
+                value.LargeChange = Math.Max(1, (int)Math.Floor(range / 10.0));
+                value.SmallChange = 1;
                 dynamic.Subscribe(name, new Action<int>(changed));
                 ignore = false;
             }
@@ -87,7 +109,7 @@ namespace DynamicReconfigureSharp
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 ignore = true;
-                box.Text = string.Format("{0:N2}", newstate);
+                box.Text = Format(newstate);
                 value.Value = newstate;
                 if (doublechanged != null)
                     doublechanged(newstate);
@@ -116,10 +138,6 @@ namespace DynamicReconfigureSharp
                     if (value.Value != i)
                     {
                         value.Value = i;
-                        //the following was redundant since the "Set" method is 
-                        //going to be called from the ValueChanged event
-                        //if (!ignore)
-                            //dynamic.Set(name, i);
                     }
                 }
             }
@@ -139,38 +157,25 @@ namespace DynamicReconfigureSharp
         }
 
         #region Slider Value Changed
-        private bool dragStarted = false;
         private void Slider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
         {
-            this.dragStarted = true;
+            dragStarted = true;
         }
         private void Slider_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
         {
-            if (isDouble)
-                box.Text = string.Format("{0:N2}", value.Value);
-            else
-                box.Text = "" + (int)value.Value;
+            box.Text = Format(value.Value);
         }
         private void Slider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
-            this.dragStarted = false;
+            dragStarted = false;
             Value_OnValueChanged(null, null);
         }
         private void Value_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!dragStarted)
-                if (isDouble)
-                {
-                    box.Text = string.Format("{0:N2}", value.Value);
-                    if (!ignore)
-                        dynamic.Set(name, value.Value);
-                }
-                else
-                {
-                    box.Text = "" + (int)value.Value;
-                    if (!ignore)
-                        dynamic.Set(name, (int)value.Value);
-                }
+            if (dragStarted) return;
+            box.Text = Format(value.Value);
+            if (!ignore)
+                dynamic.Set(name, (int)value.Value);
         }
         #endregion
 
