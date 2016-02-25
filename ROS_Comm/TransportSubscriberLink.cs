@@ -165,17 +165,12 @@ namespace Ros_CSharp
             if (holder != null)
             {
                 if (holder.msg.Serialized == null)
-                {
                     holder.msg.Serialized = holder.serfunc();
-                }
                 stats.messages_sent++;
-                byte[] towrite = new byte[holder.msg.Serialized.Length + 4];
-                Array.Copy(BitConverter.GetBytes(holder.msg.Serialized.Length), 0, towrite, 0, 4);
-                Array.Copy(holder.msg.Serialized, 0, towrite, 4, holder.msg.Serialized.Length);
-                stats.bytes_sent += towrite.Length;
-                stats.message_data_sent += towrite.Length;
-                
-                connection.write(towrite, (uint) holder.msg.Serialized.Length, onMessageWritten, immediate_write);
+                //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
+                stats.bytes_sent += holder.msg.Serialized.Length;
+                stats.message_data_sent += holder.msg.Serialized.Length;
+                connection.write(holder.msg.Serialized, (uint) holder.msg.Serialized.Length, onMessageWritten, immediate_write);
             }
         }
 

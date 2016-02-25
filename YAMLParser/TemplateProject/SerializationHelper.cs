@@ -552,13 +552,13 @@ namespace Messages
             bytes = null;
         }
 
-        internal static byte[] Serialize<T>(T outgoing)
+        internal static byte[] Serialize<T>(T outgoing, bool partofsomethingelse)
             where T : IRosMessage, new()
         {
-            return SlapChop(outgoing.GetType(), outgoing);
+            return SlapChop(outgoing.GetType(), outgoing, partofsomethingelse);
         }
 
-        public static byte[] SlapChop(Type T, object instance)
+        public static byte[] SlapChop(Type T, object instance, bool partofsomethingelse)
         {
             IRosMessage msg;
             FieldInfo[] infos = GetFields(T, ref instance, out msg);
@@ -586,7 +586,16 @@ namespace Messages
             }
             byte[] wholeshebang;
             int currpos = 0;
-            wholeshebang = new byte[totallength];
+            if (!partofsomethingelse)
+            {
+                currpos = 4;
+                wholeshebang = new byte[totallength + 4];
+                byte[] length = BitConverter.GetBytes(totallength);
+                for(int i=0;i<4;i++)
+                    wholeshebang[i] = length[i];
+            }
+            else
+                wholeshebang = new byte[totallength];
             while (chunks.Count > 0)
             {
                 byte[] chunk = chunks.Dequeue();
@@ -610,7 +619,7 @@ namespace Messages
                         msg = val as IRosMessage;
                     else
                         msg = (IRosMessage)Activator.CreateInstance(T);
-                    thischunk = msg.Serialize();
+                    thischunk = msg.Serialize(true);
                 }
                 else if (val is byte || T == typeof(byte))
                 {

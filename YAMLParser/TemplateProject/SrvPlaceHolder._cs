@@ -55,9 +55,9 @@ namespace Messages
 			}
 
 			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize()
+			public override byte[] Serialize(bool partofsomethingelse)
 			{		
-				return SerializationHelper.Serialize<$WHATAMI.Request>(this);
+				return SerializationHelper.Serialize<$WHATAMI.Request>(this, partofsomethingelse);
 			}
 		}
 		
@@ -86,9 +86,9 @@ namespace Messages
 			}
 
 			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize()
+			public override byte[] Serialize(bool partofsomethingelse)
 			{	
-				return SerializationHelper.Serialize<$WHATAMI.Response>(this);
+				return SerializationHelper.Serialize<$WHATAMI.Response>(this, partofsomethingelse);
 			}	
 		}
 	}

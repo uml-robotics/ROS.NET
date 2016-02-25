@@ -347,8 +347,11 @@ namespace MessageSerializationTests
                 Debug.WriteLine("Randomized " + m + " = " + dumphex(original.Serialized));
                 IRosMessage msg = IRosMessage.generate(m);
                 Assert.IsTrue(msg != null);
-                byte[] data;
-                data = original.Serialized;
+
+                //strip off the length we send with the message to subscribers
+                byte[] data = new byte[original.Serialized.Length - 4];
+                for (int i = 0; i < data.Length; i++)
+                    data[i] = original.Serialized[i+4];
                 msg.Deserialize(data);
                 object oo = original, om = msg;
                 Assert.IsTrue(Compare(msg.GetType(), ref oo, ref om));

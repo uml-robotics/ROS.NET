@@ -37,9 +37,9 @@ $EXTRACONSTRUCTOR
 
 		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public override byte[] Serialize()
+		public override byte[] Serialize(bool partofsomethingelse)
 		{	
-			return SerializationHelper.Serialize<$WHATAMI>(this);
+			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
 		}
 	}
 }
