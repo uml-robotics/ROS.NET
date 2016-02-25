@@ -312,6 +312,10 @@ namespace Messages
             {
                 FieldInfo info = infos[currinfo];
                 MsgFieldInfo mfi = MSG.Fields[info.Name];
+                if (mfi.IsConst)
+                {
+                    continue;
+                }
                 Type realtype = info.FieldType;
                 Type type = GetType(realtype.FullName);
                 bool isMessage = realtype.FullName != null && realtype.FullName.StartsWith("Message");
@@ -564,11 +568,10 @@ namespace Messages
             foreach (FieldInfo info in infos)
             {
                 if (info.Name.Contains("(")) continue;
+                if (msg.Fields[info.Name].IsConst) continue;
                 if (info.GetValue(instance) == null)
                 {
-                    if (msg.Fields[info.Name].IsConst)
-                        info.SetValue(instance, msg.Fields[info.Name].ConstVal);
-                    else if (info.FieldType == typeof(string))
+                    if (info.FieldType == typeof(string))
                         info.SetValue(instance, "");
                     else if (info.FieldType.IsArray)
                         info.SetValue(instance, Array.CreateInstance(info.FieldType.GetElementType(), 0));
