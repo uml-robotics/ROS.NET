@@ -44,10 +44,20 @@ namespace YAMLParser
         private static void Main(string[] args)
         {
             string solutiondir;
+            bool interactive = false; //wait for ENTER press when complete
+            int firstarg = 0;
             if (args.Length >= 1)
             {
-                args[0] = args[0].Trim('"');
-                solutiondir = args[0];
+                if (args[0].Trim().Equals("-i"))
+                {
+                    interactive = true;
+                    firstarg++;
+                }
+            }
+            if (args.Length - firstarg >= 1)
+            {
+                args[firstarg] = args[firstarg].Trim('"');
+                solutiondir = args[firstarg];
             }
             else
             {
@@ -94,7 +104,7 @@ namespace YAMLParser
                 srv.AddRange(Directory.GetFiles(dir, "*.srv"));
 #endif
             }
-            if (args.Length == 1)
+            if (args.Length - firstarg == 1)
             {
                 paths.AddRange(Directory.GetFiles(".", "*.msg"));
 #if !NO_SRVS_RIGHT_NOW
@@ -103,7 +113,7 @@ namespace YAMLParser
             }
             else
             {
-                for (int i = 1; i < args.Length; i++)
+                for (int i = firstarg+1; i < args.Length; i++)
                 {
                     if (args[i].Contains(".msg"))
                         paths.Add(args[i]);
@@ -177,6 +187,11 @@ namespace YAMLParser
             else
             {
                 Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
+            }
+            if (interactive)
+            {
+                Console.WriteLine("Finished. Press enter.");
+                Console.ReadLine();
             }
         }
 

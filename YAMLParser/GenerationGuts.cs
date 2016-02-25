@@ -309,8 +309,6 @@ namespace FauxMessages
                     continue;
                 }
                 def.Add(lines[i]);
-                if (Name.ToLower() == "string")
-                    lines[i].Replace("String", "string");
                 SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
@@ -366,8 +364,6 @@ namespace FauxMessages
             for (int i = 0; i < lines.Count; i++)
             {
                 def.Add(lines[i]);
-                if (Name.ToLower() == "string")
-                    lines[i].Replace("String", "string");
                 SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
@@ -419,12 +415,12 @@ namespace FauxMessages
                     {
                         HasHeader = true;
                     }
-                    else if (classname == "String")
+                    /*else if (classname == "String")
                     {
                         thisthing.input = thisthing.input.Replace("String", "string");
                         thisthing.Type = thisthing.Type.Replace("String", "string");
                         thisthing.output = thisthing.output.Replace("String", "string");
-                    }
+                    }*/
                     else if (classname == "Time")
                     {
                         thisthing.input = thisthing.input.Replace("Time", "TimeData");
@@ -440,12 +436,12 @@ namespace FauxMessages
                     meta |= thisthing.meta;
                     memoizedcontent += "\t" + thisthing.output + "\n";
                 }
-                if (classname.ToLower() == "string")
+                /*if (classname.ToLower() == "string")
                 {
                     memoizedcontent +=
                         "\n\n\t\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\t\tpublic String(){ data = \"\"; }\n\n";
                 }
-                else if (classname == "Time")
+                else*/ if (classname == "Time")
                 {
                     memoizedcontent +=
                         "\n\n\t\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\t\tpublic Time() : this(0,0){}\n\n";
@@ -500,7 +496,8 @@ namespace FauxMessages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;using String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
+                            "using Messages.std_msgs;using String=System.String;//Messages.std_msgs.String;\n\n"
+                            ;
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -805,7 +802,7 @@ namespace FauxMessages
                     ConstValue = chunks[chunks.Length - 1].Trim();
                     if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim() + "\")";
+                        otherstuff = chunks[0] + " = \"" + chunks[1].Trim() + "\"";
                     }
                 }
                 string prefix = "", suffix = "";
@@ -829,7 +826,7 @@ namespace FauxMessages
             else
             {
                 if (length.Length > 0)
-                    IsLiteral = type != "string";
+                    IsLiteral = true;
                 if (otherstuff.Contains('='))
                 {
                     string[] split = otherstuff.Split('=');
@@ -893,7 +890,7 @@ namespace FauxMessages
                     ConstValue = chunks[chunks.Length - 1].Trim();
                     if (type.Equals("string", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        otherstuff = chunks[0] + " = new String(\"" + chunks[1].Trim().Replace("\"", "") + "\")";
+                        otherstuff = chunks[0] + " = \"" + chunks[1].Trim().Replace("\"", "") + "\"";
                     }
                 }
                 else if (!type.Equals("String"))
@@ -921,7 +918,7 @@ namespace FauxMessages
             else
             {
                 if (length.Length != 0)
-                    IsLiteral = type != "string";
+                    IsLiteral = true; //type != "string";
                 if (otherstuff.Contains('='))
                 {
                     string[] split = otherstuff.Split('=');

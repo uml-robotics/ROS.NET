@@ -146,7 +146,7 @@ namespace ROS_ImageWPF
 
         private void updateImage(sm.Image img)
         {
-            Dispatcher.Invoke(new Action(() => mGenericImage.UpdateImage(img.data, new Size((int) img.width, (int) img.height), false, img.encoding.data)));
+            Dispatcher.Invoke(new Action(() => mGenericImage.UpdateImage(img.data, new Size((int) img.width, (int) img.height), false, img.encoding)));
         }
     }
 }

@@ -32,23 +32,14 @@ $EXTRACONSTRUCTOR
 		public override void Deserialize(byte[] SERIALIZEDSTUFF)
 		{
 			int dontcare = 0;
-			SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+			SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override byte[] Serialize()
-		{
-			return Serialize(false);
-		}
-
-		
-		[System.Diagnostics.DebuggerStepThrough]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public override byte[] Serialize(bool partofsomethingelse)
-		{
-			//$SERIALIZATIONCODEHERE			
-			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
+		{	
+			return SerializationHelper.Serialize<$WHATAMI>(this);
 		}
 	}
 }

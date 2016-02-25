@@ -91,7 +91,7 @@ namespace ROS_ImageWPF
 
         private void callback(object o)
         {
-            CompressedImage cm = new CompressedImage {format = new String("jpeg"), header = new Header {stamp = ROS.GetTime()}};
+            CompressedImage cm = new CompressedImage {format = "jpeg", header = new Header {stamp = ROS.GetTime()}};
             using (MemoryStream ms = new MemoryStream())
             {
                 PInvoke.CaptureWindow(hwnd, window_left, window_top, ms, ImageFormat.Jpeg);

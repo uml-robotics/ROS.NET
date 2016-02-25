@@ -39,7 +39,7 @@ namespace Ros_CSharp
         }
 
         public ConcurrentQueue<IRosMessage> log_queue = new ConcurrentQueue<IRosMessage>();
-        private Log logmsg = new Log {msg = new m.String(), name = new m.String(this_node.Name), file = new m.String(), function = new m.String(), topics = new m.String[0]};
+        private Log logmsg = new Log {msg = "", name = this_node.Name, file = "", function = "", topics = new string[0]};
         public Thread publish_thread;
         public bool shutting_down;
 
@@ -66,17 +66,15 @@ namespace Ros_CSharp
         public void Append(string m, ROSOUT_LEVEL lvl, int level = 1)
         {
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
-            logmsg.msg.data = m;
+            logmsg.msg = m;
             logmsg.level = ((byte) ((int) lvl));
-            logmsg.file.data = sf.GetFileName();
-            logmsg.function.data = sf.GetMethod().Name;
+            logmsg.file = sf.GetFileName();
+            logmsg.function = sf.GetMethod().Name;
             logmsg.line = (uint) sf.GetFileLineNumber();
             IEnumerable<string> advert = this_node.AdvertisedTopics();
             if (advert.Count() != logmsg.topics.Length)
             {
-                logmsg.topics = new m.String[advert.Count()];
-                int i = 0;
-                advert.ToList().ForEach(ad => logmsg.topics[i++] = new m.String(ad));
+                logmsg.topics = advert.ToArray();
             }
             log_queue.Enqueue(logmsg);
         }

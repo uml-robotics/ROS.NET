@@ -127,12 +127,6 @@ namespace Messages
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize()
         {
-            return Serialize(false);
-        }
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual byte[] Serialize(bool partofsomethingelse)
-        {
             throw new NotImplementedException();
         }
     }

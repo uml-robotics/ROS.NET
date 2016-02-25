@@ -51,21 +51,13 @@ namespace Messages
 			public override void Deserialize(byte[] SERIALIZEDSTUFF)
 			{		
 				int dontcare = 0;
-				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
 			}
 
 			[System.Diagnostics.DebuggerStepThrough]
 			public override byte[] Serialize()
-			{
-				return Serialize(false);
-			}
-
-			
-			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize(bool partofsomethingelse)
-			{
-				//$REQUESTSERIALIZATIONCODEHERE			
-				return SerializationHelper.Serialize<$WHATAMI.Request>(this, partofsomethingelse);
+			{		
+				return SerializationHelper.Serialize<$WHATAMI.Request>(this);
 			}
 		}
 		
@@ -90,21 +82,13 @@ namespace Messages
 			public override void Deserialize(byte[] SERIALIZEDSTUFF)
 			{		
 				int dontcare = 0;
-				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+				SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /* && msgtype != MsgTypes.std_msgs__String*/);
 			}
 
 			[System.Diagnostics.DebuggerStepThrough]
 			public override byte[] Serialize()
-			{
-				return Serialize(false);
-			}
-
-			
-			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize(bool partofsomethingelse)
-			{
-				//$RESPONSESERIALIZATIONCODEHERE			
-				return SerializationHelper.Serialize<$WHATAMI.Response>(this, partofsomethingelse);
+			{	
+				return SerializationHelper.Serialize<$WHATAMI.Response>(this);
 			}	
 		}
 	}
