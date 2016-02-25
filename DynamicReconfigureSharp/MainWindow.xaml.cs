@@ -133,8 +133,9 @@ namespace DynamicReconfigureTest
                 string newprefix = news.ElementAt(0);
                 if (newprefix != null)
                 {
-                    if (knownConfigurations.ContainsKey(newprefix) && !newprefix.Equals("-"))
-                        PageContainer.Children.Add(knownConfigurations[newprefix]);
+                    DynamicReconfigurePage value;
+                    if (knownConfigurations.TryGetValue(newprefix, out value) && !newprefix.Equals("-"))
+                        PageContainer.Children.Add(value);
                 }
             }
         }

@@ -294,9 +294,10 @@ namespace DynamicReconfigureSharp
         /// <returns>An action the caller can invoke to change the parameter</returns>
         public Action<double> Instrument(string name, Action<double> cb)
         {
-            if (sliders.ContainsKey(name))
+            DynamicReconfigureSlider value;
+            if (sliders.TryGetValue(name, out value))
             {
-                return sliders[name].Instrument(cb);
+                return value.Instrument(cb);
             }
             throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a double");
         }
@@ -310,13 +311,15 @@ namespace DynamicReconfigureSharp
         /// <returns>An action the caller can invoke to change the parameter</returns>
         public Action<int> Instrument(string name, Action<int> cb)
         {
-            if (sliders.ContainsKey(name))
+            DynamicReconfigureSlider value1;
+            if (sliders.TryGetValue(name, out value1))
             {
-                return sliders[name].Instrument(cb);
+                return value1.Instrument(cb);
             }
-            if (dropdowns.ContainsKey(name))
+            DynamicReconfigureStringDropdown value;
+            if (dropdowns.TryGetValue(name, out value))
             {
-                return dropdowns[name].Instrument(cb);
+                return value.Instrument(cb);
             }
             throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is an int");
         }
@@ -330,9 +333,10 @@ namespace DynamicReconfigureSharp
         /// <returns>An action the caller can invoke to change the parameter</returns>
         public Action<bool> Instrument(string name, Action<bool> cb)
         {
-            if (checkboxes.ContainsKey(name))
+            DynamicReconfigureCheckbox value;
+            if (checkboxes.TryGetValue(name, out value))
             {
-                return checkboxes[name].Instrument(cb);
+                return value.Instrument(cb);
             }
             throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a bool");
         }
@@ -346,13 +350,15 @@ namespace DynamicReconfigureSharp
         /// <returns>An action the caller can invoke to change the parameter</returns>
         public Action<string> Instrument(string name, Action<string> cb)
         {
-            if (dropdowns.ContainsKey(name))
+            DynamicReconfigureStringDropdown value;
+            if (dropdowns.TryGetValue(name, out value))
             {
-                return dropdowns[name].Instrument(cb);
+                return value.Instrument(cb);
             }
-            if (boxes.ContainsKey(name))
+            DynamicReconfigureStringBox value1;
+            if (boxes.TryGetValue(name, out value1))
             {
-                return boxes[name].Instrument(cb);
+                return value1.Instrument(cb);
             }
             throw new Exception("There is no DynamicReconfigure control named " + name + " that controls a parameter that is a string");
         }
