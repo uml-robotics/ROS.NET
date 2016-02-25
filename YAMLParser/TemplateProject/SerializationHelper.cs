@@ -58,7 +58,6 @@ namespace Messages
                 MsgTypes mt = GetMessageType(s);
                 if (mt == MsgTypes.Unknown)
                 {
-                    System.Diagnostics.Debug.WriteLine("GetType is falling back to using Type.GetType! YUCK");
                     ret = Type.GetType(s, true, true);
                 }
                 else
