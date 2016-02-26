@@ -109,15 +109,7 @@ namespace Ros_CSharp
                 try
                 {
                     bool ok = isp.helper.call(parms);
-                    if (ok)
-                    {
-                        link.processResponse(parms.response, true);
-                    }
-                    else
-                    {
-                        IRosMessage res = new MRes();
-                        link.processResponse(res, false);
-                    }
+                    link.processResponse(parms.response, ok);
                 }
                 catch (Exception e)
                 {
@@ -145,7 +137,7 @@ namespace Ros_CSharp
         internal string res_datatype;
         internal object tracked_object;
 
-        internal virtual void drop()
+        internal void drop()
         {
             lock (client_links_mutex)
             {
