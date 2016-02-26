@@ -181,7 +181,9 @@ namespace Ros_CSharp.CustomSocket
             {
                 if (!disposed)
                 {
+#if DEBUG
                     EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
+#endif
                     disposed = true;
                     remove(_fakefd);
                     _freelist.Add(_fakefd);
