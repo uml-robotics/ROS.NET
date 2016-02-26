@@ -237,7 +237,7 @@ namespace Ros_CSharp.CustomSocket
 
         private void _poll(int poll_timeout)
         {
-            if (Info == null || !Info.poll_mutex.WaitOne(0)) return;
+            if (Info == null || !Info.poll_mutex.WaitOne(poll_timeout)) return;
             if (ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
             if (!Connected || disposed)
             {
