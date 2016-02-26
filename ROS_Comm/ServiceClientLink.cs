@@ -94,7 +94,7 @@ namespace Ros_CSharp
         public virtual void processResponse(string error, bool success)
         {
             String msg = new String(error);
-            msg.Serialize();
+            msg.Serialized = msg.Serialize();
             byte[] buf = new byte[msg.Serialized.Length + 1];
             buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
@@ -103,7 +103,7 @@ namespace Ros_CSharp
 
         public virtual void processResponse(IRosMessage msg, bool success)
         {
-            msg.Serialize();
+            msg.Serialized = msg.Serialize();
             byte[] buf = new byte[msg.Serialized.Length + 1];
             buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
