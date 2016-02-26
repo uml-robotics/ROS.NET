@@ -122,7 +122,6 @@ namespace Ros_CSharp
         public void update(int poll_timeout)
         {
             Socket.Poll(poll_timeout);
-            Thread.Sleep(poll_timeout);
         }
 
         public void onLocalPipeEvents(int stuff)

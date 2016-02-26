@@ -286,9 +286,14 @@ namespace Ros_CSharp.CustomSocket
 
         public static void Poll(int poll_timeout)
         {
+            DateTime begin = DateTime.Now;
             lock (_socklist)
                 foreach (Socket s in _socklist.Values)
                     s.PollSignal.BeginInvoke(poll_timeout, s._pollAsyncComplete, null);
+            DateTime end = DateTime.Now;
+            double difference = 1.0*poll_timeout - (end.Subtract(begin).TotalMilliseconds);
+            if (difference > 0)
+                Thread.Sleep((int)difference);
         }
 
         public SocketInfo Info = null;
