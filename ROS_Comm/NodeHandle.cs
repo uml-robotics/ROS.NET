@@ -337,7 +337,7 @@ namespace Ros_CSharp
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
-                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
+                ops.callback_queue = Callback;
             }
             if (TopicManager.Instance.subscribe(ops))
             {
@@ -380,7 +380,7 @@ namespace Ros_CSharp
             ops.service = resolveName(ops.service);
             if (ops.callback_queue == null)
             {
-                ops.callback_queue = Callback ?? ROS.GlobalCallbackQueue;
+                ops.callback_queue = Callback;
             }
             if (ServiceManager.Instance.advertiseService(ops))
             {
