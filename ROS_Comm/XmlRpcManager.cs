@@ -57,7 +57,7 @@ namespace Ros_CSharp
         {
             XmlRpcUtil.SetLogLevel(
 #if !DEBUG
-                    XmlRpcUtil.XMLRPC_LOG_LGEVEL.ERROR
+                    XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR
 #else
 #if TRACE
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO
