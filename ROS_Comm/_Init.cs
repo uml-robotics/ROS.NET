@@ -175,16 +175,21 @@ namespace Ros_CSharp
 
         #region time helpers
 
-        internal static long ticksFromData(TimeData data)
+        public static long ticksFromData(TimeData data)
         {
             return data.sec*TimeSpan.TicksPerSecond + (uint) Math.Floor(data.nsec/100.0);
         }
 
-        internal static TimeData ticksToData(long ticks)
+        public static TimeData ticksToData(long ticks)
         {
-            uint seconds = (((uint) Math.Floor(ticks/(1.0*TimeSpan.TicksPerSecond))));
-            uint nanoseconds = ((uint) Math.Floor((double) (ticks - (seconds*TimeSpan.TicksPerSecond)))*100);
-            return new TimeData(seconds, nanoseconds);
+            return ticksToData((ulong) ticks);
+        }
+
+        public static TimeData ticksToData(ulong ticks)
+        {
+            ulong seconds = (((ulong)Math.Floor(1.0 * ticks / TimeSpan.TicksPerSecond)));
+            ulong nanoseconds = 100 * (ticks % TimeSpan.TicksPerSecond);
+            return new TimeData((uint)seconds, (uint)nanoseconds);
         }
 
         #endregion

@@ -21,7 +21,7 @@ using m = Messages.std_msgs;
 
 namespace Ros_CSharp
 {
-    internal class SimTime
+    public class SimTime
     {
         public delegate void SimTimeDelegate(TimeSpan ts);
 

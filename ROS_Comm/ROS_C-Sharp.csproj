@@ -127,7 +127,6 @@
     <Compile Include="CallbackQueue.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionManager.cs" />
-    <Compile Include="DLL.cs" />
     <Compile Include="MessageAndSerializerFunc.cs" />
     <Compile Include="RemappingHelper.cs" />
     <Compile Include="ServiceClientLink.cs" />
@@ -164,7 +163,6 @@
     <Compile Include="Subscription.cs" />
     <Compile Include="SubscriptionCallbackHelper.cs" />
     <Compile Include="TcpTransport.cs" />
-    <Compile Include="tf_node.cs" />
     <Compile Include="this_node.cs" />
     <Compile Include="Time.cs" />
     <Compile Include="TimerManager.cs" />
@@ -209,10 +207,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\mathnet-spatial\src\Spatial\Spatial.csproj">
-      <Project>{1F3364C6-9DA3-4006-B83F-6D1335099895}</Project>
-      <Name>Spatial</Name>
-    </ProjectReference>
     <ProjectReference Include="..\XmlRpc_Wrapper\XmlRpc_Wrapper.csproj">
       <Project>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</Project>
       <Name>XmlRpc_Wrapper</Name>

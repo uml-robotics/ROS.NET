@@ -1,6 +1,0 @@
-[submodule "mathnet-spatial"]
-	path = mathnet-spatial
-	url = https://github.com/uml-robotics/mathnet-spatial
-	branch = master
-	update = merge
-
