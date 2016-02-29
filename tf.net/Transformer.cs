@@ -31,7 +31,7 @@ namespace tf.net
             frameIDs["NO_PARENT"] = 0;
             frameids_reverse[0] = "NO_PARENT";
             nh = new NodeHandle();
-            nh.subscribe<tfMessage>("/tf", 0, Update);
+            nh.subscribe<tfMessage>("/tf", 100, Update);
             this.interpolating = interpolating;
             cache_time = ct;
         }
