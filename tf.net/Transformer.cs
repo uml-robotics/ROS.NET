@@ -98,8 +98,8 @@ namespace tf.net
         {
             string error_string = null;
             bool result = lookupTransform(target_frame, source_frame, time, out transform, ref error_string);
-            /*if (!result && error_string != null)
-                ROS.Error(error_string);*/
+            if (!result && error_string != null)
+                ROS.Error(error_string);
             return result;
         }
 
@@ -451,7 +451,6 @@ namespace tf.net
                 //if we're revising a frame, that was previously labelled as having no parent, clear that knowledge from the time cache
                 frame = frames[child_frame_number];
             }
-            uint before = frame.getListLength();
             if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
             {
                 parent_frame = frames[frame_number] = new TimeCache(cache_time);

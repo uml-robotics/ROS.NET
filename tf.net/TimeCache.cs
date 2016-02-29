@@ -33,67 +33,70 @@ namespace tf.net
 
         private byte findClosest(ref TransformStorage one, ref TransformStorage two, ulong target_time, ref string error_str)
         {
-            if (storage.Count == 0)
+            lock (storage)
             {
-                createEmptyException(ref error_str);
-                return 0;
-            }
-
-            if (target_time == 0)
-            {
-                one = storage.Last().Value;
-                return 1;
-            }
-
-            if (storage.Count == 1)
-            {
-                TransformStorage ts = storage.First().Value;
-                if (ts.stamp == target_time)
+                if (storage.Count == 0)
                 {
-                    one = ts;
+                    createEmptyException(ref error_str);
+                    return 0;
+                }
+
+                if (target_time == 0)
+                {
+                    one = storage.Last().Value;
                     return 1;
                 }
-                createExtrapolationException1(target_time, ts.stamp, ref error_str);
-                return 0;
-            }
 
-            ulong latest_time = storage.Last().Key;
-            ulong earliest_time = storage.First().Key;
-            if (target_time == latest_time)
-            {
-                one = storage.Last().Value;
-                return 1;
-            }
-            if (target_time == earliest_time)
-            {
-                one = storage.First().Value;
-                return 1;
-            }
-            if (target_time > latest_time)
-            {
-                createExtrapolationException2(target_time, latest_time, ref error_str);
-                return 0;
-            }
-            if (target_time < earliest_time)
-            {
-                createExtrapolationException3(target_time, earliest_time, ref error_str);
-                return 0;
-            }
+                if (storage.Count == 1)
+                {
+                    TransformStorage ts = storage.First().Value;
+                    if (ts.stamp == target_time)
+                    {
+                        one = ts;
+                        return 1;
+                    }
+                    createExtrapolationException1(target_time, ts.stamp, ref error_str);
+                    return 0;
+                }
 
-            ulong i = 0;
-            ulong j = storage.Last((kvp) =>
-                                       {
-                                           //look for the first keyvaluepair in the sorted list with a key greater than our target.
-                                           //i is the last keyvaluepair's key, aka, the highest stamp 
-                                           if (kvp.Key <= target_time)
+                ulong latest_time = storage.Last().Key;
+                ulong earliest_time = storage.First().Key;
+                if (target_time == latest_time)
+                {
+                    one = storage.Last().Value;
+                    return 1;
+                }
+                if (target_time == earliest_time)
+                {
+                    one = storage.First().Value;
+                    return 1;
+                }
+                if (target_time > latest_time)
+                {
+                    createExtrapolationException2(target_time, latest_time, ref error_str);
+                    return 0;
+                }
+                if (target_time < earliest_time)
+                {
+                    createExtrapolationException3(target_time, earliest_time, ref error_str);
+                    return 0;
+                }
+
+                ulong i = 0;
+                ulong j = storage.Last((kvp) =>
                                            {
-                                               i = kvp.Key;
-                                               return false;
-                                           }
-                                           return true;
-                                       }).Key;
-            one = storage[i];
-            two = storage[j];
+                                               //look for the first keyvaluepair in the sorted list with a key greater than our target.
+                                               //i is the last keyvaluepair's key, aka, the highest stamp 
+                                               if (kvp.Key <= target_time)
+                                               {
+                                                   i = kvp.Key;
+                                                   return false;
+                                               }
+                                               return true;
+                                           }).Key;
+                one = storage[i];
+                two = storage[j];
+            }
             return 2;
         }
 
@@ -163,21 +166,25 @@ namespace tf.net
 
         public bool insertData(TransformStorage new_data)
         {
-            if (storage.Count > 0 && storage.First().Key > new_data.stamp + max_storage_time)
-                if (SimTime.instance.IsTimeSimulated)
-                {
-                    storage.Clear();
-                }
-                else
-                    return false;
-            storage[new_data.stamp] = new_data;
-            pruneList();
+            lock (storage)
+            {
+                if (storage.Count > 0 && storage.First().Key > new_data.stamp + max_storage_time)
+                    if (SimTime.instance.IsTimeSimulated)
+                    {
+                        storage.Clear();
+                    }
+                    else
+                        return false;
+                storage[new_data.stamp] = new_data;
+                pruneList();
+            }
             return true;
         }
 
         public void clearList()
         {
-            storage.Clear();
+            lock(storage)
+                storage.Clear();
         }
 
         public uint getParent(ulong time, ref string error_str)
@@ -196,29 +203,39 @@ namespace tf.net
 
         public TimeAndFrameID getLatestTimeAndParent()
         {
-            if (storage.Count == 0)
+            lock (storage)
             {
-                return new TimeAndFrameID(0, 0);
+                if (storage.Count == 0)
+                {
+                    return new TimeAndFrameID(0, 0);
+                }
+                TransformStorage ts = storage.Last().Value;
+                return new TimeAndFrameID(ts.stamp, ts.frame_id);
             }
-            TransformStorage ts = storage.Last().Value;
-            return new TimeAndFrameID(ts.stamp, ts.frame_id);
         }
 
         public uint getListLength()
         {
-            return (uint)storage.Count;
+            lock(storage)
+                return (uint)storage.Count;
         }
 
         public ulong getLatestTimeStamp()
         {
-            if (storage.Count == 0) return 0;
-            return storage.Last().Key;
+            lock (storage)
+            {
+                if (storage.Count == 0) return 0;
+                return storage.Last().Key;
+            }
         }
 
         public ulong getOldestTimestamp()
         {
-            if (storage.Count == 0) return 0;
-            return storage.First().Key;
+            lock (storage)
+            {
+                if (storage.Count == 0) return 0;
+                return storage.First().Key;
+            }
         }
 
         #region ERROR THROWERS
