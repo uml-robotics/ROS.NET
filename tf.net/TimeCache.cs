@@ -125,7 +125,7 @@ namespace tf.net
         {
             ulong latest_time = storage.Last().Key;
             while (storage.Count > 0 && storage.First().Key + max_storage_time < latest_time || storage.Count > MAX_LENGTH_LINKED_LIST)
-                storage.Remove(0);
+                storage.RemoveAt(0);
         }
 
         public bool getData(TimeData time_, ref TransformStorage data_out, ref string error_str)
