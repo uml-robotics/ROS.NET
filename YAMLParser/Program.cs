@@ -228,6 +228,7 @@ namespace YAMLParser
             }
             File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
             File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
+            File.WriteAllText((istemp ? outputdir_firstpass : outputdir) + "\\.gitignore", "*");
             File.WriteAllText((istemp ? (outputdir_firstpass + "\\" + (istemp ? name_firstpass : name) + ".csproj") : (outputdir + "\\" + (istemp ? name_firstpass : name) + ".csproj")), output);
             Thread.Sleep(100);
         }
