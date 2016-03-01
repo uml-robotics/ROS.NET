@@ -104,7 +104,7 @@ namespace YAMLParser
                 GenerateProject(msgsFiles, srvFiles, false);
                 GenerateProject(msgsFiles, srvFiles, true);
                 BuildProject();
-                Finalize();
+                Finalize(solutiondir);
             }
             else
             {
@@ -302,7 +302,7 @@ namespace YAMLParser
             }
         }
 
-        public static void Finalize()
+        public static void Finalize(string solutiondir)
         {
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING A PROJECT THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
@@ -328,6 +328,8 @@ namespace YAMLParser
                 proc2.StartInfo.CreateNoWindow = true;
 #if !!NOT_ON_TOP_OF_ITSELF
                 proc2.StartInfo.Arguments = "..\\..\\..\\TempMessages\\";
+#else
+                proc2.StartInfo.Arguments = solutiondir+"\\Messages\\";
 #endif
                 proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";
                 proc2.Start();

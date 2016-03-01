@@ -183,8 +183,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd "$(TargetDir)"
-rmdir /s /q "$(ProjectDir)..\Messages\."
-YAMLParser.exe "$(ProjectDir).." "$(SolutionDir)."</PostBuildEvent>
+YAMLParser.exe "$(SolutionDir)." "$(ProjectDir).."</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

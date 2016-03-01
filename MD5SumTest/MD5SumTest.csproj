@@ -104,7 +104,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Messages">
-      <HintPath>..\Messages\Messages.dll</HintPath>
+      <HintPath>$(SolutionDir)Messages\Messages.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -125,6 +125,10 @@
     <ProjectReference Include="..\ROS_Comm\ROS_C-Sharp.csproj">
       <Project>{586A3B66-104A-4182-82C2-88DC120F10AC}</Project>
       <Name>ROS_C-Sharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\YAMLParser\YAMLParser.csproj">
+      <Project>{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}</Project>
+      <Name>YAMLParser</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
