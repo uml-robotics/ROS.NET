@@ -29,7 +29,6 @@ namespace YAMLParser
         public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
-        public static string inputdir = Environment.GetEnvironmentVariable("TMP") + "\\msgs_flat";
         public static string outputdir = "Messages";
         public static string name = "Messages";
         public static string outputdir_secondpass = "SecondPass";
@@ -54,121 +53,44 @@ namespace YAMLParser
                     firstarg++;
                 }
             }
+            string yamlparser_parent = "";
+            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+            while (di.Name != "YAMLParser")
+            {
+                di = Directory.GetParent(di.FullName);
+            }
+            di = Directory.GetParent(di.FullName);
+            yamlparser_parent = di.FullName;
             if (args.Length - firstarg >= 1)
             {
-                args[firstarg] = args[firstarg].Trim('"');
-                solutiondir = args[firstarg];
+                solutiondir = new DirectoryInfo(args[firstarg]).FullName;
             }
             else
             {
-                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                while (di.Name != "YAMLParser")
-                {
-                    Console.WriteLine(di.FullName);
-                    di = Directory.GetParent(di.FullName);
-                }
-                di = Directory.GetParent(di.FullName);
-                solutiondir = di.FullName;
+                solutiondir = yamlparser_parent;
             }
 
             outputdir = solutiondir + "\\" + outputdir;
             outputdir_firstpass = solutiondir + "\\" + outputdir_firstpass;
-            outputdir_secondpass = solutiondir + "\\" + outputdir_secondpass;
-#if TRACE
-            if (Directory.Exists("testmsgs"))
-                inputdir = "testmsgs";
-#endif
-            List<string> paths = new List<string>();
-            List<string> std = new List<string>();
-#if !NO_SRVS_RIGHT_NOW
-            List<string> srv = new List<string>();
-            List<string> pathssrv = new List<string>();
-#endif
-            Console.WriteLine
-                (
-                    "Generatinc C# classes for ROS Messages:\n\tstd_msgs\t\t(in namespace \"Messages\")\n\tgeometry_msgs\t\t(in namespace \"Messages.geometry_msgs\")\n\tnav_msgs\t\t(in namespace \"Messages.nav_msgs\")");
-            if (!Directory.Exists(inputdir))
+            outputdir_secondpass = yamlparser_parent + "\\" + outputdir_secondpass;
+            List<MsgFileLocation> paths = new List<MsgFileLocation>();
+            List<MsgFileLocation> pathssrv = new List<MsgFileLocation>();
+            Console.WriteLine("Generatinc C# classes for ROS Messages...\n");
+            for (int i = firstarg; i < args.Length; i++)
             {
-                Console.WriteLine("the ROS_MESSAGES (or 2nd argument) folder must be in the same folder as the executable!");
-                Console.WriteLine("Press Enter");
-                Console.ReadLine();
+                string d = new DirectoryInfo(args[i]).FullName;
+                Console.WriteLine("Spelunking in " + d);
+                MsgFileLocator.findMessages(paths, pathssrv, d);
             }
-            std.AddRange(Directory.GetFiles(inputdir, "*.msg"));
-#if !NO_SRVS_RIGHT_NOW
-            srv.AddRange(Directory.GetFiles(inputdir, "*.srv"));
-#endif
-            foreach (string dir in Directory.GetDirectories(inputdir))
-            {
-                std.AddRange(Directory.GetFiles(dir, "*.msg"));
-#if !NO_SRVS_RIGHT_NOW
-                srv.AddRange(Directory.GetFiles(dir, "*.srv"));
-#endif
-            }
-            if (args.Length - firstarg == 1)
-            {
-                paths.AddRange(Directory.GetFiles(".", "*.msg"));
-#if !NO_SRVS_RIGHT_NOW
-                pathssrv.AddRange(Directory.GetFiles(".", "*.srv"));
-#endif
-            }
-            else
-            {
-                for (int i = firstarg+1; i < args.Length; i++)
-                {
-                    if (args[i].Contains(".msg"))
-                        paths.Add(args[i]);
-#if !NO_SRVS_RIGHT_NOW
-                    else if (args[i].Contains(".srv"))
-                        pathssrv.Add(args[i]);
-#endif
-                    else
-                    {
-                        string[] paths2 = Directory.GetFiles(args[i], "*.msg");
-                        if (paths2.Length != 0)
-                            paths.AddRange(paths2);
-#if !NO_SRVS_RIGHT_NOW
-                        string[] paths3 = Directory.GetFiles(args[i], "*.srv");
-                        if (paths3.Length != 0)
-                            pathssrv.AddRange(paths3);
-#endif
-                    }
-                }
-            }
-            foreach (string path in std)
+            foreach (MsgFileLocation path in paths)
             {
                 msgsFiles.Add(new MsgsFile(path));
             }
-#if !NO_SRVS_RIGHT_NOW
-            foreach (string path in srv)
+            foreach (MsgFileLocation path in pathssrv)
             {
                 srvFiles.Add(new SrvsFile(path));
             }
-#endif
-            if (paths.Count > 0)
-            {
-                Console.WriteLine("Custom messages being parsed+generated:");
-                foreach (string path in paths)
-                {
-                    Console.WriteLine("\t" + path.Replace(".\\", ""));
-                    msgsFiles.Add(new MsgsFile(path));
-                }
-            }
-#if !NO_SRVS_RIGHT_NOW
-            if (pathssrv.Count > 0)
-            {
-                Console.WriteLine("Custom services being parsed+generated:");
-                foreach (string path in pathssrv)
-                {
-                    Console.WriteLine("\t" + path.Replace(".\\", ""));
-                    srvFiles.Add(new SrvsFile(path));
-                }
-            }
-#endif
-#if !NO_SRVS_RIGHT_NOW
-            if (std.Count + paths.Count + srv.Count + pathssrv.Count > 0)
-#else
-            if (std.Count + paths.Count > 0)
-#endif
+            if (paths.Count + pathssrv.Count > 0)
             {
                 MakeTempDir();
                 foreach (MsgsFile m in msgsFiles)
@@ -186,7 +108,10 @@ namespace YAMLParser
             }
             else
             {
-                Console.WriteLine("YOU SUCK AND I HOPE YOU DIE!!!!");
+                Console.WriteLine("Usage:         YAMLParser.exe <SolutionFolder> [... other directories to search]\n      The Messages dll will be output to <SolutionFolder>/Messages/Messages.dll");
+                if (interactive)
+                    Console.ReadLine();
+                Environment.Exit(1);
             }
             if (interactive)
             {
@@ -421,7 +346,6 @@ namespace YAMLParser
                 Console.WriteLine(output2);
             if (error2.Length > 0)
                 Console.WriteLine(error2);
-            Console.WriteLine("DO SOMETHING HERE TO CHANGE THE FILES IN: outputdir\\Messages.csproj !!!!");
             proc = new Process {StartInfo = {RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true, FileName = F, Arguments = "/nologo \"" + outputdir + "\\Messages.csproj\""}};
             proc.Start();
             string output3 = proc.StandardOutput.ReadToEnd();
@@ -442,7 +366,7 @@ namespace YAMLParser
             {
                 if (fronthalf == null)
                 {
-                    fronthalf = "using Messages;\nusing String=Messages.std_msgs.String;\n\nnamespace Messages\n{\n"; //\nusing Messages.roscsharp;
+                    fronthalf = "using Messages;\n\nnamespace Messages\n{\n";
                     backhalf = "\n}";
                 }
 

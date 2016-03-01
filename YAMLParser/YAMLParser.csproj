@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenerationGuts.cs" />
+    <Compile Include="MsgFileLocator.cs" />
     <Compile Include="PInvokeAllUpInYoGrill.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -179,17 +180,11 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\msg_gen\msg_gen.csproj">
-      <Project>{B0B3F899-DE04-4792-9FCF-0A62D435392B}</Project>
-      <Name>msg_gen</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd $(TargetDir)
-"$(ProjectDir).."\msg_gen\msg_gen.exe "$(SolutionDir)." "$(ProjectDir).."
-YAMLParser.exe</PostBuildEvent>
+    <PostBuildEvent>cd "$(TargetDir)"
+rmdir /s /q "$(ProjectDir)..\Messages\."
+YAMLParser.exe "$(ProjectDir).." "$(SolutionDir)."</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

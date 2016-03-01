@@ -46,31 +46,13 @@ namespace FauxMessages
         public string responsebackhalf;
         public string resposonebackhalf;
 
-        public SrvsFile(string filename)
+        public SrvsFile(MsgFileLocation filename)
         {
             //read in srv file
-            string[] lines = File.ReadAllLines(filename);
-
-            string[] sp = filename.Replace(Program.inputdir, "").Replace(".srv", "").Split('\\');
-            //Parse The file name to get the classname;
-            classname = sp[sp.Length - 1];
-            //Parse for the Namespace
-            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".srv", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-
-            //split up Namespace and put it back together without the last part, aka. classname
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            //Name set to Namespace + classname
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
-            Namespace = Namespace.Trim('.');
+            string[] lines = File.ReadAllLines(filename.Path);
+            classname = filename.basename;
+            Namespace += "." + filename.package;
+            Name = filename.package + "." + filename.basename;
 
             //def is the list of all lines in the file
             def = new List<string>();
@@ -101,9 +83,9 @@ namespace FauxMessages
                 else
                     request.Add(lines[mid]);
             }
-            //add lines aproprietly
-            Request = new MsgsFile(filename, true, request, "\t");
-            Response = new MsgsFile(filename, false, response, "\t");
+            //treat request and response like 2 message files, each with a partial definition and extra stuff tagged on to the classname
+            Request = new MsgsFile(new MsgFileLocation(filename.Path.Replace(".srv",".msg"), filename.searchroot), true, request, "\t");
+            Response = new MsgsFile(new MsgFileLocation(filename.Path.Replace(".srv", ".msg"), filename.searchroot), false, response, "\t");
         }
 
         public void Write(string outdir)
@@ -138,8 +120,8 @@ namespace FauxMessages
                     }
                     if (lines[i].Contains("namespace"))
                     {
-                        //requestfronthalf +=
-                        //  "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=Messages.std_msgs.String;\n\n"; //\nusing Messages.roscsharp;
+                        requestfronthalf +=
+                          "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=System.String;\n\n"; //\nusing Messages.roscsharp;
                         requestfronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -272,33 +254,22 @@ namespace FauxMessages
         public bool meta;
         public ServiceMessageType serviceMessageType = ServiceMessageType.Not;
 
-        public MsgsFile(string filename, bool isrequest, List<string> lines)
+        public MsgsFile(MsgFileLocation filename, bool isrequest, List<string> lines)
             : this(filename, isrequest, lines, "")
         {
         }
 
+        //specifically for SRV halves
         public
-            MsgsFile(string filename, bool isrequest, List<string> lines, string extraindent)
+            MsgsFile(MsgFileLocation filename, bool isrequest, List<string> lines, string extraindent)
         {
             if (resolver == null) resolver = new Dictionary<string, List<string>>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
-            filename = filename.Replace(".srv", ".msg");
-            if (!filename.Contains(".msg"))
-                throw new Exception("" + filename + " IS NOT A VALID SRV FILE!");
-            string[] sp = filename.Replace(Program.inputdir, "").Replace(".msg", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".msg", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
+            //Parse The file name to get the classname;
+            classname = filename.basename;
+            //Parse for the Namespace
+            Namespace += "." + filename.package;
+            Name = filename.package + "." + classname;
             classname += (isrequest ? "Request" : "Response");
             Namespace = Namespace.Trim('.');
             def = new List<string>();
@@ -315,36 +286,26 @@ namespace FauxMessages
             }
         }
 
-        public MsgsFile(string filename)
+        public MsgsFile(MsgFileLocation filename)
             : this(filename, "")
         {
         }
 
-        public MsgsFile(string filename, string extraindent)
+        public MsgsFile(MsgFileLocation filename, string extraindent)
         {
             if (resolver == null) resolver = new Dictionary<string, List<string>>();
-            if (!filename.Contains(".msg"))
+            if (!filename.Path.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
-            string[] sp = filename.Replace(Program.inputdir, "").Replace(".msg", "").Split('\\');
-            classname = sp[sp.Length - 1];
-            Namespace += "." + filename.Replace(Program.inputdir, "").Replace(".msg", "");
-            Namespace = Namespace.Replace("\\", ".").Replace("..", ".");
-            string[] sp2 = Namespace.Split('.');
-            Namespace = "";
-            for (int i = 0; i < sp2.Length - 2; i++)
-                Namespace += sp2[i] + ".";
-            Namespace += sp2[sp2.Length - 2];
-            //THIS IS BAD!
-            classname = classname.Replace("/", ".");
-            Name = Namespace.Replace("Messages", "").TrimStart('.') + "." + classname;
-            Name = Name.TrimStart('.');
-            classname = Name.Split('.').Length > 1 ? Name.Split('.')[1] : Name;
+            classname = filename.basename;
+            //Parse for the Namespace
+            Namespace += "." + filename.package;
+            Name = filename.package + "." + classname;
             Namespace = Namespace.Trim('.');
             if (!resolver.Keys.Contains(classname) && Namespace != "Messages.std_msgs")
                 resolver.Add(classname, new List<string> {Namespace + "." + classname});
             else if (Namespace != "Messages.std_msgs")
                 resolver[classname].Add(Namespace + "." + classname);
-            List<string> lines = new List<string>(File.ReadAllLines(filename));
+            List<string> lines = new List<string>(File.ReadAllLines(filename.Path));
             lines = lines.Where(st => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
                 lines[i] = lines[i].Split('#')[0].Trim();
@@ -673,7 +634,7 @@ namespace FauxMessages
         public static SingleType WhatItIs(MsgsFile parent, string s, string extraindent)
         {
             string[] pieces = s.Split('/');
-            string package = "";
+            string package = parent.Namespace.Replace("Messages.", "");
             if (pieces.Length > 1)
             {
                 for (int i = 0; i < pieces.Length - 1; i++)
@@ -947,8 +908,6 @@ namespace FauxMessages
                 if (!t.Contains('.'))
                     t = "std_msgs." + t;
                 mt = "MsgTypes." + t.Replace(".", "__");
-                if (mt.Contains("ColorRGBA"))
-                    Console.WriteLine(mt);
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
