@@ -238,7 +238,7 @@ namespace MessageSerializationTests
                 }
                 else if ((A is char && B is char) || T == typeof(char))
                 {
-                    res &= ("" + A).Equals("" + B);
+                    res &= ("" + ((char)A)).Equals("" + ((char)B));
                     if (!res)
                         Debug.WriteLine("" + A + "(" + A.GetType() + ") != " + B + "(" + B.GetType() + ")");
                 }
