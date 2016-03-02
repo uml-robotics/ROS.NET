@@ -63,7 +63,15 @@ namespace SecondPass
 
         static void Main(string[] args)
         {
-            doMessages(args);
+            try
+            {
+                doMessages(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Environment.Exit(54);
+            }
             Console.WriteLine("Done");
         }
 
