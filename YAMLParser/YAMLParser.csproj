@@ -104,6 +104,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileUtils.cs" />
     <Compile Include="GenerationGuts.cs" />
     <Compile Include="MsgFileLocator.cs" />
     <Compile Include="PInvokeAllUpInYoGrill.cs" />
@@ -182,8 +183,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd "$(TargetDir)"
-YAMLParser.exe "$(SolutionDir)." "$(ProjectDir).."</PostBuildEvent>
+    <PostBuildEvent>cd $(TargetDir)
+YAMLParser.exe $(SolutionDir) $(ProjectDir)..</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

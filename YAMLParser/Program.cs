@@ -72,7 +72,7 @@ namespace YAMLParser
 
             outputdir = solutiondir + "\\" + outputdir;
             outputdir_firstpass = solutiondir + "\\" + outputdir_firstpass;
-            outputdir_secondpass = yamlparser_parent + "\\" + outputdir_secondpass;
+            outputdir_secondpass = solutiondir + "\\" + outputdir_secondpass;
             List<MsgFileLocation> paths = new List<MsgFileLocation>();
             List<MsgFileLocation> pathssrv = new List<MsgFileLocation>();
             Console.WriteLine("Generatinc C# classes for ROS Messages...\n");
@@ -304,10 +304,16 @@ namespace YAMLParser
 
         public static void Finalize(string solutiondir)
         {
-            if (Directory.Exists(outputdir_secondpass + "\\bin"))
-                Directory.Delete(outputdir_secondpass + "\\bin", true);
+            //copy unmodified SecondPass up to solution directory
+            if (Directory.Exists(outputdir_secondpass))
+                Directory.Delete(outputdir_secondpass, true);
+            FileUtils.DirectoryCopy(Environment.CurrentDirectory + "\\..\\..\\..\\SecondPass\\", outputdir_secondpass);
+            string projfile = outputdir_secondpass+"\\SecondPass.csproj";
+
+            //modify it for this solution's specific Messages project location
+            File.WriteAllText(projfile,File.ReadAllText(projfile).Replace("$(SolutionDir)", solutiondir));
+
             string F = VCDir + "\\msbuild.exe";
-            Console.WriteLine("\n\nBUILDING A PROJECT THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
@@ -338,6 +344,8 @@ namespace YAMLParser
                 output2 = proc2.StandardOutput.ReadToEnd();
                 error2 = proc2.StandardError.ReadToEnd();
                 BuildProject("REBUILDING THE REFINED GENERATED CODE!");
+                if (Directory.Exists(outputdir_secondpass))
+                    Directory.Delete(outputdir_secondpass, true);
             }
             else
             {
