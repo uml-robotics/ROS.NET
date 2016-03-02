@@ -304,6 +304,8 @@ namespace YAMLParser
 
         public static void Finalize(string solutiondir)
         {
+            if (Directory.Exists(outputdir_secondpass + "\\bin"))
+                Directory.Delete(outputdir_secondpass + "\\bin", true);
             string F = VCDir + "\\msbuild.exe";
             Console.WriteLine("\n\nBUILDING A PROJECT THAT REFERENCES THE GENERATED CODE, TO REFINE THE GENERATED CODE!");
             string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
