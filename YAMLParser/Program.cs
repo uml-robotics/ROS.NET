@@ -31,7 +31,7 @@ namespace YAMLParser
         public static string fronthalf;
         public static string outputdir = "Messages";
         public static string name = "Messages";
-        public static string outputdir_secondpass = "SecondPass";
+        public static string outputdir_secondpass = "TempSecondPass";
 #if !NOT_ON_TOP_OF_ITSELF
         public static string outputdir_firstpass = outputdir;
         public static string name_firstpass = name;
