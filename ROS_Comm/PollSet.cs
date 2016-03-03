@@ -31,19 +31,10 @@ namespace Ros_CSharp
 
         #endregion
 
-        private Socket[] localpipeevents = new Socket[2];
         public AutoResetEvent signal_mutex = new AutoResetEvent(true);
 
         public PollSet()
         {
-            localpipeevents[0] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            localpipeevents[0].Bind(new IPEndPoint(IPAddress.Loopback, 0));
-            localpipeevents[1] = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            localpipeevents[1].Connect(localpipeevents[0].LocalEndPoint);
-            localpipeevents[0].Connect(localpipeevents[1].LocalEndPoint);
-            localpipeevents[1].Blocking = false;
-            addSocket(localpipeevents[0], onLocalPipeEvents);
-            addEvents(localpipeevents[0].FD, Socket.POLLIN);
         }
 
         /// <summary>
@@ -52,16 +43,6 @@ namespace Ros_CSharp
         public void Dispose()
         {
             signal_mutex.WaitOne();
-            if (localpipeevents[0] != null)
-            {
-                localpipeevents[0].Close();
-                localpipeevents[0] = null;
-            }
-            if (localpipeevents[1] != null)
-            {
-                localpipeevents[1].Close();
-                localpipeevents[1] = null;
-            }
             if (DisposingEvent != null)
                 DisposingEvent();
             signal_mutex.Set();
@@ -75,13 +56,6 @@ namespace Ros_CSharp
         {
             if (signal_mutex.WaitOne(0))
             {
-                byte[] b = {0};
-                if (localpipeevents[1] == null)
-                    return;
-                if (localpipeevents[1].Poll(1, SelectMode.SelectWrite))
-                {
-                    localpipeevents[1].Send(b);
-                }
                 signal_mutex.Set();
             }
         }
@@ -122,24 +96,6 @@ namespace Ros_CSharp
         public void update(int poll_timeout)
         {
             Socket.Poll(poll_timeout);
-        }
-
-        public void onLocalPipeEvents(int stuff)
-        {
-            if ((stuff & Socket.POLLIN) != 0)
-            {
-                byte[] b = new byte[1];
-                try
-                {
-                    while (localpipeevents[0] != null && localpipeevents[0].Poll(1, SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
-                    {
-                    }
-                }
-                catch
-                {
-                    //noop
-                }
-            }
         }
 
 #if !TRACE
