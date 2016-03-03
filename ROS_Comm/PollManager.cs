@@ -62,8 +62,6 @@ namespace Ros_CSharp
             }
         }
 
-        public event Poll_Signal poll_signal;
-
         public void addPollThreadListener(Poll_Signal poll)
         {
             lock (signal_mutex)
@@ -74,13 +72,15 @@ namespace Ros_CSharp
                 }
                 signals.Add(poll);
                 Console.WriteLine("Adding pollthreadlistener " + poll.Method);
-                poll_signal += poll;
             }
             signal();
         }
 
         private void signal()
         {
+            lock (this)
+                if (shutting_down)
+                    return;
             lock (signal_mutex)
             {
                 foreach (Poll_Signal signal in signals)
@@ -106,19 +106,19 @@ namespace Ros_CSharp
                 }
                 signals.Remove(poll);
                 Console.WriteLine("Removing pollthreadlistener " + poll.Method);
-                poll_signal -= poll;
             }
             signal();
         }
 
         private void threadFunc()
         {
-            while (!shutting_down)
+            while (true)
             {
+                if (shutting_down)
+                    break;
                 signal();
-
-                if (shutting_down) return;
-
+                if (shutting_down)
+                    break;
                 poll_set.update(10);
             }
             Console.WriteLine("PollManager thread IS FREE");
@@ -127,43 +127,45 @@ namespace Ros_CSharp
 
         public void Start()
         {
-            if (thread == null)
-            {
-                shutting_down = false;
-                thread = new Thread(threadFunc);
-                thread.Start();
-            }
+            lock(this)
+                if (thread == null)
+                {
+                    shutting_down = false;
+                    thread = new Thread(threadFunc);
+                    thread.Start();
+                }
         }
 
         public void shutdown()
         {
-            if (thread != null && !shutting_down)
-            {
-                shutting_down = true;
-                poll_set.Dispose();
-                poll_set = null;
-                lock (signal_mutex)
+            lock (this)
+                if (thread != null && !shutting_down)
                 {
-                    signals.ForEach(s =>
-                                        {
-                                            Console.WriteLine("PollManager cleanup: removing " + s.Method);
-                                            poll_signal -= s;
-                                            signal();
-                                        });
-                }
-                if (!thread.Join(2000))
-                {
-                    Console.WriteLine("PollManager had 2 seconds to drink the coolaid, and didn't. Trying the \"funnel method\".");
-                    try
+                    shutting_down = true;
+                    lock (signal_mutex)
                     {
-                        thread.Abort();
+                        signals.ForEach(s =>
+                                            {
+                                                Console.WriteLine("PollManager cleanup: removing " + s.Method);
+                                                removePollThreadListener(s);
+                                            });
+                        signals.Clear();
                     }
-                    catch (Exception ex)
+                    if (!thread.Join(2000))
                     {
+                        try
+                        {
+                            thread.Abort();
+                        }
+                        catch
+                        {
+                        }
+                        Console.WriteLine("PollManager had 2 seconds to drink the coolaid, and didn't. Trying the \"funnel method\".");
                     }
+                    thread = null;
+                    poll_set.Dispose();
+                    poll_set = null;
                 }
-                thread = null;
-            }
         }
     }
 }

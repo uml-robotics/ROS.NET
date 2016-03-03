@@ -30,6 +30,7 @@ namespace Ros_CSharp.CustomSocket
     public class Socket : ns.Socket
     {
         private Action<int> PollSignal;
+        private Action<int> GuaranteedPollSignal;
         private static Dictionary<uint, Socket> _socklist = new Dictionary<uint, Socket>();
         private static uint nextfakefd = 1;
         private static List<uint> _freelist = new List<uint>();
@@ -185,7 +186,9 @@ namespace Ros_CSharp.CustomSocket
 #endif
                     disposed = true;
                     remove(_fakefd);
-                    _freelist.Add(_fakefd);
+                    Info.Shutdown();
+                    lock(_freelist)
+                        _freelist.Add(_fakefd);
                     _fakefd = 0;
                     base.Dispose(disposing);
                 }
@@ -234,10 +237,22 @@ namespace Ros_CSharp.CustomSocket
         public const int POLLIN = 0x001;
         public const int POLLOUT = 0x004;
 
-        private void _poll(int poll_timeout)
+        private DateTime last = DateTime.Now;
+        private int count = 0;
+
+        private void _poll(int poll_timeout) //negative timeouts == indefinite wait followed by polling with same timeouts
         {
-            if (Info == null || !Info.poll_mutex.WaitOne(poll_timeout)) return;
-            if (ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
+            if (Info == null || Info.poll_mutex == null || !Info.poll_mutex.WaitOne(0)) return;
+            DateTime now = DateTime.Now;
+            count++;
+            if (now.Subtract(last).TotalMilliseconds > 1000)
+            {
+                Debug.WriteLine("[SOCKET #" + _fakefd + "] polling @ "+count+"hz");
+                last = now;
+                count = 0;
+            }
+            if (poll_timeout < 0)
+                poll_timeout *= -1;
             if (!Connected || disposed)
             {
                 Info.revents |= POLLHUP;
@@ -251,12 +266,7 @@ namespace Ros_CSharp.CustomSocket
                 if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
                     Info.revents |= POLLIN;
             }
-            if (Info.revents == 0)
-            {
-                Info.poll_mutex.Set();
-                return;
-            }
-
+            
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
                  (Info.revents & POLLNVAL) != 0))
@@ -267,14 +277,13 @@ namespace Ros_CSharp.CustomSocket
                     if (disposed || !Connected)
                         skip = true;
                 }
-
                 if (!skip)
                 {
                     //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), Info.func.EndInvoke, Info);
+                    Info.Enqueue(Info.func, Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
+                    Info.revents = 0;
                 }
             }
-            Info.revents = 0;
             Info.poll_mutex.Set();
         }
 
@@ -285,14 +294,11 @@ namespace Ros_CSharp.CustomSocket
 
         public static void Poll(int poll_timeout)
         {
-            DateTime begin = DateTime.Now;
             lock (_socklist)
                 foreach (Socket s in _socklist.Values)
+                {
                     s.PollSignal.BeginInvoke(poll_timeout, s._pollAsyncComplete, null);
-            DateTime end = DateTime.Now;
-            double difference = 1.0*poll_timeout - (end.Subtract(begin).TotalMilliseconds);
-            if (difference > 0)
-                Thread.Sleep((int)difference);
+                }
         }
 
         public SocketInfo Info = null;

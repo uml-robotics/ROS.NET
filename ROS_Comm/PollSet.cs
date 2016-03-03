@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -54,8 +55,9 @@ namespace Ros_CSharp
 
         public void signal()
         {
-            if (signal_mutex.WaitOne(0))
+            if (signal_mutex.WaitOne())
             {
+                Socket.Poll(ROS.WallDuration);
                 signal_mutex.Set();
             }
         }
@@ -67,7 +69,7 @@ namespace Ros_CSharp
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            s.Info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
+            s.Info = new SocketInfo {func = update_func, transport = trans};
             signal();
             return true;
         }
@@ -95,7 +97,16 @@ namespace Ros_CSharp
 
         public void update(int poll_timeout)
         {
-            Socket.Poll(poll_timeout);
+            DateTime begin = DateTime.Now;
+            if (signal_mutex.WaitOne(0))
+            {
+                Socket.Poll(poll_timeout);
+                signal_mutex.Set();
+            }
+            DateTime end = DateTime.Now;
+            double difference = 1.0 * poll_timeout - (end.Subtract(begin).TotalMilliseconds);
+            if (difference > 0)
+                Thread.Sleep((int)difference);
         }
 
 #if !TRACE
@@ -112,11 +123,98 @@ namespace Ros_CSharp
 
     public class SocketInfo
     {
+        public class SocketUpdateQueueItem
+        {
+            public PollSet.SocketUpdateFunc func;
+            public int revents;
+
+            public SocketUpdateQueueItem(PollSet.SocketUpdateFunc f, int r)
+            {
+                func = f;
+                revents = r;
+            }
+        }
+
+        public Queue<SocketUpdateQueueItem> workqueue = new Queue<SocketUpdateQueueItem>();
         public int events;
         public PollSet.SocketUpdateFunc func;
         internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
+        internal AutoResetEvent queue_mutex = new AutoResetEvent(false);
         public int revents;
-        public uint sock;
         public TcpTransport transport;
+        private bool disposing = false;
+        private Thread workThread = null;
+
+
+        public void Enqueue(PollSet.SocketUpdateFunc f, int r)
+        {
+            lock (this)
+            {
+                if (disposing) 
+                    return;
+                if (workThread == null)
+                {
+                    workThread = new Thread(WorkFunc);
+                    workThread.Start();
+                }
+            }
+            lock (workqueue)
+            {
+                workqueue.Enqueue(new SocketUpdateQueueItem(f, r));
+            }
+            queue_mutex.Set();
+        }
+
+        public void WorkFunc()
+        {
+            Queue<SocketUpdateQueueItem> localqueue = new Queue<SocketUpdateQueueItem>();
+            SocketUpdateQueueItem next = null;
+            while (true)
+            {
+                lock (this)
+                {
+                    if (disposing)
+                        break;
+                }
+                if (queue_mutex.WaitOne(100))
+                {
+                    lock (workqueue)
+                    {
+                        while (workqueue.Count > 0 && !disposing)
+                            localqueue.Enqueue(workqueue.Dequeue());
+                    }
+                    while (localqueue.Count > 0 && !disposing)
+                    {
+                        next = localqueue.Dequeue();
+                        next.func(next.revents);
+                    }
+                }
+            }
+        }
+
+        public void Shutdown()
+        {
+            lock (this)
+            {
+                if (!disposing)
+                    disposing = true;
+                else
+                    return;
+                if (workThread != null)
+                {
+                    if (!workThread.Join(2000))
+                    {
+                        try
+                        {
+                            workThread.Abort();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    workThread = null;
+                }
+            }
+        }
     }
 }
