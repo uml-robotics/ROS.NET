@@ -129,8 +129,15 @@ namespace Ros_CSharp
             if ((stuff & Socket.POLLIN) != 0)
             {
                 byte[] b = new byte[1];
-                while (localpipeevents != null && localpipeevents[0] != null && localpipeevents[0].Poll(1, SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
+                try
                 {
+                    while (localpipeevents[0] != null && localpipeevents[0].Poll(1, SelectMode.SelectRead) && localpipeevents[0].Receive(b) > 0)
+                    {
+                    }
+                }
+                catch
+                {
+                    //noop
                 }
             }
         }
