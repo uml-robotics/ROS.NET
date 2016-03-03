@@ -66,6 +66,11 @@ namespace YAMLParser
             return (other != null && string.Equals(other.package, package) && string.Equals(other.basename, basename));
         }
 
+        public override int GetHashCode()
+        {
+            return (package+"/"+basename).GetHashCode();
+        }
+
         public override string  ToString()
         {
             return string.Format("{0}\\{1}.{2}", package, basename, extension);
@@ -82,11 +87,19 @@ namespace YAMLParser
         /// <param name="path"></param>
         private static void explode(List<MsgFileLocation> m, List<MsgFileLocation> s, string path)
         {
-            string[] msgfiles = Directory.EnumerateFiles(path, "*.msg", SearchOption.AllDirectories).ToArray();
-            string[] srvfiles = Directory.EnumerateFiles(path, "*.srv", SearchOption.AllDirectories).ToArray();
+            string[] msgfiles = Directory.GetFiles(path, "*.msg", SearchOption.AllDirectories).ToArray();
+            string[] srvfiles = Directory.GetFiles(path, "*.srv", SearchOption.AllDirectories).ToArray();
             Func<string, MsgFileLocation> conv = p => new MsgFileLocation(p,path);
-            m.AddRange(Array.ConvertAll(msgfiles.Where((f) => m.Count(cand => string.Equals(cand.path, f)) == 0).ToArray(), (p) => conv(p)));
-            s.AddRange(Array.ConvertAll(srvfiles.Where((f) => s.Count(cand => string.Equals(cand.path, f)) == 0).ToArray(), (p) => conv(p)));
+            int mb4 = m.Count, sb4=s.Count;
+            MsgFileLocation[] newmsgs = Array.ConvertAll(msgfiles, (p) => conv(p));
+            MsgFileLocation[] newsrvs = Array.ConvertAll(srvfiles, (p) => conv(p));
+            foreach(var nm in newmsgs)
+                if (! m.Contains(nm))
+                    m.Add(nm);
+            foreach(var ns in newsrvs)
+                if (!s.Contains(ns))
+                    s.Add(ns);
+            Console.WriteLine("Skipped " + (msgfiles.Length - (m.Count - mb4)) + " duplicate msgs and " + (srvfiles.Length - (s.Count - sb4)) + " duplicate srvs");
         }
 
         public static void findMessages(List<MsgFileLocation> msgs, List<MsgFileLocation> srvs, params string[] args)

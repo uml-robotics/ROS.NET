@@ -12,7 +12,6 @@
 
 #region USINGZ
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -38,7 +37,7 @@ namespace Ros_CSharp
             FATAL = 16
         }
 
-        public ConcurrentQueue<IRosMessage> log_queue = new ConcurrentQueue<IRosMessage>();
+        public Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
         private Log logmsg = new Log {msg = "", name = this_node.Name, file = "", function = "", topics = new string[0]};
         public Thread publish_thread;
         public bool shutting_down;
@@ -88,7 +87,7 @@ namespace Ros_CSharp
             while (!shutting_down)
             {
                 if (p == null) p = TopicManager.Instance.lookupPublication(n);
-                while (!shutting_down && log_queue.TryDequeue(out msg))
+                while (!shutting_down && log_queue.Count > 0 && (msg = log_queue.Dequeue())!=null)
                 {
                     TopicManager.Instance.publish(p, msg);
                 }

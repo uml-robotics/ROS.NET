@@ -13,7 +13,6 @@
 #region USINGZ
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -33,7 +32,7 @@ namespace Ros_CSharp.CustomSocket
         private Action<int> PollSignal;
         private static Dictionary<uint, Socket> _socklist = new Dictionary<uint, Socket>();
         private static uint nextfakefd = 1;
-        private static ConcurrentBag<uint> _freelist = new ConcurrentBag<uint>();
+        private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
 
         private string attemptedConnectionEndpoint;
@@ -93,8 +92,8 @@ namespace Ros_CSharp.CustomSocket
                     {
                         if (_freelist.Count > 0)
                         {
-                            while (!_freelist.TryTake(out _fakefd))
-                                Thread.Sleep(0);
+                            _fakefd = _freelist[0];
+                            _freelist.RemoveAt(0);
                         }
                         else
                             _fakefd = (nextfakefd++);
@@ -297,5 +296,10 @@ namespace Ros_CSharp.CustomSocket
         }
 
         public SocketInfo Info = null;
+
+        internal void Dispose()
+        {
+            Dispose(true);
+        }
     }
 }

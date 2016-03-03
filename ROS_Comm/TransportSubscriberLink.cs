@@ -14,7 +14,7 @@
 
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
@@ -29,7 +29,7 @@ namespace Ros_CSharp
         public Connection connection;
         private bool header_written;
         private int max_queue;
-        private ConcurrentQueue<MessageAndSerializerFunc> outbox = new ConcurrentQueue<MessageAndSerializerFunc>();
+        private Queue<MessageAndSerializerFunc> outbox = new Queue<MessageAndSerializerFunc>();
         private new Publication parent;
         private bool queue_full;
         private bool writing_message;
@@ -110,8 +110,7 @@ namespace Ros_CSharp
         {
             if (max_queue > 0 && outbox.Count >= max_queue)
             {
-                MessageAndSerializerFunc dontcare;
-                outbox.TryDequeue(out dontcare);
+                outbox.Dequeue();
                 queue_full = true;
             }
             else
@@ -158,7 +157,7 @@ namespace Ros_CSharp
             if (outbox.Count > 0)
             {
                 writing_message = true;
-                outbox.TryDequeue(out holder);
+                holder = outbox.Dequeue();
             }
             if (outbox.Count < max_queue)
                 queue_full = false;
