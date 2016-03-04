@@ -121,7 +121,7 @@ namespace FauxMessages
                     if (lines[i].Contains("namespace"))
                     {
                         requestfronthalf +=
-                          "\nusing Messages.std_msgs;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\nusing String=System.String;\n\n"; //\nusing Messages.roscsharp;
+                          "\nusing Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n"; //\nusing Messages.roscsharp;
                         requestfronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -457,7 +457,7 @@ namespace FauxMessages
                     if (lines[i].Contains("namespace"))
                     {
                         fronthalf +=
-                            "using Messages.std_msgs;using String=System.String;//Messages.std_msgs.String;\n\n"
+                            "using Messages.std_msgs;\nusing String=System.String;\n\n"
                             ;
                         fronthalf += "namespace " + Namespace + "\n";
                         continue;
@@ -479,12 +479,6 @@ namespace FauxMessages
                     {
                         HasHeader = true;
                     }
-                    else if (classname == "String")
-                    {
-                        thisthing.input = thisthing.input.Replace("String", "string");
-                        thisthing.Type = thisthing.Type.Replace("String", "string");
-                        thisthing.output = thisthing.output.Replace("String", "string");
-                    }
                     else if (classname == "Time")
                     {
                         thisthing.input = thisthing.input.Replace("Time", "TimeData");
@@ -497,6 +491,9 @@ namespace FauxMessages
                         thisthing.Type = thisthing.Type.Replace("Duration", "TimeData");
                         thisthing.output = thisthing.output.Replace("Duration", "TimeData");
                     }
+                    thisthing.input = thisthing.input.Replace("String", "string");
+                    thisthing.Type = thisthing.Type.Replace("String", "string");
+                    thisthing.output = thisthing.output.Replace("String", "string");
                     meta |= thisthing.meta;
                     memoizedcontent += "\t" + thisthing.output + "\n";
                 }
@@ -602,7 +599,7 @@ namespace FauxMessages
             {"bool", "bool"},
             {"char", "char"},
             {"time", "Time"},
-            {"string", "String"},
+            {"string", "string"},
             {"duration", "Duration"}
         };
 

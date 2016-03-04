@@ -277,7 +277,7 @@ namespace Ros_CSharp
                 }
                 if (header.frame_id == null)
                 {
-                    header.frame_id = new m.String();
+                    header.frame_id = "";
                 }
                 holder.msg.GetType().GetField("header").SetValue(holder.msg, header);
             }
