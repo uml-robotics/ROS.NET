@@ -270,22 +270,21 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<M>(cb), new M().MD5Sum);
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), false);
         }
 
         /// <summary>
         ///     Creates a subscriber with the given topic name.
         /// </summary>
-        /// <typeparam name="M">Topic type</typeparam>
+        /// <typeparam name="M">Type of the subscriber message</typeparam>
         /// <param name="topic">Topic name</param>
         /// <param name="queue_size">How many messages to qeueue</param>
-        /// <param name="cb">Function to fire when a message is recieved , delegate</param>
-        /// <param name="thisisveryverybad">internal use</param>
-        /// <returns></returns>
-        public Subscriber<M> subscribe<M>(string topic, uint queue_size,
-            CallbackDelegate<M> cb, string thisisveryverybad) where M : IRosMessage, new()
+        /// <param name="cb">Callback to fire when a message is receieved</param>
+        /// <param name="allow_concurrent_callbacks">Probably breaks things when true</param>
+        /// <returns>A subscriber</returns>
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackDelegate<M> cb, bool allow_concurrent_callbacks) where M : IRosMessage, new()
         {
-            return subscribe<M>(topic, queue_size, new Callback<M>(cb), thisisveryverybad);
+            return subscribe<M>(topic, queue_size, new Callback<M>(cb), allow_concurrent_callbacks);
         }
 
         /// <summary>
@@ -295,23 +294,9 @@ namespace Ros_CSharp
         /// <param name="topic">Topic name</param>
         /// <param name="queue_size">How many messages to qeueue</param>
         /// <param name="cb">Function to fire when a message is recieved</param>
+        /// <param name="allow_concurrent_callbacks">Probably breaks things when true</param>
         /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb)
-            where M : IRosMessage, new()
-        {
-            return subscribe<M>(topic, queue_size, cb, null);
-        }
-
-        /// <summary>
-        ///     Creates a subscriber
-        /// </summary>
-        /// <typeparam name="M">Topic type</typeparam>
-        /// <param name="topic">Topic name</param>
-        /// <param name="queue_size">How many messages to qeueue</param>
-        /// <param name="cb">Function to fire when a message is recieved</param>
-        /// <param name="thisisveryverybad">internal use</param>
-        /// <returns>A subscriber</returns>
-        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb, string thisisveryverybad)
+        public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb, bool allow_concurrent_callbacks)
             where M : IRosMessage, new()
         {
             if (_callback == null)
@@ -319,7 +304,7 @@ namespace Ros_CSharp
                 _callback = ROS.GlobalCallbackQueue;
             }
             SubscribeOptions<M> ops = new SubscribeOptions<M>(topic, queue_size, cb.func)
-            {callback_queue = _callback};
+            {callback_queue = _callback, allow_concurrent_callbacks=allow_concurrent_callbacks};
             ops.callback_queue.addCallback(cb);
             return subscribe(ops);
         }
