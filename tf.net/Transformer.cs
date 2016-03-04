@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +18,9 @@ namespace tf.net
         private const ulong DEFAULT_MAX_EXTRAPOLATION_DISTANCE = 0;
         private ulong cache_time;
 
-        private ConcurrentDictionary<string, uint> frameIDs = new ConcurrentDictionary<string, uint>();
-        private ConcurrentDictionary<uint, string> frameids_reverse = new ConcurrentDictionary<uint, string>();
-        private ConcurrentDictionary<uint, TimeCache> frames = new ConcurrentDictionary<uint, TimeCache>();
+        private Dictionary<string, uint> frameIDs = new Dictionary<string, uint>();
+        private Dictionary<uint, string> frameids_reverse = new Dictionary<uint, string>();
+        private Dictionary<uint, TimeCache> frames = new Dictionary<uint, TimeCache>();
 
         private bool interpolating;
         private NodeHandle nh;

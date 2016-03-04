@@ -444,12 +444,14 @@ namespace Ros_CSharp
                                                               _shutdown();
                                                               waitForShutdown();
                                                           };
+#if !FOR_UNITY
                 Console.CancelKeyPress += (o, args) =>
                                               {
                                                   _shutdown();
                                                   waitForShutdown();
                                                   args.Cancel = true;
                                               };
+#endif
             }
 
             // this needs to exist for connections and stuff to happen
