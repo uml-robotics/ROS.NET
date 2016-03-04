@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{D3688C9B-26CA-498B-A142-68F8050A590A}</ProjectGuid>
+    <ProjectGuid>{586A3B66-104A-4182-82C2-88DC120F10AC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ros_CSharp</RootNamespace>
@@ -31,7 +31,7 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -203,10 +203,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\XmlRpc_Wrapper\XmlRpc_Wrapper.csproj">
+    <ProjectReference Include="..\XmlRpc_Wrapper\XmlRpc_Wrapper_UNITY.csproj">
       <Project>{8B7DB66C-9C03-4078-9276-B6A760CD4C2C}</Project>
-      <Name>XmlRpc_Wrapper</Name>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <Name>XmlRpc_Wrapper_UNITY</Name>
     </ProjectReference>
     <ProjectReference Include="..\YAMLParser\YAMLParser.csproj">
       <Project>{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}</Project>

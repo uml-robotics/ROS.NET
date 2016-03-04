@@ -210,7 +210,15 @@ namespace YAMLParser
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
-                output += "" + lines[i] + "\n";
+#if FOR_UNITY
+                if (lines[i].Contains("TargetFrameworkProfile"))
+                    output += "<TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>\n";
+                else
+#endif
+                {
+                    output += "" + lines[i] + "\n";
+                }
+
                 if (lines[i].Contains("<Compile Include="))
                 {
                     foreach (MsgsFile m in files)
