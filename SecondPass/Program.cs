@@ -13,7 +13,13 @@ namespace SecondPass
         static void doMessages(string[] args)
         {
             string output = "<MD5>\n";
-            string source = args.Length > 0 ? args[0] : "..\\..\\..\\Messages\\";
+            string source = "..\\..\\..\\Messages\\";
+            if (args.Length > 0)
+            {
+                source = args[0];
+                for (int i = 1; i < args.Length; i++)
+                    source += " "+args[i];
+            }
             foreach (MsgTypes mt in Enum.GetValues(typeof(MsgTypes)))
             {
                 if (mt == MsgTypes.Unknown) continue;
@@ -57,6 +63,7 @@ namespace SecondPass
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
+                    Environment.Exit(11);
                 }
             }   
         }
