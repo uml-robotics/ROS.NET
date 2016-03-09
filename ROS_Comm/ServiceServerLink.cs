@@ -358,10 +358,9 @@ namespace Ros_CSharp
 
         public bool call(MSrv srv)
         {
-            IRosMessage iresp = srv.ResponseMessage;
-            bool r = call(srv.RequestMessage, ref iresp);
-            if (iresp != null)
-                srv.ResponseMessage.Deserialize(iresp.Serialized);
+            bool r = call((IRosService)srv);
+            if (srv.ResponseMessage != null)
+                srv.ResponseMessage.Deserialize(srv.ResponseMessage.Serialized);
             else
                 srv.ResponseMessage = null;
             return r;
