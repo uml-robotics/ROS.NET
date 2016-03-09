@@ -288,14 +288,18 @@ namespace Ros_CSharp
 
         public bool call(IRosMessage req, ref IRosMessage resp)
         {
-            CallInfo info = new CallInfo {req = req, resp = resp, success = false, finished = false, call_finished = false, caller_thread_id = ROS.getPID()};
+            if (resp == null)
+            {
+                //instantiate null response IN CASE this call succeeds
+                resp = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), req.msgtype.ToString().Replace("Request", "Response")));
+            }
+            CallInfo info = new CallInfo {req = req, resp = resp, success = false, finished = false};
 
             bool immediate = false;
             lock (call_queue_mutex)
             {
                 if (connection.dropped)
                 {
-                    info.call_finished = true;
                     return false;
                 }
                 if (call_queue.Count == 0 && header_written && header_read)
@@ -309,11 +313,6 @@ namespace Ros_CSharp
             while (!info.finished)
             {
                 info.finished_condition.WaitOne();
-            }
-
-            lock (info.finished_mutex)
-            {
-                info.call_finished = true;
             }
 
             resp.Deserialize(resp.Serialized);
@@ -342,7 +341,7 @@ namespace Ros_CSharp
             IRosMessage iresp = resp;
             bool r = call(req, ref iresp);
             if (iresp != null)
-                resp = (MRes) iresp; //.Deserialize(iresp.Serialized);
+                resp = (MRes) iresp;
             return r;
         }
     }
@@ -364,15 +363,13 @@ namespace Ros_CSharp
             if (iresp != null)
                 srv.ResponseMessage.Deserialize(iresp.Serialized);
             else
-                srv.ResponseMessage = null; //std_servs.Empty, I hope?
+                srv.ResponseMessage = null;
             return r;
         }
     }
 
     internal class CallInfo
     {
-        internal bool call_finished;
-        internal UInt64 caller_thread_id;
         internal string exception = "";
         internal bool finished;
         internal Semaphore finished_condition = new Semaphore(0, int.MaxValue);
