@@ -32,6 +32,7 @@ namespace Ros_CSharp
     /// <summary>
     ///     Helper class for display and/or other output of debugging/peripheral information
     /// </summary>
+    [DebuggerStepThrough]
     public static class EDB
     {
         #region Delegates
@@ -47,16 +48,23 @@ namespace Ros_CSharp
         public static event otheroutput OtherOutput;
 
         //does the actual writing
-        [DebuggerStepThrough]
         private static void _writeline(object o)
         {
             if (OtherOutput != null)
                 OtherOutput(o);
-#if DEBUG
-            Debug.WriteLine(o);
-#else
-            Console.WriteLine(o);
-#endif
+            bool toDebugInstead = false;
+            try
+            {
+                if (Console.CursorVisible) ;
+            }
+            catch (System.IO.IOException ex)
+            {
+                toDebugInstead = true;
+            }
+            if (toDebugInstead)
+                Debug.WriteLine(o);
+            else
+                Console.WriteLine(o);
         }
 
         /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node
@@ -64,7 +72,6 @@ namespace Ros_CSharp
         ///     Writes a string or something to System.Debug, and fires an optional OtherOutput event for use in the node
         /// </summary>
         /// <param name="o"> A string or something to print </param>
-        [DebuggerStepThrough]
         public static void WriteLine(object o)
         {
             _writeline(o);
@@ -76,7 +83,6 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="format">Format string</param>
         /// <param name="args">Stuff to format</param>
-        [DebuggerStepThrough]
         public static void WriteLine(string format, params object[] args)
         {
             if (args != null && args.Length > 0)
@@ -137,6 +143,11 @@ namespace Ros_CSharp
         //last sim time received time (wall)
         private static TimeSpan lastSimTimeReceived;
 
+        private static readonly string ROSOUT_FMAT = "{0} {1}";
+        private static readonly string ROSOUT_DEBUG_PREFIX = "[Debug]";
+        private static readonly string ROSOUT_INFO_PREFIX = "[Info]";
+        private static readonly string ROSOUT_WARN_PREFIX = "[Warn]";
+        private static readonly string ROSOUT_ERROR_PREFIX = "[Error]";
 
         public static bool shutting_down
         {
@@ -277,7 +288,7 @@ namespace Ros_CSharp
 #endif
         public static void Info(object o, int level = 1)
         {
-            Console.WriteLine("[INFO] " + o);
+            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_INFO_PREFIX, o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
@@ -307,7 +318,7 @@ namespace Ros_CSharp
         public static void Debug(object o, int level = 1)
         {
 #if DEBUG
-            Console.WriteLine("[DEBUG] " + o);
+            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_DEBUG_PREFIX, o);
 #endif
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
@@ -337,7 +348,7 @@ namespace Ros_CSharp
 #endif
         public static void Error(object o, int level = 1)
         {
-            Console.WriteLine("[Error] " + o);
+            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_ERROR_PREFIX, o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
@@ -364,7 +375,7 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Warn(object o, int level = 1)
         {
-            Console.WriteLine("[Warn] " + o);
+            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_WARN_PREFIX, o);
             if (initialized && rosoutappender == null)
                 rosoutappender = new RosOutAppender();
             if (initialized)
