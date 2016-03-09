@@ -30,9 +30,10 @@ namespace Ros_CSharp
             this.persistent = persistent;
             this.header_values = header_values;
             this.md5sum = md5sum;
+            linkmaker = () => ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, md5sum, md5sum, header_values);
             if (persistent)
             {
-                server_link = ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, md5sum, md5sum, header_values);
+                server_link = linkmaker();
             }
         }
 
@@ -44,47 +45,13 @@ namespace Ros_CSharp
 
         public bool call(MReq request, ref MRes response, string service_md5sum)
         {
-            if (service_md5sum != md5sum)
-            {
-                EDB.WriteLine("Call to service [{0} with md5sum [{1} does not match md5sum when the handle was created([{2}])", service, service_md5sum, md5sum);
-                return false;
-            }
-            if (persistent)
-            {
-                if (server_link == null)
-                {
-                    server_link = ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, service_md5sum, service_md5sum, header_values);
-                    if (server_link == null)
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                server_link = ServiceManager.Instance.createServiceServerLink<MReq, MRes>(service, persistent, service_md5sum, service_md5sum, header_values);
-            }
-            if (server_link == null)
+            if (!precall(service_md5sum) || server_link == null)
             {
                 shutdown();
                 return false;
             }
             var serviceServerLink = server_link as ServiceServerLink<MReq, MRes>;
-            if (serviceServerLink == null)
-            {
-                return false;
-            }
-            bool ret = serviceServerLink.call(request, ref response);
-            while (ROS._shutting_down && ROS.ok)
-            {
-                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
-            }
-            if (!persistent)
-            {
-                serviceServerLink = null;
-                server_link.connection.drop(Connection.DropReason.Destructing);
-            }
-            return ret;
+            return postcall(serviceServerLink != null && serviceServerLink.call(request, ref response));
         }
     }
 
@@ -97,9 +64,10 @@ namespace Ros_CSharp
             this.persistent = persistent;
             this.header_values = header_values;
             this.md5sum = md5sum;
+            linkmaker = () => ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, md5sum, md5sum, header_values);
             if (persistent)
             {
-                server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, md5sum, md5sum, header_values);
+                server_link = linkmaker();
             }
         }
 
@@ -111,47 +79,13 @@ namespace Ros_CSharp
 
         public bool call(MSrv srv, string service_md5sum)
         {
-            if (service_md5sum != md5sum)
-            {
-                EDB.WriteLine("Call to service [{0} with md5sum [{1} does not match md5sum when the handle was created([{2}])", service, service_md5sum, md5sum);
-                return false;
-            }
-            if (server_link != null && server_link.connection.dropped)
-            {
-                server_link = null;
-            }
-            if (persistent)
-            {
-                if (server_link == null)
-                {
-                    server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, service_md5sum, service_md5sum, header_values);
-                    if (server_link == null)
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                server_link = ServiceManager.Instance.createServiceServerLink<MSrv>(service, persistent, service_md5sum, service_md5sum, header_values);
-            }
-            if (server_link == null)
+            if (!precall(service_md5sum) || server_link == null)
             {
                 shutdown();
                 return false;
             }
             var serviceServerLink = server_link as ServiceServerLink<MSrv>;
-            bool ret = serviceServerLink != null && serviceServerLink.call(srv.RequestMessage, ref srv.ResponseMessage);
-            while (ROS._shutting_down && ROS.ok)
-            {
-                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 1));
-            }
-            if (!persistent)
-            {
-                serviceServerLink = null;
-                server_link.connection.drop(Connection.DropReason.Destructing);
-            }
-            return ret;
+            return postcall(serviceServerLink != null && serviceServerLink.call(srv));
         }
     }
 
@@ -166,6 +100,8 @@ namespace Ros_CSharp
         internal bool persistent;
         internal IServiceServerLink server_link;
         internal string service;
+        protected delegate IServiceServerLink ServerLinkMakerDelegate();
+        protected ServerLinkMakerDelegate linkmaker;
 
         protected IServiceClient()
         {
@@ -176,16 +112,44 @@ namespace Ros_CSharp
             get { return !persistent || (!is_shutdown && server_link != null && server_link.IsValid); }
         }
 
+        protected bool precall(string service_md5sum)
+        {
+            if (service_md5sum != md5sum)
+            {
+                EDB.WriteLine("Call to service [{0} with md5sum [{1} does not match md5sum when the handle was created([{2}])", service, service_md5sum, md5sum);
+                return false;
+            }
+            if (server_link != null && server_link.connection.dropped)
+            {
+                if (persistent)
+                    EDB.WriteLine("WARNING: persistent service client's server link has been dropped. trying to reconnect to proceed with this call");
+                server_link = null;
+            }
+            if (is_shutdown && persistent)
+                EDB.WriteLine("WARNING: persistent service client is self-resurrecting");
+            is_shutdown = false;
+            if (persistent && server_link == null || !persistent)
+            {
+                server_link = linkmaker();
+            }
+            return true;
+        }
+
+        protected bool postcall(bool retval)
+        {
+            while (ROS._shutting_down && ROS.ok)
+            {
+                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 10));
+            }
+            return retval;
+        }
+
         public void shutdown()
         {
             if (!is_shutdown)
             {
-                if (!persistent)
-                {
-                    is_shutdown = true;
-                }
-
-                if (server_link != null)
+                is_shutdown = true;
+                if (!persistent && server_link != null)
                 {
                     ServiceManager.Instance.removeServiceServerLink(server_link);
                     server_link = null;

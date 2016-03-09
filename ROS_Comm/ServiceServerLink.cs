@@ -182,8 +182,10 @@ namespace Ros_CSharp
             }
             if (empty)
             {
-                //if (persistent)
-                //    connection.drop(Connection.DropReason.Destructing);
+                if (!persistent)
+                {
+                    connection.drop(Connection.DropReason.Destructing);
+                }
             }
             else
             {
