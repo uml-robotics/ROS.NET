@@ -59,6 +59,7 @@ namespace Ros_CSharp
         {
             if (OtherOutput != null)
                 OtherOutput(o);
+#if !ENABLE_MONO
             bool toDebugInstead =
 #if FOR_UNITY
                 true;
@@ -72,11 +73,14 @@ namespace Ros_CSharp
             {
                 toDebugInstead = true;
             }
-#endif
+#endif //FOR_UNITY
             if (toDebugInstead)
                 Debug.WriteLine(o);
             else
                 Console.WriteLine(o);
+#else
+            UnityEngine.Debug.LogWarning(o.ToString());
+#endif //!UNITY
         }
 
         /// Writes a string or something to System.Console, and fires an optional OtherOutput event for use in the node

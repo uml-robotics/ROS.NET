@@ -309,7 +309,11 @@ namespace XmlRpc_Wrapper
 
         public static void error(string format, params object[] list)
         {
+#if ENABLE_MONO
+            UnityEngine.Debug.LogError(String.Format(format, list));
+#else
             Debug.WriteLine(String.Format(format, list));
+#endif
         }
 
         public static void log(int level, string format, params object[] list)
@@ -320,7 +324,11 @@ namespace XmlRpc_Wrapper
         public static void log(XMLRPC_LOG_LEVEL level, string format, params object[] list)
         {
             if (level <= MINIMUM_LOG_LEVEL)
+#if ENABLE_MONO
+                UnityEngine.Debug.LogWarning(String.Format(format, list));
+#else
                 Debug.WriteLine(String.Format(format, list));
+#endif
         }
     }
 }
