@@ -596,15 +596,21 @@ namespace XmlRpc_Wrapper
             _type = ValueType.TypeArray;
         }
 
-        [DebuggerStepThrough]
         public void Set<T>(int key, T t)
         {
-            EnsureArraySize(key);
-            if (asArray[key] == null)
+            try
             {
-                asArray[key] = new XmlRpcValue();
+                EnsureArraySize(key);
+                if (asArray[key] == null)
+                {
+                    asArray[key] = new XmlRpcValue();
+                }
+                this[key].Set(t);
             }
-            this[key].Set(t);
+            catch (InvalidProgramException ex)
+            {
+                XmlRpcUtil.error("Set<T>(...) threw exception\n{0}\n\tfor index {1} (type == {2})", ex, key, typeof(T));
+            }
         }
 
         public void SetArray(int maxSize)
