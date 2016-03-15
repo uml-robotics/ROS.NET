@@ -487,8 +487,8 @@ namespace Ros_CSharp
             List<string> pub_uris = new List<string>();
             for (int i = 0; i < payload.Size; i++)
             {
-                XmlRpcValue asshole = payload[i];
-                string pubed = asshole.Get<string>();
+                XmlRpcValue load = payload[i];
+                string pubed = load.Get<string>();
                 if (pubed != uri && !pub_uris.Contains(pubed))
                 {
                     pub_uris.Add(pubed);

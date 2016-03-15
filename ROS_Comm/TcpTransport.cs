@@ -450,10 +450,6 @@ namespace Ros_CSharp
             }
             int num_bytes = 0;
             SocketError err;
-            /*if (buffer.LongLength - (length + pos) != 0 || buffer.LongLength > 65535)
-            {
-                Console.WriteLine(string.Format("{0} != {1}... ASSHOLE!", (pos + length), buffer.LongLength));
-            }*/
             num_bytes = sock.Receive(buffer, (int) pos, (int) length, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
