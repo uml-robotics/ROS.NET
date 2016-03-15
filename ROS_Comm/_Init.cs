@@ -10,6 +10,13 @@
 // Created: 09/01/2015
 // Updated: 02/10/2016
 
+#if UNITY
+#define FOR_UNITY
+#endif
+#if ENABLE_MONO
+#define FOR_UNITY
+#endif
+
 #region USINGZ
 
 using System;
@@ -52,7 +59,11 @@ namespace Ros_CSharp
         {
             if (OtherOutput != null)
                 OtherOutput(o);
-            bool toDebugInstead = false;
+            bool toDebugInstead =
+#if FOR_UNITY
+                true;
+#else
+                false;
             try
             {
                 if (Console.CursorVisible) ;
@@ -61,6 +72,7 @@ namespace Ros_CSharp
             {
                 toDebugInstead = true;
             }
+#endif
             if (toDebugInstead)
                 Debug.WriteLine(o);
             else
