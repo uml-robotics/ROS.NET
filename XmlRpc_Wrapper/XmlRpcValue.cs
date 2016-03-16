@@ -104,36 +104,45 @@ namespace XmlRpc_Wrapper
         public Dictionary<string, XmlRpcValue> asStruct;
         public tm asTime;
 
-        [DebuggerStepThrough]
         public XmlRpcValue()
         {
             _type = ValueType.TypeInvalid;
         }
 
-        [DebuggerStepThrough]
-        public XmlRpcValue(params object[] initialvalues)
+        public XmlRpcValue(params Object[] initialvalues)
             : this()
         {
             SetArray(initialvalues.Length);
             for (int i = 0; i < initialvalues.Length; i++)
             {
-                int ires = 0;
-                double dres = 0;
-                bool bres = false;
-                if (initialvalues[i] == null)
-                    Set(i, "");
-                else if (initialvalues[i] is string)
-                    Set(i, initialvalues[i].ToString());
-                else if (initialvalues[i] is int && int.TryParse(initialvalues[i].ToString(), out ires))
-                    Set(i, ires);
-                else if (initialvalues[i] is double && double.TryParse(initialvalues[i].ToString(), out dres))
-                    Set(i, dres);
-                else if (initialvalues[i] is bool && bool.TryParse(initialvalues[i].ToString(), out bres))
-                    Set(i, bres);
-                else
-                    Set(i, initialvalues[i].ToString());
+                setFromObject(i, initialvalues[i]);
             }
         }
+
+        private void setFromObject(int i, object o)
+        {
+            int ires = 0;
+            double dres = 0;
+            bool bres = false;
+            if (o == null || o is string)
+                Set(i, o != null ? o.ToString() : "");
+            else if (o is int && int.TryParse(o.ToString(), out ires))
+                Set(i, ires);
+            else if (o is double && double.TryParse(o.ToString(), out dres))
+                Set(i, dres);
+            else if (o is bool && bool.TryParse(o.ToString(), out bres))
+                Set(i, bres);
+            else
+                Set(i, o.ToString());
+        }
+                catch (InvalidProgramException ex)
+                {
+                    //mono seems to disagree with either the 'is' operator OR with some aspect of the generics on the Set execution path
+                    //It throws an IllegalProgramException - invalid IL code: IL_002e: isinst    0x1b00
+                    XmlRpcUtil.error("XmlRpcValue(object[{0}])\t index={1} type={2} threw exception\n{3}", initialvalues.Length, i, initialvalues[i]==null ? "NULL" : ""+initialvalues[i].GetType(), ex);
+                    throw ex;
+                }
+            }
 
         [DebuggerStepThrough]
         public XmlRpcValue(bool value)
@@ -191,12 +200,14 @@ namespace XmlRpc_Wrapper
 
         public bool Valid
         {
-            [DebuggerStepThrough] get { return _type != ValueType.TypeInvalid; }
+            [DebuggerStepThrough]
+            get { return _type != ValueType.TypeInvalid; }
         }
 
         public ValueType Type
         {
-            [DebuggerStepThrough] get { return _type; }
+            [DebuggerStepThrough]
+            get { return _type; }
         }
 
         public int Size
@@ -238,8 +249,10 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcValue this[string key]
         {
-            [DebuggerStepThrough] get { return Get(key); }
-            [DebuggerStepThrough] set { Set(key, value); }
+            [DebuggerStepThrough]
+            get { return Get(key); }
+            [DebuggerStepThrough]
+            set { Set(key, value); }
         }
 
         public void Dump()
@@ -296,7 +309,7 @@ namespace XmlRpc_Wrapper
 
         public override bool Equals(object obj)
         {
-            XmlRpcValue other = (XmlRpcValue) obj;
+            XmlRpcValue other = (XmlRpcValue)obj;
 
             if (_type != other._type)
                 return false;
@@ -318,21 +331,21 @@ namespace XmlRpc_Wrapper
                 case ValueType.TypeArray:
                     return asArray == other.asArray;
 
-                    // The map<>::operator== requires the definition of value< for kcc
+                // The map<>::operator== requires the definition of value< for kcc
                 case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
-                {
-                    if (asStruct.Count != other.asStruct.Count)
-                        return false;
-                    var aenum = asStruct.GetEnumerator();
-                    var benum = other.asStruct.GetEnumerator();
-
-                    while (aenum.MoveNext() && benum.MoveNext())
                     {
-                        if (!aenum.Current.Value.Equals(benum.Current.Value))
+                        if (asStruct.Count != other.asStruct.Count)
                             return false;
+                        var aenum = asStruct.GetEnumerator();
+                        var benum = other.asStruct.GetEnumerator();
+
+                        while (aenum.MoveNext() && benum.MoveNext())
+                        {
+                            if (!aenum.Current.Value.Equals(benum.Current.Value))
+                                return false;
+                        }
+                        return true;
                     }
-                    return true;
-                }
                 default:
                     break;
             }
@@ -367,7 +380,7 @@ namespace XmlRpc_Wrapper
                     asArray = other.asArray;
                     break;
 
-                    // The map<>::operator== requires the definition of value< for kcc
+                // The map<>::operator== requires the definition of value< for kcc
                 case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
                     asStruct = other.asStruct;
                     break;
@@ -549,18 +562,17 @@ namespace XmlRpc_Wrapper
             return root;
         }
 
-        [DebuggerStepThrough]
         public void Set<T>(T t)
         {
             if (t is string)
             {
                 _type = ValueType.TypeString;
-                asString = (string) (object) t;
+                asString = (string)(object)t;
             }
             else if (0 is T)
             {
                 _type = ValueType.TypeInt;
-                asInt = (int) (object) t;
+                asInt = (int)(object)t;
             }
             else if (this is T)
             {
@@ -568,12 +580,12 @@ namespace XmlRpc_Wrapper
             }
             else if (t is bool)
             {
-                asBool = (bool) (object) t;
+                asBool = (bool)(object)t;
                 _type = ValueType.TypeBoolean;
             }
             else if (0d is T)
             {
-                asDouble = (double) (object) t;
+                asDouble = (double)(object)t;
                 _type = ValueType.TypeDouble;
             }
             else if (t is XmlRpcValue)
@@ -586,31 +598,28 @@ namespace XmlRpc_Wrapper
         {
             if (_type != ValueType.TypeInvalid && _type != ValueType.TypeArray)
                 throw new Exception("Converting to array existing value");
+            int before = 0;
             if (asArray != null)
             {
+                before = asArray.Length;
                 if (asArray.Length < size + 1)
                     Array.Resize(ref asArray, size + 1);
             }
             else
                 asArray = new XmlRpcValue[size + 1];
+            for (int i = before; i < asArray.Length; i++)
+                asArray[i] = new XmlRpcValue();
             _type = ValueType.TypeArray;
         }
 
         public void Set<T>(int key, T t)
         {
-            try
+            EnsureArraySize(key);
+            if (asArray[key] == null)
             {
-                EnsureArraySize(key);
-                if (asArray[key] == null)
-                {
-                    asArray[key] = new XmlRpcValue();
-                }
-                this[key].Set(t);
+                asArray[key] = new XmlRpcValue();
             }
-            catch (InvalidProgramException ex)
-            {
-                XmlRpcUtil.error("Set<T>(...) threw exception\n{0}\n\tfor index {1} (type == {2})", ex, key, typeof(T));
-            }
+            this[key].Set<T>(t);
         }
 
         public void SetArray(int maxSize)
@@ -622,7 +631,7 @@ namespace XmlRpc_Wrapper
         [DebuggerStepThrough]
         public void Set<T>(string key, T t)
         {
-            this[key].Set(t);
+            this[key].Set<T>(t);
         }
 
         [DebuggerStepThrough]
@@ -634,23 +643,23 @@ namespace XmlRpc_Wrapper
             }
             else if ("" is T)
             {
-                return (T) (object) GetString();
+                return (T)(object)GetString();
             }
             else if (0 is T)
             {
-                return (T) (object) GetInt();
+                return (T)(object)GetInt();
             }
             else if (this is T)
             {
-                return (T) (object) this;
+                return (T)(object)this;
             }
             else if (true is T)
             {
-                return (T) (object) GetBool();
+                return (T)(object)GetBool();
             }
             else if (0d is T)
             {
-                return (T) (object) GetDouble();
+                return (T)(object)GetDouble();
             }
             Console.WriteLine("I DUNNO WHAT THAT IS!");
             return default(T);
