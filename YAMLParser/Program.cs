@@ -39,7 +39,7 @@ namespace YAMLParser
         public static string outputdir_firstpass = "..\\..\\..\\TempMessages";
         public static string name_firstpass = "TempMessages";
 #endif
-
+        internal static string TemplateLocation = "";
         private static void Main(string[] args)
         {
             string solutiondir;
@@ -59,6 +59,7 @@ namespace YAMLParser
             {
                 di = Directory.GetParent(di.FullName);
             }
+            TemplateLocation = di.FullName + "\\TemplateProject\\";
             di = Directory.GetParent(di.FullName);
             yamlparser_parent = di.FullName;
             if (args.Length - firstarg >= 1)
@@ -202,11 +203,11 @@ namespace YAMLParser
             if (!Directory.Exists((istemp ? outputdir_firstpass : outputdir) + "\\Properties"))
                 Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
             Thread.Sleep(10);
-            string[] l = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\AssemblyInfo._cs");
+            string[] l = File.ReadAllLines(TemplateLocation+"\\AssemblyInfo._cs");
             Thread.Sleep(10);
             File.WriteAllLines((istemp ? outputdir_firstpass : outputdir) + "\\Properties\\AssemblyInfo.cs", l);
             Thread.Sleep(100);
-            string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\TemplateProject\\" + (istemp ? name_firstpass : name) + "._csproj");
+            string[] lines = File.ReadAllLines(TemplateLocation + (istemp ? name_firstpass : name) + "._csproj");
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -234,8 +235,8 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
-            File.Copy("TemplateProject\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
-            File.Copy("TemplateProject\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
+            File.Copy(TemplateLocation+"\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
+            File.Copy(TemplateLocation + "\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
             File.WriteAllText((istemp ? outputdir_firstpass : outputdir) + "\\.gitignore", "*");
             File.WriteAllText((istemp ? (outputdir_firstpass + "\\" + (istemp ? name_firstpass : name) + ".csproj") : (outputdir + "\\" + (istemp ? name_firstpass : name) + ".csproj")), output);
             Thread.Sleep(100);
