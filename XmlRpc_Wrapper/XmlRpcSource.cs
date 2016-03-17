@@ -7,13 +7,12 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
 using System;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 
@@ -24,6 +23,7 @@ namespace XmlRpc_Wrapper
 #if !TRACE
     [DebuggerStepThrough]
 #endif
+
     public abstract class XmlRpcSource : IDisposable
     {
         private const int READ_BUFFER_LENGTH = 4096;

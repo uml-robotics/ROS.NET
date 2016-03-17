@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
@@ -27,6 +27,7 @@ namespace XmlRpc_Wrapper
 #if !TRACE
     [DebuggerStepThrough]
 #endif
+
     public class XmlRpcClient : XmlRpcSource //: IDisposable
     {
         // Static data
@@ -41,8 +42,6 @@ namespace XmlRpc_Wrapper
         public string HostUri = "";
         private int _bytesWritten;
         private ConnectionState _connectionState;
-
-        private HTTPHeader header;
 
         // Event dispatcher
         private XmlRpcDispatch _disp = new XmlRpcDispatch();
@@ -59,12 +58,8 @@ namespace XmlRpc_Wrapper
         // Number of times the client has attempted to send the request
         private int _sendAttempts;
         private string _uri;
+        private HTTPHeader header;
         private TcpClient socket;
-
-        public override NetworkStream getStream()
-        {
-            return socket.GetStream();
-        }
 
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
@@ -97,62 +92,62 @@ namespace XmlRpc_Wrapper
 
         public bool IsConnected
         {
-            [DebuggerStepThrough] get { return socket != null && socket.Connected; }
+            get { return socket != null && socket.Connected; }
         }
 
         public string Host
         {
-            [DebuggerStepThrough] get { return _host; }
+            get { return _host; }
         }
 
         public string Uri
         {
-            [DebuggerStepThrough] get { return _uri; }
+            get { return _uri; }
         }
 
         public int Port
         {
-            [DebuggerStepThrough] get { return _port; }
+            get { return _port; }
         }
 
         public string Request
         {
-            [DebuggerStepThrough] get { return _request; }
+            get { return _request; }
         }
 
         public string Header
         {
-            [DebuggerStepThrough] get { return header.Header; }
+            get { return header.Header; }
         }
 
         public string Response
         {
-            [DebuggerStepThrough] get { return header.DataString; }
+            get { return header.DataString; }
         }
 
         public int SendAttempts
         {
-            [DebuggerStepThrough] get { return _sendAttempts; }
+            get { return _sendAttempts; }
         }
 
         public int BytesWritten
         {
-            [DebuggerStepThrough] get { return _bytesWritten; }
+            get { return _bytesWritten; }
         }
 
         public bool Executing
         {
-            [DebuggerStepThrough] get { return _executing; }
+            get { return _executing; }
         }
 
         public bool EOF
         {
-            [DebuggerStepThrough] get { return _eof; }
+            get { return _eof; }
         }
 
         public int ContentLength
         {
-            [DebuggerStepThrough] get { return header.ContentLength; }
+            get { return header.ContentLength; }
         }
 
         #endregion
@@ -267,6 +262,11 @@ namespace XmlRpc_Wrapper
 
         #endregion
 
+        public override NetworkStream getStream()
+        {
+            return socket.GetStream();
+        }
+
         // Server location
 
         private string getHost()
@@ -379,7 +379,7 @@ namespace XmlRpc_Wrapper
             {
                 if (header.m_headerStatus == HTTPHeader.STATUS.COMPLETE_HEADER)
                 {
-                    _connectionState = XmlRpcClient.ConnectionState.READ_RESPONSE;
+                    _connectionState = ConnectionState.READ_RESPONSE;
                 }
 
                 return true;

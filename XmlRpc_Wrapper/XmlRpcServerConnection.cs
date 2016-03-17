@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 02/10/2016
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
@@ -27,28 +27,19 @@ namespace XmlRpc_Wrapper
     /// </summary>
     public class XmlRpcServerConnection : XmlRpcSource
     {
-        // The XmlRpc server that accepted this connection
-
         private int _bytesWritten;
         private ServerConnectionState _connectionState;
 
-        // Request headers
-
-        // Number of bytes expected in the request body (parsed from header)
-        private HTTPHeader header;
-
-        // Request body
-
         // Whether to keep the current client connection open for further requests
         private bool _keepAlive;
+
+        // Request headers
+        private HTTPHeader header;
+
+        // The XmlRpc server that accepted this connection
         private XmlRpcServer server;
 
         private TcpClient socket;
-
-        public override NetworkStream getStream()
-        {
-            return socket.GetStream();
-        }
 
         // The server delegates handling client requests to a serverConnection object.
         public XmlRpcServerConnection(TcpClient fd, XmlRpcServer server, bool deleteOnClose /*= false*/)
@@ -60,6 +51,11 @@ namespace XmlRpc_Wrapper
             _connectionState = ServerConnectionState.READ_HEADER;
             KeepOpen = true;
             _keepAlive = true;
+        }
+
+        public override NetworkStream getStream()
+        {
+            return socket.GetStream();
         }
 
 
@@ -143,10 +139,7 @@ namespace XmlRpc_Wrapper
             {
                 return false;
             }
-            else
-            {
-                _connectionState = ServerConnectionState.WRITE_RESPONSE;
-            }
+            _connectionState = ServerConnectionState.WRITE_RESPONSE;
 
             return true; // Continue monitoring this source
         }

@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
@@ -21,6 +21,10 @@ using System.Text;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
+
     public class XmlRpcException : Exception
     {
         private int errorCode = -1;
@@ -98,6 +102,9 @@ namespace XmlRpc_Wrapper
     ///     Does HTTP header parsing
     ///     Taken from ... somewhere.
     /// </summary>
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
     internal class HTTPHeader
     {
         [Flags]
@@ -134,7 +141,8 @@ namespace XmlRpc_Wrapper
 
         public string DataString { get; private set; }
 
-        public int ContentLength {
+        public int ContentLength
+        {
             get
             {
                 int ret = -1;
@@ -145,7 +153,8 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        public bool ContentComplete {
+        public bool ContentComplete
+        {
             get
             {
                 int contentlength = ContentLength;
@@ -174,7 +183,8 @@ namespace XmlRpc_Wrapper
         }
 
         /// <summary>
-        /// Either HTTPRequest contains the header AND some data, or it contains part or all of the header. Accumulate pieces of the header in case it spans multiple reads.
+        ///     Either HTTPRequest contains the header AND some data, or it contains part or all of the header. Accumulate pieces
+        ///     of the header in case it spans multiple reads.
         /// </summary>
         /// <param name="HTTPRequest"></param>
         /// <returns></returns>
@@ -182,7 +192,7 @@ namespace XmlRpc_Wrapper
         {
             if (m_headerStatus != STATUS.COMPLETE_HEADER)
             {
-                int betweenHeaderAndData = HTTPRequest.IndexOf("\r\n\r\n", System.StringComparison.OrdinalIgnoreCase);
+                int betweenHeaderAndData = HTTPRequest.IndexOf("\r\n\r\n", StringComparison.OrdinalIgnoreCase);
                 if (betweenHeaderAndData > 0)
                 {
                     m_headerStatus = STATUS.COMPLETE_HEADER;
@@ -246,7 +256,7 @@ namespace XmlRpc_Wrapper
             string HTTPfield = null;
             int Index;
             string buffer;
-            for (int f=(int)HTTPHeaderField.Accept; f<(int)HTTPHeaderField.HEADER_VALUE_MAX_PLUS_ONE; f++)
+            for (int f = (int) HTTPHeaderField.Accept; f < (int) HTTPHeaderField.HEADER_VALUE_MAX_PLUS_ONE; f++)
             {
                 HHField = (HTTPHeaderField) f;
                 HTTPfield = null;
@@ -281,7 +291,10 @@ namespace XmlRpc_Wrapper
         #endregion
     }
 
+#if !TRACE
     [DebuggerStepThrough]
+#endif
+
     public static class XmlRpcUtil
     {
         public enum XMLRPC_LOG_LEVEL

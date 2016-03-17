@@ -7,8 +7,8 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
@@ -22,6 +22,10 @@ using System.Net.Sockets;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
+
     public class XmlRpcDispatch //: IDisposable
     {
         #region EventType enum

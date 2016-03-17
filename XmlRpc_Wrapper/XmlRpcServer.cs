@@ -7,15 +7,14 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
 //#define REFDEBUG
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -25,6 +24,10 @@ using System.Xml;
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
+
     public class XmlRpcServer : XmlRpcSource
     {
         #region Reference Tracking + unmanaged pointer management
@@ -57,12 +60,12 @@ namespace XmlRpc_Wrapper
 
         public int Port
         {
-            [DebuggerStepThrough] get { return _port; }
+            get { return _port; }
         }
 
         public XmlRpcDispatch Dispatch
         {
-            [DebuggerStepThrough] get { return _disp; }
+            get { return _disp; }
         }
 
         public void AddMethod(XmlRpcServerMethod method)
