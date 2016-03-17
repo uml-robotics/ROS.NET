@@ -17,6 +17,8 @@
 
 #endregion
 
+using System.Diagnostics;
+
 namespace XmlRpc_Wrapper
 {
 #if !TRACE

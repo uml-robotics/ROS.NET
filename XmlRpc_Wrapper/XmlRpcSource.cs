@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 
