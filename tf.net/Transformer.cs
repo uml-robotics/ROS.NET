@@ -462,21 +462,21 @@ namespace tf.net
 
         public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, ref string error_msg)
         {
-            return waitForTransform(target_frame, source_frame, time, timeout, ref error_msg);
+            return waitForTransform(target_frame, source_frame, time, timeout, ref error_msg, null);
         }
 
         public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, ref string error_msg)
         {
-            return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, ref error_msg);
+            return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, ref error_msg, null);
         }
 
-        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, ref string error_msg, Duration pollingSleepDuration = null)
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, ref string error_msg, Duration pollingSleepDuration)
         {
             return waitForTransform(target_frame, source_frame, target_time, timeout, ref error_msg, pollingSleepDuration) &&
                    waitForTransform(target_frame, source_frame, source_time, timeout, ref error_msg, pollingSleepDuration);
         }
 
-        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, ref string error_msg, Duration pollingSleepDuration = null)
+        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, ref string error_msg, Duration pollingSleepDuration)
         {
             TimeSpan? ts = null;
             if (pollingSleepDuration != null)
@@ -486,7 +486,7 @@ namespace tf.net
                 ref error_msg, ts);
         }
 
-        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, ref string error_msg, TimeSpan? pollingSleepDuration = null)
+        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, ref string error_msg, TimeSpan? pollingSleepDuration)
         {
             if (pollingSleepDuration == null)
                 pollingSleepDuration = new TimeSpan(0, 0, 0, 0, 100);
@@ -505,19 +505,19 @@ namespace tf.net
             return false;
         }
 
-        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, Duration pollingSleepDuration = null)
+        public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, Duration pollingSleepDuration)
         {
             string error_msg = null;
             return waitForTransform(target_frame, source_frame, time, timeout, ref error_msg, pollingSleepDuration);
         }
 
-        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration = null)
+        public bool waitForTransform(string target_frame, Time target_time, string source_frame, Time source_time, Duration timeout, Duration pollingSleepDuration)
         {
             string error_msg = null;
             return waitForTransform(target_frame, target_time, source_frame, source_time, timeout, ref error_msg, pollingSleepDuration);
         }
 
-        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, TimeSpan pollingSleepDuration)
+        private bool waitForTransform(string target_frame, string source_frame, Time time, TimeSpan timeout, TimeSpan? pollingSleepDuration)
         {
             string error_msg = null;
             return waitForTransform(target_frame, source_frame, time, timeout, ref error_msg, pollingSleepDuration);
