@@ -7,21 +7,24 @@
 // 
 // Reimplementation of the ROS (ros.org) ros_cpp client in C#.
 // 
-// Created: 11/18/2015
-// Updated: 02/10/2016
+// Created: 03/16/2016
+// Updated: 03/17/2016
 
 #region USINGZ
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 
 #endregion
 
 namespace XmlRpc_Wrapper
 {
+#if !TRACE
+    [DebuggerStepThrough]
+#endif
     //TODO: OPERATOR GARBAGE?
     [Serializable]
     public class XmlRpcValue // : IDisposable
@@ -41,7 +44,6 @@ namespace XmlRpc_Wrapper
         }
 
         /*
-        [DebuggerStepThrough]
         public XmlRpcValue(XmlRpcValue value)
             : this(value.instance)
         {
@@ -66,7 +68,6 @@ namespace XmlRpc_Wrapper
             this.variantValue = value.variantValue;
         }*/
         /*
-        [DebuggerStepThrough]
         public XmlRpcValue(IntPtr existingptr)
         {
             if (existingptr == IntPtr.Zero)
@@ -119,32 +120,6 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        private void setFromObject(int i, object o)
-        {
-            int ires = 0;
-            double dres = 0;
-            bool bres = false;
-            if (o == null || o is string)
-                Set(i, o != null ? o.ToString() : "");
-            else if (o is int && int.TryParse(o.ToString(), out ires))
-                Set(i, ires);
-            else if (o is double && double.TryParse(o.ToString(), out dres))
-                Set(i, dres);
-            else if (o is bool && bool.TryParse(o.ToString(), out bres))
-                Set(i, bres);
-            else
-                Set(i, o.ToString());
-        }
-                catch (InvalidProgramException ex)
-                {
-                    //mono seems to disagree with either the 'is' operator OR with some aspect of the generics on the Set execution path
-                    //It throws an IllegalProgramException - invalid IL code: IL_002e: isinst    0x1b00
-                    XmlRpcUtil.error("XmlRpcValue(object[{0}])\t index={1} type={2} threw exception\n{3}", initialvalues.Length, i, initialvalues[i]==null ? "NULL" : ""+initialvalues[i].GetType(), ex);
-                    throw ex;
-                }
-            }
-
-        [DebuggerStepThrough]
         public XmlRpcValue(bool value)
         {
             /*
@@ -154,21 +129,18 @@ namespace XmlRpc_Wrapper
             _type = ValueType.TypeBoolean;
         }
 
-        [DebuggerStepThrough]
         public XmlRpcValue(int value)
         {
             asInt = value;
             _type = ValueType.TypeInt;
         }
 
-        [DebuggerStepThrough]
         public XmlRpcValue(double value)
         {
             asDouble = value;
             _type = ValueType.TypeDouble;
         }
 
-        [DebuggerStepThrough]
         public XmlRpcValue(string value)
         {
             asString = value;
@@ -200,19 +172,16 @@ namespace XmlRpc_Wrapper
 
         public bool Valid
         {
-            [DebuggerStepThrough]
             get { return _type != ValueType.TypeInvalid; }
         }
 
         public ValueType Type
         {
-            [DebuggerStepThrough]
             get { return _type; }
         }
 
         public int Size
         {
-            [DebuggerStepThrough]
             get
             {
                 if (!Valid || Type == ValueType.TypeInvalid || Type == ValueType.TypeIDFK)
@@ -233,13 +202,11 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcValue this[int key]
         {
-            [DebuggerStepThrough]
             get
             {
                 EnsureArraySize(key);
                 return Get(key);
             }
-            [DebuggerStepThrough]
             set
             {
                 EnsureArraySize(key);
@@ -249,10 +216,34 @@ namespace XmlRpc_Wrapper
 
         public XmlRpcValue this[string key]
         {
-            [DebuggerStepThrough]
             get { return Get(key); }
-            [DebuggerStepThrough]
             set { Set(key, value); }
+        }
+
+        private void setFromObject(int i, object o)
+        {
+            int ires = 0;
+            double dres = 0;
+            bool bres = false;
+            if (o == null)
+            {
+                Set(i, "");
+                return;
+            }
+            Type type = o.GetType();
+            if (type.Equals(typeof (String)))
+                Set(i, o != null ? o.ToString() : "");
+            else if (type.Equals(typeof (Int32)) && int.TryParse(o.ToString(), out ires))
+                Set(i, ires);
+            else if (type.Equals(typeof (Double)) && double.TryParse(o.ToString(), out dres))
+                Set(i, dres);
+            else if (type.Equals(typeof (Boolean)) && bool.TryParse(o.ToString(), out bres))
+                Set(i, bres);
+            else
+            {
+                throw new Exception("Why is this thing a " + o + "??");
+                Set(i, o.ToString());
+            }
         }
 
         public void Dump()
@@ -309,7 +300,7 @@ namespace XmlRpc_Wrapper
 
         public override bool Equals(object obj)
         {
-            XmlRpcValue other = (XmlRpcValue)obj;
+            XmlRpcValue other = (XmlRpcValue) obj;
 
             if (_type != other._type)
                 return false;
@@ -331,21 +322,21 @@ namespace XmlRpc_Wrapper
                 case ValueType.TypeArray:
                     return asArray == other.asArray;
 
-                // The map<>::operator== requires the definition of value< for kcc
+                    // The map<>::operator== requires the definition of value< for kcc
                 case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
-                    {
-                        if (asStruct.Count != other.asStruct.Count)
-                            return false;
-                        var aenum = asStruct.GetEnumerator();
-                        var benum = other.asStruct.GetEnumerator();
+                {
+                    if (asStruct.Count != other.asStruct.Count)
+                        return false;
+                    var aenum = asStruct.GetEnumerator();
+                    var benum = other.asStruct.GetEnumerator();
 
-                        while (aenum.MoveNext() && benum.MoveNext())
-                        {
-                            if (!aenum.Current.Value.Equals(benum.Current.Value))
-                                return false;
-                        }
-                        return true;
+                    while (aenum.MoveNext() && benum.MoveNext())
+                    {
+                        if (!aenum.Current.Value.Equals(benum.Current.Value))
+                            return false;
                     }
+                    return true;
+                }
                 default:
                     break;
             }
@@ -380,7 +371,7 @@ namespace XmlRpc_Wrapper
                     asArray = other.asArray;
                     break;
 
-                // The map<>::operator== requires the definition of value< for kcc
+                    // The map<>::operator== requires the definition of value< for kcc
                 case ValueType.TypeStruct: //return *_value.asStruct == *other._value.asStruct;
                     asStruct = other.asStruct;
                     break;
@@ -564,33 +555,34 @@ namespace XmlRpc_Wrapper
 
         public void Set<T>(T t)
         {
-            if (t is string)
+            Type type = t.GetType();
+            if (type.Equals(typeof (String)))
             {
                 _type = ValueType.TypeString;
-                asString = (string)(object)t;
+                asString = (string) (object) t;
             }
-            else if (0 is T)
+            else if (type.Equals(typeof (Int32)))
             {
                 _type = ValueType.TypeInt;
-                asInt = (int)(object)t;
+                asInt = (int) (object) t;
             }
-            else if (this is T)
+            else if (type.Equals(typeof (XmlRpcValue)))
             {
                 Copy(t as XmlRpcValue);
             }
-            else if (t is bool)
+            else if (type.Equals(typeof (Boolean)))
             {
-                asBool = (bool)(object)t;
+                asBool = (bool) (object) t;
                 _type = ValueType.TypeBoolean;
             }
-            else if (0d is T)
+            else if (type.Equals(typeof (Double)))
             {
-                asDouble = (double)(object)t;
+                asDouble = (double) (object) t;
                 _type = ValueType.TypeDouble;
             }
-            else if (t is XmlRpcValue)
+            else
             {
-                Copy(t as XmlRpcValue);
+                throw new Exception("What do I do to Set<T> for a " + type);
             }
         }
 
@@ -619,7 +611,7 @@ namespace XmlRpc_Wrapper
             {
                 asArray[key] = new XmlRpcValue();
             }
-            this[key].Set<T>(t);
+            this[key].Set(t);
         }
 
         public void SetArray(int maxSize)
@@ -628,62 +620,57 @@ namespace XmlRpc_Wrapper
             asArray = new XmlRpcValue[maxSize];
         }
 
-        [DebuggerStepThrough]
         public void Set<T>(string key, T t)
         {
-            this[key].Set<T>(t);
+            this[key].Set(t);
         }
 
-        [DebuggerStepThrough]
-        public T Get<T>() // where T : class, new()
+        public T Get<T>()
         {
             if (!Valid)
             {
-                Console.WriteLine("Trying to get something with an invalid size... BAD JUJU!\n\t" + this);
+                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "Trying to Get() the value of an Invalid XmlRpcValue!");
+                return (T) (object) null;
             }
-            else if ("" is T)
+            Type type = typeof (T);
+            if (type.Equals(typeof (String)))
             {
-                return (T)(object)GetString();
+                return (T) (object) asString;
             }
-            else if (0 is T)
+            if (type.Equals(typeof (Int32)))
             {
-                return (T)(object)GetInt();
+                return (T) (object) asInt;
             }
-            else if (this is T)
+            if (type.Equals(typeof (Boolean)))
             {
-                return (T)(object)this;
+                return (T) (object) asBool;
             }
-            else if (true is T)
+            if (type.Equals(typeof (Double)))
             {
-                return (T)(object)GetBool();
+                return (T) (object) asDouble;
             }
-            else if (0d is T)
+            if (type.Equals(typeof (XmlRpcValue)))
             {
-                return (T)(object)GetDouble();
+                return (T) (object) asArray;
             }
-            Console.WriteLine("I DUNNO WHAT THAT IS!");
-            return default(T);
+            throw new Exception(string.Format("Trying to Get {0} from:\n{1}", type.FullName, ToString()));
         }
 
-        [DebuggerStepThrough]
         private T Get<T>(int key)
         {
             return this[key].Get<T>();
         }
 
-        [DebuggerStepThrough]
         private T Get<T>(string key)
         {
             return this[key].Get<T>();
         }
 
-        [DebuggerStepThrough]
         private XmlRpcValue Get(int key)
         {
             return asArray[key];
         }
 
-        [DebuggerStepThrough]
         private XmlRpcValue Get(string key)
         {
             if (asStruct.ContainsKey(key))
@@ -691,28 +678,32 @@ namespace XmlRpc_Wrapper
             return null;
         }
 
-        [DebuggerStepThrough]
         public int GetInt()
         {
             return asInt;
         }
 
-        [DebuggerStepThrough]
         public string GetString()
         {
             return asString;
         }
 
-        [DebuggerStepThrough]
         public bool GetBool()
         {
             return asBool;
         }
 
-        [DebuggerStepThrough]
         public double GetDouble()
         {
             return asDouble;
+        }
+
+
+        public override string ToString()
+        {
+            if (!Valid)
+                return "INVALID";
+            return toXml();
         }
 
         public class tm
@@ -727,15 +718,5 @@ namespace XmlRpc_Wrapper
             public int tm_yday; /* days since January 1 - [0,365] */
             public int tm_year; /* years since 1900 */
         };
-
-        /*
-        [DebuggerStepThrough]
-        public override string ToString()
-        {
-            if (__instance == IntPtr.Zero)
-                return "(NULL)";
-            string s = Marshal.PtrToStringAnsi(tostring(instance));
-            return s;
-        }*/
     }
 }
