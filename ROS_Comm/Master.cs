@@ -162,7 +162,6 @@ namespace Ros_CSharp
                 string master_host = host;
                 int master_port = port;
 
-                //EDB.WriteLine("Trying to connect to master @ " + master_host + ":" + master_port);
                 CachedXmlRpcClient client = XmlRpcManager.Instance.getXMLRPCClient(master_host, master_port, "/");
                 bool printed = false;
                 bool success = false;
@@ -179,16 +178,14 @@ namespace Ros_CSharp
                     if (client.IsConnected && !success)
                     {
                         if (response != null && response.asArray != null && response.asArray.Length >= 2)
-                            Console.WriteLine("Execute failed: return={0}, desc={1}", response[0].asInt, response[1].asString);
+                            EDB.WriteLine("Execute failed: return={0}, desc={1}", response[0].asInt, response[1].asString);
                         else
-                            Console.WriteLine("response type == " + (response != null ? response.Type.ToString() : "null"));
+                            EDB.WriteLine("response type == " + (response != null ? response.Type.ToString() : "null"));
                     }
 
                     // Set success to false when response validation fails
                     if (success && !XmlRpcManager.Instance.validateXmlrpcResponse(method, response, payload))
                         success = false;
-
-
 
                     if (success)
                     {
@@ -224,8 +221,9 @@ namespace Ros_CSharp
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                EDB.WriteLine(e);
             }
+            EDB.WriteLine("Master API call: {0} failed!\n\tRequest:\n{1}", method, request);
             return false;
         }
     }

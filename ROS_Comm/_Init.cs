@@ -567,7 +567,7 @@ namespace Ros_CSharp
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    EDB.WriteLine(e);
                 }
                 ConnectionManager.Instance.Start();
                 PollManager.Instance.Start();

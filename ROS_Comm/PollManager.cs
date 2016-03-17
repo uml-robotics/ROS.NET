@@ -73,7 +73,7 @@ namespace Ros_CSharp
                     return;
                 }
                 signals.Add(poll);
-                Console.WriteLine("Adding pollthreadlistener " + poll.Method);
+                EDB.WriteLine("Adding pollthreadlistener " + poll.Method);
                 poll_signal += poll;
             }
             signal();
@@ -105,7 +105,7 @@ namespace Ros_CSharp
                     throw new Exception("DOUBLE LISTENER REMOVAL");
                 }
                 signals.Remove(poll);
-                Console.WriteLine("Removing pollthreadlistener " + poll.Method);
+                EDB.WriteLine("Removing pollthreadlistener " + poll.Method);
                 poll_signal -= poll;
             }
             signal();
@@ -121,7 +121,7 @@ namespace Ros_CSharp
 
                 poll_set.update(10);
             }
-            Console.WriteLine("PollManager thread IS FREE");
+            EDB.WriteLine("PollManager thread IS FREE");
         }
 
 
@@ -146,14 +146,14 @@ namespace Ros_CSharp
                 {
                     signals.ForEach(s =>
                                         {
-                                            Console.WriteLine("PollManager cleanup: removing " + s.Method);
+                                            EDB.WriteLine("PollManager cleanup: removing " + s.Method);
                                             poll_signal -= s;
                                             signal();
                                         });
                 }
                 if (!thread.Join(2000))
                 {
-                    Console.WriteLine("PollManager had 2 seconds to drink the coolaid, and didn't. Trying the \"funnel method\".");
+                    EDB.WriteLine("PollManager had 2 seconds to drink the coolaid, and didn't. Trying the \"funnel method\".");
                     try
                     {
                         thread.Abort();

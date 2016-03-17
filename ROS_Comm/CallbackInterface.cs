@@ -177,7 +177,7 @@ namespace Ros_CSharp
             }
             else
             {
-                Console.WriteLine("EVENT IS NULL");
+                EDB.WriteLine("EVENT IS NULL");
             }
         }
 

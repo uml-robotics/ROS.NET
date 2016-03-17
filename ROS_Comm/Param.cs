@@ -280,7 +280,7 @@ namespace Ros_CSharp
                 return ret;
             if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != XmlRpcValue.ValueType.TypeArray)
             {
-                Console.WriteLine("Expected a return code, a description, and a list!");
+                EDB.WriteLine("Expected a return code, a description, and a list!");
                 return ret;
             }
             for (int i = 0; i < payload.Size; i++)

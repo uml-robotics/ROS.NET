@@ -134,7 +134,7 @@ namespace Ros_CSharp
             {
                 foreach (Connection c in local_dropped)
                 {
-                    Console.WriteLine("Removing dropped connection: " + c.CallerID);
+                    EDB.WriteLine("Removing dropped connection: " + c.CallerID);
                     connections.Remove(c);
                 }
             }

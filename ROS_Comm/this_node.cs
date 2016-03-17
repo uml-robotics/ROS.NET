@@ -65,7 +65,7 @@ namespace Ros_CSharp
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                EDB.WriteLine(e);
             }
             if ((options & (int) InitOption.AnonymousName) == (int) InitOption.AnonymousName && !disable_anon)
             {

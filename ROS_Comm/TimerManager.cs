@@ -229,7 +229,7 @@ namespace Ros_CSharp
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error starting timer: " + ex);
+                EDB.WriteLine("Error starting timer: " + ex);
             }
         }
 
@@ -251,7 +251,7 @@ namespace Ros_CSharp
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error starting timer: " + ex);
+                EDB.WriteLine("Error starting timer: " + ex);
             }
         }
 
@@ -279,7 +279,7 @@ namespace Ros_CSharp
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error starting timer: " + ex);
+                EDB.WriteLine("Error starting timer: " + ex);
             }
         }
     }

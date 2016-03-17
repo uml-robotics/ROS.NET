@@ -269,7 +269,7 @@ namespace Ros_CSharp
                                             }
                                             catch (Exception e)
                                             {
-                                                Console.WriteLine(e);
+                                                EDB.WriteLine(e);
                                             }
                                         }, null);
             bool completed = false;
@@ -604,10 +604,10 @@ namespace Ros_CSharp
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Failed to get sock options! (error: " + error + ")" + e);
+                        EDB.WriteLine("Failed to get sock options! (error: " + error + ")" + e);
                     }
                     if (error != 0)
-                        Console.WriteLine("SOCKET ERROR = " + error);
+                        EDB.WriteLine("SOCKET ERROR = " + error);
                     close();
                 }
             }

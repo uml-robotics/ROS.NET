@@ -256,7 +256,7 @@ namespace Ros_CSharp
                 }
                 return pub;
             }
-            Console.WriteLine("ADVERTISE FAILED!!!!");
+            EDB.WriteLine("ADVERTISE FAILED!!!!");
             return null;
         }
 

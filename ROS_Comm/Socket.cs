@@ -202,7 +202,7 @@ namespace Ros_CSharp.CustomSocket
             }
             catch (ns.SocketException e)
             {
-                Console.WriteLine(e);
+                EDB.WriteLine(e);
                 res = !disposed && sm == ns.SelectMode.SelectError;
             }
             return res;

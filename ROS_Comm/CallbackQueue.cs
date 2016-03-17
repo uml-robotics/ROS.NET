@@ -145,7 +145,7 @@ namespace Ros_CSharp
                 removeemall(owner_id);
             else
             {
-                Console.WriteLine("removeByID w/ WRONG THREAD ID");
+                EDB.WriteLine("removeByID w/ WRONG THREAD ID");
                 removeemall(owner_id);
             }
         }
@@ -166,7 +166,7 @@ namespace Ros_CSharp
                 if (!callAvailable(ROS.WallDuration))
                     break;
             }
-            Console.WriteLine("CallbackQueue thread broke out!");
+            EDB.WriteLine("CallbackQueue thread broke out!");
         }
 
         public void Enable()
@@ -397,7 +397,7 @@ namespace Ros_CSharp
             }
             else
             {
-                Console.WriteLine("ADDING A DUPLICATE CALLBACKINFO TO THE QUEUE");
+                EDB.WriteLine("ADDING A DUPLICATE CALLBACKINFO TO THE QUEUE");
             }
         }
 
