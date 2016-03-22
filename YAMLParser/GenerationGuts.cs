@@ -107,7 +107,7 @@ namespace FauxMessages
             {
                 requestfronthalf = "";
                 requestbackhalf = "";
-                string[] lines = File.ReadAllLines(Program.TemplateLocation + "\\SrvPlaceHolder._cs");
+                string[] lines = Templates.SrvPlaceHolder.Split('\n');
                 int section = 0;
                 for (int i = 0; i < lines.Length; i++)
                 {
@@ -445,7 +445,7 @@ namespace FauxMessages
                 wasnull = true;
                 fronthalf = "";
                 backhalf = "";
-                string[] lines = File.ReadAllLines(Program.TemplateLocation + "\\PlaceHolder._cs");
+                string[] lines = Templates.MsgPlaceHolder.Split('\n');
                 bool hitvariablehole = false;
                 for (int i = 0; i < lines.Length; i++)
                 {

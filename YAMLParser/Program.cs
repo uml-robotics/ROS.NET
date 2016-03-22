@@ -29,17 +29,9 @@ namespace YAMLParser
         public static List<SrvsFile> srvFiles = new List<SrvsFile>();
         public static string backhalf;
         public static string fronthalf;
-        public static string outputdir = "Messages";
         public static string name = "Messages";
+        public static string outputdir = "Messages";
         public static string outputdir_secondpass = "TempSecondPass";
-#if !NOT_ON_TOP_OF_ITSELF
-        public static string outputdir_firstpass = outputdir;
-        public static string name_firstpass = name;
-#else
-        public static string outputdir_firstpass = "..\\..\\..\\TempMessages";
-        public static string name_firstpass = "TempMessages";
-#endif
-        internal static string TemplateLocation = "";
         private static void Main(string[] args)
         {
             string solutiondir;
@@ -59,7 +51,6 @@ namespace YAMLParser
             {
                 di = Directory.GetParent(di.FullName);
             }
-            TemplateLocation = di.FullName + "\\TemplateProject\\";
             di = Directory.GetParent(di.FullName);
             yamlparser_parent = di.FullName;
             if (args.Length - firstarg >= 1)
@@ -72,7 +63,6 @@ namespace YAMLParser
             }
 
             outputdir = solutiondir + "\\" + outputdir;
-            outputdir_firstpass = solutiondir + "\\" + outputdir_firstpass;
             outputdir_secondpass = solutiondir + "\\" + outputdir_secondpass;
             List<MsgFileLocation> paths = new List<MsgFileLocation>();
             List<MsgFileLocation> pathssrv = new List<MsgFileLocation>();
@@ -123,6 +113,31 @@ namespace YAMLParser
 
         public static void MakeTempDir()
         {
+            if (!Directory.Exists(outputdir))
+                Directory.CreateDirectory(outputdir);
+            else
+            {
+                foreach (string s in Directory.GetFiles(outputdir, "*.cs"))
+                    try
+                    {
+                        File.Delete(s);
+                        Thread.Sleep(100);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                foreach (string s in Directory.GetDirectories(outputdir))
+                    if (s != "Properties")
+                        try
+                        {
+                            Directory.Delete(s, true);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+            }
             if (!Directory.Exists(outputdir)) Directory.CreateDirectory(outputdir);
             else
             {
@@ -147,30 +162,6 @@ namespace YAMLParser
                             Console.WriteLine(e);
                         }
             }
-            if (!Directory.Exists(outputdir_firstpass)) Directory.CreateDirectory(outputdir_firstpass);
-            else
-            {
-                foreach (string s in Directory.GetFiles(outputdir_firstpass, "*.cs"))
-                    try
-                    {
-                        File.Delete(s);
-                        Thread.Sleep(100);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                foreach (string s in Directory.GetDirectories(outputdir_firstpass))
-                    if (s != "Properties")
-                        try
-                        {
-                            Directory.Delete(s, true);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-            }
         }
 
         public static void GenerateFiles(List<MsgsFile> files, List<SrvsFile> srvfiles)
@@ -178,36 +169,27 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
-#if !!NOT_ON_TOP_OF_ITSELF
-                file.Write(outputdir_firstpass);
-#endif
                 Thread.Sleep(10);
             }
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
-#if !!NOT_ON_TOP_OF_ITSELF
-                file.Write(outputdir_firstpass);
-#endif
                 Thread.Sleep(10);
             }
-#if !!NOT_ON_TOP_OF_ITSELF
-            File.WriteAllText(outputdir_firstpass + "\\MessageTypes.cs", ToString().Replace("FauxMessages",""));
-#endif
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages", "Messages"));
             Thread.Sleep(100);
         }
 
         public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
         {
-            if (!Directory.Exists((istemp ? outputdir_firstpass : outputdir) + "\\Properties"))
-                Directory.CreateDirectory((istemp ? outputdir_firstpass : outputdir) + "\\Properties");
+            if (!Directory.Exists((istemp ? outputdir : outputdir) + "\\Properties"))
+                Directory.CreateDirectory((istemp ? outputdir : outputdir) + "\\Properties");
             Thread.Sleep(10);
-            string[] l = File.ReadAllLines(TemplateLocation+"\\AssemblyInfo._cs");
-            Thread.Sleep(10);
-            File.WriteAllLines((istemp ? outputdir_firstpass : outputdir) + "\\Properties\\AssemblyInfo.cs", l);
+            File.WriteAllText((istemp ? outputdir : outputdir) + "\\SerializationHelper.cs", Templates.SerializationHelper);
+            File.WriteAllText((istemp ? outputdir : outputdir) + "\\Interfaces.cs", Templates.Interfaces);
+            File.WriteAllText((istemp ? outputdir : outputdir) + "\\Properties\\AssemblyInfo.cs", Templates.AssemblyInfo);
             Thread.Sleep(100);
-            string[] lines = File.ReadAllLines(TemplateLocation + (istemp ? name_firstpass : name) + "._csproj");
+            string[] lines = Templates.MessagesProj.Split('\n');
             string output = "";
             for (int i = 0; i < lines.Length; i++)
             {
@@ -235,10 +217,8 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
-            File.Copy(TemplateLocation+"\\SerializationHelper.cs", (istemp ? outputdir_firstpass : outputdir) + "\\SerializationHelper.cs", true);
-            File.Copy(TemplateLocation + "\\Interfaces.cs", (istemp ? outputdir_firstpass : outputdir) + "\\Interfaces.cs", true);
-            File.WriteAllText((istemp ? outputdir_firstpass : outputdir) + "\\.gitignore", "*");
-            File.WriteAllText((istemp ? (outputdir_firstpass + "\\" + (istemp ? name_firstpass : name) + ".csproj") : (outputdir + "\\" + (istemp ? name_firstpass : name) + ".csproj")), output);
+            File.WriteAllText((istemp ? (outputdir + "\\" + name + ".csproj") : (outputdir + "\\" + name + ".csproj")), output);
+            File.WriteAllText((istemp ? outputdir : outputdir) + "\\.gitignore", "*");
             Thread.Sleep(100);
         }
 
@@ -284,7 +264,7 @@ namespace YAMLParser
                 throw up;
             }
             Console.WriteLine("\n\n" + spam);
-            string args = "/nologo \"" + outputdir_firstpass + "\\" + name_firstpass + ".csproj\"";
+            string args = "/nologo \"" + outputdir + "\\" + name + ".csproj\"";
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
@@ -295,10 +275,10 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (File.Exists(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll"))
+            if (File.Exists(outputdir + "\\bin\\Debug\\" + name + ".dll"))
             {
-                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir_firstpass + "\\" + name_firstpass + ".dll\n\n");
-                File.Copy(outputdir_firstpass + "\\bin\\Debug\\" + name_firstpass + ".dll", outputdir_firstpass + "\\" + name_firstpass + ".dll", true);
+                Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir + "\\" + name + ".dll\n\n");
+                File.Copy(outputdir + "\\bin\\Debug\\" + name + ".dll", outputdir + "\\" + name + ".dll", true);
                 Thread.Sleep(100);
             }
             else
@@ -343,11 +323,7 @@ namespace YAMLParser
                 proc2.StartInfo.RedirectStandardError = true;
                 proc2.StartInfo.UseShellExecute = false;
                 proc2.StartInfo.CreateNoWindow = true;
-#if !!NOT_ON_TOP_OF_ITSELF
-                proc2.StartInfo.Arguments = "..\\..\\..\\TempMessages\\";
-#else
                 proc2.StartInfo.Arguments = solutiondir+"\\Messages\\";
-#endif
                 proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";
                 proc2.Start();
                 output2 = proc2.StandardOutput.ReadToEnd();

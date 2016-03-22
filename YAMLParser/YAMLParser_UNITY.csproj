@@ -111,38 +111,30 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MessageTypes.cs" />
+    <Compile Include="Templates.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Templates.resx</DependentUpon>
+    </Compile>
     <Content Include="ROS_MESSAGES\README.txt" />
-    <Content Include="TemplateProject\Interfaces.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="TemplateProject\Interfaces.cs" />
     <None Include="app.config" />
-    <None Include="TemplateProject\PubSubTest._cs" />
-    <Content Include="TemplateProject\Time.cs" />
-    <Content Include="TemplateProject\SerializationHelper.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TemplateProject\String.cs" />
-    <Content Include="TemplateProject\PlaceHolder._cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TemplateProject\AssemblyInfo._cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="TemplateProject\Time.cs" />
+    <None Include="TemplateProject\SerializationHelper.cs" />
+    <None Include="TemplateProject\String.cs" />
+    <None Include="TemplateProject\PlaceHolder._cs" />
+    <None Include="TemplateProject\AssemblyInfo._cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TemplateProject\Messages._csproj">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Include="TemplateProject\Messages._csproj">
       <SubType>Designer</SubType>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TemplateProject\SrvPlaceHolder._cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TemplateProject\TempMessages._csproj">
+    <None Include="TemplateProject\SrvPlaceHolder._cs" />
+    <None Include="TemplateProject\TempMessages._csproj">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v3.5">
