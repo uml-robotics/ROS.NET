@@ -17,27 +17,19 @@ using System.Text;
 
 #endregion
 
-namespace Talker
+namespace Listener
 {
     public class Program
     {
+        private static void chatterCallback(m.String s)
+        {
+            ROS.Info("RECEIVED: " + s.data);
+        }
         private static void Main(string[] args)
         {
-            ROS.Init(args, "Talker");
+            ROS.Init(args, "Listener");
             NodeHandle node = new NodeHandle();
-            Publisher<m.String> Talker = node.advertise<m.String>("/chatter", 1);
-            int count = 0;
-            
-            while (ROS.ok)
-            {
-                ROS.Info("Publishing a chatter message:    \"Blah blah blah " + count + "\"");
-                String pow = new String("Blah blah blah " + (count++));
-
-                Talker.publish(pow);
-                Thread.Sleep(1000);
-            }
-            
-            ROS.shutdown();
+            Subscriber<m.String> Subscriber = node.subscribe<m.String>("/chatter", 1, chatterCallback);
             ROS.waitForShutdown();
         }
     }
