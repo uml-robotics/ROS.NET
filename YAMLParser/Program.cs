@@ -121,7 +121,6 @@ namespace YAMLParser
                     try
                     {
                         File.Delete(s);
-                        Thread.Sleep(100);
                     }
                     catch (Exception e)
                     {
@@ -145,7 +144,6 @@ namespace YAMLParser
                     try
                     {
                         File.Delete(s);
-                        Thread.Sleep(100);
                     }
                     catch (Exception e)
                     {
@@ -169,26 +167,21 @@ namespace YAMLParser
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
-                Thread.Sleep(10);
             }
             foreach (SrvsFile file in srvfiles)
             {
                 file.Write(outputdir);
-                Thread.Sleep(10);
             }
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages", "Messages"));
-            Thread.Sleep(100);
         }
 
         public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
         {
             if (!Directory.Exists((istemp ? outputdir : outputdir) + "\\Properties"))
                 Directory.CreateDirectory((istemp ? outputdir : outputdir) + "\\Properties");
-            Thread.Sleep(10);
             File.WriteAllText((istemp ? outputdir : outputdir) + "\\SerializationHelper.cs", Templates.SerializationHelper);
             File.WriteAllText((istemp ? outputdir : outputdir) + "\\Interfaces.cs", Templates.Interfaces);
             File.WriteAllText((istemp ? outputdir : outputdir) + "\\Properties\\AssemblyInfo.cs", Templates.AssemblyInfo);
-            Thread.Sleep(100);
             string[] lines = Templates.MessagesProj.Split('\n');
             string output = "";
             for (int i = 0; i < lines.Length; i++)
@@ -219,7 +212,6 @@ namespace YAMLParser
             }
             File.WriteAllText((istemp ? (outputdir + "\\" + name + ".csproj") : (outputdir + "\\" + name + ".csproj")), output);
             File.WriteAllText((istemp ? outputdir : outputdir) + "\\.gitignore", "*");
-            Thread.Sleep(100);
         }
 
         private static string __where_be_at_my_vc____is;
