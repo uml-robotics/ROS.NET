@@ -40,7 +40,8 @@ namespace DynamicReconfigureSharp
             nh = n;
             Loaded += (sender, args) =>
             {
-                Namespace = name;
+                if (name != null)
+                    Namespace = name;
             };
         }
 
@@ -85,7 +86,7 @@ namespace DynamicReconfigureSharp
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        EDB.WriteLine(e);
                     }
                 }));
 
@@ -96,22 +97,13 @@ namespace DynamicReconfigureSharp
             {
                 if (Process.GetCurrentProcess().ProcessName == "devenv")
                     return;
-                Console.WriteLine("CHANGING DYNPARAM PAGE NAMESPACE FROM " + Namespace + " to " + value);
+                if ((Namespace == null && value == null) || (Namespace != null && Namespace.Equals(value)))
+                    return;
+                string oldn = Namespace ?? "!NULL!";
+                string newn = value ?? "!NULL!";
+                EDB.WriteLine("CHANGING DYNPARAM PAGE NAMESPACE FROM " + oldn + " to " + newn);
                 SetValue(NamespaceProperty, value);
                 Init();
-            }
-        }
-
-        public void shutdown()
-        {
-            if (dynamic != null)
-            {
-                dynamic = null;
-            }
-            if (nh != null)
-            {
-                nh.shutdown();
-                nh = null;
             }
         }
 
@@ -153,14 +145,16 @@ namespace DynamicReconfigureSharp
                 nh = new NodeHandle();
             if (dynamic != null && dynamic.Namespace != Namespace)
             {
+                dynamic.Dispose();
                 dynamic = null;
             }
-            if (dynamic == null)
+            if (dynamic == null && Namespace != null)
             {
                 dynamic = new DynamicReconfigureInterface(nh, Namespace);
                 dynamic.SubscribeForUpdates();
                 dynamic.DescribeParameters(DescriptionRecieved);
             }
+            GroupHolder.Children.Clear();
         }
 
         public event Action<string, bool> BoolChanged;

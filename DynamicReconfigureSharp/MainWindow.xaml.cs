@@ -20,9 +20,10 @@ namespace DynamicReconfigureTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        private SortedDictionary<string, DynamicReconfigurePage> knownConfigurations = new SortedDictionary<string, DynamicReconfigurePage>(); 
+        private SortedDictionary<string, object> knownConfigurations = new SortedDictionary<string, object>(); 
         private NodeHandle nh;
         private Thread topicPoller;
+        private DynamicReconfigurePage reconfigureview;
 
         public MainWindow()
         {
@@ -42,7 +43,7 @@ namespace DynamicReconfigureTest
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                EDB.WriteLine(e);
                 Close();
             }
 
@@ -50,7 +51,6 @@ namespace DynamicReconfigureTest
             {
                 while (ROS.ok && !ROS.shutting_down)
                 {
-                    
                     TopicInfo[] topics = new TopicInfo[0];
                     master.getTopics(ref topics);
                     string[] nodes = new string[0];
@@ -77,33 +77,42 @@ namespace DynamicReconfigureTest
                             string pfx = prefix;
                             Dispatcher.Invoke(new Action(() =>
                                                              {
-                                                                 DynamicReconfigurePage drp = new DynamicReconfigurePage(nh, pfx);
-                                                                 if (drp != null)
-                                                                 {
-                                                                     knownConfigurations.Add(pfx, drp);
-                                                                     TargetBox.Items.Refresh();
-                                                                 }
+                                                                knownConfigurations.Add(pfx, null);
                                                              }), new TimeSpan(0,0,0,1));
                         }
                     }
+                    Dispatcher.Invoke(new Action(TargetBox.Items.Refresh));
                     foreach (string s in prevlist)
                     {
                         if (!s.Equals("-"))
                         {
                             string pfx = s;
                             Dispatcher.Invoke(new Action(() =>
-                                                                {
-                                                                    if (TargetBox.SelectedItem != null && ((string) TargetBox.SelectedItem).Equals(pfx))
-                                                                    {
-                                                                        TargetBox.SelectedIndex = 0;
-                                                                    }
-                                                                    lock (this)
-                                                                    {
-                                                                        knownConfigurations.Remove(pfx);
-                                                                        TargetBox.Items.Refresh();
-                                                                    }
-                                                                }), new TimeSpan(0, 0, 0, 1));
+                            {
+                                if (reconfigureview != null && s.Equals(reconfigureview.Namespace))
+                                    reconfigureview.Namespace = null;
+                                if (TargetBox.SelectedItem != null && ((string) TargetBox.SelectedItem).Equals(pfx))
+                                {
+                                    TargetBox.SelectedIndex = 0;
+                                }
+                                lock (this)
+                                {
+                                    knownConfigurations.Remove(pfx);
+                                }
+                            }), new TimeSpan(0, 0, 0, 1));
                         }
+                    }
+                    Dispatcher.Invoke(new Action(TargetBox.Items.Refresh));
+                    if (reconfigureview == null && nh != null)
+                    {
+                        Dispatcher.Invoke(new Action(() =>
+                        {
+                            string target = null;
+                            if (TargetBox.SelectedItem != null && !String.Equals(TargetBox.SelectedItem.ToString(), "-"))
+                                target = TargetBox.SelectedItem.ToString();
+                            reconfigureview = new DynamicReconfigurePage(nh, target);
+                            PageContainer.Children.Add(reconfigureview);
+                        }));
                     }
                     Thread.Sleep(500);
                 }
@@ -124,19 +133,16 @@ namespace DynamicReconfigureTest
 
         private void TargetBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            lock (this)
+            IEnumerable<string> prevs = e.RemovedItems.OfType<string>();
+            IEnumerable<string> news = e.AddedItems.OfType<string>();
+            if (!prevs.Any())
+                return;
+            string newprefix = news.ElementAt(0);
+            if (newprefix != null)
             {
-                IEnumerable<string> prevs = e.RemovedItems.OfType<string>();
-                IEnumerable<string> news = e.AddedItems.OfType<string>();
-                if (prevs.Count() != 1 || news.Count() != 1) return;
-                PageContainer.Children.Clear();
-                string newprefix = news.ElementAt(0);
-                if (newprefix != null)
-                {
-                    DynamicReconfigurePage value;
-                    if (knownConfigurations.TryGetValue(newprefix, out value) && !newprefix.Equals("-"))
-                        PageContainer.Children.Add(value);
-                }
+                object value;
+                if (knownConfigurations.TryGetValue(newprefix, out value) && reconfigureview != null)
+                    reconfigureview.Namespace = !newprefix.Equals("-") ?  newprefix : null;
             }
         }
 

@@ -192,7 +192,7 @@ namespace DynamicReconfigure
             }
             catch (InvalidCastException ice)
             {
-                Console.WriteLine(ice);
+                EDB.WriteLine(ice);
             }
         }
 
@@ -273,7 +273,7 @@ namespace DynamicReconfigure
                         _cli = null;
                     }
                 if (!set(config, ref reason))
-                    Console.WriteLine("SET FAILED\n" + reason);
+                    EDB.WriteLine("SET FAILED\n" + reason);
             }
         }
 
