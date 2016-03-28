@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using FauxMessages;
 
@@ -84,18 +85,9 @@ namespace YAMLParser
             if (paths.Count + pathssrv.Count > 0)
             {
                 MakeTempDir();
-                foreach (MsgsFile m in msgsFiles)
-                {
-                    foreach (SingleType s in m.Stuff)
-                    {
-                        s.refinalize(m, s.Type);
-                    }
-                }
                 GenerateFiles(msgsFiles, srvFiles);
-                GenerateProject(msgsFiles, srvFiles, false);
-                GenerateProject(msgsFiles, srvFiles, true);
+                GenerateProject(msgsFiles, srvFiles);
                 BuildProject();
-                Finalize(solutiondir);
             }
             else
             {
@@ -164,6 +156,56 @@ namespace YAMLParser
 
         public static void GenerateFiles(List<MsgsFile> files, List<SrvsFile> srvfiles)
         {
+            List<MsgsFile> mresolved = new List<MsgsFile>();
+            List<SrvsFile> sresolved = new List<SrvsFile>();
+            while (files.Except(mresolved).Any())
+            {
+                Debug.WriteLine("MSG: Running for " + files.Count + "/" + mresolved.Count + "\n" + files.Except(mresolved).Aggregate("\t", (o, n) => "" + o + "\n\t" + n.Name));
+                foreach (MsgsFile m in files.Except(mresolved))
+                {
+                    string md5 = null;
+                    string typename = null;;
+                    md5 = MD5.Sum(m);
+                    typename = m.Name;
+                    if (md5 != null && !md5.StartsWith("$") && !md5.EndsWith("MYMD5SUM"))
+                    {
+                        mresolved.Add(m);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Waiting for children of " + typename + " to have sums");
+                    }
+                }
+                if (files.Except(mresolved).Any())
+                {
+                    Debug.WriteLine("MSG: Rerunning sums for remaining " + files.Except(mresolved).Count() + " definitions");
+                }
+            }
+            while (srvfiles.Except(sresolved).Any())
+            {
+                Debug.WriteLine("SRV: Running for " + srvfiles.Count + "/" + sresolved.Count + "\n" + srvfiles.Except(sresolved).Aggregate("\t", (o, n) => "" + o + "\n\t" + n.Name));
+                foreach (SrvsFile s in srvfiles.Except(sresolved))
+                {
+                    string md5 = null;
+                    string typename = null;
+                    s.Request.Stuff.ForEach(a => s.Request.resolve(s.Request, a));
+                    s.Response.Stuff.ForEach(a => s.Request.resolve(s.Response, a));
+                    md5 = MD5.Sum(s);
+                    typename = s.Name;
+                    if (md5 != null && !md5.StartsWith("$") && !md5.EndsWith("MYMD5SUM"))
+                    {
+                        sresolved.Add(s);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Waiting for children of " + typename + " to have sums");
+                    }
+                }
+                if (srvfiles.Except(sresolved).Any())
+                {
+                    Debug.WriteLine("SRV: Rerunning sums for remaining " + srvfiles.Except(sresolved).Count() + " definitions");
+                }
+            }
             foreach (MsgsFile file in files)
             {
                 file.Write(outputdir);
@@ -175,13 +217,13 @@ namespace YAMLParser
             File.WriteAllText(outputdir + "\\MessageTypes.cs", ToString().Replace("FauxMessages", "Messages"));
         }
 
-        public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles, bool istemp)
+        public static void GenerateProject(List<MsgsFile> files, List<SrvsFile> srvfiles)
         {
-            if (!Directory.Exists((istemp ? outputdir : outputdir) + "\\Properties"))
-                Directory.CreateDirectory((istemp ? outputdir : outputdir) + "\\Properties");
-            File.WriteAllText((istemp ? outputdir : outputdir) + "\\SerializationHelper.cs", Templates.SerializationHelper);
-            File.WriteAllText((istemp ? outputdir : outputdir) + "\\Interfaces.cs", Templates.Interfaces);
-            File.WriteAllText((istemp ? outputdir : outputdir) + "\\Properties\\AssemblyInfo.cs", Templates.AssemblyInfo);
+            if (!Directory.Exists(outputdir + "\\Properties"))
+                Directory.CreateDirectory(outputdir + "\\Properties");
+            File.WriteAllText(outputdir + "\\SerializationHelper.cs", Templates.SerializationHelper);
+            File.WriteAllText(outputdir + "\\Interfaces.cs", Templates.Interfaces);
+            File.WriteAllText(outputdir + "\\Properties\\AssemblyInfo.cs", Templates.AssemblyInfo);
             string[] lines = Templates.MessagesProj.Split('\n');
             string output = "";
             for (int i = 0; i < lines.Length; i++)
@@ -201,7 +243,7 @@ namespace YAMLParser
                     {
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
-                    foreach (SrvsFile m in srvFiles)
+                    foreach (SrvsFile m in srvfiles)
                     {
                         output += "\t<Compile Include=\"" + m.Name.Replace('.', '\\') + ".cs\" />\n";
                     }
@@ -210,8 +252,8 @@ namespace YAMLParser
                     output += "\t<Compile Include=\"MessageTypes.cs\" />\n";
                 }
             }
-            File.WriteAllText((istemp ? (outputdir + "\\" + name + ".csproj") : (outputdir + "\\" + name + ".csproj")), output);
-            File.WriteAllText((istemp ? outputdir : outputdir) + "\\.gitignore", "*");
+            File.WriteAllText(outputdir + "\\" + name + ".csproj", output);
+            File.WriteAllText(outputdir + "\\.gitignore", "*");
         }
 
         private static string __where_be_at_my_vc____is;
@@ -281,71 +323,6 @@ namespace YAMLParser
                     Console.WriteLine(error);
                 Console.WriteLine("AMG BUILD FAIL!");
             }
-        }
-
-        public static void Finalize(string solutiondir)
-        {
-            //copy unmodified SecondPass up to solution directory
-            if (Directory.Exists(outputdir_secondpass))
-                Directory.Delete(outputdir_secondpass, true);
-            FileUtils.DirectoryCopy(Environment.CurrentDirectory + "\\..\\..\\..\\SecondPass\\", outputdir_secondpass);
-            string projfile = outputdir_secondpass+"\\SecondPass.csproj";
-
-            //modify it for this solution's specific Messages project location
-            File.WriteAllText(projfile,File.ReadAllText(projfile).Replace("$(SolutionDir)", solutiondir));
-
-            string F = VCDir + "\\msbuild.exe";
-            string args = "/nologo \"" + outputdir_secondpass + "\\SecondPass.csproj\"";
-            Process proc = new Process();
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.RedirectStandardError = true;
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.FileName = F;
-            proc.StartInfo.Arguments = args;
-            proc.Start();
-            string output = proc.StandardOutput.ReadToEnd();
-            string error = proc.StandardError.ReadToEnd();
-            string output2 = "", error2 = "";
-#if !SINGLE_PASS
-            if (File.Exists(outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe"))
-            {
-                Process proc2 = new Process();
-                proc2.StartInfo.RedirectStandardOutput = true;
-                proc2.StartInfo.RedirectStandardError = true;
-                proc2.StartInfo.UseShellExecute = false;
-                proc2.StartInfo.CreateNoWindow = true;
-                proc2.StartInfo.Arguments = solutiondir+"\\Messages\\";
-                proc2.StartInfo.FileName = outputdir_secondpass + "\\bin\\Debug\\SecondPass.exe";
-                proc2.Start();
-                output2 = proc2.StandardOutput.ReadToEnd();
-                error2 = proc2.StandardError.ReadToEnd();
-                BuildProject("REBUILDING THE REFINED GENERATED CODE!");
-                if (Directory.Exists(outputdir_secondpass))
-                    Directory.Delete(outputdir_secondpass, true);
-            }
-            else
-            {
-                if (output.Length > 0)
-                    Console.WriteLine(output);
-                if (error.Length > 0)
-                    Console.WriteLine(error);
-                Console.WriteLine("AMG BUILD FAIL!");
-            }
-            if (output2.Length > 0)
-                Console.WriteLine(output2);
-            if (error2.Length > 0)
-                Console.WriteLine(error2);
-            proc = new Process {StartInfo = {RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true, FileName = F, Arguments = "/nologo \"" + outputdir + "\\Messages.csproj\""}};
-            proc.Start();
-            string output3 = proc.StandardOutput.ReadToEnd();
-            string error3 = proc.StandardError.ReadToEnd();
-            if (output3.Length > 0)
-                Console.WriteLine(output3);
-            if (error3.Length > 0)
-                Console.WriteLine(error3);
-#endif
-            Console.WriteLine("FINAL PASS DONE");
         }
 
         private static string uberpwnage;

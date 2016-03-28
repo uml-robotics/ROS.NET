@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -406,6 +407,7 @@ wiimote/TimedSwitch e4c8d9327409cef6066fa6c368032c1e";
         [TestMethod]
         public void TestMethod1()
         {
+            List<MsgTypes> failures = new List<MsgTypes>();
             foreach (MsgTypes m in Enum.GetValues(typeof(MsgTypes)))
             {
                 if (m == MsgTypes.Unknown) continue;
@@ -414,10 +416,12 @@ wiimote/TimedSwitch e4c8d9327409cef6066fa6c368032c1e";
                 if (!sums.ContainsKey(type)) continue;
                 string desiredSum = sums[type];
                 string actualSum = msg.MD5Sum;
-                Console.Write(type+"\t");
-                Assert.AreEqual(desiredSum,actualSum);
-                Console.Write("OK! \n");
+                bool eq = String.Equals(desiredSum,actualSum);
+                Debug.WriteLine("{0}\t{1}", type, eq?"OK":"FAIL");
+                if (!eq)
+                    failures.Add(m);
             }
+            Assert.IsFalse(failures.Any());
         }
     }
 }

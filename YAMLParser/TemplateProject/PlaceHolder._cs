@@ -1,10 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 using uint8 = System.Byte;
+using Messages.geometry_msgs;
+using Messages.sensor_msgs;
+using Messages.actionlib_msgs;
 
 namespace Messages
 {
