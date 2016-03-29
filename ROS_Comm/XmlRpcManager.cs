@@ -233,13 +233,11 @@ namespace Ros_CSharp
                     clients.Add(c);
                 }
             }
-            c.AddRef();
             return c;
         }
 
         public void releaseXMLRPCClient(CachedXmlRpcClient client)
         {
-            client.DelRef();
             client.Dispose();
         }
 
@@ -433,20 +431,14 @@ namespace Ros_CSharp
     {
         private XmlRpcClient client;
 
-        public bool in_use
-        {
-            get { lock (busyMutex) return refs != 0; }
-        }
+        public bool in_use { get; private set; }
 
-        public DateTime last_use_time;
-
-        private object busyMutex = new object();
-        private volatile int refs;
-
-        internal bool dead
+        public bool dead
         {
             get { return client == null; }
         }
+
+        public DateTime last_use_time;
 
         public CachedXmlRpcClient(string host, int port, string uri) : this(new XmlRpcClient(host, port, uri))
         {
@@ -455,61 +447,47 @@ namespace Ros_CSharp
         private CachedXmlRpcClient(XmlRpcClient c)
         {
             client = c;
+            Touch(true);
         }
 
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        private void Touch()
         {
-            lock (busyMutex)
-            {
-                if (refs != 0)
-                    throw new Exception("XmlRpcClient disposed while in use!");
-            }
-            if (client != null)
-            {
-                client.Dispose();
-                client = null;
-            }
+            Touch(false);
         }
 
-        internal void AddRef()
+        private void Touch(bool assumeconnected)
         {
-            lock (busyMutex)
+            if (client != null && (assumeconnected || client.IsConnected))
             {
-                refs++;
-            }
-            last_use_time = DateTime.Now;
-        }
-
-        internal void DelRef()
-        {
-            lock (busyMutex)
-            {
-                refs--;
+                in_use = true;
+                last_use_time = DateTime.Now;
             }
         }
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-            return client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
+            bool ret = client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
+            if (ret) Touch();
+            return ret;
         }
 
         #region XmlRpcClient passthrough functions and properties
 
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
+            Touch();
             return client.Execute(method, parameters, result);
         }
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
+            Touch();
             return client.ExecuteNonBlock(method, parameters);
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
         {
+            Touch();
             return client.ExecuteCheckDone(result);
         }
 
@@ -519,5 +497,18 @@ namespace Ros_CSharp
         }
 
         #endregion
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            in_use = false;
+            if (client != null)
+            {
+                client.Dispose();
+                client = null;
+            }
+        }
     }
 }
