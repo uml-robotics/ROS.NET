@@ -127,7 +127,7 @@ namespace XmlRpc_Wrapper
                 _port = port;
                 listener = new TcpListener(address, port);
                 listener.Start(backlog);
-                _port = ((IPEndPoint) listener.Server.LocalEndPoint).Port;
+                _port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
                 XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::bindAndListen: server listening on port {0}", _port);
@@ -147,33 +147,22 @@ namespace XmlRpc_Wrapper
             return XmlRpcDispatch.EventType.ReadableEvent; // Continue to monitor this fd
         }
 
-        /*
-        private void acceptClient(IAsyncResult ar)
-        {
-            try{
-                TcpListener lis = ar.AsyncState as TcpListener;
-                TcpClient cli = lis.EndAcceptTcpClient(ar);
-                _disp.AddSource(this.createConnection(cli), XmlRpcDispatch.EventType.ReadableEvent);
-            }
-            catch (SocketException ex)
-            {
-                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
-            }
-        }*/
-
         // Accept a client connection request and create a connection to
         // handle method calls from the client.
         private void acceptConnection()
         {
-            try
+            lock (this)
             {
-                TcpClient s = listener.AcceptTcpClient();
-                XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
-                _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
-            }
-            catch (SocketException ex)
-            {
-                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+                try
+                {
+                    TcpClient s = listener.AcceptTcpClient();
+                    _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
+                }
+                catch (SocketException ex)
+                {
+                    XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+                }
             }
         }
 
@@ -502,7 +491,8 @@ namespace XmlRpc_Wrapper
         // Retrieve the help string for a named method
         private class MethodHelp : XmlRpcServerMethod
         {
-            public MethodHelp(XmlRpcServer s) : base(METHOD_HELP, null, s)
+            public MethodHelp(XmlRpcServer s)
+                : base(METHOD_HELP, null, s)
             {
                 FUNC = execute;
             }

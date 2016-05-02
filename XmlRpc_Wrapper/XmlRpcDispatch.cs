@@ -54,7 +54,7 @@ namespace XmlRpc_Wrapper
 
         public void AddSource(XmlRpcSource source, EventType eventMask)
         {
-            sources.Add(new DispatchRecord {client = source, mask = eventMask});
+            sources.Add(new DispatchRecord { client = source, mask = eventMask });
             //addsource(instance, source.instance, (uint) eventMask);
         }
 
@@ -81,7 +81,7 @@ namespace XmlRpc_Wrapper
             }
         }
 
-        private void CheckSources(List<DispatchRecord> sources, double timeout, List<XmlRpcSource> toRemove)
+        private void CheckSources(IEnumerable<DispatchRecord> sources, double timeout, List<XmlRpcSource> toRemove)
         {
             EventType defaultMask = EventType.ReadableEvent | EventType.WritableEvent | EventType.Exception;
 
@@ -89,7 +89,7 @@ namespace XmlRpc_Wrapper
             ArrayList checkWrite = new ArrayList();
             ArrayList checkExc = new ArrayList();
 
-            foreach (var src in this.sources)
+            foreach (var src in sources)
             {
                 Socket sock = src.client.getSocket();
                 if (sock == null)
@@ -113,7 +113,7 @@ namespace XmlRpc_Wrapper
                 //struct timeval tv;
                 //tv.tv_sec = (int)floor(timeout);
                 //tv.tv_usec = ((int)floor(1000000.0 * (timeout-floor(timeout)))) % 1000000;
-                Socket.Select(checkRead, checkWrite, checkExc, (int) (timeout*1000000.0));
+                Socket.Select(checkRead, checkWrite, checkExc, (int)(timeout * 1000000.0));
                 //nEvents = select(maxFd+1, &inFd, &outFd, &excFd, &tv);
             }
 
@@ -121,14 +121,9 @@ namespace XmlRpc_Wrapper
 
             if (nEvents == 0)
                 return;
-            List<DispatchRecord> sourcesCopy = new List<DispatchRecord>();
-            lock (this.sources)
-            {
-                foreach (var record in this.sources)
-                    sourcesCopy.Add(record);
-            }
+
             // Process events
-            foreach (var record in sourcesCopy)
+            foreach (var record in sources)
             {
                 XmlRpcSource src = record.client;
                 EventType newMask = defaultMask; // (unsigned) -1;
@@ -180,10 +175,10 @@ namespace XmlRpc_Wrapper
             _doClear = false;
             _inWork = true;
 
-            List<XmlRpcSource> toRemove = new List<XmlRpcSource>();
             while (sources.Count > 0)
             {
                 var sourcesCopy = sources.GetRange(0, sources.Count);
+                List<XmlRpcSource> toRemove = new List<XmlRpcSource>();
                 CheckSources(sourcesCopy, timeout, toRemove);
 
                 foreach (var src in toRemove)
@@ -241,7 +236,7 @@ namespace XmlRpc_Wrapper
 
         public double getTime()
         {
-            return 0.001*Environment.TickCount;
+            return 0.001 * Environment.TickCount;
         }
 
         private class DispatchRecord
