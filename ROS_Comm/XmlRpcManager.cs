@@ -56,6 +56,9 @@ namespace Ros_CSharp
         public XmlRpcManager()
         {
             XmlRpcUtil.SetLogLevel(
+#if ENABLE_MONO
+                    XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR
+#else
 #if !DEBUG
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR
 #else
@@ -65,7 +68,8 @@ namespace Ros_CSharp
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING
 #endif
 #endif
-                );
+#endif
+);
 
             server = new XmlRpcServer();
             getPid = (parms, result) => responseInt(1, "", Process.GetCurrentProcess().Id)(result);
@@ -76,7 +80,7 @@ namespace Ros_CSharp
 #if !TRACE
             [DebuggerStepThrough]
 #endif
-                get
+            get
             {
                 if (_instance == null)
                 {
@@ -165,13 +169,13 @@ namespace Ros_CSharp
             switch (response[2].Type)
             {
                 case XmlRpcValue.ValueType.TypeArray:
-                {
-                    payload.SetArray(0);
-                    for (int i = 0; i < response[2].Length; i++)
                     {
-                        payload.Set(i, response[2][i]);
+                        payload.SetArray(0);
+                        for (int i = 0; i < response[2].Length; i++)
+                        {
+                            payload.Set(i, response[2][i]);
+                        }
                     }
-                }
                     break;
                 case XmlRpcValue.ValueType.TypeInt:
                     payload.asInt = response[2].asInt;
@@ -233,11 +237,13 @@ namespace Ros_CSharp
                     clients.Add(c);
                 }
             }
+            c.AddRef();
             return c;
         }
 
         public void releaseXMLRPCClient(CachedXmlRpcClient client)
         {
+            client.DelRef();
             client.Dispose();
         }
 
@@ -284,31 +290,31 @@ namespace Ros_CSharp
         public Action<XmlRpcValue> responseStr(IntPtr target, int code, string msg, string response)
         {
             return (XmlRpcValue v) =>
-                       {
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            {
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         public Action<XmlRpcValue> responseInt(int code, string msg, int response)
         {
             return (XmlRpcValue v) =>
-                       {
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            {
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         public Action<XmlRpcValue> responseBool(int code, string msg, bool response)
         {
             return (XmlRpcValue v) =>
-                       {
-                           v.Set(0, code);
-                           v.Set(1, msg);
-                           v.Set(2, response);
-                       };
+            {
+                v.Set(0, code);
+                v.Set(1, msg);
+                v.Set(2, response);
+            };
         }
 
         /// <summary>
@@ -371,7 +377,7 @@ namespace Ros_CSharp
             }
 
             //EDB.WriteLine("XmlRpc Server IN THE HIZI (" + uri + ") FOR SHIZI");
-            server_thread = new Thread(serverThreadFunc) {IsBackground = true};
+            server_thread = new Thread(serverThreadFunc) { IsBackground = true };
             server_thread.Start();
         }
 
@@ -431,63 +437,84 @@ namespace Ros_CSharp
     {
         private XmlRpcClient client;
 
-        public bool in_use { get; private set; }
-
-        public bool dead
+        public bool in_use
         {
-            get { return client == null; }
+            get { lock (busyMutex) return refs != 0; }
         }
 
         public DateTime last_use_time;
 
-        public CachedXmlRpcClient(string host, int port, string uri) : this(new XmlRpcClient(host, port, uri))
+        private object busyMutex = new object();
+        private volatile int refs;
+
+        internal bool dead
+        {
+            get { return client == null; }
+        }
+
+        public CachedXmlRpcClient(string host, int port, string uri)
+            : this(new XmlRpcClient(host, port, uri))
         {
         }
 
         private CachedXmlRpcClient(XmlRpcClient c)
         {
             client = c;
-            Touch(true);
         }
 
-        private void Touch()
+        /// <summary>
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
         {
-            Touch(false);
-        }
-
-        private void Touch(bool assumeconnected)
-        {
-            if (client != null && (assumeconnected || client.IsConnected))
+            lock (busyMutex)
             {
-                in_use = true;
-                last_use_time = DateTime.Now;
+                if (refs != 0)
+                    throw new Exception("XmlRpcClient disposed while in use!");
+            }
+            if (client != null)
+            {
+                client.Dispose();
+                client = null;
+            }
+        }
+
+        internal void AddRef()
+        {
+            lock (busyMutex)
+            {
+                refs++;
+            }
+            last_use_time = DateTime.Now;
+        }
+
+        internal void DelRef()
+        {
+            lock (busyMutex)
+            {
+                refs--;
             }
         }
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-            bool ret = client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
-            if (ret) Touch();
-            return ret;
+            return client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
         }
 
         #region XmlRpcClient passthrough functions and properties
 
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            Touch();
             return client.Execute(method, parameters, result);
         }
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            Touch();
             return client.ExecuteNonBlock(method, parameters);
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
         {
-            Touch();
             return client.ExecuteCheckDone(result);
         }
 
@@ -497,18 +524,5 @@ namespace Ros_CSharp
         }
 
         #endregion
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            in_use = false;
-            if (client != null)
-            {
-                client.Dispose();
-                client = null;
-            }
-        }
     }
 }
