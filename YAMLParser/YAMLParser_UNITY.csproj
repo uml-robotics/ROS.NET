@@ -106,6 +106,7 @@
   <ItemGroup>
     <Compile Include="FileUtils.cs" />
     <Compile Include="GenerationGuts.cs" />
+    <Compile Include="MD5.cs" />
     <Compile Include="MsgFileLocator.cs" />
     <Compile Include="PInvokeAllUpInYoGrill.cs" />
     <Compile Include="Program.cs" />
@@ -115,6 +116,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Templates.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Content Include="ROS_MESSAGES\README.txt" />
     <None Include="TemplateProject\Interfaces.cs" />
@@ -172,6 +174,9 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Templates.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
