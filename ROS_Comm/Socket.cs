@@ -36,7 +36,7 @@ namespace Ros_CSharp.CustomSocket
         private uint _fakefd;
 
         private string attemptedConnectionEndpoint;
-        private bool disposed;
+        private bool disposed = true;
 
         public static Dictionary<uint, Socket> AllOfThem
         {
@@ -52,8 +52,11 @@ namespace Ros_CSharp.CustomSocket
             : base(addressFamily, socketType, protocolType)
         {
             PollSignal = _poll;
-            lock(_socklist)
+            lock (_socklist)
+            {
+                disposed = false;
                 _socklist.Add(FD, this);
+            }
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
@@ -61,8 +64,11 @@ namespace Ros_CSharp.CustomSocket
             : base(socketInformation)
         {
             PollSignal = _poll;
-            lock(_socklist)
+            lock (_socklist)
+            {
+                disposed = false;
                 _socklist.Add(FD, this);
+            }
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
@@ -76,7 +82,7 @@ namespace Ros_CSharp.CustomSocket
             get
             {
                 string s = "";
-                lock (_socklist) 
+                lock (_socklist)
                     _socklist.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
                 return s;
             }
@@ -86,7 +92,7 @@ namespace Ros_CSharp.CustomSocket
         {
             get
             {
-                if (_fakefd == 0)
+                if (!disposed && _fakefd == 0)
                 {
                     lock (_freelist)
                     {
@@ -178,7 +184,7 @@ namespace Ros_CSharp.CustomSocket
         {
             lock (this)
             {
-                if (!disposed)
+                if (!disposed && _fakefd != 0)
                 {
 #if DEBUG
                     EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
@@ -290,7 +296,7 @@ namespace Ros_CSharp.CustomSocket
                 foreach (Socket s in _socklist.Values)
                     s.PollSignal.BeginInvoke(poll_timeout, s._pollAsyncComplete, null);
             DateTime end = DateTime.Now;
-            double difference = 1.0*poll_timeout - (end.Subtract(begin).TotalMilliseconds);
+            double difference = 1.0 * poll_timeout - (end.Subtract(begin).TotalMilliseconds);
             if (difference > 0)
                 Thread.Sleep((int)difference);
         }
