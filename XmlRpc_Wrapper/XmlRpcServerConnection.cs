@@ -168,7 +168,7 @@ namespace XmlRpc_Wrapper
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(string.Format("Exception while writing response: {0}", ex.Message));
+                    XmlRpcUtil.error(string.Format("Exception while writing response: {0}", ex.Message));
                 }
             }
             catch (Exception ex)

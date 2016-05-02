@@ -525,7 +525,7 @@ namespace XmlRpc_Wrapper
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(string.Format("Exception while writing request: {0}", ex.Message));
+                    XmlRpcUtil.error(string.Format("Exception while writing request: {0}", ex.Message));
                 }
                 _bytesWritten = _request.Length;
             }
