@@ -65,11 +65,16 @@ namespace YAMLParser
             for (int i = 0; i < lines.Length; i++)
             {
                 string l = lines[i];
-                if (l.Contains("=")) haves.Enqueue(l);
-                else havenots.Enqueue(l);
+                if (l.Contains("="))
+                {
+                    //condense spaces on either side of =
+                    string[] ls = l.Split('=');
+                    haves.Enqueue(ls[0].Trim()+"="+ls[1].Trim());
+                }
+                else havenots.Enqueue(l.Trim());
             }
             hashme = "";
-            while (haves.Count + havenots.Count > 0) 
+            while (haves.Count + havenots.Count > 0)
                 hashme += (haves.Count > 0 ? haves.Dequeue() : havenots.Dequeue()) + (haves.Count + havenots.Count >= 1 ? "\n" : "");
             Dictionary<string, MsgFieldInfo> mfis = MessageFieldHelper.Instantiate(irm.Stuff);
             MsgFieldInfo[] fields = mfis.Values.ToArray();
@@ -115,7 +120,6 @@ namespace YAMLParser
                         hashme += "\n";
                 }
             }
-            Console.WriteLine("\n\n------  TYPE==={0}  ------\n{1}", irm.Name, hashme);
             return hashme;
         }
 
