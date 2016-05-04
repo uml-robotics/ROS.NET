@@ -22,13 +22,17 @@ namespace YAMLParser
         {
             if (!srvmd5memo.ContainsKey(m.Name))
             {
-                string req = Sum(m.Request);
-                string res = Sum(m.Response);
-                if (req == null)
-                    return null;
-                if (res == null)
-                    return null;
-                srvmd5memo.Add(m.Name, Sum(req, res));
+                byte[] req = Encoding.ASCII.GetBytes(PrepareToHash(m.Request));
+                byte[] res = Encoding.ASCII.GetBytes(PrepareToHash(m.Response));
+                StringBuilder sb = new StringBuilder();
+                System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
+                md5.TransformBlock(req, 0, req.Length, req, 0);
+                md5.TransformFinalBlock(res, 0, res.Length);
+                for (int i = 0; i < md5.Hash.Length; i++)
+                {
+                    sb.AppendFormat("{0:x2}", md5.Hash[i]);
+                }
+                srvmd5memo.Add(m.Name, sb.ToString());
             }
             return srvmd5memo[m.Name];
         }
