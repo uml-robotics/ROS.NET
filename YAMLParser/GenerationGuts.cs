@@ -547,11 +547,6 @@ namespace FauxMessages
                 foreach (string s in def)
                     DEF.AppendLine(s);
 
-                if (!meta && Stuff.Count == 1 && Stuff[0].Name == "data")
-                {
-                    Console.WriteLine(DEF);
-                }
-
                 for (int i = 0; i < Stuff.Count; i++)
                     GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
             }
