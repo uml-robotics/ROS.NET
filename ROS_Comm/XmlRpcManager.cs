@@ -56,9 +56,6 @@ namespace Ros_CSharp
         public XmlRpcManager()
         {
             XmlRpcUtil.SetLogLevel(
-#if ENABLE_MONO
-                    XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR
-#else
 #if !DEBUG
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.ERROR
 #else
@@ -66,7 +63,6 @@ namespace Ros_CSharp
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO
 #else
                     XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING
-#endif
 #endif
 #endif
 );
