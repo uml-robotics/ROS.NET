@@ -63,8 +63,8 @@ namespace YAMLParser
                 solutiondir = yamlparser_parent;
             }
 
-            outputdir = solutiondir + "\\" + outputdir;
-            outputdir_secondpass = solutiondir + "\\" + outputdir_secondpass;
+            outputdir = solutiondir + outputdir;
+            outputdir_secondpass = solutiondir + outputdir_secondpass;
             List<MsgFileLocation> paths = new List<MsgFileLocation>();
             List<MsgFileLocation> pathssrv = new List<MsgFileLocation>();
             Console.WriteLine("Generatinc C# classes for ROS Messages...\n");
