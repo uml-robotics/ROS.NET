@@ -175,7 +175,12 @@ namespace DynamicReconfigureSharp
             if (dragStarted) return;
             box.Text = Format(value.Value);
             if (!ignore)
-                dynamic.Set(name, (int)value.Value);
+            {
+                if (isDouble)
+                    dynamic.Set(name, value.Value);
+                else
+                    dynamic.Set(name, (int) value.Value);
+            }
         }
         #endregion
 
