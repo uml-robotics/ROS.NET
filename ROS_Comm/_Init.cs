@@ -79,7 +79,7 @@ namespace Ros_CSharp
             else
                 Console.WriteLine(o);
 #else
-            UnityEngine.Debug.LogWarning(o.ToString());
+            UnityEngine.Debug.Log(o.ToString());
 #endif //!UNITY
         }
 

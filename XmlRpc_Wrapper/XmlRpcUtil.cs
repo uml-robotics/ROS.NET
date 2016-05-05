@@ -323,7 +323,7 @@ namespace XmlRpc_Wrapper
         public static void error(string format, params object[] list)
         {
 #if ENABLE_MONO
-            UnityEngine.Debug.LogError(String.Format(format, list));
+            UnityEngine.Debug.LogWarning(String.Format(format, list));
 #else
             Debug.WriteLine(String.Format(format, list));
 #endif
@@ -338,7 +338,7 @@ namespace XmlRpc_Wrapper
         {
             if (level <= MINIMUM_LOG_LEVEL)
 #if ENABLE_MONO
-                UnityEngine.Debug.LogWarning(String.Format(format, list));
+                UnityEngine.Debug.Log(String.Format(format, list));
 #else
                 Debug.WriteLine(String.Format(format, list));
 #endif
