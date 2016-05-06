@@ -31,7 +31,7 @@ namespace Ros_CSharp
         public static int port;
         public static string host = "";
         public static string uri = "";
-        public static TimeSpan retryTimeout = TimeSpan.FromSeconds(5);
+        public static TimeSpan retryTimeout = TimeSpan.MaxValue;
 
         public static void init(IDictionary remapping_args)
         {
@@ -201,7 +201,7 @@ namespace Ros_CSharp
                     if (!printed)
                     {
                         EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                            master_port, (wait_for_master ? "Retrying..." : ""));
+                            master_port, (wait_for_master ? "Retrying FOREVER... ON THE CALLING THREAD!" : ""));
                         printed = true;
                     }
                     if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
