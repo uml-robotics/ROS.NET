@@ -410,6 +410,14 @@ namespace Ros_CSharp
         }
 
         /// <summary>
+        /// Will make all XmlRpc calls to master that _would_already_wait_for_master_ wait INDEFINITELY
+        /// </summary>
+        public static void WaitForMaster()
+        {
+            master.retryTimeout = TimeSpan.FromTicks(0);
+        }
+
+        /// <summary>
         ///     Initializes ROS so nodehandles and nodes can exist
         /// </summary>
         /// <param name="args"> argv - parsed for remapping args (AND PARAMS??) </param>

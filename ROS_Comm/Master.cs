@@ -201,7 +201,7 @@ namespace Ros_CSharp
                     if (!printed)
                     {
                         EDB.WriteLine("[{0}] FAILED TO CONTACT MASTER AT [{1}:{2}]. {3}", method, master_host,
-                            master_port, (wait_for_master ? "Retrying..." : ""));
+                            master_port, (wait_for_master ? "Retrying for the next "+retryTimeout.TotalSeconds+" seconds..." : ""));
                         printed = true;
                     }
                     if (retryTimeout.TotalSeconds > 0 && DateTime.Now.Subtract(startTime) > retryTimeout)
