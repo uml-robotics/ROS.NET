@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Xml;
 
 #endregion
@@ -58,6 +59,7 @@ namespace XmlRpc_Wrapper
         private Dictionary<string, XmlRpcServerMethod> _methods = new Dictionary<string, XmlRpcServerMethod>();
         private int _port;
         private TcpListener listener;
+        private AutoResetEvent accept_token = new AutoResetEvent(true);
 
         public int Port
         {
@@ -127,6 +129,8 @@ namespace XmlRpc_Wrapper
                 _port = port;
                 listener = new TcpListener(address, port);
                 listener.Start(backlog);
+                listener.Server.Blocking = false;
+                listener.Server.NoDelay = true;
                 _port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
@@ -153,16 +157,28 @@ namespace XmlRpc_Wrapper
         {
             lock (this)
             {
-                try
+                if (!accept_token.WaitOne(0))
+                    return;
+            }
+
+            try
+            {
+                IAsyncResult ar = listener.BeginAcceptTcpClient((iar) =>
                 {
-                    TcpClient s = listener.AcceptTcpClient();
-                    _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
-                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
-                }
-                catch (SocketException ex)
-                {
-                    XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
-                }
+                    if (iar.IsCompleted)
+                    {
+                        TcpClient s = listener.EndAcceptTcpClient(iar);
+                        _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
+                        XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
+                    }
+                    else
+                        XmlRpcUtil.error("OH NOSE! incomplete accept");
+                    accept_token.Set();
+                }, null);
+            }
+            catch (SocketException ex)
+            {
+                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
             }
         }
 
