@@ -129,8 +129,8 @@ namespace XmlRpc_Wrapper
                 _port = port;
                 listener = new TcpListener(address, port);
                 listener.Start(backlog);
-                listener.Server.Blocking = false;
-                listener.Server.NoDelay = true;
+                /*listener.Server.Blocking = false;
+                listener.Server.NoDelay = true;*/
                 _port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
