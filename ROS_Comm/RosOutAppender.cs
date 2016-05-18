@@ -12,6 +12,7 @@
 
 #region USINGZ
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -26,9 +27,25 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    internal class RosOutAppender
+    public class RosOutAppender
     {
-        internal enum ROSOUT_LEVEL
+        private static object singleton_init_mutex = new object();
+        private static RosOutAppender _instance;
+
+        public static RosOutAppender Instance
+        {
+            get
+            {
+                lock (singleton_init_mutex)
+                {
+                    if (_instance == null) _instance = new RosOutAppender();
+                    return _instance;
+                }
+            }
+        }
+
+        internal enum
+            ROSOUT_LEVEL
         {
             DEBUG = 1,
             INFO = 2,
@@ -37,20 +54,40 @@ namespace Ros_CSharp
             FATAL = 16
         }
 
-        private Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
+        private Queue<Log> log_queue = new Queue<Log>();
         private Thread publish_thread;
         private bool shutting_down;
+        private Publisher<Log> publisher;
 
-        internal RosOutAppender()
+        public RosOutAppender()
         {
-            publish_thread = new Thread(logThread) {IsBackground = true};
-            publish_thread.Start();
+            publish_thread = new Thread(logThread) { IsBackground = true };
         }
 
-        internal void shutdown()
+        public bool started
+        {
+            get { return publish_thread != null && (publish_thread.ThreadState == System.Threading.ThreadState.Running || publish_thread.ThreadState == System.Threading.ThreadState.Background); }
+        }
+
+        public void start()
+        {
+            if (!shutting_down && !started)
+            {
+                if (publisher == null)
+                    publisher = ROS.GlobalNodeHandle.advertise<Log>("/rosout", 0);
+                publish_thread.Start();
+            }
+        }
+
+        public void shutdown()
         {
             shutting_down = true;
             publish_thread.Join();
+            if (publisher != null)
+            {
+                publisher.shutdown();
+                publisher = null;
+            }
         }
 
         internal void Append(string m, ROSOUT_LEVEL lvl)
@@ -63,35 +100,24 @@ namespace Ros_CSharp
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
             IEnumerable<string> advert;
             TopicManager.Instance.getAdvertisedTopics(out advert);
-            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line=(uint) sf.GetFileLineNumber(), level=((byte) ((int) lvl)),topics = (advert as string[] ?? advert.ToArray()).ToArray() };
-            lock(log_queue)
+            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line = (uint)sf.GetFileLineNumber(), level = ((byte)((int)lvl)), topics = (advert as string[] ?? advert.ToArray()).ToArray() };
+            lock (log_queue)
                 log_queue.Enqueue(logmsg);
         }
 
         private void logThread()
         {
-            while ((!ROS.initialized || !ROS.isStarted() || !ROS.ok) && !shutting_down && !ROS.shutting_down)
-            {
-                Thread.Sleep(100);
-            }
-            if (shutting_down || ROS.shutting_down)
-                return;
-            AdvertiseOptions<Log> ops = new AdvertiseOptions<Log>(names.resolve("/rosout"), 0) { latch = true };
-            SubscriberCallbacks cbs = new SubscriberCallbacks();
-            TopicManager.Instance.advertise(ops, cbs);
-            Queue<IRosMessage> localqueue;
+            Queue<Log> localqueue;
             while (!shutting_down)
             {
-                Publication p = TopicManager.Instance.lookupPublication(names.resolve("/rosout"));
                 lock (log_queue)
                 {
-                    localqueue = new Queue<IRosMessage>(log_queue);
+                    localqueue = new Queue<Log>(log_queue);
                     log_queue.Clear();
                 }
                 while (!shutting_down && localqueue.Count > 0)
                 {
-                    IRosMessage msg = localqueue.Dequeue();
-                    TopicManager.Instance.publish(p, msg);
+                    publisher.publish(localqueue.Dequeue());
                 }
                 if (shutting_down) return;
                 Thread.Sleep(100);

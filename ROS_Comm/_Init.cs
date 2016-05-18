@@ -64,7 +64,7 @@ namespace Ros_CSharp
 #if FOR_UNITY
                 true;
 #else
-                false;
+ false;
             try
             {
                 if (Console.CursorVisible) ;
@@ -149,7 +149,6 @@ namespace Ros_CSharp
         /// </summary>
         public static int WallDuration = 10;
 
-        internal static RosOutAppender rosoutappender;
         public static NodeHandle GlobalNodeHandle;
         private static object shutting_down_mutex = new object();
         private static bool dictinit;
@@ -161,12 +160,12 @@ namespace Ros_CSharp
 
         private static readonly string ROSOUT_FMAT = "{0} {1}";
         private static readonly string ROSOUT_DEBUG_PREFIX = "[Debug]";
-        private static readonly string ROSOUT_INFO_PREFIX =  "[Info ]";
-        private static readonly string ROSOUT_WARN_PREFIX =  "[Warn ]";
+        private static readonly string ROSOUT_INFO_PREFIX = "[Info ]";
+        private static readonly string ROSOUT_WARN_PREFIX = "[Warn ]";
         private static readonly string ROSOUT_ERROR_PREFIX = "[Error]";
         private static readonly string ROSOUT_FATAL_PREFIX = "[FATAL]";
-        private static Dictionary<RosOutAppender.ROSOUT_LEVEL, string> ROSOUT_PREFIX = 
-            new Dictionary<RosOutAppender.ROSOUT_LEVEL,string>{
+        private static Dictionary<RosOutAppender.ROSOUT_LEVEL, string> ROSOUT_PREFIX =
+            new Dictionary<RosOutAppender.ROSOUT_LEVEL, string>{
                 {RosOutAppender.ROSOUT_LEVEL.DEBUG, ROSOUT_DEBUG_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX}, 
                 {RosOutAppender.ROSOUT_LEVEL.WARN, ROSOUT_WARN_PREFIX},
@@ -174,7 +173,7 @@ namespace Ros_CSharp
                 {RosOutAppender.ROSOUT_LEVEL.FATAL, ROSOUT_FATAL_PREFIX}
             };
 
-    public static bool shutting_down
+        public static bool shutting_down
         {
             get { return _shutting_down; }
         }
@@ -213,12 +212,12 @@ namespace Ros_CSharp
 
         public static long ticksFromData(TimeData data)
         {
-            return data.sec*TimeSpan.TicksPerSecond + (uint) Math.Floor(data.nsec/100.0);
+            return data.sec * TimeSpan.TicksPerSecond + (uint)Math.Floor(data.nsec / 100.0);
         }
 
         public static TimeData ticksToData(long ticks)
         {
-            return ticksToData((ulong) ticks);
+            return ticksToData((ulong)ticks);
         }
 
         public static TimeData ticksToData(ulong ticks)
@@ -252,7 +251,7 @@ namespace Ros_CSharp
 
         public static T GetTime<T>(TimeSpan ts) where T : IRosMessage, new()
         {
-            T test = Activator.CreateInstance(typeof (T), GetTime(ts)) as T;
+            T test = Activator.CreateInstance(typeof(T), GetTime(ts)) as T;
             return test;
         }
 
@@ -411,10 +410,7 @@ namespace Ros_CSharp
             }
             if (printit)
                 EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
-            if (initialized && isStarted() && rosoutappender == null)
-                rosoutappender = new RosOutAppender();
-            if (initialized && isStarted())
-                rosoutappender.Append((string) o, level);
+            RosOutAppender.Instance.Append((string)o, level);
         }
 
         /// <summary>
@@ -483,17 +479,17 @@ namespace Ros_CSharp
                 atexit_registered = true;
                 Process.GetCurrentProcess().EnableRaisingEvents = true;
                 Process.GetCurrentProcess().Exited += (o, args) =>
-                                                          {
-                                                              _shutdown();
-                                                              waitForShutdown();
-                                                          };
+                {
+                    _shutdown();
+                    waitForShutdown();
+                };
 #if !FOR_UNITY
                 Console.CancelKeyPress += (o, args) =>
-                                              {
-                                                  _shutdown();
-                                                  waitForShutdown();
-                                                  args.Cancel = true;
-                                              };
+                {
+                    _shutdown();
+                    waitForShutdown();
+                    args.Cancel = true;
+                };
 #endif
             }
 
@@ -515,6 +511,7 @@ namespace Ros_CSharp
                 SimTime.instance.SimTimeEvent += SimTimeCallback;
                 initialized = true;
                 GlobalNodeHandle = new NodeHandle(this_node.Namespace, remapping_args);
+                RosOutAppender.Instance.start();
             }
         }
 
@@ -591,7 +588,6 @@ namespace Ros_CSharp
 
                 //Time.Init();
                 GlobalCallbackQueue.Enable();
-
                 shutdown_requested = false;
                 _shutting_down = false;
                 started = true;
@@ -634,16 +630,15 @@ namespace Ros_CSharp
             {
                 started = false;
                 _ok = false;
+                RosOutAppender.Instance.shutdown();
+                GlobalNodeHandle.shutdown();
+                GlobalCallbackQueue.Disable();
+                GlobalCallbackQueue.Clear();
                 TopicManager.Instance.shutdown();
                 ServiceManager.Instance.shutdown();
                 PollManager.Instance.shutdown();
                 XmlRpcManager.Instance.shutdown();
                 ConnectionManager.Instance.shutdown();
-                GlobalCallbackQueue.Disable();
-                GlobalCallbackQueue.Clear();
-                GlobalNodeHandle.shutdown();
-                if (rosoutappender != null)
-                    rosoutappender.shutdown();
             }
         }
 
@@ -658,7 +653,7 @@ namespace Ros_CSharp
             {
                 dictinit = true;
                 foreach (
-                    Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] {Assembly.GetExecutingAssembly()})
+                    Assembly a in AppDomain.CurrentDomain.GetAssemblies().Union(new[] { Assembly.GetExecutingAssembly() })
                     )
                 {
                     foreach (Type t in a.GetTypes())
