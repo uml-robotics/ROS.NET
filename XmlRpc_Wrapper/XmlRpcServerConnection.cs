@@ -39,15 +39,17 @@ namespace XmlRpc_Wrapper
         // The XmlRpc server that accepted this connection
         private XmlRpcServer server;
 
-        private TcpClient socket;
+        private Socket socket;
+        private NetworkStream stream;
 
         // The server delegates handling client requests to a serverConnection object.
-        public XmlRpcServerConnection(TcpClient fd, XmlRpcServer server, bool deleteOnClose /*= false*/)
+        public XmlRpcServerConnection(Socket fd, XmlRpcServer server, bool deleteOnClose /*= false*/)
             //: base(fd, deleteOnClose)
         {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcServerConnection: new socket {0}.", fd.Client.RemoteEndPoint.ToString());
+            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcServerConnection: new socket {0}.", fd.RemoteEndPoint.ToString());
             this.server = server;
             socket = fd;
+            stream = new NetworkStream(socket,true);
             _connectionState = ServerConnectionState.READ_HEADER;
             KeepOpen = true;
             _keepAlive = true;
@@ -55,7 +57,7 @@ namespace XmlRpc_Wrapper
 
         public override NetworkStream getStream()
         {
-            return socket.GetStream();
+            return stream;
         }
 
 
@@ -103,7 +105,7 @@ namespace XmlRpc_Wrapper
             XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.INFO, "XmlRpcServerConnection is closing");
             if (socket != null)
             {
-                socket.Close();
+                socket.Close(100);
                 socket = null;
             }
         }
@@ -117,7 +119,6 @@ namespace XmlRpc_Wrapper
                 byte[] data = new byte[left];
                 try
                 {
-                    var stream = socket.GetStream();
                     dataLen = stream.Read(data, 0, left);
                     if (dataLen == 0)
                     {
@@ -160,7 +161,6 @@ namespace XmlRpc_Wrapper
                     writer.Write(response);
                     _bytesWritten = response.Length;
                 }
-                var stream = socket.GetStream();
                 try
                 {
                     var buffer = memstream.GetBuffer();
@@ -197,7 +197,7 @@ namespace XmlRpc_Wrapper
 
         public override Socket getSocket()
         {
-            return socket.Client;
+            return socket;
         }
 
         private enum ServerConnectionState

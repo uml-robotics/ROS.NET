@@ -32,15 +32,10 @@ namespace XmlRpc_Wrapper
 
     public class XmlRpcServer : XmlRpcSource
     {
-        #region Reference Tracking + unmanaged pointer management
-
         public void Shutdown()
         {
             _disp.Clear();
-            //Shutdown(__instance);
         }
-
-        #endregion
 
         private static string SYSTEM_MULTICALL = "system.multicall";
         private static string METHODNAME = "methodName";
@@ -128,9 +123,8 @@ namespace XmlRpc_Wrapper
             {
                 _port = port;
                 listener = new TcpListener(address, port);
+                listener.Server.NoDelay = true;
                 listener.Start(backlog);
-                /*listener.Server.Blocking = false;
-                listener.Server.NoDelay = true;*/
                 _port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
                 //listener.BeginAcceptTcpClient(new AsyncCallback(acceptClient), listener);
@@ -163,11 +157,12 @@ namespace XmlRpc_Wrapper
 
             try
             {
-                IAsyncResult ar = listener.BeginAcceptTcpClient((iar) =>
+
+                IAsyncResult ar = listener.BeginAcceptSocket((iar) =>
                 {
                     if (iar.IsCompleted)
                     {
-                        TcpClient s = listener.EndAcceptTcpClient(iar);
+                        Socket s = listener.EndAcceptSocket(iar);
                         _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
                         XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
                     }
@@ -183,7 +178,7 @@ namespace XmlRpc_Wrapper
         }
 
         // Create a new connection object for processing requests from a specific client.
-        private XmlRpcServerConnection createConnection(TcpClient s)
+        private XmlRpcServerConnection createConnection(Socket s)
         {
             // Specify that the connection object be deleted when it is closed
             return new XmlRpcServerConnection(s, this, true);
@@ -251,9 +246,6 @@ namespace XmlRpc_Wrapper
             {
                 result.Set(i++, rec.Key);
             }
-            /*
-            for (MethodMap::iterator it=_methods.begin(); it != _methods.end(); ++it)
-            result[i++] = it->first;*/
 
             // Multicall support is built into XmlRpcServerConnection
             result.Set(i, MULTICALL);
@@ -323,7 +315,6 @@ namespace XmlRpc_Wrapper
                 XmlDocument xmldoc = new XmlDocument();
                 xmldoc.Load(reader);
 
-                xmldoc.Save("last_request.xml");
                 // Parse response xml into result
                 //int offset = 0;
                 XmlNodeList xmlMethodNameList = xmldoc.GetElementsByTagName("methodName");
@@ -334,6 +325,12 @@ namespace XmlRpc_Wrapper
                 }
 
                 XmlNodeList xmlParameters = xmldoc.GetElementsByTagName("param");
+                XmlNodeList xmlFault = xmldoc.GetElementsByTagName("fault");
+                if (xmlParameters.Count == 0)
+                {
+                    XmlRpcUtil.error("Error in XmlRpcServer::parseRequest: Invalid request - no methodResponse. Request:\n{0}", _request);
+                    return null;
+                }
 
                 parms.SetArray(xmlParameters.Count);
 
@@ -343,69 +340,13 @@ namespace XmlRpc_Wrapper
                     value.fromXml(xmlParameters[i]["value"]);
                     parms.asArray[i] = value;
                 }
-                /*
-                XmlNode responseNode = xmlParameters[0];
 
-                //if (!XmlRpcUtil.findTag(METHODRESPONSE_TAG, _response, out offset))
-                if (xmlParameters.Count == 0)
+                if (xmlFault.Count > 0 && parms.fromXml(xmlFault[0]))
                 {
-                    XmlRpcUtil.error("Error in XmlRpcServer::parseRequest: Invalid request - no methodResponse. Request:\n{0}", _request);
-                    //return false;
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "Read fault on response for request:\n{0}\nFAULT: {1}", _request, parms.ToString());
                 }
-
-                XmlElement pars = responseNode["params"];
-                XmlElement fault = responseNode["fault"];
-
-                //result = new XmlRpcValue();
-                if (pars != null)
-                {
-                    bool isArray = false;
-                    var selection = pars.SelectNodes("param");
-                    if (selection.Count > 1)
-                    {
-                        parms.SetArray(selection.Count);
-                        int i = 0;
-                        foreach (XmlNode par in selection)
-                        {
-                            var value = new XmlRpcValue();
-                            value.fromXml(par["value"]);
-                            parms[i++] = value;
-                        }
-                    }
-                    else if (selection.Count == 1)
-                    {
-                        parms.fromXml(selection[0]["value"]);
-                    }
-                    else
-                        success = false;
-                }
-                else if (fault != null && parms.fromXml(fault))
-                {
-                    success = false;
-                }
-                else
-                {
-                    XmlRpcUtil.error("Error in XmlRpcServer::parseRequest: Invalid response - no param or fault tag. Request:\n{0}", _request);
-                }*/
-                //_request = "";
             }
 
-            /*
-            int offset = 0;   // Number of chars parsed from the request
-
-            string methodName = XmlRpcUtil.parseTag(METHODNAME_TAG, _request, offset);
-
-            if (methodName.Length > 0 && XmlRpcUtil.findTag(PARAMS_TAG, _request, offset))
-            {
-                int nArgs = 0;
-                while (XmlRpcUtil.nextTagIs(PARAM_TAG, _request, offset)) {
-                    parms[nArgs++] = new XmlRpcValue(_request, offset);
-                    XmlRpcUtil.nextTagIs(PARAM_ETAG, _request, offset);
-                }    
-
-                XmlRpcUtil.nextTagIs(PARAMS_ETAG, _request, &offset);
-            }
-            */
             return methodName;
         }
 
