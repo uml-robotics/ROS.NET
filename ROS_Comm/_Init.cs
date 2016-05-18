@@ -79,7 +79,7 @@ namespace Ros_CSharp
             else
                 Console.WriteLine(o);
 #else
-            UnityEngine.Debug.Log(o.ToString());
+            UnityEngine.Debug.Log(o);
 #endif //!UNITY
         }
 
@@ -410,7 +410,7 @@ namespace Ros_CSharp
             }
             if (printit)
                 EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
-            RosOutAppender.Instance.Append((string)o, level);
+			RosOutAppender.Instance.Append(o.ToString(), level);
         }
 
         /// <summary>
