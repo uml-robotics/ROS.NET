@@ -161,11 +161,20 @@ namespace Ros_CSharp
 
         private static readonly string ROSOUT_FMAT = "{0} {1}";
         private static readonly string ROSOUT_DEBUG_PREFIX = "[Debug]";
-        private static readonly string ROSOUT_INFO_PREFIX = "[Info]";
-        private static readonly string ROSOUT_WARN_PREFIX = "[Warn]";
+        private static readonly string ROSOUT_INFO_PREFIX =  "[Info ]";
+        private static readonly string ROSOUT_WARN_PREFIX =  "[Warn ]";
         private static readonly string ROSOUT_ERROR_PREFIX = "[Error]";
+        private static readonly string ROSOUT_FATAL_PREFIX = "[FATAL]";
+        private static Dictionary<RosOutAppender.ROSOUT_LEVEL, string> ROSOUT_PREFIX = 
+            new Dictionary<RosOutAppender.ROSOUT_LEVEL,string>{
+                {RosOutAppender.ROSOUT_LEVEL.DEBUG, ROSOUT_DEBUG_PREFIX},
+                {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX}, 
+                {RosOutAppender.ROSOUT_LEVEL.WARN, ROSOUT_WARN_PREFIX},
+                {RosOutAppender.ROSOUT_LEVEL.ERROR, ROSOUT_ERROR_PREFIX},
+                {RosOutAppender.ROSOUT_LEVEL.FATAL, ROSOUT_FATAL_PREFIX}
+            };
 
-        public static bool shutting_down
+    public static bool shutting_down
         {
             get { return _shutting_down; }
         }
@@ -302,13 +311,9 @@ namespace Ros_CSharp
 #if !TRACE
         [DebuggerStepThrough]
 #endif
-        public static void Info(object o, int level = 1)
+        public static void Info(object o)
         {
-            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_INFO_PREFIX, o);
-            if (initialized && rosoutappender == null)
-                rosoutappender = new RosOutAppender();
-            if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.INFO, level + 1);
+            _rosout(o, RosOutAppender.ROSOUT_LEVEL.INFO);
         }
 
         /// <summary>
@@ -321,7 +326,7 @@ namespace Ros_CSharp
 #endif
         public static void Info(string format, params object[] args)
         {
-            Info((object) string.Format(format, args), 2);
+            _rosout(string.Format(format, args), RosOutAppender.ROSOUT_LEVEL.INFO);
         }
 
         /// <summary>
@@ -331,15 +336,9 @@ namespace Ros_CSharp
 #if !TRACE
         [DebuggerStepThrough]
 #endif
-        public static void Debug(object o, int level = 1)
+        public static void Debug(object o)
         {
-#if DEBUG
-            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_DEBUG_PREFIX, o);
-#endif
-            if (initialized && rosoutappender == null)
-                rosoutappender = new RosOutAppender();
-            if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.DEBUG, level + 1);
+            _rosout(o, RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
 
         /// <summary>
@@ -352,7 +351,7 @@ namespace Ros_CSharp
 #endif
         public static void Debug(string format, params object[] args)
         {
-            Debug((object) string.Format(format, args), 2);
+            _rosout(string.Format(format, args), RosOutAppender.ROSOUT_LEVEL.DEBUG);
         }
 
         /// <summary>
@@ -362,13 +361,9 @@ namespace Ros_CSharp
 #if !TRACE
         [DebuggerStepThrough]
 #endif
-        public static void Error(object o, int level = 1)
+        public static void Error(object o)
         {
-            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_ERROR_PREFIX, o);
-            if (initialized && rosoutappender == null)
-                rosoutappender = new RosOutAppender();
-            if (initialized)
-                rosoutappender.Append(o.ToString(), RosOutAppender.ROSOUT_LEVEL.ERROR, level + 1);
+            _rosout(o, RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
         /// <summary>
@@ -381,7 +376,7 @@ namespace Ros_CSharp
 #endif
         public static void Error(string format, params object[] args)
         {
-            Error((object) string.Format(format, args), 2);
+            _rosout(string.Format(format, args), RosOutAppender.ROSOUT_LEVEL.ERROR);
         }
 
         /// <summary>
@@ -389,13 +384,9 @@ namespace Ros_CSharp
         /// </summary>
         /// <param name="o"> ... </param>
         [DebuggerStepThrough]
-        public static void Warn(object o, int level = 1)
+        public static void Warn(object o)
         {
-            EDB.WriteLine(ROSOUT_FMAT, ROSOUT_WARN_PREFIX, o);
-            if (initialized && rosoutappender == null)
-                rosoutappender = new RosOutAppender();
-            if (initialized)
-                rosoutappender.Append((string) o, RosOutAppender.ROSOUT_LEVEL.WARN, level + 1);
+            _rosout(o, RosOutAppender.ROSOUT_LEVEL.WARN);
         }
 
         /// <summary>
@@ -406,7 +397,24 @@ namespace Ros_CSharp
         [DebuggerStepThrough]
         public static void Warn(string format, params object[] args)
         {
-            Warn((object) string.Format(format, args), 2);
+            _rosout(string.Format(format, args), RosOutAppender.ROSOUT_LEVEL.WARN);
+        }
+
+        private static void _rosout(object o, RosOutAppender.ROSOUT_LEVEL level)
+        {
+            bool printit = true;
+            if (level == RosOutAppender.ROSOUT_LEVEL.DEBUG)
+            {
+#if !DEBUG
+                printit = false;
+#endif
+            }
+            if (printit)
+                EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
+            if (initialized && isStarted() && rosoutappender == null)
+                rosoutappender = new RosOutAppender();
+            if (initialized && isStarted())
+                rosoutappender.Append((string) o, level);
         }
 
         /// <summary>

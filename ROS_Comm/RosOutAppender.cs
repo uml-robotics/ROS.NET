@@ -26,9 +26,9 @@ using nm = Messages.nav_msgs;
 
 namespace Ros_CSharp
 {
-    public class RosOutAppender
+    internal class RosOutAppender
     {
-        public enum ROSOUT_LEVEL
+        internal enum ROSOUT_LEVEL
         {
             DEBUG = 1,
             INFO = 2,
@@ -37,58 +37,60 @@ namespace Ros_CSharp
             FATAL = 16
         }
 
-        public Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
-        private Log logmsg = new Log {msg = "", name = this_node.Name, file = "", function = "", topics = new string[0]};
-        public Thread publish_thread;
-        public bool shutting_down;
+        private Queue<IRosMessage> log_queue = new Queue<IRosMessage>();
+        private Thread publish_thread;
+        private bool shutting_down;
 
-        public RosOutAppender()
+        internal RosOutAppender()
         {
             publish_thread = new Thread(logThread) {IsBackground = true};
             publish_thread.Start();
-            AdvertiseOptions<Log> ops = new AdvertiseOptions<Log>(names.resolve("/rosout"), 0) {latch = true};
-            SubscriberCallbacks cbs = new SubscriberCallbacks();
-            TopicManager.Instance.advertise(ops, cbs);
         }
 
-        public void shutdown()
+        internal void shutdown()
         {
             shutting_down = true;
             publish_thread.Join();
         }
 
-        public void Append(string m, int level = 1)
+        internal void Append(string m, ROSOUT_LEVEL lvl)
         {
-            Append(m, ROSOUT_LEVEL.INFO, level + 1);
+            Append(m, lvl, 4);
         }
 
-        public void Append(string m, ROSOUT_LEVEL lvl, int level = 1)
+        private void Append(string m, ROSOUT_LEVEL lvl, int level)
         {
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
-            logmsg.msg = m;
-            logmsg.level = ((byte) ((int) lvl));
-            logmsg.file = sf.GetFileName();
-            logmsg.function = sf.GetMethod().Name;
-            logmsg.line = (uint) sf.GetFileLineNumber();
-            IEnumerable<string> advert = this_node.AdvertisedTopics();
-            if (advert.Count() != logmsg.topics.Length)
-            {
-                logmsg.topics = advert.ToArray();
-            }
-            log_queue.Enqueue(logmsg);
+            IEnumerable<string> advert;
+            TopicManager.Instance.getAdvertisedTopics(out advert);
+            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line=(uint) sf.GetFileLineNumber(), level=((byte) ((int) lvl)),topics = (advert as string[] ?? advert.ToArray()).ToArray() };
+            lock(log_queue)
+                log_queue.Enqueue(logmsg);
         }
 
-        public void logThread()
+        private void logThread()
         {
-            string n = names.resolve("/rosout");
-            IRosMessage msg = null;
-
-            Publication p = TopicManager.Instance.lookupPublication(n);
+            while ((!ROS.initialized || !ROS.isStarted() || !ROS.ok) && !shutting_down && !ROS.shutting_down)
+            {
+                Thread.Sleep(100);
+            }
+            if (shutting_down || ROS.shutting_down)
+                return;
+            AdvertiseOptions<Log> ops = new AdvertiseOptions<Log>(names.resolve("/rosout"), 0) { latch = true };
+            SubscriberCallbacks cbs = new SubscriberCallbacks();
+            TopicManager.Instance.advertise(ops, cbs);
+            Queue<IRosMessage> localqueue;
             while (!shutting_down)
             {
-                if (p == null) p = TopicManager.Instance.lookupPublication(n);
-                while (!shutting_down && log_queue.Count > 0 && (msg = log_queue.Dequeue())!=null)
+                Publication p = TopicManager.Instance.lookupPublication(names.resolve("/rosout"));
+                lock (log_queue)
                 {
+                    localqueue = new Queue<IRosMessage>(log_queue);
+                    log_queue.Clear();
+                }
+                while (!shutting_down && localqueue.Count > 0)
+                {
+                    IRosMessage msg = localqueue.Dequeue();
                     TopicManager.Instance.publish(p, msg);
                 }
                 if (shutting_down) return;

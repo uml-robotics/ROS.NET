@@ -26,13 +26,6 @@ namespace Ros_CSharp
         public static string Name = "empty";
         public static string Namespace = "";
 
-        public static IEnumerable<string> AdvertisedTopics()
-        {
-            IEnumerable<string> ret;
-            TopicManager.Instance.getAdvertisedTopics(out ret);
-            return ret;
-        }
-
         public static void Init(string n, IDictionary remappings)
         {
             Init(n, remappings, 0);
