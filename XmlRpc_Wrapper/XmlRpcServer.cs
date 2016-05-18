@@ -123,7 +123,6 @@ namespace XmlRpc_Wrapper
             {
                 _port = port;
                 listener = new TcpListener(address, port);
-                listener.Server.NoDelay = true;
                 listener.Start(backlog);
                 _port = ((IPEndPoint)listener.Server.LocalEndPoint).Port;
                 _disp.AddSource(this, XmlRpcDispatch.EventType.ReadableEvent);
