@@ -27,8 +27,9 @@ namespace Ros_CSharp.CustomSocket
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class Socket : ns.Socket
+    public class Socket : IDisposable
     {
+        private ns.Socket realsocket;
         private Action<int> PollSignal;
         private static Dictionary<uint, Socket> _socklist = new Dictionary<uint, Socket>();
         private static uint nextfakefd = 1;
@@ -44,31 +45,19 @@ namespace Ros_CSharp.CustomSocket
         }
 
         public Socket(ns.Socket sock)
-            : this(sock.DuplicateAndClose(Process.GetCurrentProcess().Id))
         {
+            realsocket = sock;
+            PollSignal = _poll;
+            lock (_socklist)
+            {
+                disposed = false;
+                _socklist.Add(FD, this);
+            }
         }
 
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
-            : base(addressFamily, socketType, protocolType)
+            : this(new ns.Socket(addressFamily, socketType, protocolType))
         {
-            PollSignal = _poll;
-            lock (_socklist)
-            {
-                disposed = false;
-                _socklist.Add(FD, this);
-            }
-            //EDB.WriteLine("Making socket w/ FD=" + FD);
-        }
-
-        public Socket(ns.SocketInformation socketInformation)
-            : base(socketInformation)
-        {
-            PollSignal = _poll;
-            lock (_socklist)
-            {
-                disposed = false;
-                _socklist.Add(FD, this);
-            }
             //EDB.WriteLine("Making socket w/ FD=" + FD);
         }
 
@@ -109,55 +98,172 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
-        public new void BeginConnect(n.EndPoint endpoint, AsyncCallback ac, object st)
+        public void BeginConnect(n.EndPoint endpoint, AsyncCallback ac, object st)
         {
             n.IPEndPoint ipep = endpoint as n.IPEndPoint;
             if (endpoint == null)
                 throw new Exception("Sorry, guy... but this isn't in the scope of this class's purpose.");
             attemptedConnectionEndpoint = ipep.Address.ToString();
-            base.BeginConnect(endpoint, ac, st);
+            realsocket.BeginConnect(endpoint, ac, st);
         }
 
-        public new void BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
+        public void BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = address.ToString();
-            base.BeginConnect(address, port, ac, st);
+            realsocket.BeginConnect(address, port, ac, st);
         }
 
-        public new void BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
+        public void BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = addresses[0].ToString();
-            base.BeginConnect(addresses, port, ac, st);
+            realsocket.BeginConnect(addresses, port, ac, st);
         }
 
-        public new void BeginConnect(string host, int port, AsyncCallback ac, object st)
+        public void BeginConnect(string host, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = host;
-            base.BeginConnect(host, port, ac, st);
+            realsocket.BeginConnect(host, port, ac, st);
         }
 
-        public new void Connect(n.IPAddress[] address, int port)
+        public void Connect(n.IPAddress[] address, int port)
         {
             attemptedConnectionEndpoint = address[0].ToString();
-            base.Connect(address, port);
+            realsocket.Connect(address, port);
         }
 
-        public new void Connect(n.IPAddress address, int port)
+        public void Connect(n.IPAddress address, int port)
         {
             attemptedConnectionEndpoint = address.ToString();
-            base.Connect(address, port);
+            realsocket.Connect(address, port);
         }
 
-        public new void Connect(n.EndPoint ep)
+        public void Connect(n.EndPoint ep)
         {
             attemptedConnectionEndpoint = ep.ToString();
-            base.Connect(ep);
+            realsocket.Connect(ep);
         }
 
-        public new bool ConnectAsync(ns.SocketAsyncEventArgs e)
+        public bool ConnectAsync(ns.SocketAsyncEventArgs e)
         {
             attemptedConnectionEndpoint = e.RemoteEndPoint.ToString();
-            return base.ConnectAsync(e);
+            return realsocket.ConnectAsync(e);
+        }
+
+        public bool AcceptAsync(ns.SocketAsyncEventArgs a)
+        {
+            return realsocket.AcceptAsync(a);
+        }
+
+        public void Bind(n.EndPoint ep)
+        {
+            realsocket.Bind(ep);
+        }
+
+        public bool Blocking
+        {
+            get { return realsocket.Blocking; }
+            set { realsocket.Blocking = value; }
+        }
+
+        public void Close()
+        {
+            if (realsocket != null) realsocket.Close();
+        }
+
+        public void Close(int timeout)
+        {
+            if (realsocket != null) realsocket.Close(timeout);
+        }
+
+        public bool Connected
+        {
+            get { return realsocket != null && realsocket.Connected; }
+        }
+
+        public void EndConnect(IAsyncResult iar)
+        {
+            realsocket.EndConnect(iar);
+        }
+
+        public object GetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n)
+        {
+            return realsocket.GetSocketOption(lvl, n);
+        }
+
+        public void GetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, byte[] optionvalue)
+        {
+            realsocket.GetSocketOption(lvl, n, optionvalue);
+        }
+
+        public byte[] GetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, int optionlength)
+        {
+            return realsocket.GetSocketOption(lvl, n, optionlength);
+        }
+
+        public int IOControl(int code, byte[] inval, byte[] outval)
+        {
+            return realsocket.IOControl(code, inval, outval);
+        }
+
+        public int IOControl(ns.IOControlCode code, byte[] inval, byte[] outval)
+        {
+            return realsocket.IOControl(code, inval, outval);
+        }
+
+        public n.EndPoint LocalEndPoint
+        {
+            get { return realsocket.LocalEndPoint; }
+        }
+
+        public void Listen(int backlog)
+        {
+            realsocket.Listen(backlog);
+        }
+
+        public bool NoDelay
+        {
+            get { return realsocket.NoDelay; }
+            set { realsocket.NoDelay = value; }
+        }
+
+        public int Receive(byte[] arr, int offset, int size, ns.SocketFlags f)
+        {
+            return realsocket.Receive(arr,offset,size,f);
+        }
+
+        public int Receive(byte[] arr, int offset, int size, ns.SocketFlags f, out ns.SocketError er)
+        {
+            return realsocket.Receive(arr, offset, size, f, out er);
+        }
+
+        public int Send(byte[] arr, int offset, int size, ns.SocketFlags f, out ns.SocketError er)
+        {
+            return realsocket.Send(arr, offset, size, f, out er);
+        }
+
+        public void SetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, bool optionvalue)
+        {
+            realsocket.SetSocketOption(lvl, n, optionvalue);
+        }
+
+        public void SetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, byte[] optionvalue)
+        {
+            realsocket.SetSocketOption(lvl, n, optionvalue);
+        }
+
+        public void SetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, int optionvalue)
+        {
+            realsocket.SetSocketOption(lvl, n, optionvalue);
+        }
+
+        public void SetSocketOption(ns.SocketOptionLevel lvl, ns.SocketOptionName n, object optionvalue)
+        {
+            realsocket.SetSocketOption(lvl, n, optionvalue);
+        }
+
+        public void Shutdown(ns.SocketShutdown sd)
+        {
+            realsocket.Shutdown(sd);
         }
 
         public static Socket Get(uint fd)
@@ -180,31 +286,13 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            lock (this)
-            {
-                if (!disposed && _fakefd != 0)
-                {
-#if DEBUG
-                    EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
-#endif
-                    disposed = true;
-                    remove(_fakefd);
-                    _freelist.Add(_fakefd);
-                    _fakefd = 0;
-                    base.Dispose(disposing);
-                }
-            }
-        }
-
         public bool SafePoll(int timeout, ns.SelectMode sm)
         {
             bool res = false;
             try
             {
                 if (!disposed)
-                    res = Poll(timeout, sm);
+                    res = realsocket.Poll(timeout, sm);
             }
             catch (ns.SocketException e)
             {
@@ -221,11 +309,11 @@ namespace Ros_CSharp.CustomSocket
         {
             if (String.IsNullOrEmpty(attemptedConnectionEndpoint))
             {
-                if (!Connected)
+                if (!realsocket.Connected)
                     attemptedConnectionEndpoint = "";
-                else if (RemoteEndPoint != null)
+                else if (realsocket.RemoteEndPoint != null)
                 {
-                    n.IPEndPoint ipep = RemoteEndPoint as n.IPEndPoint;
+                    n.IPEndPoint ipep = realsocket.RemoteEndPoint as n.IPEndPoint;
                     if (ipep != null)
                         attemptedConnectionEndpoint = "" + ipep.Address + ":" + ipep.Port;
                 }
@@ -243,8 +331,8 @@ namespace Ros_CSharp.CustomSocket
         private void _poll(int poll_timeout)
         {
             if (Info == null || !Info.poll_mutex.WaitOne(poll_timeout)) return;
-            if (ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
-            if (!Connected || disposed)
+            if (realsocket.ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
+            if (!realsocket.Connected || disposed)
             {
                 Info.revents |= POLLHUP;
             }
@@ -270,7 +358,7 @@ namespace Ros_CSharp.CustomSocket
                 bool skip = false;
                 if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
                 {
-                    if (disposed || !Connected)
+                    if (disposed || !realsocket.Connected)
                         skip = true;
                 }
 
@@ -303,9 +391,23 @@ namespace Ros_CSharp.CustomSocket
 
         public SocketInfo Info = null;
 
-        internal void Dispose()
+        public void Dispose()
         {
-            Dispose(true);
+            lock (this)
+            {
+                if (!disposed && _fakefd != 0)
+                {
+#if DEBUG
+                    EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
+#endif
+                    disposed = true;
+                    remove(_fakefd);
+                    _freelist.Add(_fakefd);
+                    _fakefd = 0;
+                    realsocket.Close();
+                    realsocket = null;
+                }
+            }
         }
     }
 }
