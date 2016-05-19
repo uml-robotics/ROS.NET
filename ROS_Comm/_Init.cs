@@ -408,8 +408,8 @@ namespace Ros_CSharp
                 printit = false;
 #endif
             }
-            if (printit)
-                EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
+            /*if (printit)
+                EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);*/
 			RosOutAppender.Instance.Append(o.ToString(), level);
         }
 
