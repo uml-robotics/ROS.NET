@@ -60,13 +60,6 @@ namespace XmlRpc_Wrapper
             return stream;
         }
 
-
-        ~XmlRpcServerConnection()
-        {
-            XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcServerConnection dtor.");
-            server.removeConnection(this);
-        }
-
         // Handle input on the server socket by accepting the connection
         // and reading the rpc request. Return true to continue to monitor
         // the socket for events, false to remove it from the dispatcher.
@@ -108,6 +101,7 @@ namespace XmlRpc_Wrapper
                 socket.Close(100);
                 socket = null;
             }
+            server.removeConnection(this);
         }
 
         private bool readRequest()

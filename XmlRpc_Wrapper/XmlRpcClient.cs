@@ -28,7 +28,7 @@ namespace XmlRpc_Wrapper
     [DebuggerStepThrough]
 #endif
 
-    public class XmlRpcClient : XmlRpcSource //: IDisposable
+    public class XmlRpcClient : XmlRpcSource
     {
         // Static data
         private static string REQUEST_BEGIN = "<?xml version=\"1.0\"?>\r\n<methodCall><methodName>";
@@ -60,6 +60,8 @@ namespace XmlRpc_Wrapper
         private string _uri;
         private HTTPHeader header;
         private TcpClient socket;
+        public delegate void DisposedEvent();
+        public event DisposedEvent Disposed;
 
         public XmlRpcClient(string HostName, int Port, string Uri)
         {
@@ -289,6 +291,9 @@ namespace XmlRpc_Wrapper
         public override void Close()
         {
             XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::Close()");
+            close();
+            if (Disposed != null)
+                Disposed();
         }
 
         public override Socket getSocket()
@@ -326,7 +331,7 @@ namespace XmlRpc_Wrapper
         {
             XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.DEBUG, "XmlRpcClient::close.");
             _connectionState = ConnectionState.NO_CONNECTION;
-
+            _disp.RemoveSource(this);
             _disp.Exit();
             //_disp.removeSource(this);
             //XmlRpcSource::close();

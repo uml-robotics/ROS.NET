@@ -456,6 +456,10 @@ namespace Ros_CSharp
         private CachedXmlRpcClient(XmlRpcClient c)
         {
             client = c;
+            client.Disposed += () =>
+                                   {
+                                       client = null;
+                                   };
         }
 
         /// <summary>
