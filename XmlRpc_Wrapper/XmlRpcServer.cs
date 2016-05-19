@@ -148,31 +148,20 @@ namespace XmlRpc_Wrapper
         // handle method calls from the client.
         private void acceptConnection()
         {
-            lock (this)
+            bool p = true;
+// ReSharper disable once CSharpWarnings::CS0665
+            while (p = listener.Pending())
             {
-                if (!accept_token.WaitOne(0))
-                    return;
-            }
-
-            try
-            {
-
-                IAsyncResult ar = listener.BeginAcceptSocket((iar) =>
+                try
                 {
-                    if (iar.IsCompleted)
-                    {
-                        Socket s = listener.EndAcceptSocket(iar);
-                        _disp.AddSource(createConnection(s), XmlRpcDispatch.EventType.ReadableEvent);
-                        XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
-                    }
-                    else
-                        XmlRpcUtil.error("OH NOSE! incomplete accept");
-                    accept_token.Set();
-                }, null);
-            }
-            catch (SocketException ex)
-            {
-                XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+                    _disp.AddSource(createConnection(listener.AcceptSocket()), XmlRpcDispatch.EventType.ReadableEvent);
+                    XmlRpcUtil.log(XmlRpcUtil.XMLRPC_LOG_LEVEL.WARNING, "XmlRpcServer::acceptConnection: creating a connection");
+                }
+                catch (SocketException ex)
+                {
+                    XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
+                    Thread.Sleep(0);
+                }
             }
         }
 
