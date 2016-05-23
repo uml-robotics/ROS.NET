@@ -10,6 +10,13 @@
 // Created: 04/28/2015
 // Updated: 02/10/2016
 
+#if UNITY
+#define FOR_UNITY
+#endif
+#if ENABLE_MONO
+#define FOR_UNITY
+#endif
+
 #region USINGZ
 
 using System;
@@ -148,6 +155,34 @@ namespace tf.net
         public Time stamp;
         public emVector3 origin;
 
+#if FOR_UNITY
+        public emTransform(UnityEngine.GameObject go, Time t = null, string fid = null, string cfi = null)
+                : this(go.transform,t,fid,cfi)
+        {
+        }
+
+        public emTransform(UnityEngine.Transform T, Time t = null, string fid = null, string cfi = null)
+        {
+            UnityRotation = T.rotation;
+            UnityPosition = T.position;
+            stamp = t;
+            frame_id = fid;
+            child_frame_id = cfi;
+        }
+
+        public UnityEngine.Vector3? UnityPosition
+        {
+            get { return origin != null ? (Nullable<UnityEngine.Vector3>)origin.UnityPosition : null; }
+            set { if (origin == null) origin = new emVector3(value.Value); else origin.UnityPosition = value.Value; }
+        }
+
+        public UnityEngine.Quaternion? UnityRotation
+        {
+            get { return basis != null ? (Nullable<UnityEngine.Quaternion>)basis.UnityRotation : null; }
+            set { if (basis == null) basis = new emQuaternion(value.Value); else basis.UnityRotation = value.Value; }
+        }
+#endif
+
         public emTransform() : this(new emQuaternion(), new emVector3(), new Time(new TimeData()), "", "")
         {
         }
@@ -161,7 +196,6 @@ namespace tf.net
             basis = q;
             origin = v;
             stamp = t;
-
             frame_id = fid;
             child_frame_id = cfi;
         }
@@ -218,6 +252,19 @@ namespace tf.net
             : this(shallow.x, shallow.y, shallow.z, shallow.w)
         {
         }
+
+#if FOR_UNITY
+        public emQuaternion(UnityEngine.Quaternion q)
+        {
+            UnityRotation = q;
+        }
+
+        public UnityEngine.Quaternion UnityRotation
+        {
+            get { return new UnityEngine.Quaternion((float)y, (float)-z, (float)-x, (float)w); }
+            set { x = -value.z; y = value.x; z = -value.y; w = value.w; }
+        }
+#endif
 
         public gm.Quaternion ToMsg()
         {
@@ -431,6 +478,19 @@ namespace tf.net
         public emVector3(gm.Vector3 shallow) : this(shallow.x, shallow.y, shallow.z)
         {
         }
+
+#if FOR_UNITY
+        public emVector3(UnityEngine.Vector3 v)
+        {
+            UnityPosition = v;
+        }
+
+        public UnityEngine.Vector3 UnityPosition
+        {
+            get { return new UnityEngine.Vector3((float)-y, (float)z, (float)x); }
+            set { x = value.z; y = -value.x; z = value.y; }
+        }
+#endif
 
         public gm.Vector3 ToMsg()
         {
