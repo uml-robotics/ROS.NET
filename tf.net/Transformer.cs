@@ -1,4 +1,11 @@
-﻿using System;
+﻿#if UNITY
+#define FOR_UNITY
+#endif
+#if ENABLE_MONO
+#define FOR_UNITY
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,13 +31,49 @@ namespace tf.net
 
         private bool interpolating;
         private NodeHandle nh;
+#if FOR_UNITY
+        private static List<Transformer> instances = new List<Transformer>();
+        public static void LateInit()
+        {
+            lock(instances)
+            {
+                foreach(Transformer t in instances)
+                    t.InitNH();
+                instances.Clear();
+            }
+        }
+#endif
+
+        private void InitNH()
+        {
+            nh = new NodeHandle();
+            nh.subscribe<tfMessage>("/tf", 100, Update);
+        }
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
         {
             frameIDs["NO_PARENT"] = 0;
             frameids_reverse[0] = "NO_PARENT";
-            nh = new NodeHandle();
-            nh.subscribe<tfMessage>("/tf", 100, Update);
+#if FOR_UNITY
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlaying)
+            {
+#endif
+                if (!ROS.isStarted())
+                {
+                    lock(instances)
+                        instances.Add(this);
+                }
+                else
+                {
+#endif
+                    InitNH();
+#if FOR_UNITY
+                }
+#if UNITY_EDITOR
+            }
+#endif
+#endif
             this.interpolating = interpolating;
             cache_time = ct;
         }
