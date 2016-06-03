@@ -119,7 +119,7 @@ namespace Ros_CSharp
 
                 if (shutting_down) return;
 
-                poll_set.update(10);
+                poll_set.update(ROS.WallDuration);
             }
             EDB.WriteLine("PollManager thread IS FREE");
         }

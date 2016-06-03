@@ -139,7 +139,7 @@ namespace Ros_CSharp
         {
             while (ROS._shutting_down && ROS.ok)
             {
-                Thread.Sleep(new TimeSpan(0, 0, 0, 0, 10));
+                Thread.Sleep(new TimeSpan(0, 0, 0, 0, ROS.WallDuration));
             }
             return retval;
         }

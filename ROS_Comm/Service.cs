@@ -84,7 +84,7 @@ namespace Ros_CSharp
                     if (DateTime.Now.Subtract(start_time) > ts)
                         return false;
                 }
-                Thread.Sleep(20);
+                Thread.Sleep(ROS.WallDuration);
             }
 
             if (printed && ROS.ok)

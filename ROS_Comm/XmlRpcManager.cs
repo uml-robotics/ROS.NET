@@ -126,7 +126,7 @@ namespace Ros_CSharp
 
                 while (unbind_requested)
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(ROS.WallDuration);
                 }
 
                 foreach (AsyncXmlRpcConnection con in connections)
@@ -388,7 +388,7 @@ namespace Ros_CSharp
             foreach (CachedXmlRpcClient c in clients)
             {
                 while (c.in_use)
-                    Thread.Sleep(10);
+                    Thread.Sleep(ROS.WallDuration);
                 c.Dispose();
             }
             clients.Clear();
