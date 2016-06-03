@@ -160,7 +160,7 @@ namespace XmlRpc_Wrapper
                 catch (SocketException ex)
                 {
                     XmlRpcUtil.error("XmlRpcServer::acceptConnection: Could not accept connection ({0}).", ex.Message);
-                    Thread.Sleep(0);
+                    Thread.Sleep(10);
                 }
             }
         }
