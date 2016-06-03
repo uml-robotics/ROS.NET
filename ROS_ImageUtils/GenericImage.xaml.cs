@@ -51,11 +51,6 @@ namespace ROS_ImageWPF
             impl.UpdateImage(bmp);
         }
 
-        public void UpdateImage(Bitmap bmp, int bpp)
-        {
-            impl.UpdateImage(bmp, bpp);
-        }
-
         public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
         {
             impl.UpdateImage(data, size, hasHeader, encoding);
@@ -144,49 +139,6 @@ namespace ROS_ImageWPF
             {
                 Console.WriteLine(e);
             }
-        }
-
-        /// <summary>
-        ///     same as the one above, but allows for 3 bpp bitmaps to be drawn without failing... like the surroundings.
-        /// </summary>
-        /// <param name="bmp">
-        /// </param>
-        /// <param name="bpp">
-        /// </param>
-        public void UpdateImage(Bitmap bmp, int bpp)
-        {
-            if (bpp == 4)
-            {
-                UpdateImage(bmp);
-            }
-            if (bpp == 3)
-            {
-                try
-                {
-                    // look up the image's dress
-                    BitmapData bData = bmp.LockBits(new Rectangle(new Point(), bmp.Size),
-                        ImageLockMode.ReadOnly,
-                        PixelFormat.Format24bppRgb);
-                    int byteCount = bData.Stride*bmp.Height;
-                    byte[] rgbData = new byte[byteCount];
-
-                    // turn the bitmap into a byte[]
-                    Marshal.Copy(bData.Scan0, rgbData, 0, byteCount);
-                    bmp.UnlockBits(bData);
-
-                    // starts the overload cluster-mess to show the image
-                    UpdateImage(rgbData, SizeConverter(bmp.Size), false);
-
-                    // get that stuff out of memory so it doesn't mess our day up.
-                    bmp.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
-            else
-                Console.WriteLine("non-fatal BPP mismatch. If you see images, then you should go to vegas and bet your life savings on black.");
         }
 
         /// <summary>
