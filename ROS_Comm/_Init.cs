@@ -188,6 +188,9 @@ namespace Ros_CSharp
             get { return _ok; }
         }
 
+        private static string _processname = null;
+        public static string ProcessName { get { if (_processname == null) _processname = Process.GetCurrentProcess().ProcessName; return _processname; } }
+
         /// <summary>
         ///     Gets the current thread's TID, emulating the behavior ROS has in a more interprocess situation on xnix
         /// </summary>
@@ -299,7 +302,7 @@ namespace Ros_CSharp
         /// </summary>
         public static void FREAKOUT()
         {
-            if (Process.GetCurrentProcess().ProcessName != "devenv")
+            if (ROS.ProcessName != "devenv")
                 throw new Exception("ROS IS FREAKING OUT!");
         }
 
@@ -440,7 +443,7 @@ namespace Ros_CSharp
         /// <param name="options"> options? </param>
         public static void Init(string[] args, string name, int options)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return;
             // ROS_MASTER_URI/ROS_HOSTNAME definition precedence:
             // 1. explicitely set by program

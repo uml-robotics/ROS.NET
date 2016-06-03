@@ -47,7 +47,7 @@ namespace Ros_CSharp
         /// <param name="remappings">any remappings</param>
         public NodeHandle(string ns, IDictionary remappings = null)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return;
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
@@ -61,7 +61,7 @@ namespace Ros_CSharp
         /// <param name="rhs">The nodehandle this new one aspires to be</param>
         public NodeHandle(NodeHandle rhs)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return;
             Callback = rhs.Callback;
             remappings = new Hashtable(rhs.remappings);
@@ -77,7 +77,7 @@ namespace Ros_CSharp
         /// <param name="ns">Namespace of new node</param>
         public NodeHandle(NodeHandle parent, string ns)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
@@ -94,7 +94,7 @@ namespace Ros_CSharp
         /// <param name="remappings">Remappings</param>
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
@@ -239,7 +239,7 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified options</returns>
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
@@ -317,7 +317,7 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (ROS.ProcessName == "devenv")
                 return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
