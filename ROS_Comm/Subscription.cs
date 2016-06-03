@@ -381,12 +381,12 @@ namespace Ros_CSharp
         internal ulong handleMessage(IRosMessage msg, bool ser, bool nocopy, IDictionary connection_header,
             PublisherLink link)
         {
+            IRosMessage t = null;
+            ulong drops = 0;
+            TimeData receipt_time = ROS.GetTime().data;
+            msg.Deserialize(msg.Serialized);
             lock (callbacks_mutex)
             {
-                IRosMessage t = null;
-                ulong drops = 0;
-                TimeData receipt_time = ROS.GetTime().data;
-                msg.Deserialize(msg.Serialized);
                 foreach (ICallbackInfo info in callbacks)
                 {
                     MsgTypes ti = info.helper.type;
@@ -404,24 +404,24 @@ namespace Ros_CSharp
                             info.callback.addCallback(info.subscription_queue, info.Get());
                     }
                 }
-
-                if (t != null && link.Latched)
-                {
-                    LatchInfo li = new LatchInfo
-                    {
-                        message = t,
-                        link = link,
-                        connection_header = connection_header,
-                        receipt_time = receipt_time
-                    };
-                    if (latched_messages.ContainsKey(link))
-                        latched_messages[link] = li;
-                    else
-                        latched_messages.Add(link, li);
-                }
-
-                return drops;
             }
+
+            if (t != null && link.Latched)
+            {
+                LatchInfo li = new LatchInfo
+                {
+                    message = t,
+                    link = link,
+                    connection_header = connection_header,
+                    receipt_time = receipt_time
+                };
+                if (latched_messages.ContainsKey(link))
+                    latched_messages[link] = li;
+                else
+                    latched_messages.Add(link, li);
+            }
+
+            return drops;
         }
 
         public void Dispose()
