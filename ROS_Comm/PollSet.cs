@@ -13,7 +13,9 @@
 #region USINGZ
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -23,43 +25,33 @@ using Socket = Ros_CSharp.CustomSocket.Socket;
 
 namespace Ros_CSharp
 {
-    public class PollSet : IDisposable
+    public class PollSet : Poll_Signal
     {
+        private static Dictionary<uint, CustomSocket.Socket> socks = new Dictionary<uint, CustomSocket.Socket>();
         #region Delegates
 
         public delegate void SocketUpdateFunc(int stufftodo);
 
         #endregion
 
-        public AutoResetEvent signal_mutex = new AutoResetEvent(true);
-
-        public PollSet()
+        public PollSet() : base(null)
         {
+            base.Op = update;
         }
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
+        public new void Dispose()
         {
-            signal_mutex.WaitOne();
-            if (DisposingEvent != null)
-                DisposingEvent();
-            signal_mutex.Set();
+            base.Dispose();
+            DisposingEvent?.Invoke();
         }
 
         public delegate void DisposingDelegate();
 
         public event DisposingDelegate DisposingEvent;
-
-        public void signal()
-        {
-            if (signal_mutex.WaitOne(0))
-            {
-                signal_mutex.Set();
-            }
-        }
-
+        
         public bool addSocket(Socket s, SocketUpdateFunc update_func)
         {
             return addSocket(s, update_func, null);
@@ -67,46 +59,41 @@ namespace Ros_CSharp
 
         public bool addSocket(Socket s, SocketUpdateFunc update_func, TcpTransport trans)
         {
-            s.Info = new SocketInfo {sock = s.FD, func = update_func, transport = trans};
-            signal();
+            s.Info = new SocketInfo { sock = s.FD, func = update_func, transport = trans };
+            lock (socks)
+                socks.Add(s.FD, s);
             return true;
         }
 
         public bool delSocket(Socket s)
         {
+            lock (socks)
+                socks.Remove(s.FD);
             s.Dispose();
-            signal();
             return true;
         }
 
-        public bool addEvents(uint s, int events)
+        public bool addEvents(Socket s, int events)
         {
-            Socket.Get(s).Info.events |= events;
-            signal();
+            s.Info.events |= events;
+            s.signal();
             return true;
         }
 
-        public bool delEvents(uint sock, int events)
+        public bool delEvents(Socket s, int events)
         {
-            Socket.Get(sock).Info.events &= ~events;
-            signal();
+            s.Info.events &= ~events;
+            s.signal();
             return true;
         }
 
-        public void update(int poll_timeout)
+        public void update()
         {
-            Socket.Poll(poll_timeout);
-        }
-
-#if !TRACE
-        [DebuggerStepThrough]
-#endif
-        public override string ToString()
-        {
-            string s = "";
-            s = Socket.FDs;
-            s = s.Remove(s.Length - 3, 2);
-            return s;
+            lock (socks)
+                foreach (Socket s in socks.Values)
+                {
+                    s.signal();
+                }
         }
     }
 
@@ -114,7 +101,6 @@ namespace Ros_CSharp
     {
         public int events;
         public PollSet.SocketUpdateFunc func;
-        internal AutoResetEvent poll_mutex = new AutoResetEvent(true);
         public int revents;
         public uint sock;
         public TcpTransport transport;

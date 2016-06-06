@@ -36,11 +36,13 @@ namespace Ros_CSharp
         {
             get
             {
-                lock (singleton_init_mutex)
-                {
-                    if (_instance == null) _instance = new RosOutAppender();
-                    return _instance;
-                }
+                if (_instance == null)
+                    lock (singleton_init_mutex)
+                    {
+                        if (_instance == null)
+                            _instance = new RosOutAppender();
+                    }
+                return _instance;
             }
         }
 

@@ -27,32 +27,21 @@ namespace Ros_CSharp.CustomSocket
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class Socket : IDisposable
+    public class Socket : Poll_Signal
     {
         private ns.Socket realsocket;
-        private Action<int> PollSignal;
-        private static Dictionary<uint, Socket> _socklist = new Dictionary<uint, Socket>();
-        private static uint nextfakefd = 1;
         private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
+        private volatile static uint nextfakefd;
 
         private string attemptedConnectionEndpoint;
         private bool disposed = true;
-
-        public static Dictionary<uint, Socket> AllOfThem
-        {
-            get { return _socklist; }
-        }
-
-        public Socket(ns.Socket sock)
+        
+        public Socket(ns.Socket sock) : base(null)
         {
             realsocket = sock;
-            PollSignal = _poll;
-            lock (_socklist)
-            {
-                disposed = false;
-                _socklist.Add(FD, this);
-            }
+            disposed = false;
+            ManualOp = _poll;
         }
 
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
@@ -64,17 +53,6 @@ namespace Ros_CSharp.CustomSocket
         public bool IsDisposed
         {
             get { return disposed; }
-        }
-
-        public static string FDs
-        {
-            get
-            {
-                string s = "";
-                lock (_socklist)
-                    _socklist.Values.Aggregate(s, (current, si) => current + ("" + si.FD + ", "));
-                return s;
-            }
         }
 
         public uint FD
@@ -266,26 +244,6 @@ namespace Ros_CSharp.CustomSocket
             realsocket.Shutdown(sd);
         }
 
-        public static Socket Get(uint fd)
-        {
-            lock (_socklist)
-            {
-                if (_socklist == null || !_socklist.ContainsKey(fd))
-                    return null;
-                return _socklist[fd];
-            }
-        }
-
-        private static void remove(uint fd)
-        {
-            lock (_socklist)
-            {
-                if (_socklist == null || !_socklist.ContainsKey(fd))
-                    return;
-                _socklist.Remove(fd);
-            }
-        }
-
         public bool SafePoll(int timeout, ns.SelectMode sm)
         {
             bool res = false;
@@ -327,11 +285,10 @@ namespace Ros_CSharp.CustomSocket
         public const int POLLNVAL = 0x020;
         public const int POLLIN = 0x001;
         public const int POLLOUT = 0x004;
+        private int poll_timeout = 10;
 
-        private void _poll(int poll_timeout)
+        internal void _poll()
         {
-            if (Info == null || !Info.poll_mutex.WaitOne(poll_timeout)) return;
-            if (realsocket.ProtocolType == ns.ProtocolType.Udp && poll_timeout == 0) poll_timeout = 1;
             if (!realsocket.Connected || disposed)
             {
                 Info.revents |= POLLHUP;
@@ -347,10 +304,8 @@ namespace Ros_CSharp.CustomSocket
             }
             if (Info.revents == 0)
             {
-                Info.poll_mutex.Set();
                 return;
             }
-
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
                  (Info.revents & POLLNVAL) != 0))
@@ -364,34 +319,15 @@ namespace Ros_CSharp.CustomSocket
 
                 if (!skip)
                 {
-                    //func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
-                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), Info.func.EndInvoke, Info);
+                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), Info.func.EndInvoke, null);
                 }
             }
             Info.revents = 0;
-            Info.poll_mutex.Set();
-        }
-
-        private void _pollAsyncComplete(IAsyncResult iar)
-        {
-            PollSignal.EndInvoke(iar);
-        }
-
-        public static void Poll(int poll_timeout)
-        {
-            DateTime begin = DateTime.Now;
-            lock (_socklist)
-                foreach (Socket s in _socklist.Values)
-                    s.PollSignal.BeginInvoke(poll_timeout, s._pollAsyncComplete, null);
-            DateTime end = DateTime.Now;
-            double difference = 1.0 * poll_timeout - (end.Subtract(begin).TotalMilliseconds);
-            if (difference > 0)
-                Thread.Sleep((int)difference);
         }
 
         public SocketInfo Info = null;
 
-        public void Dispose()
+        public new void Dispose()
         {
             lock (this)
             {
@@ -401,13 +337,13 @@ namespace Ros_CSharp.CustomSocket
                     EDB.WriteLine("Killing socket w/ FD=" + _fakefd + (attemptedConnectionEndpoint == null ? "" : "\tTO REMOTE HOST\t" + attemptedConnectionEndpoint));
 #endif
                     disposed = true;
-                    remove(_fakefd);
                     _freelist.Add(_fakefd);
                     _fakefd = 0;
                     realsocket.Close();
                     realsocket = null;
                 }
             }
+            base.Dispose();
         }
     }
 }

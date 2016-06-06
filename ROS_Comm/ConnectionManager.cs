@@ -37,8 +37,6 @@ namespace Ros_CSharp
         private object connections_mutex = new object();
         private List<Connection> dropped_connections = new List<Connection>();
         private object dropped_connections_mutex = new object();
-        public PollManager.Poll_Signal poll_conn;
-        public PollManager poll_manager;
 #if TCPSERVER
         public TcpListener tcpserver_transport;
 #else
@@ -153,7 +151,7 @@ namespace Ros_CSharp
                 tcpserver_transport = null;
 #endif
             }
-            poll_manager.removePollThreadListener(poll_conn);
+            PollManager.Instance.removePollThreadListener(removeDroppedConnections);
 
             Clear(Connection.DropReason.Destructing);
         }
@@ -202,7 +200,7 @@ namespace Ros_CSharp
 #else
                     accept()
 #endif
-                    , poll_manager.poll_set));
+                    , PollManager.Instance.poll_set));
             }
         }
 
@@ -211,9 +209,7 @@ namespace Ros_CSharp
 
         public void Start()
         {
-            poll_manager = PollManager.Instance;
-            poll_conn = removeDroppedConnections;
-            poll_manager.addPollThreadListener(poll_conn);
+            PollManager.Instance.addPollThreadListener(removeDroppedConnections);
 
 #if TCPSERVER
             tcpserver_transport = new TcpListener(IPAddress.Any, network.tcpros_server_port);
