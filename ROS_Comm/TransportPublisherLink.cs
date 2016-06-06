@@ -60,17 +60,14 @@ namespace Ros_CSharp
             if (connection.transport.getRequiresHeader())
             {
                 connection.setHeaderReceivedCallback(onHeaderReceived);
-
-                lock (parent)
-                {
-                    IDictionary header = new Hashtable();
-                    header["topic"] = parent.name;
-                    header["md5sum"] = parent.md5sum;
-                    header["callerid"] = this_node.Name;
-                    header["type"] = parent.datatype;
-                    header["tcp_nodelay"] = "1";
-                    connection.writeHeader(header, onHeaderWritten);
-                }
+                
+                IDictionary header = new Hashtable();
+                header["topic"] = parent.name;
+                header["md5sum"] = parent.md5sum;
+                header["callerid"] = this_node.Name;
+                header["type"] = parent.datatype;
+                header["tcp_nodelay"] = "1";
+                connection.writeHeader(header, onHeaderWritten);
             }
             else
             {

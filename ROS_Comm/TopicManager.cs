@@ -312,31 +312,19 @@ namespace Ros_CSharp
             return true;
         }
 
-        public int getNumPublishers(string topic)
+        internal Subscription getSubscription(string topic)
         {
             lock (subs_mutex)
             {
-                if (shutting_down) return 0;
+                if (shutting_down) return null;
 
                 foreach (Subscription t in subscriptions)
                 {
                     if (!t.IsDropped && t.name == topic)
-                        return t.NumPublishers;
+                        return t;
                 }
             }
-            return 0;
-        }
-
-        public int getNumSubscribers(string topic)
-        {
-            lock (advertised_topics_mutex)
-            {
-                if (shutting_down) return 0;
-                Publication p = lookupPublicationWithoutLock(topic);
-                if (p != null)
-                    return p.NumSubscribers;
-                return 0;
-            }
+            return null;
         }
 
         public int getNumSubscriptions()

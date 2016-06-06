@@ -464,7 +464,7 @@ namespace Ros_CSharp
                                 {
                                     LatchInfo latch_info = latched_messages[link];
                                     bool was_full = false;
-                                    bool nonconst_need_copy = false; //callbacks.Count > 1;
+                                    bool nonconst_need_copy = callbacks.Count > 1;
                                     info.subscription_queue.pushitgood(info.helper, latched_messages[link].message, nonconst_need_copy, ref was_full, ROS.GetTime().data);
                                     if (!was_full)
                                         info.callback.addCallback(info.subscription_queue, info.Get());

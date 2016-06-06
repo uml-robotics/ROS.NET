@@ -27,9 +27,9 @@ namespace Ros_CSharp.CustomSocket
 #if !TRACE
     [DebuggerStepThrough]
 #endif
-    public class Socket : Poll_Signal
+    public class Socket : IDisposable
     {
-        private ns.Socket realsocket;
+        internal ns.Socket realsocket { get; private set; }
         private static List<uint> _freelist = new List<uint>();
         private uint _fakefd;
         private volatile static uint nextfakefd;
@@ -37,11 +37,10 @@ namespace Ros_CSharp.CustomSocket
         private string attemptedConnectionEndpoint;
         private bool disposed = true;
         
-        public Socket(ns.Socket sock) : base(null)
+        public Socket(ns.Socket sock)
         {
             realsocket = sock;
             disposed = false;
-            ManualOp = _poll;
         }
 
         public Socket(ns.AddressFamily addressFamily, ns.SocketType socketType, ns.ProtocolType protocolType)
@@ -287,7 +286,7 @@ namespace Ros_CSharp.CustomSocket
         public const int POLLOUT = 0x004;
         private int poll_timeout = 10;
 
-        internal void _poll()
+        internal void _poll(int POLLFLAGS)
         {
             if (!realsocket.Connected || disposed)
             {
@@ -295,12 +294,7 @@ namespace Ros_CSharp.CustomSocket
             }
             else
             {
-                if (SafePoll(poll_timeout, ns.SelectMode.SelectError))
-                    Info.revents |= POLLERR;
-                if (SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
-                    Info.revents |= POLLOUT;
-                if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
-                    Info.revents |= POLLIN;
+                Info.revents |= POLLFLAGS;
             }
             if (Info.revents == 0)
             {
@@ -319,15 +313,35 @@ namespace Ros_CSharp.CustomSocket
 
                 if (!skip)
                 {
-                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), Info.func.EndInvoke, null);
+                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL),Info.func.EndInvoke,null);
                 }
             }
             Info.revents = 0;
         }
 
+
+        internal void _poll()
+        {
+            int revents = 0;
+            if (!realsocket.Connected || disposed)
+            {
+                revents |= POLLHUP;
+            }
+            else
+            {
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectError))
+                    revents |= POLLERR;
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectWrite))
+                    revents |= POLLOUT;
+                if (SafePoll(poll_timeout, ns.SelectMode.SelectRead))
+                    revents |= POLLIN;
+            }
+            _poll(revents);
+        }
+
         public SocketInfo Info = null;
 
-        public new void Dispose()
+        public void Dispose()
         {
             lock (this)
             {
@@ -343,7 +357,6 @@ namespace Ros_CSharp.CustomSocket
                     realsocket = null;
                 }
             }
-            base.Dispose();
         }
     }
 }

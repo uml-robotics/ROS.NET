@@ -290,61 +290,62 @@ namespace Ros_CSharp
 
                 if (read_buffer == null || callback == null)
                     throw new Exception("YOU SUCK!");
-
-                lock (read_callback_mutex)
+                
+                uint to_read = read_size - read_filled;
+                if (to_read > 0)
                 {
-                    uint to_read = read_size - read_filled;
-                    if (to_read > 0)
-                    {
-                        int bytes_read = transport.read(read_buffer, read_filled, to_read);
-                        if (dropped)
-                        {
-                            if (read_callback == null)
-                                transport.disableRead();
-                            lock (read_mutex)
-                                reading = false;
-                            return;
-                        }
-                        if (bytes_read < 0)
-                        {
-                            read_callback = null;
-                            byte[] buffer = read_buffer;
-                            read_buffer = null;
-                            size = read_size;
-                            read_size = 0;
-                            read_filled = 0;
-                            callback.BeginInvoke(this, buffer, size, false, readTransportComplete, callback);
-                            return;
-                        }
-                        callback = read_callback;
-                        read_filled += (uint) bytes_read;
-                    }
-                    else
+                    int bytes_read = transport.read(read_buffer, read_filled, to_read);
+                    if (dropped)
                     {
                         if (read_callback == null)
                             transport.disableRead();
                         lock (read_mutex)
                             reading = false;
-                        break;
+                        return;
                     }
-                    if (read_filled == read_size && !dropped)
+                    if (bytes_read < 0)
                     {
-                        size = read_size;
+                        read_callback = null;
                         byte[] buffer = read_buffer;
                         read_buffer = null;
-                        read_callback = null;
+                        size = read_size;
                         read_size = 0;
-                        callback.BeginInvoke(this, buffer, size, true, readTransportComplete, callback);
-                        callback = read_callback;
+                        read_filled = 0;
+                        callback.BeginInvoke(this, buffer, size, false, readTransportComplete, callback);
+                        return;
                     }
-                    else
-                    {
+                    lock(read_callback)
+                        callback = read_callback;
+                    read_filled += (uint) bytes_read;
+                }
+                else
+                {
+                    lock(read_callback_mutex)
                         if (read_callback == null)
                             transport.disableRead();
-                        lock (read_mutex)
-                            reading = false;
-                        break;
-                    }
+                    lock (read_mutex)
+                        reading = false;
+                    break;
+                }
+                if (read_filled == read_size && !dropped)
+                {
+                    size = read_size;
+                    byte[] buffer = read_buffer;
+                    read_buffer = null;
+                    lock (read_callback_mutex)
+                        read_callback = null;
+                    read_size = 0;
+                    callback.BeginInvoke(this, buffer, size, true, readTransportComplete, callback);
+                    callback = null;
+                }
+                else
+                {
+                    lock(read_callback_mutex)
+                        if (read_callback == null)
+                            transport.disableRead();
+                    lock (read_mutex)
+                        reading = false;
+                    break;
                 }
             }
         }

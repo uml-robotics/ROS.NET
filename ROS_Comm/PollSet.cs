@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace Ros_CSharp
 {
     public class PollSet : Poll_Signal
     {
-        private static Dictionary<uint, CustomSocket.Socket> socks = new Dictionary<uint, CustomSocket.Socket>();
+        private static Dictionary<uint, CustomSocket.Socket> socks = new Dictionary<uint,CustomSocket.Socket>();
         #region Delegates
 
         public delegate void SocketUpdateFunc(int stufftodo);
@@ -76,24 +77,52 @@ namespace Ros_CSharp
         public bool addEvents(Socket s, int events)
         {
             s.Info.events |= events;
-            s.signal();
             return true;
         }
 
         public bool delEvents(Socket s, int events)
         {
             s.Info.events &= ~events;
-            s.signal();
             return true;
         }
 
         public void update()
         {
+            ArrayList checkWrite = new ArrayList();
+            ArrayList checkRead = new ArrayList();
+            ArrayList checkError = new ArrayList();
+            List<Socket> lsocks = new List<Socket>();
             lock (socks)
                 foreach (Socket s in socks.Values)
                 {
-                    s.signal();
+                    lsocks.Add(s);
+                    if ((s.Info.events & Socket.POLLIN) != 0)
+                        checkRead.Add(s.realsocket);
+                    if ((s.Info.events & Socket.POLLOUT) != 0)
+                        checkWrite.Add(s.realsocket);
+                    if ((s.Info.events & (Socket.POLLERR | Socket.POLLHUP | Socket.POLLNVAL)) != 0)
+                        checkError.Add(s.realsocket);
                 }
+            if (lsocks.Count == 0 || (checkRead.Count == 0 && checkWrite.Count == 0 && checkError.Count == 0))
+                return;
+            System.Net.Sockets.Socket.Select(checkRead, checkWrite, checkError, -1);
+            int nEvents = checkRead.Count + checkWrite.Count + checkError.Count;
+
+            if (nEvents == 0)
+                return;
+
+            // Process events
+            foreach (var record in lsocks)
+            {
+                int newmask = 0;
+                if (checkRead.Contains(record.realsocket))
+                    newmask |= Socket.POLLIN;
+                if (checkWrite.Contains(record.realsocket))
+                    newmask |= Socket.POLLOUT;
+                if (checkError.Contains(record.realsocket))
+                    newmask |= Socket.POLLERR;
+                record._poll(newmask);
+            }
         }
     }
 

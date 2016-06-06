@@ -27,7 +27,7 @@ namespace Ros_CSharp
         /// <param name="topic">Topic name to subscribe to</param>
         /// <param name="nodeHandle">nodehandle</param>
         /// <param name="cb">callback function to be fired when message is received</param>
-        public Subscriber(string topic, NodeHandle nodeHandle, ISubscriptionCallbackHelper cb)
+        public Subscriber(string topic, NodeHandle nodeHandle, ISubscriptionCallbackHelper cb) : base(topic)
         {
             // TODO: Complete member initialization
             this.topic = topic;
@@ -39,7 +39,7 @@ namespace Ros_CSharp
         ///     Deep Copy of a subscriber
         /// </summary>
         /// <param name="s">Subscriber to copy</param>
-        public Subscriber(Subscriber<M> s)
+        public Subscriber(Subscriber<M> s) : base(s.topic)
         {
             topic = s.topic;
             nodehandle = new NodeHandle(s.nodehandle);
@@ -49,7 +49,7 @@ namespace Ros_CSharp
         /// <summary>
         ///     Creates a ROS subscriber
         /// </summary>
-        public Subscriber()
+        public Subscriber() : base(null)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Ros_CSharp
             get
             {
                 if (IsValid)
-                    return TopicManager.Instance.getNumPublishers(topic);
+                    return subscription.NumPublishers;
                 return 0;
             }
         }
@@ -77,9 +77,19 @@ namespace Ros_CSharp
 
     public class ISubscriber
     {
+        protected ISubscriber(string topic)
+        {
+            if (topic !=null)
+            {
+                this.topic = topic;
+                subscription = TopicManager.Instance.getSubscription(topic);
+            }
+        }
+
         public double constructed = DateTime.Now.Subtract(Process.GetCurrentProcess().StartTime).Ticks;
         public ISubscriptionCallbackHelper helper;
         public NodeHandle nodehandle;
+        protected Subscription subscription;
         public string topic = "";
         public bool unsubscribed;
 
