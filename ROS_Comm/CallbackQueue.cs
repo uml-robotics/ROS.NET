@@ -37,7 +37,7 @@ namespace Ros_CSharp
         private bool enabled;
         public Dictionary<UInt64, IDInfo> id_info = new Dictionary<UInt64, IDInfo>();
         private object id_info_mutex = new object();
-        private Semaphore sem = new Semaphore(0, int.MaxValue);
+        private AutoResetEvent sem = new AutoResetEvent(false);
         public TLS tls;
 
         public bool IsEmpty
@@ -70,27 +70,12 @@ namespace Ros_CSharp
 
         internal void notify_all()
         {
-            int sizeafter = 0;
-            try
-            {
-                sizeafter = sem.Release(1);
-                if (int.MaxValue - sizeafter - 1 > 0)
-                    sem.Release(int.MaxValue - sizeafter - 1);
-            }
-            catch (System.Threading.SemaphoreFullException e)
-            {
-            }
+            sem.Set();
         }
 
         internal void notify_one()
         {
-            try
-            {
-                sem.Release(1);
-            }
-            catch (System.Threading.SemaphoreFullException e)
-            {
-            }
+            sem.Set();
         }
 
         public IDInfo getIDInfo(UInt64 id)
@@ -222,53 +207,6 @@ namespace Ros_CSharp
             return CallOneResult.Called;
         }
 
-        public CallOneResult callOne()
-        {
-            return callOne(ROS.WallDuration);
-        }
-
-        public CallOneResult callOne(int timeout)
-        {
-            setupTLS();
-            ICallbackInfo cbinfo = null;
-            if (!enabled) return CallOneResult.Disabled;
-            if (Count == 0 && timeout != 0)
-            {
-                if (!sem.WaitOne(timeout, false))
-                {
-                    if (Count == 0) return CallOneResult.Empty;
-                    if (!enabled) return CallOneResult.Disabled;
-                }
-            }
-            for (int i = 0; i < callbacks.Count; i++)
-            {
-                ICallbackInfo info = callbacks[i];
-                if (info.marked_for_removal)
-                {
-                    callbacks.RemoveAt(--i);
-                    Count--;
-                    continue;
-                }
-                if (info.Callback.ready())
-                {
-                    cbinfo = info;
-                    callbacks.RemoveAt(--i);
-                    Count--;
-                    break;
-                }
-            }
-            sem.Release(1);
-            if (cbinfo != null && cbinfo.Callback == null) return CallOneResult.TryAgain;
-            calling++;
-            tls.enqueue(cbinfo);
-            CallOneResult res = callOneCB(tls);
-            if (res != CallOneResult.Empty)
-            {
-                --calling;
-            }
-            return res;
-        }
-
         public bool callAvailable()
         {
             return callAvailable(ROS.WallDuration);
@@ -299,6 +237,7 @@ namespace Ros_CSharp
                     ++called;
             }
             calling -= called;
+            sem.Set();
             return true;
         }
     }
