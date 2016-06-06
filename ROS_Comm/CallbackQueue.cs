@@ -37,7 +37,6 @@ namespace Ros_CSharp
         private bool enabled;
         public Dictionary<UInt64, IDInfo> id_info = new Dictionary<UInt64, IDInfo>();
         private object id_info_mutex = new object();
-        private object mutex = new object();
         private Semaphore sem = new Semaphore(0, int.MaxValue);
         public TLS tls;
 
@@ -55,10 +54,7 @@ namespace Ros_CSharp
 
         public void Dispose()
         {
-            lock (mutex)
-            {
-                Disable();
-            }
+            Disable();
         }
 
         #endregion
@@ -78,12 +74,11 @@ namespace Ros_CSharp
             try
             {
                 sizeafter = sem.Release(1);
-                sizeafter = sem.Release(int.MaxValue - sizeafter - 1);
+                if (int.MaxValue - sizeafter - 1 > 0)
+                    sem.Release(int.MaxValue - sizeafter - 1);
             }
             catch (System.Threading.SemaphoreFullException e)
             {
-                //no-op
-                System.Diagnostics.Debug.WriteLine(e);
             }
         }
 
@@ -95,8 +90,6 @@ namespace Ros_CSharp
             }
             catch (System.Threading.SemaphoreFullException e)
             {
-                //no-op
-                System.Diagnostics.Debug.WriteLine(e);
             }
         }
 
@@ -114,14 +107,11 @@ namespace Ros_CSharp
         public override void addCallback(CallbackInterface cb, UInt64 owner_id)
         {
             ICallbackInfo info = new ICallbackInfo {Callback = cb, removal_id = owner_id};
-
-            lock (mutex)
-            {
-                if (!enabled)
-                    return;
-                callbacks.Add(info);
-                Count++;
-            }
+            
+            if (!enabled)
+                return;
+            callbacks.Add(info);
+            Count++;
             lock (id_info_mutex)
             {
                 if (!id_info.ContainsKey(owner_id))
@@ -152,11 +142,8 @@ namespace Ros_CSharp
 
         private void removeemall(ulong owner_id)
         {
-            lock (mutex)
-            {
-                callbacks.RemoveAll(ici => ici.removal_id == owner_id);
-                Count = callbacks.Count;
-            }
+            callbacks.RemoveAll(ici => ici.removal_id == owner_id);
+            Count = callbacks.Count;
         }
 
         private void threadFunc()
@@ -176,10 +163,7 @@ namespace Ros_CSharp
 
         public void Enable()
         {
-            lock (mutex)
-            {
-                enabled = true;
-            }
+            enabled = true;
             notify_all();
             if (cbthread == null)
             {
@@ -190,10 +174,7 @@ namespace Ros_CSharp
 
         public void Disable()
         {
-            lock (mutex)
-            {
-                enabled = false;
-            }
+            enabled = false;
             notify_all();
             if (cbthread != null)
             {
@@ -204,11 +185,8 @@ namespace Ros_CSharp
 
         public void Clear()
         {
-            lock (mutex)
-            {
-                callbacks.Clear();
-                Count = 0;
-            }
+            callbacks.Clear();
+            Count = 0;
         }
 
         public CallOneResult callOneCB(TLS tls)
@@ -231,11 +209,8 @@ namespace Ros_CSharp
                     }
                     if (result == CallbackInterface.CallResult.TryAgain && !info.marked_for_removal)
                     {
-                        lock (mutex)
-                        {
-                            callbacks.Add(info);
-                            Count++;
-                        }
+                        callbacks.Add(info);
+                        Count++;
                         return CallOneResult.TryAgain;
                     }
                 }
@@ -256,46 +231,40 @@ namespace Ros_CSharp
         {
             setupTLS();
             ICallbackInfo cbinfo = null;
-            lock (mutex)
+            if (!enabled) return CallOneResult.Disabled;
+            if (Count == 0 && timeout != 0)
             {
-                if (!enabled) return CallOneResult.Disabled;
-                if (Count == 0 && timeout != 0)
+                if (!sem.WaitOne(timeout, false))
                 {
-                    if (!sem.WaitOne(timeout, false))
-                    {
-                        if (Count == 0) return CallOneResult.Empty;
-                        if (!enabled) return CallOneResult.Disabled;
-                    }
+                    if (Count == 0) return CallOneResult.Empty;
+                    if (!enabled) return CallOneResult.Disabled;
                 }
-                for (int i = 0; i < callbacks.Count; i++)
-                {
-                    ICallbackInfo info = callbacks[i];
-                    if (info.marked_for_removal)
-                    {
-                        callbacks.RemoveAt(--i);
-                        Count--;
-                        continue;
-                    }
-                    if (info.Callback.ready())
-                    {
-                        cbinfo = info;
-                        callbacks.RemoveAt(--i);
-                        Count--;
-                        break;
-                    }
-                }
-                sem.Release();
-                if (cbinfo != null && cbinfo.Callback == null) return CallOneResult.TryAgain;
-                calling++;
             }
+            for (int i = 0; i < callbacks.Count; i++)
+            {
+                ICallbackInfo info = callbacks[i];
+                if (info.marked_for_removal)
+                {
+                    callbacks.RemoveAt(--i);
+                    Count--;
+                    continue;
+                }
+                if (info.Callback.ready())
+                {
+                    cbinfo = info;
+                    callbacks.RemoveAt(--i);
+                    Count--;
+                    break;
+                }
+            }
+            sem.Release(1);
+            if (cbinfo != null && cbinfo.Callback == null) return CallOneResult.TryAgain;
+            calling++;
             tls.enqueue(cbinfo);
             CallOneResult res = callOneCB(tls);
             if (res != CallOneResult.Empty)
             {
-                lock (mutex)
-                {
-                    --calling;
-                }
+                --calling;
             }
             return res;
         }
@@ -309,36 +278,27 @@ namespace Ros_CSharp
         {
             setupTLS();
             int called = 0;
-            lock (mutex)
-            {
-                if (!enabled) return false;
-            }
+            if (!enabled) return false;
             if (Count == 0 && timeout != 0)
             {
                 if (!sem.WaitOne(timeout))
                     return true;
             }
-            lock (mutex)
-            {
-                if (Count == 0)
-                    return true;
-                if (!enabled)
-                    return false;
-                callbacks.ForEach(cbi => tls.enqueue(cbi));
-                callbacks.Clear();
-                Count = 0;
-                calling += tls.Count;
-            }
+            if (Count == 0)
+                return true;
+            if (!enabled)
+                return false;
+            callbacks.ForEach(cbi => tls.enqueue(cbi));
+            callbacks.Clear();
+            Count = 0;
+            calling += tls.Count;
 
             while (tls.Count > 0 && ROS.ok)
             {
                 if (callOneCB(tls) != CallOneResult.Empty)
                     ++called;
             }
-            lock (mutex)
-            {
-                calling -= called;
-            }
+            calling -= called;
             return true;
         }
     }
