@@ -161,10 +161,15 @@ namespace Ros_CSharp
 
         private void threadFunc()
         {
+            TimeSpan wallDuration = new TimeSpan(0, 0, 0, 0, ROS.WallDuration);
             while (ROS.ok)
             {
+                DateTime begin = DateTime.Now;
                 if (!callAvailable(ROS.WallDuration))
                     break;
+                DateTime end = DateTime.Now;
+                if (wallDuration.Subtract(end.Subtract(begin)).Ticks > 0)
+                    Thread.Sleep(wallDuration.Subtract(end.Subtract(begin)));
             }
             EDB.WriteLine("CallbackQueue thread broke out!");
         }
