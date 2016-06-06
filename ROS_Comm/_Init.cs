@@ -555,6 +555,7 @@ namespace Ros_CSharp
         /// <summary>
         ///     Hang the current thread until ROS shuts down
         /// </summary>
+        [DebuggerStepThrough]
         public static void waitForShutdown()
         {
             while (_ok)
@@ -573,7 +574,6 @@ namespace Ros_CSharp
                 if (started) return;
 
                 PollManager.Instance.addPollThreadListener(checkForShutdown);
-
                 XmlRpcManager.Instance.bind("shutdown", shutdownCallback);
                 //initInternalTimerManager();
                 TopicManager.Instance.Start();
