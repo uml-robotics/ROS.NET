@@ -10,7 +10,7 @@
 // Created: 04/28/2015
 // Updated: 02/10/2016
 
-#define TCPSERVER
+//#define TCPSERVER
 
 #region USINGZ
 
@@ -22,6 +22,7 @@ using System.Net.Sockets;
 using m = Messages.std_msgs;
 using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
+using System.Threading;
 
 #endregion
 
@@ -140,7 +141,9 @@ namespace Ros_CSharp
 
         public void shutdown()
         {
+#if TCPSERVER
             acceptor.Stop();
+#endif
             if (tcpserver_transport != null)
             {
 #if TCPSERVER
@@ -216,23 +219,10 @@ namespace Ros_CSharp
             tcpserver_transport.Start(10);
             acceptor = ROS.timer_manager.StartTimer(CheckAndAccept, 100, 100);
 #else
-            tcpserver_transport = new TcpTransport(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), poll_manager.poll_set);
-            new Thread(() =>
-                {
-                    while (true)
-                    {
-                        bool diedinfire;
-                        lock (fierydeathmutex)
-                            diedinfire = _diaf;
-                        if (diedinfire) break;
-                        TcpTransport newguy = tcpserver_transport.accept();
-                        if (newguy != null)
-                            tcpRosAcceptConnection(newguy);
-                        else
-                            Thread.Sleep(90);
-                        Thread.Sleep(10);
-                    }
-                }).Start();
+            tcpserver_transport = new TcpTransport(PollManager.Instance.poll_set);
+            tcpserver_transport.listen(network.tcpros_server_port, 10, (t)=> {
+                tcpRosAcceptConnection(t.accept());
+            });
 #endif
         }
     }
