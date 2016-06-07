@@ -1,4 +1,4 @@
-﻿// File: XmlRpcManager.cs
+// File: XmlRpcManager.cs
 // Project: ROS_C-Sharp
 // 
 // ROS.NET
@@ -468,10 +468,8 @@ namespace Ros_CSharp
         public void Dispose()
         {
             lock (busyMutex)
-            {
-                if (refs != 0)
-                    throw new Exception("XmlRpcClient disposed while in use!");
-            }
+            	if (refs != 0)
+                	EDB.WriteLine("warning: XmlRpcClient disposed with "+refs+" refs held");
             if (client != null)
             {
                 client.Dispose();
