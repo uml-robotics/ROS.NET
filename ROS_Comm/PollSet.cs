@@ -76,13 +76,15 @@ namespace Ros_CSharp
 
         public bool addEvents(Socket s, int events)
         {
-            s.Info.events |= events;
+            if (s != null && s.Info != null)
+                s.Info.events |= events;
             return true;
         }
 
         public bool delEvents(Socket s, int events)
         {
-            s.Info.events &= ~events;
+            if (s != null && s.Info != null)
+                s.Info.events &= ~events;
             return true;
         }
 

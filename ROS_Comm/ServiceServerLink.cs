@@ -224,28 +224,30 @@ namespace Ros_CSharp
             //yield
         }
 
-        private void onHeaderWritten(Connection conn)
+        private bool onHeaderWritten(Connection conn)
         {
             header_written = true;
+            return true;
         }
 
-        private void onRequestWritten(Connection conn)
+        private bool onRequestWritten(Connection conn)
         {
             connection.read(5, onResponseOkAndLength);
+            return true;
         }
 
-        private void onResponseOkAndLength(Connection conn, byte[] buf, uint size, bool success)
+        private bool onResponseOkAndLength(Connection conn, byte[] buf, uint size, bool success)
         {
             if (conn != connection || size != 5)
                 throw new Exception("response or length NOT OK!");
-            if (!success) return;
+            if (!success) return false;
             byte ok = buf[0];
             uint len = BitConverter.ToUInt32(buf, 1);
             if (len > 1000000000)
             {
                 ROS.Error("GIGABYTE IS TOO BIIIIG");
                 connection.drop(Connection.DropReason.Destructing);
-                return;
+                return false;
             }
             lock (call_queue_mutex)
             {
@@ -261,13 +263,14 @@ namespace Ros_CSharp
                 byte[] f = new byte[0];
                 onResponse(conn, f, 0, true);
             }
+            return true;
         }
 
-        private void onResponse(Connection conn, byte[] buf, uint size, bool success)
+        private bool onResponse(Connection conn, byte[] buf, uint size, bool success)
         {
             if (conn != connection) throw new Exception("WRONG CONNECTION");
 
-            if (!success) return;
+            if (!success) return false;
             lock (call_queue_mutex)
             {
                 if (current_call.success)
@@ -281,6 +284,7 @@ namespace Ros_CSharp
             }
 
             callFinished();
+            return true;
         }
 
         public bool call(IRosService srv)
