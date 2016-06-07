@@ -54,7 +54,7 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
-            //EDB.WriteLine("Init transport publisher link: " + parent.name);
+            EDB.WriteLine("Init transport publisher link: " + parent.name);
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -119,6 +119,7 @@ namespace Ros_CSharp
 
         private bool onHeaderReceived(Connection conn, Header header)
         {
+            ScopedTimer.Ping();
             if (conn != connection)
                 return false;
             if (!setHeader(header))
@@ -139,37 +140,43 @@ namespace Ros_CSharp
             m.connection_header = getHeader().Values;
             if (parent != null)
                 stats.drops += parent.handleMessage(m, ser, nocopy, connection.header.Values, this);
+            else
+                Console.WriteLine("merrr?");
         }
 
-        private void onHeaderWritten(Connection conn)
+        private bool onHeaderWritten(Connection conn)
         {
-            //do nothing
+            return true;
         }
 
-        private void onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
+        private bool onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
         {
+            ScopedTimer.Ping();
             if (retry_timer != null)
                 ROS.timer_manager.RemoveTimer(ref retry_timer);
             if (!success)
             {
                 if (connection != null)
                     connection.read(4, onMessageLength);
-                return;
+                return true;
             }
-            if (conn != connection || size != 4) return;
+            if (conn != connection || size != 4)
+                return false;
             uint len = BitConverter.ToUInt32(buffer, 0);
             if (len > 1000000000)
             {
                 EDB.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
                 drop();
-                return;
+                return false;
             }
             connection.read(len, onMessage);
+            return true;
         }
 
-        private void onMessage(Connection conn, byte[] buffer, uint size, bool success)
+        private bool onMessage(Connection conn, byte[] buffer, uint size, bool success)
         {
-            if (!success || conn == null || conn != connection) return;
+            ScopedTimer.Ping();
+            if (!success || conn == null || conn != connection) return false;
             if (success)
             {
                 IRosMessage msg = IRosMessage.generate(parent.msgtype);
@@ -179,6 +186,7 @@ namespace Ros_CSharp
             }
             if (success || !connection.transport.getRequiresHeader())
                 connection.read(4, onMessageLength);
+            return true;
         }
 
         private void onRetryTimer(object o)

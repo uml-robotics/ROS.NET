@@ -125,6 +125,7 @@
     <Compile Include="ConnectionManager.cs" />
     <Compile Include="MessageAndSerializerFunc.cs" />
     <Compile Include="RemappingHelper.cs" />
+    <Compile Include="ScopedTimer.cs" />
     <Compile Include="ServiceClientLink.cs" />
     <Compile Include="LocalSubscriberLink.cs" />
     <Compile Include="LocalPublisherLink.cs" />

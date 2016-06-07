@@ -288,7 +288,7 @@ namespace Ros_CSharp.CustomSocket
 
         internal void _poll(int POLLFLAGS)
         {
-            if (!realsocket.Connected || disposed)
+            if (realsocket == null || !realsocket.Connected || disposed)
             {
                 Info.revents |= POLLHUP;
             }
@@ -302,18 +302,19 @@ namespace Ros_CSharp.CustomSocket
             }
             if (Info.func != null &&
                 ((Info.events & Info.revents) != 0 || (Info.revents & POLLERR) != 0 || (Info.revents & POLLHUP) != 0 ||
-                 (Info.revents & POLLNVAL) != 0))
+                    (Info.revents & POLLNVAL) != 0))
             {
                 bool skip = false;
                 if ((Info.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0)
                 {
-                    if (disposed || !realsocket.Connected)
+                    if (realsocket == null || disposed || !realsocket.Connected)
                         skip = true;
                 }
 
                 if (!skip)
                 {
-                    Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL),Info.func.EndInvoke,null);
+                    //Info.func.BeginInvoke(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL), Info.func.EndInvoke, null);
+                    Info.func(Info.revents & (Info.events | POLLERR | POLLHUP | POLLNVAL));
                 }
             }
             Info.revents = 0;

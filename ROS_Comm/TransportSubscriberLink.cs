@@ -137,16 +137,18 @@ namespace Ros_CSharp
             }
         }
 
-        private void onHeaderWritten(Connection conn)
+        private bool onHeaderWritten(Connection conn)
         {
             header_written = true;
             startMessageWrite(true);
+            return true;
         }
 
-        private void onMessageWritten(Connection conn)
+        private bool onMessageWritten(Connection conn)
         {
             writing_message = false;
             startMessageWrite(true);
+            return true;
         }
 
         private void startMessageWrite(bool immediate_write)

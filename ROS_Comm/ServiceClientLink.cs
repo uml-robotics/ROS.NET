@@ -128,9 +128,9 @@ namespace Ros_CSharp
         }
 
 
-        public virtual void onRequestLength(Connection conn, byte[] buffer, uint size, bool success)
+        public virtual bool onRequestLength(Connection conn, byte[] buffer, uint size, bool success)
         {
-            if (!success) return;
+            if (!success) return false;
 
             if (conn != connection || size != 4)
                 throw new Exception("Invalid request length read");
@@ -140,14 +140,15 @@ namespace Ros_CSharp
             {
                 ROS.Error("A message over a gigabyte was predicted... stop... being... bad.");
                 connection.drop(Connection.DropReason.Destructing);
-                return;
+                return false;
             }
             connection.read(len, onRequest);
+            return true;
         }
 
-        public virtual void onRequest(Connection conn, byte[] buffer, uint size, bool success)
+        public virtual bool onRequest(Connection conn, byte[] buffer, uint size, bool success)
         {
-            if (!success) return;
+            if (!success) return false;
             if (conn != connection)
                 throw new Exception("WRONG CONNECTION!");
 
@@ -155,15 +156,18 @@ namespace Ros_CSharp
                 lock (parent)
                 {
                     parent.processRequest(ref buffer, size, this);
+                    return true;
                 }
+            return false;
         }
 
-        public virtual void onHeaderWritten(Connection conn)
+        public virtual bool onHeaderWritten(Connection conn)
         {
             connection.read(4, onRequestLength);
+            return true;
         }
 
-        public virtual void onResponseWritten(Connection conn)
+        public virtual bool onResponseWritten(Connection conn)
         {
             if (conn != connection)
                 throw new Exception("WRONG CONNECTION!");
@@ -172,6 +176,7 @@ namespace Ros_CSharp
                 connection.read(4, onRequestLength);
             else
                 connection.drop(Connection.DropReason.Destructing);
+            return true;
         }
     }
 }

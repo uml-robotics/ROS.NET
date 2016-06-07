@@ -102,8 +102,12 @@ namespace Ros_CSharp
             {
                 poll_set = pollset;
                 poll_set.DisposingEvent += close;
-                this.flags = flags;
             }
+            else
+            {
+                throw new Exception("Null pollset iin tcptransport ctor");
+            }
+            this.flags = flags;
         }
 
         public string ClientURI
@@ -169,7 +173,8 @@ namespace Ros_CSharp
         {
             if (sock == null)
                 throw new Exception("TcpTransport: Attempted to enable read before setSocket called");
-            if (!sock.Connected) close();
+            if (!sock.Connected)
+                close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -177,15 +182,17 @@ namespace Ros_CSharp
             if (!expecting_read && poll_set != null)
             {
                 //Console.WriteLine("ENABLE READ:   " + Topic + "(" + sock.FD + ")");
-                poll_set.addEvents(sock, POLLIN);
                 expecting_read = true;
+                poll_set.addEvents(sock, POLLIN);
             }
         }
 
         public void disableRead()
         {
-            if (sock == null) return;
-            if (!sock.Connected) close();
+            if (sock == null)
+                return;
+            if (!sock.Connected)
+                close();
             lock (close_mutex)
             {
                 if (closed) return;
@@ -208,8 +215,8 @@ namespace Ros_CSharp
             if (!expecting_write && poll_set != null)
             {
                 //Console.WriteLine("ENABLE WRITE:  " + Topic + "(" + sock.FD + ")");
-                poll_set.addEvents(sock, POLLOUT);
                 expecting_write = true;
+                poll_set.addEvents(sock, POLLOUT);
             }
         }
 
@@ -234,8 +241,9 @@ namespace Ros_CSharp
             connected_host = host;
             connected_port = port;
 
-            setNonBlocking();
-
+            if (!setNonBlocking())
+                throw new Exception("Failed to make socket nonblocking");
+            setNoDelay(true);
             IPAddress IPA = null;
 
             if (!IPAddress.TryParse(host, out IPA))
@@ -297,12 +305,12 @@ namespace Ros_CSharp
             sock.Listen(backlog);
             if (!initializeSocket())
                 return false;
-            if ((flags & (int) Flags.SYNCHRONOUS) == 0)
+            if ((flags & (int)Flags.SYNCHRONOUS) == 0)
                 enableRead();
             return true;
         }
 
-        private void setKeepAlive(Socket sock, ulong time, ulong interval)
+        private bool setKeepAlive(Socket sock, ulong time, ulong interval)
         {
             try
             {
@@ -342,11 +350,15 @@ namespace Ros_CSharp
             }
             catch (Exception)
             {
+                return false;
             }
+            return true;
         }
 
         public void parseHeader(Header header)
         {
+            if (_topic == null)
+                _topic = header.Values["topic"].ToString();
             string nodelay = "";
             if (header.Values.Contains("tcp_nodelay"))
                 nodelay = (string) header.Values["tcp_nodelay"];
@@ -426,23 +438,24 @@ namespace Ros_CSharp
         {
             if (use)
             {
-                try
-                {
-                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                }
-                catch (Exception e)
-                {
-                    EDB.WriteLine(e);
-                    return;
-                }
+                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count) && 
+                    !setKeepAlive(sock, (ulong) idle, (ulong) interval))
 
-                if (!setKeepAlive(sock, (ulong) idle, (ulong) interval, (ulong) count))
-                    setKeepAlive(sock, (ulong) idle, (ulong) interval);
+                    try
+                    {
+                        sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, use);
+                    }
+                    catch (Exception e)
+                    {
+                        EDB.WriteLine(e);
+                        return;
+                    }
             }
         }
 
         public int read(byte[] buffer, uint pos, uint length)
         {
+            ScopedTimer.Ping();
             lock (close_mutex)
             {
                 if (closed)
@@ -450,33 +463,23 @@ namespace Ros_CSharp
             }
             int num_bytes = 0;
             SocketError err;
-            num_bytes = sock.Receive(buffer, (int) pos, (int) length, SocketFlags.None, out err);
-            if (num_bytes <= 0)
+            num_bytes = sock.realsocket.Receive(buffer, (int) pos, (int) length, SocketFlags.None, out err);
+            if (num_bytes < 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
                     num_bytes = 0;
                 else if (err != SocketError.InProgress && err != SocketError.IsConnected && err != SocketError.Success)
                 {
                     close();
-                    return -1;
+                    num_bytes = -1;
                 }
-                else
-                    return 0;
-            }
-            else
-            {
-                //hack to only print non-length buffer length
-                if (num_bytes > 4)
-                {
-                    //EDB.WriteLine("READ: " + num_bytes);                 
-                }
-                //EDB.WriteLine(ByteDumpCondensed(buffer));
             }
             return num_bytes;
         }
 
         public int write(byte[] buffer, uint pos, uint size)
         {
+            ScopedTimer.Ping();
             lock (close_mutex)
             {
                 if (closed)
@@ -504,7 +507,7 @@ namespace Ros_CSharp
         {
             if (!setNonBlocking())
                 return false;
-
+            setNoDelay(true);
             setKeepAlive(use_keepalive, 60, 10, 9);
 
             if (string.IsNullOrEmpty(cached_remote_host))
@@ -520,12 +523,11 @@ namespace Ros_CSharp
             {
                 poll_set.addSocket(sock, socketUpdate, this);
             }
-            if (!sock.Connected)
+            if (!is_server && !sock.Connected)
             {
                 close();
                 return false;
             }
-
             return true;
         }
 
@@ -565,6 +567,7 @@ namespace Ros_CSharp
 
         private void socketUpdate(int events)
         {
+            ScopedTimer.Ping();
             lock (close_mutex)
             {
                 if (closed) return;
