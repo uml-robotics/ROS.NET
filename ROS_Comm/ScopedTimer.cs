@@ -37,6 +37,7 @@ namespace Ros_CSharp
         internal static Dictionary<string, Dictionary<int, ScopedTimerRecord>> records = new Dictionary<string, Dictionary<int, ScopedTimerRecord>>();
         internal static void Ping()
         {
+            return; //NO-OP
             StackFrame sf = new StackTrace(new StackFrame(1, true)).GetFrame(0);
             string file = sf.GetFileName();
             int line = sf.GetFileLineNumber();
