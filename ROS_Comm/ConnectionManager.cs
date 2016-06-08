@@ -10,7 +10,7 @@
 // Created: 04/28/2015
 // Updated: 02/10/2016
 
-//#define TCPSERVER
+#define TCPSERVER
 
 #region USINGZ
 
