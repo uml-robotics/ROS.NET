@@ -29,6 +29,7 @@ namespace Ros_CSharp
     public class Poll_Signal : IDisposable
     {
         public MethodInfo Method;
+        public object Target;
         public delegate void PollSignalFunc();
         private Thread thread;
         private Action _op;
@@ -76,6 +77,7 @@ namespace Ros_CSharp
                 }
                 catch { }
                 Method = value.Method;
+                Target = value.Target;
                 _op = value;
             }
         }
@@ -159,7 +161,7 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
-                if (signals.Count((s)=>s.Method == poll.Method)>0)
+                if (signals.Count((s)=>s.Target == poll.Target && s.Method == poll.Method)>0)
                 {
                     throw new Exception("double add");
                 }
