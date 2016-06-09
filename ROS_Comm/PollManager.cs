@@ -112,7 +112,7 @@ namespace Ros_CSharp
         
         internal static void Signal()
         {
-            SignalEvent?.Invoke();
+            if (SignalEvent != null) SignalEvent.Invoke();
         }
 
         public void Dispose()

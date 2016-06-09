@@ -46,7 +46,7 @@ namespace Ros_CSharp
         public new void Dispose()
         {
             base.Dispose();
-            DisposingEvent?.Invoke();
+            if (DisposingEvent != null) DisposingEvent.Invoke();
         }
 
         public delegate void DisposingDelegate();
