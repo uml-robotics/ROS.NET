@@ -170,7 +170,7 @@ namespace tf.net
             child_frame_id = cfi;
         }
 
-		public emTransform(UnityEngine.Vector3 v, UnityEngine.Quaternion q, Time t = null, string fid = null, string cfi = null)
+        public emTransform(UnityEngine.Vector3 v, UnityEngine.Quaternion q, Time t = null, string fid = null, string cfi = null)
         {
             UnityRotation = q;
             UnityPosition = v;
