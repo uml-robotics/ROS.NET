@@ -50,8 +50,8 @@ namespace Ros_CSharp
                 {
                     byte[] sizebuf = BitConverter.GetBytes(size);
 
-                    transport.write(sizebuf, 0, (uint) sizebuf.Length);
-                    transport.write(headerbuf, 0, (uint) size);
+                    transport.write(sizebuf, 0, sizebuf.Length);
+                    transport.write(headerbuf, 0, size);
 
                     return true;
                 }

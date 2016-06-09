@@ -46,15 +46,15 @@ namespace Ros_CSharp
         public byte[] read_buffer;
         public ReadFinishedFunc read_callback;
         private object read_callback_mutex = new object();
-        public uint read_filled;
-        public uint read_size;
+        public int read_filled;
+        public int read_size;
         private byte[] real_read_buffer;
         public bool sendingHeaderError;
         public TcpTransport transport;
         public byte[] write_buffer;
         public WriteFinishedFunc write_callback;
         public object write_callback_mutex = new object();
-        public uint write_sent, write_size;
+        public int write_sent, write_size;
         private object reading = new object(), writing = new object();
 
         /// <summary>
@@ -91,13 +91,13 @@ namespace Ros_CSharp
             int len = 0;
             byte[] buffer = null;
             header.Write(key_vals, ref buffer, ref len);
-            uint msg_len = (uint) len + 4;
+            int msg_len = (int) len + 4;
             byte[] full_msg = new byte[msg_len];
-            uint j = 0;
+            int j = 0;
             byte[] blen = Header.ByteLength(len);
             for (; j < 4; j++)
                 full_msg[j] = blen[j];
-            for (uint i = 0; j < msg_len; j++)
+            for (int i = 0; j < msg_len; j++)
             {
                 i = j - 4;
                 full_msg[j] = buffer[i];
@@ -105,7 +105,7 @@ namespace Ros_CSharp
             write(full_msg, msg_len, onHeaderWritten, true);
         }
 
-        public void read(uint size, ReadFinishedFunc finished_func)
+        public void read(int size, ReadFinishedFunc finished_func)
         {
             if (dropped || sendingHeaderError) return;
             lock (read_callback_mutex)
@@ -128,12 +128,12 @@ namespace Ros_CSharp
             readTransport();
         }
 
-        public void write(byte[] data, uint size, WriteFinishedFunc finished_func)
+        public void write(byte[] data, int size, WriteFinishedFunc finished_func)
         {
             write(data, size, finished_func, true);
         }
 
-        public void write(byte[] data, uint size, WriteFinishedFunc finished_func, bool immediate)
+        public void write(byte[] data, int size, WriteFinishedFunc finished_func, bool immediate)
         {
             if (dropped || sendingHeaderError) return;
             lock (write_callback_mutex)
@@ -203,7 +203,7 @@ namespace Ros_CSharp
             drop(DropReason.TransportDisconnect);
         }
 
-        private bool onHeaderRead(Connection conn, byte[] data, uint size, bool success)
+        private bool onHeaderRead(Connection conn, byte[] data, int size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (!success)
@@ -261,7 +261,7 @@ namespace Ros_CSharp
                 read(4, onHeaderLengthRead);
         }
 
-        private bool onHeaderLengthRead(Connection conn, byte[] data, uint size, bool success)
+        private bool onHeaderLengthRead(Connection conn, byte[] data, int size, bool success)
         {
             if (conn != this) throw new Exception("THAT EVENT IS NOT FOR MEEE!");
             if (size != 4) throw new Exception("THAT SIZE ISN'T 4! SDKJSDLKJHSDLKJSHD");
@@ -269,7 +269,7 @@ namespace Ros_CSharp
             {
                 return false;
             }
-            uint len = BitConverter.ToUInt32(data, 0);
+            int len = BitConverter.ToInt32(data, 0);
             if (len > 1000000000)
             {
                 conn.drop(DropReason.HeaderError);
@@ -289,13 +289,18 @@ namespace Ros_CSharp
                 ReadFinishedFunc callback;
                 lock (read_callback_mutex)
                     callback = read_callback;
-                uint size;
+                int size;
                 while (!dropped && callback != null)
                 {
                     ScopedTimer.Ping();
-                    uint to_read = read_size - read_filled;
-                    if (to_read > 0 && read_buffer == null || callback == null)
-                        throw new Exception("YOU SUCK!");
+                    int to_read = read_size - read_filled;
+                    if (to_read > 0 && read_buffer == null)
+                        throw new Exception("Trying to read "+to_read+" bytes with a null read_buffer!");
+                    if (callback == null)
+                        lock (read_callback_mutex)
+                            callback = read_callback;
+                    if (callback == null)
+                        throw new Exception("Cannot determine which read_callback to invoke?!");
                     if (to_read > 0)
                     {
                         ScopedTimer.Ping();
@@ -331,7 +336,7 @@ namespace Ros_CSharp
                         }
                         lock (read_callback_mutex)
                             callback = read_callback;
-                        read_filled += (uint)bytes_read;
+                        read_filled += bytes_read;
                     }
                     else
                     {
@@ -394,13 +399,13 @@ namespace Ros_CSharp
                 bool can_write_more = true;
                 while (write_callback != null && can_write_more && !dropped)
                 {
-                    uint to_write = write_size - write_sent;
+                    int to_write = write_size - write_sent;
                     int bytes_sent = transport.write(write_buffer, write_sent, to_write);
                     if (bytes_sent <= 0)
                     {
                         return;
                     }
-                    write_sent += (uint) bytes_sent;
+                    write_sent += (int) bytes_sent;
                     if (bytes_sent < write_size - write_sent)
                         can_write_more = false;
                     if (write_sent == write_size && !dropped)
@@ -429,5 +434,5 @@ namespace Ros_CSharp
 
     public delegate bool WriteFinishedFunc(Connection connection);
 
-    public delegate bool ReadFinishedFunc(Connection connection, byte[] data, uint size, bool success);
+    public delegate bool ReadFinishedFunc(Connection connection, byte[] data, int size, bool success);
 }

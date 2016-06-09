@@ -195,7 +195,7 @@ namespace Ros_CSharp
                     request = current_call.req;
                 }
                 request.Serialized = request.Serialize();
-                connection.write(request.Serialized, (uint) request.Serialized.Length, onRequestWritten);
+                connection.write(request.Serialized, request.Serialized.Length, onRequestWritten);
             }
         }
 
@@ -236,13 +236,13 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool onResponseOkAndLength(Connection conn, byte[] buf, uint size, bool success)
+        private bool onResponseOkAndLength(Connection conn, byte[] buf, int size, bool success)
         {
             if (conn != connection || size != 5)
                 throw new Exception("response or length NOT OK!");
             if (!success) return false;
             byte ok = buf[0];
-            uint len = BitConverter.ToUInt32(buf, 1);
+            int len = BitConverter.ToInt32(buf, 1);
             if (len > 1000000000)
             {
                 ROS.Error("GIGABYTE IS TOO BIIIIG");
@@ -266,7 +266,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool onResponse(Connection conn, byte[] buf, uint size, bool success)
+        private bool onResponse(Connection conn, byte[] buf, int size, bool success)
         {
             if (conn != connection) throw new Exception("WRONG CONNECTION");
 

@@ -46,7 +46,7 @@ namespace Ros_CSharp
                 has_tracked_object = true;
         }
 
-        public override void processRequest(ref byte[] buf, uint num_bytes, IServiceClientLink link)
+        public override void processRequest(ref byte[] buf, int num_bytes, IServiceClientLink link)
         {
             CallbackInterface cb = new ServiceCallback(this, helper, buf, num_bytes, link, has_tracked_object, tracked_object);
             callback.addCallback(cb, ROS.getPID());
@@ -67,18 +67,18 @@ namespace Ros_CSharp
         public class ServiceCallback : CallbackInterface
         {
             private bool _hasTrackedObject;
-            private uint _numBytes;
+            private int _numBytes;
             private object _trackedObject;
             private byte[] buffer;
             private ServicePublication<MReq, MRes> isp;
             private IServiceClientLink link;
 
-            public ServiceCallback(ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, uint num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
+            public ServiceCallback(ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, int num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
                 : this(null, _helper, buf, num_bytes, link, has_tracked_object, tracked_object)
             {
             }
 
-            public ServiceCallback(ServicePublication<MReq, MRes> sp, ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, uint num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
+            public ServiceCallback(ServicePublication<MReq, MRes> sp, ServiceCallbackHelper<MReq, MRes> _helper, byte[] buf, int num_bytes, IServiceClientLink link, bool has_tracked_object, object tracked_object)
 
             {
                 isp = sp;
@@ -172,7 +172,7 @@ namespace Ros_CSharp
             throw new NotImplementedException();
         }
 
-        public virtual void processRequest(ref byte[] buffer, uint size, IServiceClientLink iServiceClientLink)
+        public virtual void processRequest(ref byte[] buffer, int size, IServiceClientLink iServiceClientLink)
         {
             throw new NotImplementedException();
         }

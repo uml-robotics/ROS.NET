@@ -453,7 +453,7 @@ namespace Ros_CSharp
             }
         }
 
-        public int read(byte[] buffer, uint pos, uint length)
+        public int read(byte[] buffer, int pos, int length)
         {
             ScopedTimer.Ping();
             lock (close_mutex)
@@ -463,7 +463,7 @@ namespace Ros_CSharp
             }
             int num_bytes = 0;
             SocketError err;
-            num_bytes = sock.realsocket.Receive(buffer, (int) pos, (int) length, SocketFlags.None, out err);
+            num_bytes = sock.realsocket.Receive(buffer, pos, length, SocketFlags.None, out err);
             if (num_bytes < 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)
@@ -477,7 +477,7 @@ namespace Ros_CSharp
             return num_bytes;
         }
 
-        public int write(byte[] buffer, uint pos, uint size)
+        public int write(byte[] buffer, int pos, int size)
         {
             ScopedTimer.Ping();
             lock (close_mutex)
@@ -487,7 +487,7 @@ namespace Ros_CSharp
             }
             SocketError err;
             //EDB.WriteLine(ByteDumpCondensed(buffer));
-            int num_bytes = sock.Send(buffer, (int) pos, (int) size, SocketFlags.None, out err);
+            int num_bytes = sock.Send(buffer, pos, size, SocketFlags.None, out err);
             if (num_bytes <= 0)
             {
                 if (err == SocketError.TryAgain || err == SocketError.WouldBlock)

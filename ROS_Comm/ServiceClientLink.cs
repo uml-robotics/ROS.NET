@@ -98,7 +98,7 @@ namespace Ros_CSharp
             byte[] buf = new byte[msg.Serialized.Length + 1];
             buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
-            connection.write(buf, (uint) buf.Length, onResponseWritten, true);
+            connection.write(buf, buf.Length, onResponseWritten, true);
         }
 
         public virtual void processResponse(IRosMessage msg, bool success)
@@ -107,7 +107,7 @@ namespace Ros_CSharp
             byte[] buf = new byte[msg.Serialized.Length + 1];
             buf[0] = (byte) (success ? 0x01 : 0x00);
             msg.Serialized.CopyTo(buf, 1);
-            connection.write(buf, (uint) buf.Length, onResponseWritten, true);
+            connection.write(buf, buf.Length, onResponseWritten, true);
         }
 
         public virtual void drop()
@@ -128,14 +128,14 @@ namespace Ros_CSharp
         }
 
 
-        public virtual bool onRequestLength(Connection conn, byte[] buffer, uint size, bool success)
+        public virtual bool onRequestLength(Connection conn, byte[] buffer, int size, bool success)
         {
             if (!success) return false;
 
             if (conn != connection || size != 4)
                 throw new Exception("Invalid request length read");
 
-            uint len = BitConverter.ToUInt32(buffer, 0);
+            int len = BitConverter.ToInt32(buffer, 0);
             if (len > 1000000000)
             {
                 ROS.Error("A message over a gigabyte was predicted... stop... being... bad.");
@@ -146,7 +146,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        public virtual bool onRequest(Connection conn, byte[] buffer, uint size, bool success)
+        public virtual bool onRequest(Connection conn, byte[] buffer, int size, bool success)
         {
             if (!success) return false;
             if (conn != connection)

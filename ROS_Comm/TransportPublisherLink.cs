@@ -149,7 +149,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool onMessageLength(Connection conn, byte[] buffer, uint size, bool success)
+        private bool onMessageLength(Connection conn, byte[] buffer, int size, bool success)
         {
             ScopedTimer.Ping();
             if (retry_timer != null)
@@ -162,7 +162,7 @@ namespace Ros_CSharp
             }
             if (conn != connection || size != 4)
                 return false;
-            uint len = BitConverter.ToUInt32(buffer, 0);
+            int len = BitConverter.ToInt32(buffer, 0);
             if (len > 1000000000)
             {
                 EDB.WriteLine("TransportPublisherLink: 1 GB message WTF?!");
@@ -173,7 +173,7 @@ namespace Ros_CSharp
             return true;
         }
 
-        private bool onMessage(Connection conn, byte[] buffer, uint size, bool success)
+        private bool onMessage(Connection conn, byte[] buffer, int size, bool success)
         {
             ScopedTimer.Ping();
             if (!success || conn == null || conn != connection) return false;

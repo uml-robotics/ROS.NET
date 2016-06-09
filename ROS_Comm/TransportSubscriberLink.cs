@@ -171,7 +171,7 @@ namespace Ros_CSharp
                 //EDB.WriteLine("Message backlog = " + (triedtosend - stats.messages_sent));
                 stats.bytes_sent += holder.msg.Serialized.Length;
                 stats.message_data_sent += holder.msg.Serialized.Length;
-                connection.write(holder.msg.Serialized, (uint) holder.msg.Serialized.Length, onMessageWritten, immediate_write);
+                connection.write(holder.msg.Serialized, holder.msg.Serialized.Length, onMessageWritten, immediate_write);
             }
         }
 
