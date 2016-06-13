@@ -39,7 +39,7 @@ namespace Ros_CSharp
     /// <summary>
     ///     Helper class for display and/or other output of debugging/peripheral information
     /// </summary>
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public static class EDB
     {
         #region Delegates
@@ -54,7 +54,7 @@ namespace Ros_CSharp
 
         public static event otheroutput OtherOutput;
 
-        private static bool toDebugInstead = true;
+        private static bool toDebugInstead = false;
         private static bool toDebugInitialized = false;
 
         //does the actual writing
@@ -70,7 +70,7 @@ namespace Ros_CSharp
                 {
                     if (Console.CursorVisible)
                     {
-                        toDebugInstead = false;
+                        toDebugInstead = true;
                     }
                 }
                 catch (System.IO.IOException)
@@ -81,7 +81,9 @@ namespace Ros_CSharp
             }
 #endif //!FOR_UNITY
             if (toDebugInstead)
+            {
                 Debug.WriteLine(o);
+            }
             else
                 Console.WriteLine(o);
 #else
