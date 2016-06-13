@@ -159,15 +159,15 @@ namespace Ros_CSharp
 
         public void addPollThreadListener(Action poll)
         {
+            EDB.WriteLine("Adding pollthreadlistener " + poll.Target+":"+poll.Method);
             lock (signal_mutex)
             {
                 if (signals.Count((s)=>s.Target == poll.Target && s.Method == poll.Method)>0)
                 {
-                    throw new Exception("double add");
+                    ROS.Error("double add of "+poll.Target + ":" + poll.Method);
                 }
                 signals.Add(new Poll_Signal(poll));
             }
-            EDB.WriteLine("Adding pollthreadlistener " + poll.Method);
             signal();
         }
 
