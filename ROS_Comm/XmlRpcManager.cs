@@ -441,11 +441,12 @@ namespace Ros_CSharp
         public DateTime last_use_time;
 
         private object busyMutex = new object();
+        private object client_lock = new object();
         private volatile int refs;
 
         internal bool dead
         {
-            get { return client == null; }
+            get { lock(client_lock) return client == null; }
         }
 
         public CachedXmlRpcClient(string host, int port, string uri)
@@ -455,11 +456,14 @@ namespace Ros_CSharp
 
         private CachedXmlRpcClient(XmlRpcClient c)
         {
-            client = c;
-            client.Disposed += () =>
-                                   {
-                                       client = null;
-                                   };
+            lock (client_lock)
+            {
+                client = c;
+                client.Disposed += () =>
+                                       {
+                                           client = null;
+                                       };
+            }
         }
 
         /// <summary>
@@ -470,10 +474,13 @@ namespace Ros_CSharp
             lock (busyMutex)
             	if (refs != 0)
                 	EDB.WriteLine("warning: XmlRpcClient disposed with "+refs+" refs held");
-            if (client != null)
+            lock (client_lock)
             {
-                client.Dispose();
-                client = null;
+                if (client != null)
+                {
+                    client.Dispose();
+                    client = null;
+                }
             }
         }
 
@@ -496,29 +503,38 @@ namespace Ros_CSharp
 
         public bool CheckIdentity(string host, int port, string uri)
         {
-            return client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
+            lock (client_lock)
+            {
+                return client != null && port == client.Port && (host == null || client.Host != null && string.Equals(host, client.Host)) && (uri == null || client.Uri != null && string.Equals(uri, client.Uri));
+            }
         }
 
         #region XmlRpcClient passthrough functions and properties
 
         public bool Execute(string method, XmlRpcValue parameters, XmlRpcValue result)
         {
-            return client.Execute(method, parameters, result);
+            lock (client_lock)
+                return client.Execute(method, parameters, result);
         }
 
         public bool ExecuteNonBlock(string method, XmlRpcValue parameters)
         {
-            return client.ExecuteNonBlock(method, parameters);
+            lock (client_lock)
+                return client.ExecuteNonBlock(method, parameters);
         }
 
         public bool ExecuteCheckDone(XmlRpcValue result)
         {
-            return client.ExecuteCheckDone(result);
+            lock (client_lock)
+                return client.ExecuteCheckDone(result);
         }
 
         public bool IsConnected
         {
-            get { return client != null && client.IsConnected; }
+            get
+            {
+                lock (client_lock) return client != null && client.IsConnected;
+            }
         }
 
         #endregion
