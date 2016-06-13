@@ -54,26 +54,32 @@ namespace Ros_CSharp
 
         public static event otheroutput OtherOutput;
 
+        private static bool toDebugInstead = true;
+        private static bool toDebugInitialized = false;
+
         //does the actual writing
         private static void _writeline(object o)
         {
             if (OtherOutput != null)
                 OtherOutput(o);
 #if !ENABLE_MONO
-            bool toDebugInstead =
-#if FOR_UNITY
-                true;
-#else
- false;
-            try
+#if !FOR_UNITY
+            if (!toDebugInitialized)
             {
-                if (Console.CursorVisible) ;
+                try
+                {
+                    if (Console.CursorVisible)
+                    {
+                        toDebugInstead = false;
+                    }
+                }
+                catch (System.IO.IOException)
+                {
+
+                }
+                toDebugInitialized = true;
             }
-            catch (System.IO.IOException ex)
-            {
-                toDebugInstead = true;
-            }
-#endif //FOR_UNITY
+#endif //!FOR_UNITY
             if (toDebugInstead)
                 Debug.WriteLine(o);
             else
