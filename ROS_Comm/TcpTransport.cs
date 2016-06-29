@@ -240,7 +240,6 @@ namespace Ros_CSharp
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             connected_host = host;
             connected_port = port;
-
             if (!setNonBlocking())
                 throw new Exception("Failed to make socket nonblocking");
             setNoDelay(true);
@@ -266,9 +265,8 @@ namespace Ros_CSharp
 
             IPEndPoint ipep = new IPEndPoint(IPA, port);
             LocalEndPoint = ipep;
-            ManualResetEvent connectDone = new ManualResetEvent(false);
             DateTime connectionAttempted = DateTime.Now;
-            sock.BeginConnect(ipep, iar =>
+            IAsyncResult asyncres = sock.BeginConnect(ipep, iar =>
             {
                 try
                 {
@@ -278,24 +276,25 @@ namespace Ros_CSharp
                 {
                     EDB.WriteLine(e);
                 }
-                finally
-                {
-                    connectDone.Set();
-                }
             }, null);
             bool completed = false;
             while (ROS.ok && !ROS.shutting_down)
             {
 #pragma warning disable 665
-                if ((completed = connectDone.WaitOne(10) || sock.Connected))
+                if ((completed = asyncres.AsyncWaitHandle.WaitOne(10,false)))
 #pragma warning restore 665
                     break;
                 if (DateTime.Now.Subtract(connectionAttempted).TotalSeconds >= 3)
                 {
                     EDB.WriteLine("TRYING TO CONNECT FOR " + DateTime.Now.Subtract(connectionAttempted).TotalSeconds + "s\t: " + this);
+                    if (!asyncres.AsyncWaitHandle.WaitOne(100,true))
+                    {
+                        sock.Close();
+                        sock = null;
+                    }
                 }
             }
-            if (!completed || !sock.Connected)
+            if (!completed || sock == null || !sock.Connected)
                 return false;
             return ROS.ok && initializeSocket();
         }

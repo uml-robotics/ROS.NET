@@ -75,31 +75,31 @@ namespace Ros_CSharp.CustomSocket
             }
         }
 
-        public void BeginConnect(n.EndPoint endpoint, AsyncCallback ac, object st)
+        public IAsyncResult BeginConnect(n.EndPoint endpoint, AsyncCallback ac, object st)
         {
             n.IPEndPoint ipep = endpoint as n.IPEndPoint;
             if (endpoint == null)
                 throw new Exception("Sorry, guy... but this isn't in the scope of this class's purpose.");
             attemptedConnectionEndpoint = ipep.Address.ToString();
-            realsocket.BeginConnect(endpoint, ac, st);
+            return realsocket.BeginConnect(endpoint, ac, st);
         }
 
-        public void BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
+        public IAsyncResult BeginConnect(n.IPAddress address, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = address.ToString();
-            realsocket.BeginConnect(address, port, ac, st);
+            return realsocket.BeginConnect(address, port, ac, st);
         }
 
-        public void BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
+        public IAsyncResult BeginConnect(n.IPAddress[] addresses, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = addresses[0].ToString();
-            realsocket.BeginConnect(addresses, port, ac, st);
+            return realsocket.BeginConnect(addresses, port, ac, st);
         }
 
-        public void BeginConnect(string host, int port, AsyncCallback ac, object st)
+        public IAsyncResult BeginConnect(string host, int port, AsyncCallback ac, object st)
         {
             attemptedConnectionEndpoint = host;
-            realsocket.BeginConnect(host, port, ac, st);
+            return realsocket.BeginConnect(host, port, ac, st);
         }
 
         public void Connect(n.IPAddress[] address, int port)
