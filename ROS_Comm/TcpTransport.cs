@@ -268,25 +268,33 @@ namespace Ros_CSharp
             LocalEndPoint = ipep;
             ManualResetEvent connectDone = new ManualResetEvent(false);
 
+            DateTime connectionAttempted = DateTime.Now;
             sock.BeginConnect(ipep, iar =>
                                         {
                                             try
                                             {
                                                 sock.EndConnect(iar);
-                                                connectDone.Set();
                                             }
                                             catch (Exception e)
                                             {
                                                 EDB.WriteLine(e);
+                                            }
+                                            finally
+                                            {
+                                                connectDone.Set();
                                             }
                                         }, null);
             bool completed = false;
             while (ROS.ok && !ROS.shutting_down)
             {
 #pragma warning disable 665
-                if ((completed = connectDone.WaitOne(10)))
+                if ((completed = connectDone.WaitOne(100)))
 #pragma warning restore 665
                     break;
+                if (DateTime.Now.Subtract(connectionAttempted).TotalSeconds >= 3)
+                {
+                    EDB.WriteLine("TRYING TO CONNECT FOR " + DateTime.Now.Subtract(connectionAttempted).TotalSeconds + "s\t: " + this);
+                }
             }
             if (!completed || !sock.Connected)
                 return false;
