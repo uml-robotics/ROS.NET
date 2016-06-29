@@ -105,7 +105,7 @@ namespace Ros_CSharp
             }
             else
             {
-                throw new Exception("Null pollset iin tcptransport ctor");
+                throw new Exception("Null pollset in tcptransport ctor");
             }
             this.flags = flags;
         }
@@ -267,28 +267,27 @@ namespace Ros_CSharp
             IPEndPoint ipep = new IPEndPoint(IPA, port);
             LocalEndPoint = ipep;
             ManualResetEvent connectDone = new ManualResetEvent(false);
-
             DateTime connectionAttempted = DateTime.Now;
             sock.BeginConnect(ipep, iar =>
-                                        {
-                                            try
-                                            {
-                                                sock.EndConnect(iar);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                EDB.WriteLine(e);
-                                            }
-                                            finally
-                                            {
-                                                connectDone.Set();
-                                            }
-                                        }, null);
+            {
+                try
+                {
+                    sock.EndConnect(iar);
+                }
+                catch (Exception e)
+                {
+                    EDB.WriteLine(e);
+                }
+                finally
+                {
+                    connectDone.Set();
+                }
+            }, null);
             bool completed = false;
             while (ROS.ok && !ROS.shutting_down)
             {
 #pragma warning disable 665
-                if ((completed = connectDone.WaitOne(100)))
+                if ((completed = connectDone.WaitOne(10) || sock.Connected))
 #pragma warning restore 665
                     break;
                 if (DateTime.Now.Subtract(connectionAttempted).TotalSeconds >= 3)
