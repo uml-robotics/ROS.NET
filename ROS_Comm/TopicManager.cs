@@ -641,8 +641,9 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.responseInt(1, "", 0)(result);
             else
             {
-                EDB.WriteLine("Unknown Error");
-                XmlRpcManager.Instance.responseInt(0, "Unknown Error or something", 0)(result);
+                const string error = "Unknown error while handling XmlRpc call to pubUpdate";
+                EDB.WriteLine(error);
+                XmlRpcManager.Instance.responseInt(0, error, 0)(result);
             }
         }
 
@@ -654,9 +655,9 @@ namespace Ros_CSharp
             //result = res.instance;
             if (!requestTopic(parm[1].Get<string>(), parm[2], ref res))
             {
-                const string last_error = "Unknown error";
-
-                XmlRpcManager.Instance.responseInt(0, last_error, 0)(res);
+                const string error = "Unknown error while handling XmlRpc call to requestTopic";
+                EDB.WriteLine(error);
+                XmlRpcManager.Instance.responseInt(0, error, 0)(res);
             }
         }
 
