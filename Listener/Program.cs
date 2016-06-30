@@ -14,6 +14,7 @@ using gm = Messages.geometry_msgs;
 using nm = Messages.nav_msgs;
 using sm = Messages.sensor_msgs;
 using System.Text;
+using MeshLib;
 
 #endregion
 
@@ -28,8 +29,10 @@ namespace Listener
         private static void Main(string[] args)
         {
             ROS.Init(args, "Listener");
-            NodeHandle node = new NodeHandle();
-            Subscriber<m.String> Subscriber = node.subscribe<m.String>("/chatter", 1, chatterCallback);
+            RobotDescriptionParser rdp = new RobotDescriptionParser("/agent1/robot_description", "/agent1");
+            //NodeHandle node = new NodeHandle();
+            //Subscriber<m.String> Subscriber = node.subscribe<m.String>("/chatter", 1, chatterCallback);
+
             ROS.waitForShutdown();
         }
     }
