@@ -246,7 +246,7 @@ namespace FauxMessages
 
     public class MsgsFile
     {
-        private const string stfmat = "name: {0}\n\ttype: {1}\n\trostype: {2}\n\tisliteral: {3}\n\tisconst: {4}\n\tconstvalue: {5}\n\tisarray: {6}\n\tlength: {7}\n\tismeta: {8}\n";
+        private const string stfmat = "\tname: {0}\n\t\ttype: {1}\n\t\ttrostype: {2}\n\t\tisliteral: {3}\n\t\tisconst: {4}\n\t\tconstvalue: {5}\n\t\tisarray: {6}\n\t\tlength: {7}\n\t\tismeta: {8}";
 
         public class ResolvedMsg
         {
@@ -504,7 +504,7 @@ namespace FauxMessages
                         backhalf += lines[i] + "\n";
                 }
             }
-
+            string GeneratedDeserializationCode = "", GeneratedSerializationCode = "";
             if (memoizedcontent == null)
             {
                 memoizedcontent = "";
@@ -541,14 +541,15 @@ namespace FauxMessages
                 //if (GeneratedDictHelper == null)
                 //    GeneratedDictHelper = TypeInfo.Generate(classname, ns, HasHeader, meta, def, Stuff);
                 GeneratedDictHelper = GenFields();
-                string GeneratedDeserializationCode = "";
                 bool literal = false;
                 StringBuilder DEF = new StringBuilder();
                 foreach (string s in def)
                     DEF.AppendLine(s);
-
+                Debug.WriteLine("============\n"+this.classname);
                 for (int i = 0; i < Stuff.Count; i++)
                     GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
+                for (int i = 0; i < Stuff.Count; i++)
+                    GeneratedSerializationCode += GenerateSerializationCode(Stuff[i]);
             }
             GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                    (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
@@ -562,6 +563,8 @@ namespace FauxMessages
                 GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             GUTS = GUTS.Replace("$WHATAMI", classname);
+            GUTS = GUTS.Replace("$SERIALIZATIONCODE", GeneratedSerializationCode);
+            GUTS = GUTS.Replace("$DESERIALIZATIONCODE", GeneratedDeserializationCode);
             GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
             GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
             for (int i = 0; i < def.Count; i++)
@@ -586,12 +589,68 @@ namespace FauxMessages
 
             return GUTS;
         }
+        private string GenerateSerializationForOne(string type, string name)
+        {
+            if (type == "Time" || type == "Duration")
+            {
+                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.data.sec));
+                            pieces.Add(BitConverter.GetBytes({0}.data.nsec));", name);
+            }
+            else if (type == "TimeData")
+                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.sec));
+                            pieces.Add(BitConverter.GetBytes({0}.nsec));", name);
+            else if (type == "byte")
+            {
+                return string.Format("pieces.Add(new[] {{ (byte){0} }});", name); ;
+            }
+            else if (type == "string")
+            {
+                return string.Format(@"
+                        if ({0} == null)
+                            {0} = """";
+                        scratch1 = Encoding.ASCII.GetBytes((string){0});
+                        thischunk = new byte[scratch1.Length + 4];
+                        scratch2 = BitConverter.GetBytes(scratch1.Length);
+                        Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
+                        Array.Copy(scratch2, thischunk, 4);
+                        pieces.Add(thischunk);", name);
+            }
+            else if (type == "bool")
+            {
+                return string.Format(@"
+                        thischunk = new byte[1];
+                        thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
+                        pieces.Add(thischunk);", name);
+            }
+            else
+            {
+                string ret = string.Format(@"
+                        scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
+                        h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
+                        Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
+                        h.Free();", name, type);
+                return ret;
+            }
+        }
+        public string GenerateSerializationCode(SingleType st)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            if (!st.IsArray)
+            {
+                return GenerateSerializationForOne(st.Type, st.Name);
+            }
+
+            int arraylength = 0;
+            //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
+            return string.Format(@"pieces.Add( BitConverter.GetBytes( {0}.Length ));
+            for (int i=0;i<{0}.Length; i++) {{
+                {2}
+            }}", st.Name, st.Type, GenerateSerializationForOne(st.Type, st.Name+"[i]"));
+        }
 
         public string GenerateDeserializationCode(SingleType st)
         {
-            //Console.WriteLine(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta);
-            //if (!st.IsLiteral)
-            //    Console.WriteLine(st.Name);
+            //System.Diagnostics.Debug.WriteLine(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta);
             return "";
         }
 
