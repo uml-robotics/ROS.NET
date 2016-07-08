@@ -174,7 +174,7 @@ namespace Ros_CSharp
         private static Dictionary<RosOutAppender.ROSOUT_LEVEL, string> ROSOUT_PREFIX =
             new Dictionary<RosOutAppender.ROSOUT_LEVEL, string>{
                 {RosOutAppender.ROSOUT_LEVEL.DEBUG, ROSOUT_DEBUG_PREFIX},
-                {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX}, 
+                {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.WARN, ROSOUT_WARN_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.ERROR, ROSOUT_ERROR_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.FATAL, ROSOUT_FATAL_PREFIX}
@@ -193,8 +193,20 @@ namespace Ros_CSharp
 #if !FOR_UNITY
         }
 #else
-            if (timeStopper.WaitOne())
-                timeStopper.Set();
+            bool f;
+            lock (timeStopper)
+                f = frozen;
+            do
+            {
+
+                timeStopper.WaitOne();
+                lock (timeStopper)
+                {
+                    if (!(f = frozen))
+                        timeStopper.Set();
+                }
+            }
+            while (f);
         }
 
         private static AutoResetEvent timeStopper = new AutoResetEvent(true);
@@ -205,6 +217,7 @@ namespace Ros_CSharp
         /// </summary>
         public static void Freeze()
         {
+            EDB.WriteLine("Calling Freeze");
             lock(timeStopper)
             {
                 if (!frozen)
@@ -213,18 +226,21 @@ namespace Ros_CSharp
                         frozen = true;
                     else
                         throw new Exception("Failed to freeze all ROS threads");
+                    EDB.WriteLine("Frozen!");
                 }
             }
         }
 
         public static void Unfreeze()
         {
+            EDB.WriteLine("Calling Unfreeze");
             lock (timeStopper)
             {
                 if (frozen)
                 {
                     frozen = false;
                     timeStopper.Set();
+                    EDB.WriteLine("Unfrozen");
                 }
             }
         }
@@ -276,7 +292,7 @@ namespace Ros_CSharp
             return GetTime<m.Time>(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
         }
 
-#region time helpers
+        #region time helpers
 
         public static long ticksFromData(TimeData data)
         {
@@ -295,7 +311,7 @@ namespace Ros_CSharp
             return new TimeData((uint)seconds, (uint)nanoseconds);
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         ///     Turns a std_msgs.Time into a DateTime
@@ -478,7 +494,7 @@ namespace Ros_CSharp
             }
             if (printit)
                 EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
-			RosOutAppender.Instance.Append(o.ToString(), level);
+            RosOutAppender.Instance.Append(o.ToString(), level);
         }
 
         /// <summary>
@@ -696,7 +712,7 @@ namespace Ros_CSharp
 
             if (started)
             {
-                lock(timeStopper)
+                lock (timeStopper)
                 {
                     if (frozen)
                         timeStopper.Set();
