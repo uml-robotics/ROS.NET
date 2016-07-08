@@ -180,9 +180,63 @@ namespace Ros_CSharp
                 {RosOutAppender.ROSOUT_LEVEL.FATAL, ROSOUT_FATAL_PREFIX}
             };
 
+
+        /// <summary>
+#if !FOR_UNITY
+        /// UNUSED: Used to block the UnityEditor when it is paused
+#else
+        /// After Freeze() is called, blocks calling thread indefinitely until Unfreeze is called. Threads set the event immediately after they unblock.
+#endif
+        /// </summary>
+        internal static void CheckIfFrozen()
+        {
+#if !FOR_UNITY
+        }
+#else
+            if (timeStopper.WaitOne())
+                timeStopper.Set();
+        }
+
+        private static AutoResetEvent timeStopper = new AutoResetEvent(true);
+        private static bool frozen = false;
+
+        /// <summary>
+        /// Blocks any threads looping conditionally based on ROS.ok and/or ROS.shutting_down until ROS.Unfreeze() is called
+        /// </summary>
+        public static void Freeze()
+        {
+            lock(timeStopper)
+            {
+                if (!frozen)
+                {
+                    if (timeStopper.WaitOne())
+                        frozen = true;
+                    else
+                        throw new Exception("Failed to freeze all ROS threads");
+                }
+            }
+        }
+
+        public static void Unfreeze()
+        {
+            lock (timeStopper)
+            {
+                if (frozen)
+                {
+                    frozen = false;
+                    timeStopper.Set();
+                }
+            }
+        }
+#endif
+
         public static bool shutting_down
         {
-            get { return _shutting_down; }
+            get
+            {
+                CheckIfFrozen();
+                return _shutting_down;
+            }
         }
 
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
@@ -192,7 +246,11 @@ namespace Ros_CSharp
         /// </summary>
         public static bool ok
         {
-            get { return _ok; }
+            get
+            {
+                CheckIfFrozen();
+                return _ok;
+            }
         }
 
         private static string _processname = null;
@@ -218,7 +276,7 @@ namespace Ros_CSharp
             return GetTime<m.Time>(time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)));
         }
 
-        #region time helpers
+#region time helpers
 
         public static long ticksFromData(TimeData data)
         {
@@ -237,7 +295,7 @@ namespace Ros_CSharp
             return new TimeData((uint)seconds, (uint)nanoseconds);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         ///     Turns a std_msgs.Time into a DateTime
@@ -638,6 +696,11 @@ namespace Ros_CSharp
 
             if (started)
             {
+                lock(timeStopper)
+                {
+                    if (frozen)
+                        timeStopper.Set();
+                }
                 started = false;
                 _ok = false;
                 RosOutAppender.Instance.shutdown();
