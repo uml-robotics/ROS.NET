@@ -712,11 +712,13 @@ namespace Ros_CSharp
 
             if (started)
             {
+#if FOR_UNITY
                 lock (timeStopper)
                 {
                     if (frozen)
                         timeStopper.Set();
                 }
+#endif
                 started = false;
                 _ok = false;
                 RosOutAppender.Instance.shutdown();
