@@ -70,14 +70,13 @@ namespace Ros_CSharp
                 {
                     if (Console.CursorVisible)
                     {
-                        toDebugInstead = true;
+                        toDebugInstead = false;
                     }
                 }
                 catch (System.IO.IOException)
                 {
-
+                    toDebugInitialized = true;
                 }
-                toDebugInitialized = true;
             }
 #endif //!FOR_UNITY
             if (toDebugInstead)
@@ -419,8 +418,8 @@ namespace Ros_CSharp
                 printit = false;
 #endif
             }
-            /*if (printit)
-                EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);*/
+            if (printit)
+                EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
 			RosOutAppender.Instance.Append(o.ToString(), level);
         }
 
