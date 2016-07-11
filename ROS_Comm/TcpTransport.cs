@@ -364,7 +364,10 @@ namespace Ros_CSharp
         public void parseHeader(Header header)
         {
             if (_topic == null)
-                _topic = header.Values["topic"].ToString();
+            {
+                if (header.Values.Contains("topic"))
+                    _topic = header.Values["topic"].ToString();
+            }
             string nodelay = "";
             if (header.Values.Contains("tcp_nodelay"))
                 nodelay = (string) header.Values["tcp_nodelay"];
