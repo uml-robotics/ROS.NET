@@ -110,70 +110,84 @@ namespace ROS_ImageWPF
             get { return origin; }
         }
 
+        private string __topic = null;
+
         /// <summary>
         ///     Map provider topic
         /// </summary>
         public string Topic
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            set { SetValue(TopicProperty, (__topic = value)); }
         }
 
         private void DrawMap()
         {
-            if (!ROS.isStarted())
+            lock (this)
             {
-                if (waitingThread == null)
+                if (!ROS.isStarted())
                 {
-                    string topicString = Topic;
-                    waitingThread = new Thread(() => waitThenSubscribe(topicString));
-                }
-                if (!waitingThread.IsAlive)
-                {
-                    waitingThread.Start();
+                    if (waitingThread == null)
+                    {
+                        waitingThread = new Thread(waitThenSubscribe);
+                    }
+                    if (!waitingThread.IsAlive)
+                    {
+                        waitingThread.Start();
+                    }
+                    return;
                 }
             }
-            else
-                SubscribeToMap(Topic);
+            if (!ROS.isStarted() || ROS.shutting_down)
+                return;
+            SubscribeToMap(Topic);
         }
 
-        private void waitThenSubscribe(string topic)
+        private void waitThenSubscribe()
         {
-            while (!ROS.isStarted())
+            while (true)
             {
                 Thread.Sleep(100);
+                lock (this)
+                    if (ROS.shutting_down || ROS.isStarted())
+                        break;
             }
-            Thread.Sleep(1000);
-            SubscribeToMap(topic);
+            lock (this)
+                if (ROS.shutting_down)
+                    return;
+            SubscribeToMap(__topic);
         }
 
         private void SubscribeToMap(string topic)
         {
-            if (imagehandle == null)
-                imagehandle = new NodeHandle();
-            if (mapSub != null && mapSub.topic != topic)
+            lock (this)
             {
-                mapSub.shutdown();
-                mapSub = null;
+                if (imagehandle == null)
+                    imagehandle = new NodeHandle();
+                if (mapSub != null && mapSub.topic != topic)
+                {
+                    mapSub.shutdown();
+                    mapSub = null;
+                }
+                if (mapSub != null)
+                    return;
+                Console.WriteLine("Subscribing to map at:= " + topic);
+                mapSub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
+                                                                                                                 {
+                                                                                                                     Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
+                                                                                                                     mapResolution = i.info.resolution;
+                                                                                                                     mapHeight = i.info.height;
+                                                                                                                     mapWidth = i.info.width;
+                                                                                                                     actualResolution = (mapWidth / (float)Width) * mapResolution;
+                                                                                                                     Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
+                                                                                                                     MatchAspectRatio();
+                                                                                                                     origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
+                                                                                                                     Size size = new Size(i.info.width, i.info.height);
+                                                                                                                     byte[] data = createRGBA(i.data);
+                                                                                                                     mGenericImage.UpdateImage(data, size, false);
+                                                                                                                     data = null;
+                                                                                                                 })));
             }
-            if (mapSub != null)
-                return;
-            Console.WriteLine("Subscribing to map at:= " + topic);
-            mapSub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
-                                                                                                             {
-                                                                                                                 Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
-                                                                                                                 mapResolution = i.info.resolution;
-                                                                                                                 mapHeight = i.info.height;
-                                                                                                                 mapWidth = i.info.width;
-                                                                                                                 actualResolution = (mapWidth/(float) Width)*mapResolution;
-                                                                                                                 Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
-                                                                                                                 MatchAspectRatio();
-                                                                                                                 origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
-                                                                                                                 Size size = new Size(i.info.width, i.info.height);
-                                                                                                                 byte[] data = createRGBA(i.data);
-                                                                                                                 mGenericImage.UpdateImage(data, size, false);
-                                                                                                                 data = null;
-                                                                                                             })));
         }
 
         /// <summary>

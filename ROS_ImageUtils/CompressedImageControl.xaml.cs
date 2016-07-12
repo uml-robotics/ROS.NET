@@ -59,13 +59,15 @@ namespace ROS_ImageWPF
             InitializeComponent();
         }
 
+        private string __topic = null;
+
         /// <summary>
         ///     Gets/Sets Image provider topic and starts subscription
         /// </summary>
         public string Topic
         {
             get { return GetValue(TopicProperty) as string; }
-            set { SetValue(TopicProperty, value); }
+            set { SetValue(TopicProperty, (__topic = value)); }
         }
 
         public GenericImage getGenericImage()
@@ -98,45 +100,57 @@ namespace ROS_ImageWPF
 
         private void DrawImage()
         {
-            if (!ROS.isStarted())
+            lock (this)
             {
-                if (waitingThread == null)
+                if (!ROS.isStarted())
                 {
-                    string topicString = Topic;
-                    waitingThread = new Thread(() => waitThenSubscribe(topicString));
-                }
-                if (!waitingThread.IsAlive)
-                {
-                    waitingThread.Start();
+                    if (waitingThread == null)
+                    {
+                        waitingThread = new Thread(() => waitThenSubscribe());
+                    }
+                    if (!waitingThread.IsAlive)
+                    {
+                        waitingThread.Start();
+                    }
+                    return;
                 }
             }
-            else
-                SubscribeToImage(Topic);
+            if (!ROS.isStarted() || ROS.shutting_down)
+                return;
+            SubscribeToImage(Topic);
         }
 
-        private void waitThenSubscribe(string topic)
+        private void waitThenSubscribe()
         {
-            while (!ROS.isStarted())
+            while (true)
             {
                 Thread.Sleep(100);
+                lock(this)
+                    if (ROS.shutting_down || ROS.isStarted())
+                        break;
             }
-            Thread.Sleep(1000);
-            SubscribeToImage(topic);
+            lock (this)
+                if (ROS.shutting_down)
+                    return;
+            SubscribeToImage(__topic);
         }
 
         private void SubscribeToImage(string topic)
         {
-            if (imagehandle == null)
-                imagehandle = new NodeHandle();
-            if (imgSub != null && imgSub.topic != topic)
+            lock (this)
             {
-                imgSub.shutdown();
-                imgSub = null;
+                if (imagehandle == null)
+                    imagehandle = new NodeHandle();
+                if (imgSub != null && imgSub.topic != topic)
+                {
+                    imgSub.shutdown();
+                    imgSub = null;
+                }
+                if (imgSub != null)
+                    return;
+                Console.WriteLine("Subscribing to image at:= " + topic);
+                imgSub = imagehandle.subscribe<sm.CompressedImage>(topic, 1, updateImage);
             }
-            if (imgSub != null)
-                return;
-            Console.WriteLine("Subscribing to image at:= " + topic);
-            imgSub = imagehandle.subscribe<sm.CompressedImage>(topic, 1, updateImage);
         }
 
         private void updateImage(sm.CompressedImage img)
