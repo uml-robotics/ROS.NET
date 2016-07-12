@@ -111,15 +111,33 @@ namespace Messages
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
         {
-            int dontcare = 0;
-            SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType && msgtype != MsgTypes.std_msgs__String);
+            Deserialize(SERIALIZEDSTUFF);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IRosMessage(byte[] SERIALIZEDSTUFF, ref int currentIndex)
+        {
+            Deserialize(SERIALIZEDSTUFF, ref currentIndex);
+        }
+
+
+
+#if !TRACE
+        [DebuggerStepThrough]
+#endif
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public void Deserialize(byte[] SERIALIZEDSTUFF)
+        {
+            int start = 0;
+            Deserialize(SERIALIZEDSTUFF, ref start);
         }
 
 #if !TRACE
-    [DebuggerStepThrough]
+        [DebuggerStepThrough]
 #endif
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual void Deserialize(byte[] SERIALIZEDSTUFF)
+        public virtual void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
         {
             throw new NotImplementedException();
         }
@@ -133,7 +151,21 @@ namespace Messages
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public byte[] SerializeLegacy()
+        {
+            return SerializeLegacy(false);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize(bool partofsomethingelse)
+        {
+            throw new NotImplementedException();
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public virtual byte[] SerializeLegacy(bool partofsomethingelse)
         {
             throw new NotImplementedException();
         }

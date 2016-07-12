@@ -33,6 +33,7 @@ namespace YAMLParser
         public static string name = "Messages";
         public static string outputdir = "Messages";
         public static string outputdir_secondpass = "TempSecondPass";
+        private static string configuration = "Debug"; //Debug, Release, etc.
         private static void Main(string[] args)
         {
             string solutiondir;
@@ -40,7 +41,9 @@ namespace YAMLParser
             int firstarg = 0;
             if (args.Length >= 1)
             {
-                if (args[0].Trim().Equals("-i"))
+                configuration = args[0];
+                firstarg++;
+                if (args[firstarg].Trim().Equals("-i"))
                 {
                     interactive = true;
                     firstarg++;
@@ -298,7 +301,7 @@ namespace YAMLParser
                 throw up;
             }
             Console.WriteLine("\n\n" + spam);
-            string args = "/nologo \"" + outputdir + "\\" + name + ".csproj\"";
+            string args = "/nologo \"" + outputdir + "\\" + name + ".csproj\" /property:Configuration="+configuration;
             Process proc = new Process();
             proc.StartInfo.RedirectStandardOutput = true;
             proc.StartInfo.RedirectStandardError = true;
