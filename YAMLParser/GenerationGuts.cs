@@ -659,23 +659,6 @@ namespace FauxMessages
             else
             {
                 return string.Format("pieces.Add({0}.Serialize(true));", name);
-                resolve(this, st);
-                var res = resolver[type];
-                string submsgpieces = "";
-                MsgsFile m = null;
-                if (res.Count > 1 && res.Any((a) => a.Definer.Package == st.Package))
-                    m = res.First((a) => a.Definer.Package == st.Package).Definer;
-                if (m == null)
-                    m = res[0].Definer; //TODO: this is probably a bad idea
-                foreach (var s in m.Stuff)
-                {
-                    if (!s.Const)
-                    {
-                        submsgpieces += "hasmetacomponents |= " + st.meta.ToString().ToLower();
-                        submsgpieces += GenerateSerializationForOne(s.Type, name + "." + s.Name, s);
-                    }
-                }
-                return submsgpieces;
             }
         }
         public string GenerateSerializationCode(SingleType st)
