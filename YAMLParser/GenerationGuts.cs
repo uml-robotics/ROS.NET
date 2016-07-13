@@ -615,6 +615,10 @@ namespace FauxMessages
         }
         private string GenerateSerializationForOne(string type, string name, SingleType st)
         {
+            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + type))
+            {
+                type = "Messages." + st.Package + "." + type;
+            }
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.data.sec));
@@ -663,7 +667,12 @@ namespace FauxMessages
         }
         public string GenerateSerializationCode(SingleType st)
         {
-            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            string pt = st.Type;
+            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
+            {
+                pt = "Messages." + st.Package + "." + pt;
+            }
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, pt, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
             if (st.Const)
                 return "";
             if (!st.IsArray)
@@ -681,7 +690,7 @@ namespace FauxMessages
             ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
                 {1}
             }}" + @"
-", st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st));
+", st.Name, GenerateSerializationForOne(pt, st.Name+"[i]", st));
             return ret;
         }
 
@@ -690,8 +699,13 @@ namespace FauxMessages
             // this happens  for each member of the outer message
             // after concluding, make sure part of the string is "currentIndex += <amount read while deserializing this thing>"
             // start of deserializing piece referred to by st is currentIndex (its value at time of call to this fn)"
-            
-            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+
+            string pt = st.Type;
+            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
+            {
+                pt = "Messages." + st.Package + "." + pt;
+            }
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, pt, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
             if(st.Const)
             {
                 return "";
@@ -711,23 +725,28 @@ namespace FauxMessages
                 arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
                 currentIndex += Marshal.SizeOf(typeof(System.Int32));
                 {0} = new {1}[arraylength];
-", st.Name, st.Type);
+", st.Name, pt);
             }
             else
             {
                 ret += string.Format(@"
                 {0} = new {1}[{2}];
-", st.Name, st.Type, arraylength);
+", st.Name, pt, arraylength);
             }
             ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
                 {1}
             }}" + @"
-", st.Name, GenerateDeserializationForOne(st.Type, st.Name + "[i]", st));
+", st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st));
             return ret;
         }
 
         private string GenerateDeserializationForOne(string type, string name, SingleType st)
         {
+            string pt = st.Type;
+            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
+            {
+                pt = "Messages." + st.Package + "." + pt;
+            }
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"
@@ -735,7 +754,7 @@ namespace FauxMessages
                             BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
                             BitConverter.ToUInt32(SERIALIZEDSTUFF,
                                 currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
-                    currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, st.Type);
+                    currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, pt);
             }
             else if (type == "TimeData")
                 return string.Format(@"
@@ -776,13 +795,13 @@ namespace FauxMessages
                 {1} = ({0})Marshal.PtrToStructure(h, typeof({0}));
                 Marshal.FreeHGlobal(h);
                 currentIndex+= piecesize;
-", st.Type, name);
+", pt, name);
                
                 return ret;
             }
             else
             {
-                return string.Format("{0} = new {1}(SERIALIZEDSTUFF, ref currentIndex);", name, st.Type);
+                return string.Format("{0} = new {1}(SERIALIZEDSTUFF, ref currentIndex);", name, pt);
             }
         }
 
