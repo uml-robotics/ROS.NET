@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlRpc_Wrapper", "XmlRpc_Wrapper\XmlRpc_Wrapper.csproj", "{31A64FAA-CC90-4549-A028-752002015E2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROS_C-Sharp", "ROS_Comm\ROS_C-Sharp.csproj", "{D3688C9B-26CA-498B-A142-68F8050A590A}"
