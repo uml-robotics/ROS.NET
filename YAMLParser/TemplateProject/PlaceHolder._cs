@@ -34,15 +34,31 @@ $EXTRACONSTRUCTOR
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override void Deserialize(byte[] SERIALIZEDSTUFF)
 		{
-			int dontcare = 0;
-			SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
+            int currentIndex=0, length=0;
+	        byte[] thischunk,scratch1,scratch2;
+	        $DESERIALIZATIONCODE
+	        //SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override byte[] Serialize(bool partofsomethingelse)
-		{	
-			return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
+		{
+	        int currentIndex=0, length=0;
+	        byte[] thischunk, scratch1, scratch2;
+	        List<byte[]> pieces = new List<byte[]>();
+	        GCHandle h;
+	        $SERIALIZATIONCODE
+	        //combine every array in pieces into one array and return it
+	        byte[] __a_b__d = new byte[pieces.Sum((__a_b__c)=>__a_b__c.Length)];
+	        int __a_b__e=0;
+	        foreach(var p in pieces)
+	        {
+	            Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
+                __a_b__e += p.Length;
+            }
+            return __a_b__d;
+            //return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
 		}
 	}
 }

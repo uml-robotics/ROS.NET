@@ -75,8 +75,9 @@ namespace Ros_CSharp
                 }
                 catch (System.IO.IOException)
                 {
-                    toDebugInitialized = true;
+                    toDebugInstead = true;
                 }
+                toDebugInitialized = true;
             }
 #endif //!FOR_UNITY
             if (toDebugInstead)
