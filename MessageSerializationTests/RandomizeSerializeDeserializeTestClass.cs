@@ -67,7 +67,6 @@ namespace MessageSerializationTests
                         {
                             if (info.FieldType == typeof (string))
                                 info.SetValue(target, "");
-                            //Watch this
                             else if (info.FieldType.IsArray)
                                 info.SetValue(target, Array.CreateInstance(info.FieldType.GetElementType(), 0));
                             else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
@@ -346,7 +345,6 @@ namespace MessageSerializationTests
                 IRosMessage original = (IRosMessage)omsg;
                 original.Serialized = original.Serialize();
                 Debug.WriteLine("Randomized " + m + " = " + dumphex(original.Serialized));
-                Assert.AreNotEqual(original.Serialized.Length, 0);
                 IRosMessage msg = IRosMessage.generate(m);
                 Assert.IsTrue(msg != null);
 
@@ -354,16 +352,9 @@ namespace MessageSerializationTests
                 byte[] data = new byte[original.Serialized.Length - 4];
                 for (int i = 0; i < data.Length; i++)
                     data[i] = original.Serialized[i+4];
-                Debug.WriteLine("Trying to deserialize " + m + " = " + dumphex(data));
                 msg.Deserialize(data);
                 object oo = original, om = msg;
-                bool match = Compare(msg.GetType(), ref oo, ref om);
-                if (!match)
-                {
-                    byte[] legacycode = original.SerializeLegacy();
-                    Debug.WriteLine("Legacy serialization = " + dumphex(legacycode));
-                    Assert.Fail();
-                }
+                Assert.IsTrue(Compare(msg.GetType(), ref oo, ref om));
                 Debug.WriteLine("PASS: " + m);
             }
         }
