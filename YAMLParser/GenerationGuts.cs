@@ -271,7 +271,7 @@ namespace FauxMessages
             public MsgsFile Definer;
         }
 
-        public static Dictionary<string, List<ResolvedMsg>> resolver;
+        public static Dictionary<string, Dictionary<string, List<ResolvedMsg>>> resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
         
         private string GUTS;
         public string GeneratedDictHelper;
@@ -304,7 +304,8 @@ namespace FauxMessages
         public
             MsgsFile(MsgFileLocation filename, bool isrequest, List<string> lines, string extraindent)
         {
-            if (resolver == null) resolver = new Dictionary<string, List<ResolvedMsg>>();
+            if (resolver == null)
+                resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
             //Parse The file name to get the classname;
             classname = filename.basename;
@@ -314,6 +315,12 @@ namespace FauxMessages
             classname += (isrequest ? "Request" : "Response");
             Namespace = Namespace.Trim('.');
             Package = filename.package;
+            if (!resolver.Keys.Contains(Package))
+                resolver.Add(Package, new Dictionary<string, List<ResolvedMsg>>());
+            if (!resolver[Package].ContainsKey(classname))
+                resolver[Package].Add(classname, new List<ResolvedMsg> { new ResolvedMsg { OtherType = Namespace + "." + classname, Definer = this } });
+            else
+                resolver[Package][classname].Add(new ResolvedMsg { OtherType = Namespace + "." + classname, Definer = this });
             def = new List<string>();
             for (int i = 0; i < lines.Count; i++)
             {
@@ -322,8 +329,7 @@ namespace FauxMessages
                     continue;
                 }
                 def.Add(lines[i]);
-                SingleType test = new SingleType(lines[i]);
-                KnownStuff.WhatItIs(this, lines[i], extraindent);
+                SingleType test = KnownStuff.WhatItIs(this, lines[i], extraindent);
                 if (test != null)
                     Stuff.Add(test);
             }
@@ -336,7 +342,8 @@ namespace FauxMessages
 
         public MsgsFile(MsgFileLocation filename, string extraindent)
         {
-            if (resolver == null) resolver = new Dictionary<string, List<ResolvedMsg>>();
+            if (resolver == null)
+                resolver = new Dictionary<string, Dictionary<string,List<ResolvedMsg>>>();
             if (!filename.Path.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
             classname = filename.basename;
@@ -345,10 +352,12 @@ namespace FauxMessages
             Namespace += "." + filename.package;
             Name = filename.package + "." + classname;
             Namespace = Namespace.Trim('.');
-            if (!resolver.Keys.Contains(classname))
-                resolver.Add(classname, new List<ResolvedMsg> { new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this} });
+            if (!resolver.Keys.Contains(Package))
+                resolver.Add(Package, new Dictionary<string, List<ResolvedMsg>>());
+            if (!resolver[Package].ContainsKey(classname))
+                resolver[Package].Add(classname, new List<ResolvedMsg> { new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this} });
             else
-                resolver[classname].Add(new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this});
+                resolver[Package][classname].Add(new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this});
             List<string> lines = new List<string>(File.ReadAllLines(filename.Path));
             lines = lines.Where(st => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
@@ -381,33 +390,29 @@ namespace FauxMessages
             {
                 KnownStuff.WhatItIs(parent, st);
             }
-            ResolvedMsg same_pkg = null;
-            foreach (string p in new[] {"", "Messages.std_msgs.", "Messages.geometry_msgs.", "Messages.actionlib_msgs."})
+            List<string> prefixes = new List<string>(new[] { "", "std_msgs", "geometry_msgs", "actionlib_msgs"});
+            if (st.Type.Contains("/"))
             {
-                if (resolver.Keys.Contains(p+st.Type))
+                string[] pieces = st.Type.Split('/');
+                st.Package = pieces[0];
+                st.Type = pieces[1];
+            }
+            if (!string.IsNullOrEmpty(st.Package))
+                prefixes[0] = st.Package;
+            foreach (string p in prefixes)
+            {
+                if (resolver.Keys.Contains(p))
                 {
-                    if (resolver[p+st.Type].Count > 1)
+                    if (resolver[p].ContainsKey(st.Type))
                     {
-                        for (int i = 0; i < resolver[p+st.Type].Count; i++)
+                        if (resolver[p][st.Type].Count == 1)
                         {
-                            if (parent.Package.Length > 0 && resolver[p+st.Type][i].OtherType.Contains(parent.Package))
-                            {
-                                st.Definer = resolver[p+st.Type][i].Definer;
-                                break;
-                            }
-                            if (resolver[p+st.Type][i].OtherType.Contains(Namespace))
-                            {
-                                same_pkg = resolver[p+st.Type][i];
-                            }
+                            st.Package = p;
+                            st.Definer = resolver[p][st.Type][0].Definer;
                         }
-                        if (same_pkg != null)
-                        {
-                            st.Definer = same_pkg.Definer;
-                            break;
-                        }
-                        throw new Exception("Could not resolve " + st.Type);
+                        else if (resolver[p][st.Type].Count>1)
+                            throw new Exception("Could not resolve " + st.Type);
                     }
-                    st.Definer = resolver[p+st.Type][0].Definer;
                 }
             }
         }
@@ -654,23 +659,6 @@ namespace FauxMessages
             else
             {
                 return string.Format("pieces.Add({0}.Serialize(true));", name);
-                resolve(this, st);
-                var res = resolver[type];
-                string submsgpieces = "";
-                MsgsFile m = null;
-                if (res.Count > 1 && res.Any((a) => a.Definer.Package == st.Package))
-                    m = res.First((a) => a.Definer.Package == st.Package).Definer;
-                if (m == null)
-                    m = res[0].Definer; //TODO: this is probably a bad idea
-                foreach (var s in m.Stuff)
-                {
-                    if (!s.Const)
-                    {
-                        submsgpieces += "hasmetacomponents |= " + st.meta.ToString().ToLower();
-                        submsgpieces += GenerateSerializationForOne(s.Type, name + "." + s.Name, s);
-                    }
-                }
-                return submsgpieces;
             }
         }
         public string GenerateSerializationCode(SingleType st)
@@ -870,18 +858,14 @@ namespace FauxMessages
         public static SingleType WhatItIs(MsgsFile parent, string s, string extraindent)
         {
             string[] pieces = s.Split('/');
-            string package = parent.Namespace.Replace("Messages.", "");
-            if (pieces.Length > 1)
+            string package = parent.Package;
+            if (pieces.Length == 2)
             {
-                for (int i = 0; i < pieces.Length - 1; i++)
-                {
-                    if (i > 0 && i < pieces.Length - 2)
-                        package += "/";
-                    package += pieces[i];
-                }
-                s = pieces[pieces.Length - 1];
+                package = pieces[0];
+                s = pieces[1];
             }
             SingleType st = new SingleType(package, s, extraindent);
+            parent.resolve(parent, st);
             WhatItIs(parent, st);
             return st;
         }
@@ -1021,7 +1005,10 @@ namespace FauxMessages
                             suffix = " = new " + type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(type);
-                output = lowestindent + "public " + prefix + type + " " + name + otherstuff + suffix + ";";
+                string t = type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages."+Package))
+                    t = "Messages." + Package + "." + t;
+                output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
             {
@@ -1031,16 +1018,22 @@ namespace FauxMessages
                 {
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
+
                 }
+                string t = type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
                 if (length.Length > 0)
-                    output = lowestindent + "public " + type + "[] " + name + otherstuff + " = new " + type + "[" + length + "];";
+                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + type + "[" + length + "];";
                 else
-                    output = lowestindent + "public " + "" + type + "[] " + name + otherstuff + ";";
+                    output = lowestindent + "public " + "" + t + "[] " + name + otherstuff + ";";
             }
             Type = type;
             parent.resolve(parent, this);
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
+            {
                 meta = true;
+            }
             Name = name.Length == 0 ? otherstuff.Trim() : name;
             if (Name.Contains('='))
             {
@@ -1113,7 +1106,10 @@ namespace FauxMessages
                             suffix = " = new " + Type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(Type);
-                output = lowestindent + "public " + prefix + Type + " " + name + otherstuff + suffix + ";";
+                string t = Type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
+                output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
             {
@@ -1124,10 +1120,13 @@ namespace FauxMessages
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + Type + ")" + split[1];
                 }
+                string t = Type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
                 if (length.Length != 0)
-                    output = lowestindent + "public " + Type + "[] " + name + otherstuff + " = new " + Type + "[" + length + "];";
+                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + Type + "[" + length + "];";
                 else
-                    output = lowestindent + "public " + "" + Type + "[] " + name + otherstuff + ";";
+                    output = lowestindent + "public " + "" + t + "[] " + name + otherstuff + ";";
             }
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
@@ -1140,18 +1139,23 @@ namespace FauxMessages
         public static string Generate(SingleType members)
         {
             string mt = "MsgTypes.Unknown";
+            string pt = members.Type;
             if (members.meta)
             {
                 string t = members.Type.Replace("Messages.", "");
                 if (!t.Contains('.'))
-                    t = members.Definer.Package+"."+t;
+                    t = members.Definer.Package + "." + t;
                 mt = "MsgTypes." + t.Replace(".", "__");
+            }
+            if (!KnownStuff.KnownTypes.ContainsKey(members.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + members.Package))
+            {
+                pt = "Messages." + members.Package + "." + pt;
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
                     members.Name,
                     members.IsLiteral.ToString().ToLower(),
-                    ("typeof(" + members.Type + ")"),
+                    ("typeof(" + pt + ")"),
                     members.Const.ToString().ToLower(),
                     members.ConstValue.TrimStart('"').TrimEnd('"'),
                     //members.Type.Equals("string", StringComparison.InvariantCultureIgnoreCase) ? ("new String("+members.ConstValue+")") : ("\""+members.ConstValue+"\""),

@@ -162,10 +162,6 @@ namespace Ros_CSharp
             EDB.WriteLine("Adding pollthreadlistener " + poll.Target+":"+poll.Method);
             lock (signal_mutex)
             {
-                if (signals.Count((s)=>s.Target == poll.Target && s.Method == poll.Method)>0)
-                {
-                    ROS.Error("double add of "+poll.Target + ":" + poll.Method);
-                }
                 signals.Add(new Poll_Signal(poll));
             }
             signal();
@@ -180,7 +176,7 @@ namespace Ros_CSharp
         {
             lock (signal_mutex)
             {
-                signals.RemoveAll((s) => s.Method == poll.Method);
+                signals.RemoveAll((s) => s.Op == poll);
             }
             signal();
         }

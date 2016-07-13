@@ -108,15 +108,17 @@ namespace Ros_CSharp
 
         internal override void enqueueMessage(MessageAndSerializerFunc holder)
         {
-            if (max_queue > 0 && outbox.Count >= max_queue)
+            lock (outbox)
             {
-                outbox.Dequeue();
-                queue_full = true;
+                if (max_queue > 0 && outbox.Count >= max_queue)
+                {
+                    outbox.Dequeue();
+                    queue_full = true;
+                }
+                else
+                    queue_full = false;
+                outbox.Enqueue(holder);
             }
-            else
-                queue_full = false;
-            outbox.Enqueue(holder);
-
             startMessageWrite(false);
         }
 
@@ -156,13 +158,16 @@ namespace Ros_CSharp
             MessageAndSerializerFunc holder = null;
             if (writing_message || !header_written)
                 return;
-            if (outbox.Count > 0)
+            lock (outbox)
             {
-                writing_message = true;
-                holder = outbox.Dequeue();
+                if (outbox.Count > 0)
+                {
+                    writing_message = true;
+                    holder = outbox.Dequeue();
+                }
+                if (outbox.Count < max_queue)
+                    queue_full = false;
             }
-            if (outbox.Count < max_queue)
-                queue_full = false;
             if (holder != null)
             {
                 if (holder.msg.Serialized == null)

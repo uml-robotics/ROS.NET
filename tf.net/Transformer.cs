@@ -47,7 +47,7 @@ namespace tf.net
         private void InitNH()
         {
             nh = new NodeHandle();
-            nh.subscribe<tfMessage>("/tf", 100, Update);
+            nh.subscribe<tfMessage>("/tf", 0, Update);
         }
 
         public Transformer(bool interpolating = true, ulong ct = (ulong) DEFAULT_CACHE_TIME)
@@ -482,7 +482,6 @@ namespace tf.net
             if (!frames.ContainsKey(frame_number))
             {
                 parent_frame = frames[frame_number] = new TimeCache(cache_time);
-                parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
             }
             if (!frames.ContainsKey(child_frame_number))
             {
@@ -493,14 +492,7 @@ namespace tf.net
                 //if we're revising a frame, that was previously labelled as having no parent, clear that knowledge from the time cache
                 frame = frames[child_frame_number];
             }
-            if (frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number)))
-            {
-                parent_frame = frames[frame_number] = new TimeCache(cache_time);
-                parent_frame.insertData(new TransformStorage(mapped_transform, 0, frame_number));
-            }
-            else
-                return false;
-            return true;
+            return frame.insertData(new TransformStorage(mapped_transform, frame_number, child_frame_number));
         }
 
         public bool waitForTransform(string target_frame, string source_frame, Time time, Duration timeout, ref string error_msg)

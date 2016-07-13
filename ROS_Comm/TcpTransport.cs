@@ -266,17 +266,21 @@ namespace Ros_CSharp
             IPEndPoint ipep = new IPEndPoint(IPA, port);
             LocalEndPoint = ipep;
             DateTime connectionAttempted = DateTime.Now;
-            IAsyncResult asyncres = sock.BeginConnect(ipep, iar =>
-            {
-                try
+            IAsyncResult asyncres;
+            lock (this)
+                asyncres = sock.BeginConnect(ipep, iar =>
                 {
-                    sock.EndConnect(iar);
-                }
-                catch (Exception e)
-                {
-                    EDB.WriteLine(e);
-                }
-            }, null);
+                    lock(this)
+                        if (sock != null)
+                            try
+                            {
+                                sock.EndConnect(iar);
+                            }
+                            catch (Exception e)
+                            {
+                                EDB.WriteLine(e);
+                            }
+                }, null);
             bool completed = false;
             while (ROS.ok && !ROS.shutting_down)
             {
@@ -364,7 +368,10 @@ namespace Ros_CSharp
         public void parseHeader(Header header)
         {
             if (_topic == null)
-                _topic = header.Values["topic"].ToString();
+            {
+                if (header.Values.Contains("topic"))
+                    _topic = header.Values["topic"].ToString();
+            }
             string nodelay = "";
             if (header.Values.Contains("tcp_nodelay"))
                 nodelay = (string) header.Values["tcp_nodelay"];

@@ -22,8 +22,14 @@ namespace YAMLParser
         {
             if (!srvmd5memo.ContainsKey(m.Name))
             {
-                byte[] req = Encoding.ASCII.GetBytes(PrepareToHash(m.Request));
-                byte[] res = Encoding.ASCII.GetBytes(PrepareToHash(m.Response));
+                Sum(m.Request);
+                Sum(m.Response);
+                string hashablereq = PrepareToHash(m.Request);
+                string hashableres = PrepareToHash(m.Response);
+                if (hashablereq == null || hashableres == null)
+                    return null;
+                byte[] req = Encoding.ASCII.GetBytes(hashablereq);
+                byte[] res = Encoding.ASCII.GetBytes(hashableres);
                 StringBuilder sb = new StringBuilder();
                 System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
                 md5.TransformBlock(req, 0, req.Length, req, 0);
@@ -86,6 +92,10 @@ namespace YAMLParser
                 if (ms == null)
                 {
                     KnownStuff.WhatItIs(irm, irm.Stuff[i]);
+                    if (irm.Stuff[i].Type.Contains("/"))
+                    {
+                        irm.resolve(irm, irm.Stuff[i]);
+                    }
                     ms = irm.Stuff[i].Definer;
                 }
                 if (ms == null)

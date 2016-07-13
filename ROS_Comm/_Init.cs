@@ -70,13 +70,14 @@ namespace Ros_CSharp
                 {
                     if (Console.CursorVisible)
                     {
+                        toDebugInstead = false;
                     }
                 }
                 catch (System.IO.IOException)
                 {
                     toDebugInstead = true;
-
                 }
+                toDebugInitialized = true;
             }
 #endif //!FOR_UNITY
             if (toDebugInstead)
@@ -174,15 +175,85 @@ namespace Ros_CSharp
         private static Dictionary<RosOutAppender.ROSOUT_LEVEL, string> ROSOUT_PREFIX =
             new Dictionary<RosOutAppender.ROSOUT_LEVEL, string>{
                 {RosOutAppender.ROSOUT_LEVEL.DEBUG, ROSOUT_DEBUG_PREFIX},
-                {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX}, 
+                {RosOutAppender.ROSOUT_LEVEL.INFO, ROSOUT_INFO_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.WARN, ROSOUT_WARN_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.ERROR, ROSOUT_ERROR_PREFIX},
                 {RosOutAppender.ROSOUT_LEVEL.FATAL, ROSOUT_FATAL_PREFIX}
             };
 
+
+        /// <summary>
+#if !FOR_UNITY
+        /// UNUSED: Used to block the UnityEditor when it is paused
+#else
+        /// After Freeze() is called, blocks calling thread indefinitely until Unfreeze is called. Threads set the event immediately after they unblock.
+#endif
+        /// </summary>
+        internal static void CheckIfFrozen()
+        {
+#if !FOR_UNITY
+        }
+#else
+            bool f;
+            lock (timeStopper)
+                f = frozen;
+            do
+            {
+
+                timeStopper.WaitOne();
+                lock (timeStopper)
+                {
+                    if (!(f = frozen))
+                        timeStopper.Set();
+                }
+            }
+            while (f);
+        }
+
+        private static AutoResetEvent timeStopper = new AutoResetEvent(true);
+        private static bool frozen = false;
+
+        /// <summary>
+        /// Blocks any threads looping conditionally based on ROS.ok and/or ROS.shutting_down until ROS.Unfreeze() is called
+        /// </summary>
+        public static void Freeze()
+        {
+            EDB.WriteLine("Calling Freeze");
+            lock(timeStopper)
+            {
+                if (!frozen)
+                {
+                    if (timeStopper.WaitOne())
+                        frozen = true;
+                    else
+                        throw new Exception("Failed to freeze all ROS threads");
+                    EDB.WriteLine("Frozen!");
+                }
+            }
+        }
+
+        public static void Unfreeze()
+        {
+            EDB.WriteLine("Calling Unfreeze");
+            lock (timeStopper)
+            {
+                if (frozen)
+                {
+                    frozen = false;
+                    timeStopper.Set();
+                    EDB.WriteLine("Unfrozen");
+                }
+            }
+        }
+#endif
+
         public static bool shutting_down
         {
-            get { return _shutting_down; }
+            get
+            {
+                CheckIfFrozen();
+                return _shutting_down;
+            }
         }
 
         private static Dictionary<string, Type> typedict = new Dictionary<string, Type>();
@@ -192,7 +263,11 @@ namespace Ros_CSharp
         /// </summary>
         public static bool ok
         {
-            get { return _ok; }
+            get
+            {
+                CheckIfFrozen();
+                return _ok;
+            }
         }
 
         private static string _processname = null;
@@ -420,7 +495,7 @@ namespace Ros_CSharp
             }
             if (printit)
                 EDB.WriteLine(ROSOUT_FMAT, ROSOUT_PREFIX[level], o);
-			RosOutAppender.Instance.Append(o.ToString(), level);
+            RosOutAppender.Instance.Append(o.ToString(), level);
         }
 
         /// <summary>
@@ -638,6 +713,13 @@ namespace Ros_CSharp
 
             if (started)
             {
+#if FOR_UNITY
+                lock (timeStopper)
+                {
+                    if (frozen)
+                        timeStopper.Set();
+                }
+#endif
                 started = false;
                 _ok = false;
                 RosOutAppender.Instance.shutdown();
