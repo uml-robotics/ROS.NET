@@ -33,10 +33,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tf.net", "tf.net\tf.net.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listener", "Listener\Listener.csproj", "{D6D6BC46-524E-4DE5-8B9D-9CD7E47DD4C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JenSampleTalkerAndListener", "JenSampleTalkerAndListener\JenSampleTalkerAndListener.csproj", "{2FFC250A-6062-4535-A00B-E15A487737EF}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		3M4|Any CPU = 3M4|Any CPU
 		3M4|x86 = 3M4|x86
@@ -202,6 +201,18 @@ Global
 		{D6D6BC46-524E-4DE5-8B9D-9CD7E47DD4C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D6D6BC46-524E-4DE5-8B9D-9CD7E47DD4C6}.Release|x86.ActiveCfg = Release|x86
 		{D6D6BC46-524E-4DE5-8B9D-9CD7E47DD4C6}.Release|x86.Build.0 = Release|x86
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.3M4|Any CPU.ActiveCfg = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.3M4|Any CPU.Build.0 = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.3M4|x86.ActiveCfg = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.3M4|x86.Build.0 = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Debug|x86.Build.0 = Debug|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Release|x86.ActiveCfg = Release|Any CPU
+		{2FFC250A-6062-4535-A00B-E15A487737EF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
