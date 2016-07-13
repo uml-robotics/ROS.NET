@@ -233,6 +233,23 @@ namespace FauxMessages
 #region MD5
             GUTS = GUTS.Replace("$REQUESTMYMD5SUM", MD5.Sum(Request));
             GUTS = GUTS.Replace("$RESPONSEMYMD5SUM", MD5.Sum(Response));
+            string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "";
+            //TODO: service support
+            for (int i = 0; i < Request.Stuff.Count; i++)
+            {
+                GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i]);
+                GeneratedReqSerializationCode += Request.GenerateSerializationCode(Request.Stuff[i]);
+            }
+            for (int i = 0; i < Response.Stuff.Count; i++)
+            {
+                GeneratedResDeserializationCode += Response.GenerateDeserializationCode(Response.Stuff[i]);
+                GeneratedResSerializationCode += Response.GenerateSerializationCode(Response.Stuff[i]);
+            }
+            GUTS = GUTS.Replace("$REQUESTSERIALIZATIONCODE", GeneratedReqSerializationCode);
+            GUTS = GUTS.Replace("$REQUESTDESERIALIZATIONCODE", GeneratedReqDeserializationCode);
+            GUTS = GUTS.Replace("$RESPONSESERIALIZATIONCODE", GeneratedResSerializationCode);
+            GUTS = GUTS.Replace("$RESPONSEDESERIALIZATIONCODE", GeneratedResDeserializationCode);
+            
             string md5 = MD5.Sum(this);
             if (md5 == null)
                 return null;
@@ -551,10 +568,6 @@ namespace FauxMessages
                 foreach (string s in def)
                     DEF.AppendLine(s);
                 Debug.WriteLine("============\n"+this.classname);
-                for (int i = 0; i < Stuff.Count; i++)
-                    GeneratedDeserializationCode += GenerateDeserializationCode(Stuff[i]);
-                for (int i = 0; i < Stuff.Count; i++)
-                    GeneratedSerializationCode += GenerateSerializationCode(Stuff[i]);
             }
             GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                    (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
@@ -568,8 +581,6 @@ namespace FauxMessages
                 GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             GUTS = GUTS.Replace("$WHATAMI", classname);
-            GUTS = GUTS.Replace("$SERIALIZATIONCODE", GeneratedSerializationCode);
-            GUTS = GUTS.Replace("$DESERIALIZATIONCODE", GeneratedDeserializationCode);
             GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
             GUTS = GUTS.Replace("$MYMSGTYPE", "MsgTypes." + Namespace.Replace("Messages.", "") + "__" + classname);
             for (int i = 0; i < def.Count; i++)
@@ -590,11 +601,19 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "");
             string md5 = MD5.Sum(this);
             if (md5 == null) return null;
+
+            for (int i = 0; i < Stuff.Count; i++)
+            {
+                GeneratedDeserializationCode += this.GenerateDeserializationCode(Stuff[i]);
+                GeneratedSerializationCode += this.GenerateSerializationCode(Stuff[i]);
+            }
+            GUTS = GUTS.Replace("$SERIALIZATIONCODE", GeneratedSerializationCode);
+            GUTS = GUTS.Replace("$DESERIALIZATIONCODE", GeneratedDeserializationCode);
             GUTS = GUTS.Replace("$MYMD5SUM", md5);
 
             return GUTS;
         }
-        private string GenerateSerializationForOne(string type, string name)
+        private string GenerateSerializationForOne(string type, string name, SingleType st)
         {
             if (type == "Time" || type == "Duration")
             {
@@ -627,36 +646,161 @@ namespace FauxMessages
                         thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
                         pieces.Add(thischunk);", name);
             }
-            else
+            else if (st.IsLiteral)
             {
                 string ret = string.Format(@"
                         scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
                         h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
                         Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
-                        h.Free();", name, type);
+                        h.Free();
+                        pieces.Add(scratch1);", name, type);
                 return ret;
+            }
+            else
+            {
+                return string.Format("pieces.Add({0}.Serialize(true));", name);
+                resolve(this, st);
+                var res = resolver[type];
+                string submsgpieces = "";
+                MsgsFile m = null;
+                if (res.Count > 1 && res.Any((a) => a.Definer.Package == st.Package))
+                    m = res.First((a) => a.Definer.Package == st.Package).Definer;
+                if (m == null)
+                    m = res[0].Definer; //TODO: this is probably a bad idea
+                foreach (var s in m.Stuff)
+                {
+                    if (!s.Const)
+                    {
+                        submsgpieces += "hasmetacomponents |= " + st.meta.ToString().ToLower();
+                        submsgpieces += GenerateSerializationForOne(s.Type, name + "." + s.Name, s);
+                    }
+                }
+                return submsgpieces;
             }
         }
         public string GenerateSerializationCode(SingleType st)
         {
             System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            if (st.Const)
+                return "";
             if (!st.IsArray)
             {
-                return GenerateSerializationForOne(st.Type, st.Name);
+                return GenerateSerializationForOne(st.Type, st.Name, st);
             }
 
-            int arraylength = 0;
+            int arraylength = -1;
             //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
-            return string.Format(@"pieces.Add( BitConverter.GetBytes( {0}.Length ));
-            for (int i=0;i<{0}.Length; i++) {{
-                {2}
-            }}", st.Name, st.Type, GenerateSerializationForOne(st.Type, st.Name+"[i]"));
+            string ret = string.Format(@"hasmetacomponents |= {0};"+@"
+", st.meta.ToString().ToLower());
+            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
+                ret += "pieces.Add( BitConverter.GetBytes(" + st.Name + ".Length));"+@"
+";
+            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
+                {1}
+            }}" + @"
+", st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st));
+            return ret;
         }
 
         public string GenerateDeserializationCode(SingleType st)
         {
-            //System.Diagnostics.Debug.WriteLine(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta);
-            return "";
+            // this happens  for each member of the outer message
+            // after concluding, make sure part of the string is "currentIndex += <amount read while deserializing this thing>"
+            // start of deserializing piece referred to by st is currentIndex (its value at time of call to this fn)"
+            
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            if(st.Const)
+            {
+                return "";
+            }
+            else if(!st.IsArray)
+            {
+                return GenerateDeserializationForOne(st.Type, st.Name, st);
+            }
+
+            int arraylength = -1;
+            //If the object is an array, send each object to be processed individually, then add them to the string
+            string ret = string.Format(@"hasmetacomponents |= {0};" + @"
+", st.meta.ToString().ToLower());
+            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
+            {
+                ret += string.Format(@"
+                arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+                currentIndex += Marshal.SizeOf(typeof(System.Int32));
+                {0} = new {1}[arraylength];
+", st.Name, st.Type);
+            }
+            else
+            {
+                ret += string.Format(@"
+                {0} = new {1}[{2}];
+", st.Name, st.Type, arraylength);
+            }
+            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
+                {1}
+            }}" + @"
+", st.Name, GenerateDeserializationForOne(st.Type, st.Name + "[i]", st));
+            return ret;
+        }
+
+        private string GenerateDeserializationForOne(string type, string name, SingleType st)
+        {
+            if (type == "Time" || type == "Duration")
+            {
+                return string.Format(@"
+                    {0} = new {1}(new TimeData(
+                            BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
+                            BitConverter.ToUInt32(SERIALIZEDSTUFF,
+                                currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
+                    currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, st.Type);
+            }
+            else if (type == "TimeData")
+                return string.Format(@"
+                    {0}.sec = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                    currentIndex += Marshal.SizeOf(typeof(System.Int32));
+                    {0}.nsec  = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                    currentIndex += Marshal.SizeOf(typeof(System.Int32));", name);
+            else if (type == "byte")
+            {
+                return string.Format("{0}=SERIALIZEDSTUFF[currentIndex++];", name); ;
+            }
+            else if (type == "string")
+            {
+                return string.Format(@"
+                        {0} = """";
+                        piecesize = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+                        currentIndex += 4;
+                        {0} = Encoding.ASCII.GetString(SERIALIZEDSTUFF, currentIndex, piecesize);
+                        currentIndex += piecesize;", name);
+            }
+            else if (type == "bool")
+            {
+                return string.Format(@"
+                        {0} = SERIALIZEDSTUFF[currentIndex++]==1;
+",name);
+            }
+            else if (st.IsLiteral)
+            {
+                string ret = string.Format(@"
+                piecesize = Marshal.SizeOf(typeof({0}));
+                h = IntPtr.Zero;
+                if (SERIALIZEDSTUFF.Length - currentIndex != 0)
+                {{
+                    h = Marshal.AllocHGlobal(piecesize);
+                    Marshal.Copy(SERIALIZEDSTUFF, currentIndex, h, piecesize);
+                }}
+                if (h == IntPtr.Zero) throw new Exception(""Alloc failed"");
+                {1} = ({0})Marshal.PtrToStructure(h, typeof({0}));
+                Marshal.FreeHGlobal(h);
+                currentIndex+= piecesize;
+", st.Type, name);
+               
+                return ret;
+            }
+            else
+            {
+                return string.Format("{0} = new {1}(SERIALIZEDSTUFF, ref currentIndex);", name, st.Type);
+            }
         }
 
         public void Write(string outdir)
