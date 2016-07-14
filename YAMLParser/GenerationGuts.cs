@@ -621,12 +621,15 @@ namespace FauxMessages
             }
             if (type == "Time" || type == "Duration")
             {
-                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.data.sec));
-                            pieces.Add(BitConverter.GetBytes({0}.data.nsec));", name);
+                return string.Format(@"
+                pieces.Add(BitConverter.GetBytes({0}.data.sec));
+                pieces.Add(BitConverter.GetBytes({0}.data.nsec));", name);
             }
             else if (type == "TimeData")
-                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.sec));
-                            pieces.Add(BitConverter.GetBytes({0}.nsec));", name);
+                return string.Format(@"
+            pieces.Add(BitConverter.GetBytes({0}.sec));
+            pieces.Add(BitConverter.GetBytes({0}.nsec));
+", name);
             else if (type == "byte")
             {
                 return string.Format("pieces.Add(new[] {{ (byte){0} }});", name); ;
@@ -634,35 +637,40 @@ namespace FauxMessages
             else if (type == "string")
             {
                 return string.Format(@"
-                        if ({0} == null)
-                            {0} = """";
-                        scratch1 = Encoding.ASCII.GetBytes((string){0});
-                        thischunk = new byte[scratch1.Length + 4];
-                        scratch2 = BitConverter.GetBytes(scratch1.Length);
-                        Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
-                        Array.Copy(scratch2, thischunk, 4);
-                        pieces.Add(thischunk);", name);
+            if ({0} == null)
+                {0} = """";
+            scratch1 = Encoding.ASCII.GetBytes((string){0});
+            thischunk = new byte[scratch1.Length + 4];
+            scratch2 = BitConverter.GetBytes(scratch1.Length);
+            Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
+            Array.Copy(scratch2, thischunk, 4);
+            pieces.Add(thischunk);
+", name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
-                        thischunk = new byte[1];
-                        thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
-                        pieces.Add(thischunk);", name);
+            thischunk = new byte[1];
+            thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
+            pieces.Add(thischunk);
+", name);
             }
             else if (st.IsLiteral)
             {
                 string ret = string.Format(@"
-                        scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
-                        h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
-                        Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
-                        h.Free();
-                        pieces.Add(scratch1);", name, type);
+            scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
+            h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
+            Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
+            h.Free();
+            pieces.Add(scratch1);
+", name, type);
                 return ret;
             }
             else
             {
-                return string.Format("pieces.Add({0}.Serialize(true));", name);
+                return string.Format(@"
+            pieces.Add({0}.Serialize(true));
+", name);
             }
         }
         public string GenerateSerializationCode(SingleType st)
@@ -682,14 +690,17 @@ namespace FauxMessages
 
             int arraylength = -1;
             //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
-            string ret = string.Format(@"hasmetacomponents |= {0};"+@"
+            string ret = string.Format(@"
+            hasmetacomponents |= {0};"+@"
 ", st.meta.ToString().ToLower());
             if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
                 ret += "pieces.Add( BitConverter.GetBytes(" + st.Name + ".Length));"+@"
 ";
-            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
+            ret += string.Format(@"
+            for (int i=0;i<{0}.Length; i++) {{
                 {1}
-            }}" + @"
+            }}
+" + @"
 ", st.Name, GenerateSerializationForOne(pt, st.Name+"[i]", st));
             return ret;
         }
