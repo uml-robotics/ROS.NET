@@ -669,8 +669,10 @@ namespace FauxMessages
             else
             {
                 return string.Format(@"
+            if ({0} == null)
+                {0} = new {1}();
             pieces.Add({0}.Serialize(true));
-", name);
+", name, type);
             }
         }
         public string GenerateSerializationCode(SingleType st)
