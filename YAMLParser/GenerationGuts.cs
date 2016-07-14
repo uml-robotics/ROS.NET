@@ -677,12 +677,7 @@ namespace FauxMessages
         }
         public string GenerateSerializationCode(SingleType st)
         {
-            string pt = st.Type;
-            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
-            {
-                pt = "Messages." + st.Package + "." + pt;
-            }
-            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, pt, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
             if (st.Const)
                 return "";
             if (!st.IsArray)
@@ -703,7 +698,7 @@ namespace FauxMessages
                 {1}
             }}
 " + @"
-", st.Name, GenerateSerializationForOne(pt, st.Name+"[i]", st));
+", st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st));
             return ret;
         }
 
