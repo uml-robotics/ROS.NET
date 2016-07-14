@@ -41,8 +41,12 @@ namespace YAMLParser
             int firstarg = 0;
             if (args.Length >= 1)
             {
-                configuration = args[0];
-                firstarg++;
+                if (args[firstarg].Trim().Equals("-i"))
+                {
+                    interactive = true;
+                    firstarg++;
+                }
+                configuration = args[firstarg++];
                 if (args[firstarg].Trim().Equals("-i"))
                 {
                     interactive = true;
