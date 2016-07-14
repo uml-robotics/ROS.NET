@@ -384,7 +384,8 @@ namespace Ros_CSharp
             IRosMessage t = null;
             ulong drops = 0;
             TimeData receipt_time = ROS.GetTime().data;
-            msg.Deserialize(msg.Serialized);
+            if (msg.Serialized != null) //will be null if self-subscribed
+                msg.Deserialize(msg.Serialized);
             lock (callbacks_mutex)
             {
                 foreach (ICallbackInfo info in callbacks)
