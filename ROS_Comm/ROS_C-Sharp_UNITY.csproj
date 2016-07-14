@@ -141,6 +141,7 @@
     <Compile Include="Publisher.cs" />
     <Compile Include="PublisherLink.cs" />
     <Compile Include="RosOutAppender.cs" />
+    <Compile Include="ScopedTimer.cs" />
     <Compile Include="Service.cs" />
     <Compile Include="ServiceCallbackHelper.cs" />
     <Compile Include="ServiceClient.cs" />
