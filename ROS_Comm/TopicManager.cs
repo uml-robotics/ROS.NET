@@ -711,7 +711,6 @@ namespace Ros_CSharp
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
-                if (shutting_down) return false;
                 foreach (Publication p in advertised_topics)
                 {
                     if (p.Name == topic && !p.Dropped)
