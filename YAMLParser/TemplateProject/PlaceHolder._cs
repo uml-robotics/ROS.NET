@@ -11,18 +11,18 @@ using Messages.actionlib_msgs;
 
 namespace Messages
 {
-	//[System.Diagnostics.DebuggerStepThrough]
+	[System.Diagnostics.DebuggerStepThrough]
 	public class $WHATAMI : IRosMessage
 	{
 		$$DOLLADOLLABILLS
 
-		//[System.Diagnostics.DebuggerStepThrough]
+		[System.Diagnostics.DebuggerStepThrough]
 		public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
 		{
 			$NULLCONSTBODY
 		}
 
-		//[System.Diagnostics.DebuggerStepThrough]
+		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
 		{
@@ -37,7 +37,7 @@ namespace Messages
 
 $EXTRACONSTRUCTOR		
 				
-		//[System.Diagnostics.DebuggerStepThrough]
+		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
 		{
@@ -51,7 +51,7 @@ $EXTRACONSTRUCTOR
 	        //SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
 		}
 
-		//[System.Diagnostics.DebuggerStepThrough]
+		[System.Diagnostics.DebuggerStepThrough]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
 		public override byte[] Serialize(bool partofsomethingelse)
 		{
