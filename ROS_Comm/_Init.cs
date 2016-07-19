@@ -80,11 +80,13 @@ namespace Ros_CSharp
                 toDebugInitialized = true;
             }
 #endif //!FOR_UNITY
+#if DEBUG
             if (toDebugInstead)
             {
                 Debug.WriteLine(o);
             }
             else
+#endif
                 Console.WriteLine(o);
 #else
             UnityEngine.Debug.Log(o);
