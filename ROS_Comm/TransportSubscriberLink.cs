@@ -52,8 +52,10 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
+#if DEBUG
             if (parent != null)
                 EDB.WriteLine("Init transport subscriber link: " + parent.Name);
+#endif
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             return true;
@@ -102,7 +104,9 @@ namespace Ros_CSharp
             m["latching"] = pt.Latch;
             connection.writeHeader(m, onHeaderWritten);
             pt.addSubscriberLink(this);
+#if DEBUG
             EDB.WriteLine("Finalize transport subscriber link for " + name);
+#endif
             return true;
         }
 

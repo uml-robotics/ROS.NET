@@ -610,7 +610,9 @@ namespace Ros_CSharp
 
         public bool pubUpdate(string topic, List<string> pubs)
         {
+#if DEBUG
             EDB.WriteLine("TopicManager is updating publishers for " + topic);
+#endif
             Subscription sub = null;
             lock (subs_mutex)
             {
