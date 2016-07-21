@@ -79,6 +79,11 @@ namespace ROS_ImageWPF
         {
             image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth/2, ActualHeight/2);
         }
+
+        public ImageSource CloneImage()
+        {
+            return image.ImageSource.Clone();
+        }
     }
 
     public class GenericImageIMPL
