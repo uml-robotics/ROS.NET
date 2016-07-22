@@ -172,7 +172,7 @@ namespace Ros_CSharp
         public void enableRead()
         {
             if (sock == null)
-                throw new Exception("TcpTransport: Attempted to enable read before setSocket called");
+                return;
             if (!sock.Connected)
                 close();
             lock (close_mutex)
@@ -207,6 +207,8 @@ namespace Ros_CSharp
 
         public void enableWrite()
         {
+            if (sock == null)
+                return;
             if (!sock.Connected) close();
             lock (close_mutex)
             {
@@ -222,6 +224,8 @@ namespace Ros_CSharp
 
         public void disableWrite()
         {
+            if (sock == null)
+                return;
             if (!sock.Connected) close();
             lock (close_mutex)
             {
