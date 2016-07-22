@@ -105,7 +105,7 @@ namespace Ros_CSharp
             }
             else
             {
-                throw new Exception("Null pollset in tcptransport ctor");
+                EDB.WriteLine("Uh oh! Null pollset in tcptransport ctor");
             }
             this.flags = flags;
         }
