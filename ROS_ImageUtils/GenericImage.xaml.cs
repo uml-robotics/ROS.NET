@@ -132,6 +132,8 @@ namespace ROS_ImageWPF
         /// <returns>a clone of the ImageSource</returns>
         public ImageSource CloneImage()
         {
+            if (image.ImageSource == null)
+                return null;
             ImageSource ret = image.ImageSource.Clone();
             if (ret.CanFreeze) ret.Freeze();
             return ret;
