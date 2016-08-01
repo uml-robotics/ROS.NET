@@ -67,7 +67,6 @@ namespace MessageSerializationTests
                         {
                             if (info.FieldType == typeof (string))
                                 info.SetValue(target, "");
-                            //Watch this
                             else if (info.FieldType.IsArray)
                                 info.SetValue(target, Array.CreateInstance(info.FieldType.GetElementType(), 0));
                             else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))

@@ -203,7 +203,7 @@ namespace Messages
                 throw new Exception("Called GetFields for an array type. Bad form!");
             if (instance == null)
             {
-                if (T.IsArray)
+                if (T.IsArray) //This will never trip
                 {
                     T = T.GetElementType();
                     instance = Array.CreateInstance(T, 0);
