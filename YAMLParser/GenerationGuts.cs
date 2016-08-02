@@ -627,52 +627,51 @@ namespace FauxMessages
             }
             else if (type == "TimeData")
                 return string.Format(@"
-            pieces.Add(BitConverter.GetBytes({0}.sec));
-            pieces.Add(BitConverter.GetBytes({0}.nsec));
-", name);
+                pieces.Add(BitConverter.GetBytes({0}.sec));
+                pieces.Add(BitConverter.GetBytes({0}.nsec));", name);
             else if (type == "byte")
             {
-                return string.Format("pieces.Add(new[] {{ (byte){0} }});", name); ;
+                return string.Format(@"
+                pieces.Add(new[] {{ (byte){0} }});", name); ;
             }
             else if (type == "string")
             {
                 return string.Format(@"
-            if ({0} == null)
-                {0} = """";
-            scratch1 = Encoding.ASCII.GetBytes((string){0});
-            thischunk = new byte[scratch1.Length + 4];
-            scratch2 = BitConverter.GetBytes(scratch1.Length);
-            Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
-            Array.Copy(scratch2, thischunk, 4);
-            pieces.Add(thischunk);
+                if ({0} == null)
+                    {0} = """";
+                scratch1 = Encoding.ASCII.GetBytes((string){0});
+                thischunk = new byte[scratch1.Length + 4];
+                scratch2 = BitConverter.GetBytes(scratch1.Length);
+                Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
+                Array.Copy(scratch2, thischunk, 4);
+                pieces.Add(thischunk);
 ", name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
-            thischunk = new byte[1];
-            thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
-            pieces.Add(thischunk);
+                thischunk = new byte[1];
+                thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
+                pieces.Add(thischunk);
 ", name);
             }
             else if (st.IsLiteral)
             {
                 string ret = string.Format(@"
-            scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
-            h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
-            Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
-            h.Free();
-            pieces.Add(scratch1);
+                scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
+                h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
+                Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
+                h.Free();
+                pieces.Add(scratch1);
 ", name, type);
                 return ret;
             }
             else
             {
                 return string.Format(@"
-            if ({0} == null)
-                {0} = new {1}();
-            pieces.Add({0}.Serialize(true));
-", name, type);
+                if ({0} == null)
+                    {0} = new {1}();
+                pieces.Add({0}.Serialize(true));", name, type);
             }
         }
         public string GenerateSerializationCode(SingleType st)
@@ -688,17 +687,16 @@ namespace FauxMessages
             int arraylength = -1;
             //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
             string ret = string.Format(@"
-            hasmetacomponents |= {0};"+@"
-", st.meta.ToString().ToLower());
+                hasmetacomponents |= {0};", st.meta.ToString().ToLower());
             if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
-                ret += "pieces.Add( BitConverter.GetBytes(" + st.Name + ".Length));"+@"
-";
+            {
+                ret += @"
+                pieces.Add( BitConverter.GetBytes(" + st.Name + ".Length));";
+            }
             ret += string.Format(@"
-            for (int i=0;i<{0}.Length; i++) {{
-                {1}
-            }}
-" + @"
-", st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st));
+                for (int i=0;i<{0}.Length; i++) {{
+                    {1}
+                }}", st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st));
             return ret;
         }
 
@@ -725,8 +723,8 @@ namespace FauxMessages
 
             int arraylength = -1;
             //If the object is an array, send each object to be processed individually, then add them to the string
-            string ret = string.Format(@"hasmetacomponents |= {0};" + @"
-", st.meta.ToString().ToLower());
+            string ret = string.Format(@"
+                hasmetacomponents |= {0};", st.meta.ToString().ToLower());
             if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
             {
                 ret += string.Format(@"
@@ -741,10 +739,10 @@ namespace FauxMessages
                 {0} = new {1}[{2}];
 ", st.Name, pt, arraylength);
             }
-            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
-                {1}
-            }}" + @"
-", st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st));
+            ret += string.Format(@"
+                for (int i=0;i<{0}.Length; i++) {{
+                    {1}
+                }}", st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st));
             return ret;
         }
 
@@ -758,18 +756,18 @@ namespace FauxMessages
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"
-                    {0} = new {1}(new TimeData(
-                            BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
-                            BitConverter.ToUInt32(SERIALIZEDSTUFF,
-                                currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
-                    currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, pt);
+                {0} = new {1}(new TimeData(
+                        BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
+                        BitConverter.ToUInt32(SERIALIZEDSTUFF,
+                            currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
+                currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, pt);
             }
             else if (type == "TimeData")
                 return string.Format(@"
-                    {0}.sec = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
-                    currentIndex += Marshal.SizeOf(typeof(System.Int32));
-                    {0}.nsec  = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
-                    currentIndex += Marshal.SizeOf(typeof(System.Int32));", name);
+                {0}.sec = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                currentIndex += Marshal.SizeOf(typeof(System.Int32));
+                {0}.nsec  = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                currentIndex += Marshal.SizeOf(typeof(System.Int32));", name);
             else if (type == "byte")
             {
                 return string.Format("{0}=SERIALIZEDSTUFF[currentIndex++];", name); ;
@@ -777,16 +775,16 @@ namespace FauxMessages
             else if (type == "string")
             {
                 return string.Format(@"
-                        {0} = """";
-                        piecesize = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
-                        currentIndex += 4;
-                        {0} = Encoding.ASCII.GetString(SERIALIZEDSTUFF, currentIndex, piecesize);
-                        currentIndex += piecesize;", name);
+                {0} = """";
+                piecesize = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+                currentIndex += 4;
+                {0} = Encoding.ASCII.GetString(SERIALIZEDSTUFF, currentIndex, piecesize);
+                currentIndex += piecesize;", name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
-                        {0} = SERIALIZEDSTUFF[currentIndex++]==1;
+                {0} = SERIALIZEDSTUFF[currentIndex++]==1;
 ",name);
             }
             else if (st.IsLiteral)
