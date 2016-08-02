@@ -48,6 +48,14 @@ namespace RosoutDebugUC
         public RosoutDebug()
         {
             InitializeComponent();
+            Loaded += (sender, args) =>
+            {
+                if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                    return;
+                ROS.WaitForMaster();
+                nh = new NodeHandle();
+                Init();
+            };
         }
 
         public RosoutDebug(NodeHandle n, string IgnoredStrings)
@@ -192,7 +200,7 @@ namespace RosoutDebugUC
                 rosoutdata.Add(rss);
                 if (rosoutdata.Count > 1000)
                     rosoutdata.RemoveAt(0);
-
+                abraCadabra.InvalidateMeasure();               
                 //auto-sticky scrolling IFF the vertical scrollbar is at its maximum or minimum
                 if (VisualTreeHelper.GetChildrenCount(abraCadabra) > 0)
                 {
