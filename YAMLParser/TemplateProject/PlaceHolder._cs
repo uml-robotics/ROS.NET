@@ -77,10 +77,5 @@ $EXTRACONSTRUCTOR
             }
             return __a_b__d;
 		}
-
-        public override byte[] SerializeLegacy(bool partofsomethingelse)
-		{
-            return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
-		}
 	}
 }
