@@ -48,14 +48,12 @@ $EXTRACONSTRUCTOR
             byte[] thischunk, scratch1, scratch2;
             IntPtr h;
             $DESERIALIZATIONCODE
-            //SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public override byte[] Serialize(bool partofsomethingelse)
         {
-            //return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
             int currentIndex=0, length=0;
             bool hasmetacomponents = false;
             byte[] thischunk, scratch1, scratch2;
