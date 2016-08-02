@@ -697,10 +697,17 @@ namespace FauxMessages
             }
 
             int arraylength = -1;
-            //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
             string ret = string.Format(@"
 {0}//{2}
 {0}hasmetacomponents |= {1};", leadingWhitespace, st.meta.ToString().ToLower(), st.Name);
+            string completetype = st.Type;
+            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + completetype))
+            {
+                completetype = "Messages." + st.Package + "." + completetype;
+            }
+            ret += string.Format(@"
+{0}if ({1} == null)
+{0}    {1} = new {2}[0];", leadingWhitespace, st.Name, completetype);
             if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
             {
                 ret += string.Format(@"
@@ -710,7 +717,7 @@ namespace FauxMessages
             if (st.Type == "byte")
             {
                 ret += string.Format(@"
-{0}pieces.AddRange({1});", leadingWhitespace, st.Name);
+{0}pieces.Add(({2}[]){1});", leadingWhitespace, st.Name, st.Type);
             }
             else
             {
@@ -744,23 +751,30 @@ namespace FauxMessages
                 return GenerateDeserializationForOne(st.Type, st.Name, st, extraTabs);
             }
 
-            int arraylength = -1;
-            //If the object is an array, send each object to be processed individually, then add them to the string
             string ret = string.Format(@"
 {0}//{2}
 {0}hasmetacomponents |= {1};", leadingWhitespace, st.meta.ToString().ToLower(), st.Name);
-            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
+            int arraylength = -1;
+            string arraylengthstr = "arraylength";
+
+            //If the object is an array, send each object to be processed individually, then add them to the string
+
+            //handle fixed length fields?
+            if (!string.IsNullOrEmpty(st.length) && int.TryParse(st.length, out arraylength) && arraylength != -1)
             {
-                ret += string.Format(@"
-{0}arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
-{0}currentIndex += Marshal.SizeOf(typeof(System.Int32));
-{0}{1} = new {2}[arraylength];", leadingWhitespace, st.Name, pt);
+                arraylengthstr = "" + arraylength;
             }
             else
             {
                 ret += string.Format(@"
-{0}{1} = new {2}[{3}];", leadingWhitespace, st.Name, pt, arraylength);
+{0}arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+{0}currentIndex += Marshal.SizeOf(typeof(System.Int32));", leadingWhitespace);
             }
+            ret += string.Format(@"
+{0}if ({1} == null)
+{0}    {1} = new {2}[{3}];
+{0}else
+{0}    Array.Resize(ref {1}, {3});", leadingWhitespace, st.Name, pt, arraylengthstr);
 
             //special case arrays of bytes
             if (st.Type == "byte")
