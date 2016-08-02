@@ -706,9 +706,18 @@ namespace FauxMessages
                 ret += string.Format(@"
 {0}pieces.Add(BitConverter.GetBytes({1}.Length));", leadingWhitespace, st.Name);
             }
-            ret += string.Format(@"
+            //special case arrays of bytes
+            if (st.Type == "byte")
+            {
+                ret += string.Format(@"
+{0}pieces.AddRange({1});", leadingWhitespace, st.Name);
+            }
+            else
+            {
+                ret += string.Format(@"
 {0}for (int i=0;i<{1}.Length; i++) {{{2}
-{0}}}", leadingWhitespace, st.Name, GenerateSerializationForOne(st.Type, st.Name+"[i]", st, extraTabs+1));
+{0}}}", leadingWhitespace, st.Name, GenerateSerializationForOne(st.Type, st.Name + "[i]", st, extraTabs + 1));
+            }
             return ret;
         }
 
@@ -752,9 +761,20 @@ namespace FauxMessages
                 ret += string.Format(@"
 {0}{1} = new {2}[{3}];", leadingWhitespace, st.Name, pt, arraylength);
             }
-            ret += string.Format(@"
+
+            //special case arrays of bytes
+            if (st.Type == "byte")
+            {
+                ret += string.Format(@"
+{0}Array.Copy(SERIALIZEDSTUFF, currentIndex, {1}, 0, {1}.Length);
+{0}currentIndex += {1}.Length;", leadingWhitespace, st.Name);
+            }
+            else
+            {
+                ret += string.Format(@"
 {0}for (int i=0;i<{1}.Length; i++) {{{2}
-{0}}}", leadingWhitespace, st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st, extraTabs+1));
+{0}}}", leadingWhitespace, st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st, extraTabs + 1));
+            }
             return ret;
         }
 
