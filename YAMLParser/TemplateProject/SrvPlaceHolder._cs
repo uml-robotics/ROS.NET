@@ -8,153 +8,150 @@ using uint8 = System.Byte;
 
 namespace Messages
 {
-	[System.Diagnostics.DebuggerStepThrough]
-	public class $WHATAMI : IRosService
-	{
-		[System.Diagnostics.DebuggerStepThrough]
-		public $WHATAMI() : base($MYSRVTYPE, $MYSERVICEDEFINITION, "$MYSRVMD5SUM")
-		{
-			InitSubtypes(new Request(), new Response());
-		}
-		
-		public Response Invoke(Func<Request, Response> fn, Request req)
-		{
-			RosServiceDelegate rsd = (m)=>{
-				Request r = m as Request;
-				if (r == null)
-					throw new Exception("Invalid Service Request Type");
-				return fn(r);
-			};
-			return (Response)GeneralInvoke(rsd, (IRosMessage)req);
-		}
-		
-		public Request req { get { return (Request)RequestMessage; } set { RequestMessage = (IRosMessage)value; } }
-		public Response resp { get { return (Response)ResponseMessage; } set { ResponseMessage = (IRosMessage)value; } }
-	
-		public class Request : IRosMessage
-		{
-			$$REQUESTDOLLADOLLABILLS
+    [System.Diagnostics.DebuggerStepThrough]
+    public class $WHATAMI : IRosService
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        public $WHATAMI() : base($MYSRVTYPE, $MYSERVICEDEFINITION, "$MYSRVMD5SUM")
+        {
+            InitSubtypes(new Request(), new Response());
+        }
 
-			[System.Diagnostics.DebuggerStepThrough]
-			public Request() : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
-			{
-				$REQUESTNULLCONSTBODY
-			}
+        public Response Invoke(Func<Request, Response> fn, Request req)
+        {
+            RosServiceDelegate rsd = (m)=>{
+                Request r = m as Request;
+                if (r == null)
+                    throw new Exception("Invalid Service Request Type");
+                return fn(r);
+            };
+            return (Response)GeneralInvoke(rsd, (IRosMessage)req);
+        }
 
-			[System.Diagnostics.DebuggerStepThrough]
-			public Request(byte[] SERIALIZEDSTUFF) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
-			{
+        public Request req { get { return (Request)RequestMessage; } set { RequestMessage = (IRosMessage)value; } }
+        public Response resp { get { return (Response)ResponseMessage; } set { ResponseMessage = (IRosMessage)value; } }
+
+        public class Request : IRosMessage
+        {
+            $$REQUESTDOLLADOLLABILLS
+
+            [System.Diagnostics.DebuggerStepThrough]
+            public Request() : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            {
+                $REQUESTNULLCONSTBODY
+            }
+
+            [System.Diagnostics.DebuggerStepThrough]
+            public Request(byte[] SERIALIZEDSTUFF) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            {
                 Deserialize(SERIALIZEDSTUFF);
-			}
-            
-			[System.Diagnostics.DebuggerStepThrough]
-			public Request(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
-			{
-                Deserialize(SERIALIZEDSTUFF, ref currentIndex);
-			}
+            }
 
-	$REQUESTEXTRACONSTRUCTOR		
-					
-			public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
-			{				
+            [System.Diagnostics.DebuggerStepThrough]
+            public Request(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            {
+                Deserialize(SERIALIZEDSTUFF, ref currentIndex);
+            }
+
+    $REQUESTEXTRACONSTRUCTOR
+
+            public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
+            {
                 int arraylength=-1;
                 bool hasmetacomponents = false;
-	            byte[] thischunk, scratch1, scratch2;
+                byte[] thischunk, scratch1, scratch2;
                 object __thing;
                 int piecesize=0;
-	            IntPtr h;
+                IntPtr h;
                 $REQUESTDESERIALIZATIONCODE
-			}
-
-			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize(bool partofsomethingelse)
-			{		
-		    //return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
-	        int currentIndex=0, length=0;
-            bool hasmetacomponents = false;
-	        byte[] thischunk, scratch1, scratch2;
-	        List<byte[]> pieces = new List<byte[]>();
-	        GCHandle h;
-	        $REQUESTSERIALIZATIONCODE
-	        //combine every array in pieces into one array and return it
-            int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
-	        int __a_b__e=0;
-            if (!partofsomethingelse)
-                __a_b__f += (__a_b__e = 4);
-            byte[] __a_b__d = new byte[__a_b__f];
-            if (!partofsomethingelse)
-                Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
-            foreach(var p in pieces)
-	        {
-	            Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
-                __a_b__e += p.Length;
             }
-            return __a_b__d;
-			}
-		}
-		
-		public class Response : IRosMessage
-		{
-			$$RESPONSEDOLLADOLLABILLS
 
-			[System.Diagnostics.DebuggerStepThrough]
-			public Response() : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
-			{
-				$RESPONSENULLCONSTBODY
-			}
-
-			[System.Diagnostics.DebuggerStepThrough]
-			public Response(byte[] SERIALIZEDSTUFF) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
-			{
-                Deserialize(SERIALIZEDSTUFF);
-			}
             [System.Diagnostics.DebuggerStepThrough]
-			public Response(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
-			{
-                Deserialize(SERIALIZEDSTUFF, ref currentIndex);
-			}
+            public override byte[] Serialize(bool partofsomethingelse)
+            {
+                int currentIndex=0, length=0;
+                bool hasmetacomponents = false;
+                byte[] thischunk, scratch1, scratch2;
+                List<byte[]> pieces = new List<byte[]>();
+                GCHandle h;
+                $REQUESTSERIALIZATIONCODE
+                //combine every array in pieces into one array and return it
+                int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
+                int __a_b__e=0;
+                if (!partofsomethingelse)
+                    __a_b__f += (__a_b__e = 4);
+                byte[] __a_b__d = new byte[__a_b__f];
+                if (!partofsomethingelse)
+                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
+                foreach(var p in pieces)
+                {
+                    Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
+                    __a_b__e += p.Length;
+                }
+                return __a_b__d;
+            }
+        }
 
-	$RESPONSEEXTRACONSTRUCTOR		
-					
-			//[System.Diagnostics.DebuggerStepThrough]
-			public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
-			{		
-								
+        public class Response : IRosMessage
+        {
+            $$RESPONSEDOLLADOLLABILLS
+
+            [System.Diagnostics.DebuggerStepThrough]
+            public Response() : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            {
+                $RESPONSENULLCONSTBODY
+            }
+
+            [System.Diagnostics.DebuggerStepThrough]
+            public Response(byte[] SERIALIZEDSTUFF) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            {
+                Deserialize(SERIALIZEDSTUFF);
+            }
+            [System.Diagnostics.DebuggerStepThrough]
+            public Response(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            {
+                Deserialize(SERIALIZEDSTUFF, ref currentIndex);
+            }
+
+    $RESPONSEEXTRACONSTRUCTOR
+
+            //[System.Diagnostics.DebuggerStepThrough]
+            public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
+            {
+
                 int arraylength=-1;
                 bool hasmetacomponents = false;
                 int piecesize=0;
-	            byte[] thischunk, scratch1, scratch2;
-	            IntPtr h;
+                byte[] thischunk, scratch1, scratch2;
+                IntPtr h;
                 object __thing;
                 $RESPONSEDESERIALIZATIONCODE
-			}
-
-			[System.Diagnostics.DebuggerStepThrough]
-			public override byte[] Serialize(bool partofsomethingelse)
-			{	
-
-				//return SerializationHelper.Serialize<$WHATAMI.Response>(this, partofsomethingelse);
-                int currentIndex=0, length=0;
-            bool hasmetacomponents = false;
-	        byte[] thischunk, scratch1, scratch2;
-	        List<byte[]> pieces = new List<byte[]>();
-	        GCHandle h;
-	        $RESPONSESERIALIZATIONCODE
-	        //combine every array in pieces into one array and return it
-            int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
-	        int __a_b__e=0;
-            if (!partofsomethingelse)
-                __a_b__f += (__a_b__e = 4);
-            byte[] __a_b__d = new byte[__a_b__f];
-            if (!partofsomethingelse)
-                Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
-            foreach(var p in pieces)
-	        {
-	            Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
-                __a_b__e += p.Length;
             }
-            return __a_b__d;
-			}	
-		}
-	}
+
+            [System.Diagnostics.DebuggerStepThrough]
+            public override byte[] Serialize(bool partofsomethingelse)
+            {
+                int currentIndex=0, length=0;
+                bool hasmetacomponents = false;
+                byte[] thischunk, scratch1, scratch2;
+                List<byte[]> pieces = new List<byte[]>();
+                GCHandle h;
+                $RESPONSESERIALIZATIONCODE
+                //combine every array in pieces into one array and return it
+                int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
+                int __a_b__e=0;
+                if (!partofsomethingelse)
+                    __a_b__f += (__a_b__e = 4);
+                byte[] __a_b__d = new byte[__a_b__f];
+                if (!partofsomethingelse)
+                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
+                foreach(var p in pieces)
+                {
+                    Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
+                    __a_b__e += p.Length;
+                }
+                return __a_b__d;
+            }
+        }
+    }
 }
