@@ -613,6 +613,7 @@ namespace FauxMessages
 
             return GUTS;
         }
+
         /// <summary>
         /// How many 4-space "tabs" to prepend
         /// </summary>
@@ -622,10 +623,7 @@ namespace FauxMessages
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
-            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + type))
-            {
-                type = "Messages." + st.Package + "." + type;
-            }
+            type = KnownStuff.GetNamespacedType(st, type);
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"
@@ -700,11 +698,7 @@ namespace FauxMessages
             string ret = string.Format(@"
 {0}//{2}
 {0}hasmetacomponents |= {1};", leadingWhitespace, st.meta.ToString().ToLower(), st.Name);
-            string completetype = st.Type;
-            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + completetype))
-            {
-                completetype = "Messages." + st.Package + "." + completetype;
-            }
+            string completetype = KnownStuff.GetNamespacedType(st);
             ret += string.Format(@"
 {0}if ({1} == null)
 {0}    {1} = new {2}[0];", leadingWhitespace, st.Name, completetype);
@@ -737,11 +731,7 @@ namespace FauxMessages
             // after concluding, make sure part of the string is "currentIndex += <amount read while deserializing this thing>"
             // start of deserializing piece referred to by st is currentIndex (its value at time of call to this fn)"
 
-            string pt = st.Type;
-            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
-            {
-                pt = "Messages." + st.Package + "." + pt;
-            }
+            string pt = KnownStuff.GetNamespacedType(st);
             if(st.Const)
             {
                 return "";
@@ -797,11 +787,7 @@ namespace FauxMessages
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
-            string pt = st.Type;
-            if (!KnownStuff.KnownTypes.ContainsKey(st.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + st.Package))
-            {
-                pt = "Messages." + st.Package + "." + pt;
-            }
+            string pt = KnownStuff.GetNamespacedType(st);
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"
@@ -889,6 +875,26 @@ namespace FauxMessages
     public static class KnownStuff
     {
         private static char[] spliter = {' '};
+        
+        /// <summary>
+        /// Message namespaces known to ALL messages (in their header's using lines)
+        /// </summary>
+        private const string STATIC_NAMESPACE_STRING = "using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;";
+
+        /// <summary>
+        /// Returns the namespaced type name (if neccessary)
+        /// </summary>
+        /// <param name="st">This thing's SingleType</param>
+        /// <param name="type">(optional) the type string</param>
+        /// <returns>duh</returns>
+        public static string GetNamespacedType(SingleType st, string type = null)
+        {
+            if (type == null)
+                type = st.Type;
+            if (!KnownTypes.ContainsKey(st.rostype) && !type.Contains(st.Package) && !STATIC_NAMESPACE_STRING.Contains("Messages." + st.Package))
+                return string.Format("Messages.{0}.{1}", st.Package, type);
+            return type;
+        }
 
         public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
         {
@@ -1085,9 +1091,7 @@ namespace FauxMessages
                             suffix = " = new " + type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(type);
-                string t = type;
-                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages."+Package))
-                    t = "Messages." + Package + "." + t;
+                string t = KnownStuff.GetNamespacedType(this, type);
                 output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
@@ -1100,9 +1104,7 @@ namespace FauxMessages
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
 
                 }
-                string t = type;
-                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
-                    t = "Messages." + Package + "." + t;
+                string t = KnownStuff.GetNamespacedType(this, type);
                 if (length.Length > 0)
                     output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + type + "[" + length + "];";
                 else
@@ -1186,9 +1188,7 @@ namespace FauxMessages
                             suffix = " = new " + Type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(Type);
-                string t = Type;
-                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
-                    t = "Messages." + Package + "." + t;
+                string t = KnownStuff.GetNamespacedType(this, Type);
                 output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
@@ -1200,11 +1200,9 @@ namespace FauxMessages
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + Type + ")" + split[1];
                 }
-                string t = Type;
-                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
-                    t = "Messages." + Package + "." + t;
+                string t = KnownStuff.GetNamespacedType(this, Type);
                 if (length.Length != 0)
-                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + Type + "[" + length + "];";
+                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + t + "[" + length + "];";
                 else
                     output = lowestindent + "public " + "" + t + "[] " + name + otherstuff + ";";
             }
@@ -1219,17 +1217,13 @@ namespace FauxMessages
         public static string Generate(SingleType members)
         {
             string mt = "MsgTypes.Unknown";
-            string pt = members.Type;
+            string pt = KnownStuff.GetNamespacedType(members);
             if (members.meta)
             {
                 string t = members.Type.Replace("Messages.", "");
                 if (!t.Contains('.'))
                     t = members.Definer.Package + "." + t;
                 mt = "MsgTypes." + t.Replace(".", "__");
-            }
-            if (!KnownStuff.KnownTypes.ContainsKey(members.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + members.Package))
-            {
-                pt = "Messages." + members.Package + "." + pt;
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
