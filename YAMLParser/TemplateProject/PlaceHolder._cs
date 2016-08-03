@@ -11,76 +11,69 @@ using Messages.actionlib_msgs;
 
 namespace Messages
 {
-	//[System.Diagnostics.DebuggerStepThrough]
-	public class $WHATAMI : IRosMessage
-	{
-		$$DOLLADOLLABILLS
+    [System.Diagnostics.DebuggerStepThrough]
+    public class $WHATAMI : IRosMessage
+    {
+        $$DOLLADOLLABILLS
 
-		//[System.Diagnostics.DebuggerStepThrough]
-		public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
-		{
-			$NULLCONSTBODY
-		}
+        [System.Diagnostics.DebuggerStepThrough]
+        public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        {
+            $NULLCONSTBODY
+        }
 
-		//[System.Diagnostics.DebuggerStepThrough]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
-		{
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        {
             Deserialize(SERIALIZEDSTUFF);
-		}
+        }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public $WHATAMI(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
-		{
+        public $WHATAMI(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        {
             Deserialize(SERIALIZEDSTUFF, ref currentIndex);
-		}
+        }
 
-$EXTRACONSTRUCTOR		
-				
-		//[System.Diagnostics.DebuggerStepThrough]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
-		{
+$EXTRACONSTRUCTOR
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override void Deserialize(byte[] SERIALIZEDSTUFF, ref int currentIndex)
+        {
             int arraylength=-1;
             bool hasmetacomponents = false;
             object __thing;
             int piecesize=0;
-	        byte[] thischunk, scratch1, scratch2;
-	        IntPtr h;
-	        $DESERIALIZATIONCODE
-	        //SerializationHelper.deserialize(this, GetType(), null, SERIALIZEDSTUFF, out dontcare, !IsMetaType /*&& msgtype != MsgTypes.std_msgs__String*/);
-		}
+            byte[] thischunk, scratch1, scratch2;
+            IntPtr h;
+            $DESERIALIZATIONCODE
+        }
 
-		//[System.Diagnostics.DebuggerStepThrough]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public override byte[] Serialize(bool partofsomethingelse)
-		{
-            //return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
-	        int currentIndex=0, length=0;
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override byte[] Serialize(bool partofsomethingelse)
+        {
+            int currentIndex=0, length=0;
             bool hasmetacomponents = false;
-	        byte[] thischunk, scratch1, scratch2;
-	        List<byte[]> pieces = new List<byte[]>();
-	        GCHandle h;
-	        $SERIALIZATIONCODE
-	        //combine every array in pieces into one array and return it
+            byte[] thischunk, scratch1, scratch2;
+            List<byte[]> pieces = new List<byte[]>();
+            GCHandle h;
+            $SERIALIZATIONCODE
+            //combine every array in pieces into one array and return it
             int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
-	        int __a_b__e=0;
+            int __a_b__e=0;
             if (!partofsomethingelse)
                 __a_b__f += (__a_b__e = 4);
             byte[] __a_b__d = new byte[__a_b__f];
             if (!partofsomethingelse)
                 Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
             foreach(var p in pieces)
-	        {
-	            Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
+            {
+                Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
                 __a_b__e += p.Length;
             }
             return __a_b__d;
-		}
-
-        public override byte[] SerializeLegacy(bool partofsomethingelse)
-		{
-            return SerializationHelper.Serialize<$WHATAMI>(this, partofsomethingelse);
-		}
-	}
+        }
+    }
 }

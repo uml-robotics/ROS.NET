@@ -127,7 +127,9 @@ namespace Ros_CSharp
                 removeemall(owner_id);
             else
             {
+#if DEBUG
                 EDB.WriteLine("removeByID w/ WRONG THREAD ID");
+#endif
                 removeemall(owner_id);
             }
         }
@@ -153,7 +155,9 @@ namespace Ros_CSharp
                 if (wallDuration.Subtract(end.Subtract(begin)).Ticks > 0)
                     Thread.Sleep(wallDuration.Subtract(end.Subtract(begin)));
             }
+#if DEBUG
             EDB.WriteLine("CallbackQueue thread broke out!");
+#endif
         }
 
         public void Enable()
@@ -368,7 +372,7 @@ namespace Ros_CSharp
             throw new NotImplementedException();
         }
 
-        #region Nested type: ICallbackInfo
+#region Nested type: ICallbackInfo
 
         public class ICallbackInfo
         {
@@ -377,7 +381,7 @@ namespace Ros_CSharp
             public UInt64 removal_id;
         }
 
-        #endregion
+#endregion
     }
 
     public class IDInfo

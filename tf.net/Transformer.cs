@@ -208,6 +208,8 @@ namespace tf.net
         {
             emTransform trans = new emTransform();
             lookupTransform(target_frame, stamped_in.frame_id, stamped_in.stamp, out trans);
+            if (stamped_out == null)
+                stamped_out = new Stamped<emQuaternion>();
             stamped_out.data = trans * stamped_in.data;
             stamped_out.stamp = trans.stamp;
             stamped_out.frame_id = target_frame;
@@ -218,6 +220,8 @@ namespace tf.net
             Stamped<emQuaternion> quatin = new Stamped<emQuaternion>(stamped_in.stamp, stamped_in.frame_id, new emQuaternion(stamped_in.data));
             Stamped<emQuaternion> quatout = new Stamped<emQuaternion>(stamped_out.stamp, stamped_out.frame_id, new emQuaternion(stamped_out.data));
             transformQuaternion(target_frame, quatin, ref quatout);
+            if (stamped_out == null)
+                stamped_out = new Stamped<gm.Quaternion>();
             stamped_out.stamp = quatout.stamp;
             stamped_out.data = quatout.data.ToMsg();
             stamped_out.frame_id = quatout.frame_id;
@@ -230,6 +234,8 @@ namespace tf.net
             emVector3 end = stamped_in.data;
             emVector3 origin = new emVector3(0, 0, 0);
             emVector3 output = (trans * end) - (trans * origin);
+            if (stamped_out == null)
+                stamped_out = new Stamped<emVector3>();
             stamped_out.data = output;
             stamped_out.stamp = trans.stamp;
             stamped_out.frame_id = target_frame;
@@ -240,6 +246,8 @@ namespace tf.net
             Stamped<emVector3> vecin = new Stamped<emVector3>(stamped_in.stamp, stamped_in.frame_id, new emVector3(stamped_in.data));
             Stamped<emVector3> vecout = new Stamped<emVector3>(stamped_out.stamp, stamped_out.frame_id, new emVector3(stamped_out.data));
             transformVector(target_frame, vecin, ref vecout);
+            if (stamped_out == null)
+                stamped_out = new Stamped<gm.Vector3>();
             stamped_out.stamp = vecout.stamp;
             stamped_out.data = vecout.data.ToMsg();
             stamped_out.frame_id = vecout.frame_id;

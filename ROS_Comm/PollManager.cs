@@ -159,7 +159,9 @@ namespace Ros_CSharp
 
         public void addPollThreadListener(Action poll)
         {
+#if DEBUG
             EDB.WriteLine("Adding pollthreadlistener " + poll.Target+":"+poll.Method);
+#endif
             lock (signal_mutex)
             {
                 signals.Add(new Poll_Signal(poll));
@@ -189,7 +191,9 @@ namespace Ros_CSharp
                 Thread.Sleep(ROS.WallDuration);
                 if (shutting_down) return;
             }
+#if DEBUG
             EDB.WriteLine("PollManager thread IS FREE");
+#endif
         }
 
 

@@ -54,7 +54,9 @@ namespace Ros_CSharp
 
         public bool initialize(Connection connection)
         {
+#if DEBUG
             EDB.WriteLine("Init transport publisher link: " + parent.name);
+#endif
             this.connection = connection;
             connection.DroppedEvent += onConnectionDropped;
             if (connection.transport.getRequiresHeader())
@@ -90,7 +92,9 @@ namespace Ros_CSharp
 
         private void onConnectionDropped(Connection conn, Connection.DropReason reason)
         {
+#if DEBUG
             EDB.WriteLine("TransportPublisherLink: onConnectionDropped -- " + reason);
+#endif
             if (dropping || conn != connection)
                 return;
             if (reason == Connection.DropReason.TransportDisconnect)
@@ -191,7 +195,9 @@ namespace Ros_CSharp
 
         private void onRetryTimer(object o)
         {
+#if DEBUG
             EDB.WriteLine("TransportPublisherLink: onRetryTimer");
+#endif
             if (dropping) return;
             if (needs_retry && DateTime.Now.Subtract(next_retry).TotalMilliseconds < 0)
             {

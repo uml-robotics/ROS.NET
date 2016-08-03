@@ -41,8 +41,12 @@ namespace YAMLParser
             int firstarg = 0;
             if (args.Length >= 1)
             {
-                configuration = args[0];
-                firstarg++;
+                if (args[firstarg].Trim().Equals("-i"))
+                {
+                    interactive = true;
+                    firstarg++;
+                }
+                configuration = args[firstarg++];
                 if (args[firstarg].Trim().Equals("-i"))
                 {
                     interactive = true;
@@ -312,10 +316,10 @@ namespace YAMLParser
             proc.Start();
             string output = proc.StandardOutput.ReadToEnd();
             string error = proc.StandardError.ReadToEnd();
-            if (File.Exists(outputdir + "\\bin\\Debug\\" + name + ".dll"))
+            if (File.Exists(outputdir + "\\bin\\"+configuration+"\\" + name + ".dll"))
             {
                 Console.WriteLine("\n\nGenerated DLL has been copied to:\n\t" + outputdir + "\\" + name + ".dll\n\n");
-                File.Copy(outputdir + "\\bin\\Debug\\" + name + ".dll", outputdir + "\\" + name + ".dll", true);
+                File.Copy(outputdir + "\\bin\\" + configuration + "\\" + name + ".dll", outputdir + "\\" + name + ".dll", true);
                 Thread.Sleep(100);
             }
             else

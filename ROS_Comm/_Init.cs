@@ -80,11 +80,13 @@ namespace Ros_CSharp
                 toDebugInitialized = true;
             }
 #endif //!FOR_UNITY
+#if DEBUG
             if (toDebugInstead)
             {
                 Debug.WriteLine(o);
             }
             else
+#endif
                 Console.WriteLine(o);
 #else
             UnityEngine.Debug.Log(o);
@@ -298,6 +300,7 @@ namespace Ros_CSharp
         public static long ticksFromData(TimeData data)
         {
             return data.sec * TimeSpan.TicksPerSecond + (uint)Math.Floor(data.nsec / 100.0);
+
         }
 
         public static TimeData ticksToData(long ticks)
@@ -366,7 +369,7 @@ namespace Ros_CSharp
         private static void SimTimeCallback(TimeSpan ts)
         {
             lastSimTime = ts;
-            lastSimTimeReceived = DateTime.Now.Subtract(new DateTime());
+            lastSimTimeReceived = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0));
         }
 
         /// <summary>

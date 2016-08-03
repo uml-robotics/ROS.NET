@@ -62,13 +62,13 @@ namespace Messages
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public byte[] Serialized;
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public IDictionary connection_header;
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype;
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool IsServiceComponent;
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public Dictionary<string, MsgFieldInfo> Fields;
+
+        public IDictionary connection_header;
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [System.Diagnostics.DebuggerStepThrough]
@@ -151,23 +151,31 @@ namespace Messages
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public byte[] SerializeLegacy()
-        {
-            return SerializeLegacy(false);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual byte[] Serialize(bool partofsomethingelse)
         {
             throw new NotImplementedException();
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual byte[] SerializeLegacy(bool partofsomethingelse)
+        public virtual void Randomize()
         {
             throw new NotImplementedException();
+        }
+
+        public virtual bool Equals(IRosMessage msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IRosMessage);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 

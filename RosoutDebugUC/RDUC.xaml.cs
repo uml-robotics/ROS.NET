@@ -48,6 +48,14 @@ namespace RosoutDebugUC
         public RosoutDebug()
         {
             InitializeComponent();
+            Loaded += (sender, args) =>
+            {
+                if (System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv")
+                    return;
+                ROS.WaitForMaster();
+                nh = new NodeHandle();
+                Init();
+            };
         }
 
         public RosoutDebug(NodeHandle n, string IgnoredStrings)
@@ -177,22 +185,22 @@ namespace RosoutDebugUC
 
         private void callback(Messages.rosgraph_msgs.Log msg)
         {
-            string teststring = string.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", msg.level, msg.msg.data, msg.name.data, msg.file.data, msg.function.data, msg.line);
+            string teststring = string.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", msg.level, msg.msg, msg.name, msg.file, msg.function, msg.line);
             if (ignoredStrings.Count > 0 && ignoredStrings.Any(teststring.Contains))
                 return;
             rosoutString rss = new rosoutString((1.0 * msg.header.stamp.data.sec + (1.0 * msg.header.stamp.data.nsec) / 1000000000.0),
                 msg.level,
-                msg.msg.data,
-                msg.name.data,
-                msg.file.data,
-                msg.function.data,
+                msg.msg,
+                msg.name,
+                msg.file,
+                msg.function,
                 ""+msg.line);
             Dispatcher.Invoke(new Action(() =>
             {
                 rosoutdata.Add(rss);
                 if (rosoutdata.Count > 1000)
                     rosoutdata.RemoveAt(0);
-
+                abraCadabra.InvalidateMeasure();               
                 //auto-sticky scrolling IFF the vertical scrollbar is at its maximum or minimum
                 if (VisualTreeHelper.GetChildrenCount(abraCadabra) > 0)
                 {

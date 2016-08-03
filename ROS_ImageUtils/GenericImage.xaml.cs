@@ -46,16 +46,43 @@ namespace ROS_ImageWPF
 
         private GenericImageIMPL impl;
 
+        /// <summary>
+        ///     Looks up the bitmaps dress, then starts passing the image around as a Byte[] and a System.Media.Size to the
+        ///     overloaded UpdateImages that make this work
+        /// </summary>
+        /// <param name="bmp">
+        /// </param>
         public void UpdateImage(Bitmap bmp)
         {
             impl.UpdateImage(bmp);
         }
 
+        /// <summary>
+        ///     if hasHeader is true, then UpdateImage(byte[]) is called
+        ///     otherwise, the size is compared to lastSize,
+        ///     if they differ or header is null, a header is created, and concatinated with data, then UpdateImage(byte[]) is
+        ///     called
+        /// </summary>
+        /// <param name="data">
+        ///     image data
+        /// </param>
+        /// <param name="size">
+        ///     image size
+        /// </param>
+        /// <param name="hasHeader">
+        ///     whether or not a header needs to be concatinated
+        /// </param>
         public void UpdateImage(byte[] data, Size size, bool hasHeader, string encoding = null)
         {
             impl.UpdateImage(data, size, hasHeader, encoding);
         }
 
+        /// <summary>
+        ///     Uses a memory stream to turn a byte array into a BitmapImage via helper method, BytesToImage, then passes the image
+        ///     to UpdateImage(BitmapImage)
+        /// </summary>
+        /// <param name="data">
+        /// </param>
         public void UpdateImage(byte[] data)
         {
             impl.UpdateImage(data);
@@ -70,20 +97,57 @@ namespace ROS_ImageWPF
             }
         }
 
+        /// <summary>
+        /// Directly sets this GenericImage's image based on an already created WPF ImageSource
+        /// </summary>
+        /// <param name="imgsrc">The image to show on this GenericImage</param>
+        public void UpdateImage(ImageSource imgsrc)
+        {
+            impl.UpdateImage(imgsrc);
+        }
+
+        /// <summary>
+        /// Apply specified scale transformation to this GenericImage's image (most useful with 1 or -1 to correct inversions)
+        /// </summary>
+        /// <param name="scalex">X Scale</param>
+        /// <param name="scaley">Y Scale</param>
         public void Transform(double scalex, double scaley)
         {
             image.Transform = new ScaleTransform(scalex, scaley, ActualWidth/2, ActualHeight/2);
         }
 
+        /// <summary>
+        /// Apply specified scale transformation to this GenericImage's image (most useful with 1 or -1 to correct inversions)
+        /// </summary>
+        /// <param name="scalex">X Scale</param>
+        /// <param name="scaley">Y Scale</param>
         public void Transform(int scalex, int scaley)
         {
             image.Transform = new ScaleTransform(1.0*scalex, 1.0*scaley, ActualWidth/2, ActualHeight/2);
+        }
+
+        /// <summary>
+        /// Returns a frozen deep copy of this GenericImage's ImageSource
+        /// </summary>
+        /// <returns>a clone of the ImageSource</returns>
+        public ImageSource CloneImage()
+        {
+            if (image.ImageSource == null)
+                return null;
+            ImageSource ret = image.ImageSource.Clone();
+            if (ret.CanFreeze) ret.Freeze();
+            return ret;
         }
     }
 
     public class GenericImageIMPL
     {
         private ImageBrush image;
+
+        /// <summary>
+        /// Create a GenericImageIMPL to render images on specified ImageBrush UIElement
+        /// </summary>
+        /// <param name="ib">Target ImageBrush</param>
         public GenericImageIMPL(ImageBrush ib)
         {
             image = ib;
@@ -267,6 +331,15 @@ namespace ROS_ImageWPF
         }
 
         /// <summary>
+        /// Directly sets this GenericImage's image based on an already created WPF ImageSource
+        /// </summary>
+        /// <param name="imgsrc">The image to show on this GenericImage</param>
+        public void UpdateImage(ImageSource imgsrc)
+        {
+            image.ImageSource = imgsrc;
+        }
+
+        /// <summary>
         ///     turns a System.Drawing.Size into the WPF double,double version
         /// </summary>
         /// <param name="s">
@@ -278,6 +351,12 @@ namespace ROS_ImageWPF
             return new Size(s.Width, s.Height);
         }
 
+        /// <summary>
+        /// Attempts to convert the byte array, data, into a valid Image, img
+        /// </summary>
+        /// <param name="data">image data (ideally)</param>
+        /// <param name="img">target image</param>
+        /// <returns>true if successful</returns>
         public static bool BytesToImage(byte[] data, ref BitmapImage img)
         {
             bool ret = false;

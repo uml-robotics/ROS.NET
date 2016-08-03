@@ -215,7 +215,7 @@ namespace Ros_CSharp
             try
             {
                 XmlRpcValue v = getParam(key);
-                if (v == null)
+                if (v == null || !v.Valid)
                 {
                     if (def == null)
                         return false;
@@ -302,7 +302,9 @@ namespace Ros_CSharp
             parm.Set(1, names.resolve(key));
             if (!master.execute("hasParam", parm, result, payload, false))
                 return false;
-            return payload.Get<bool>();
+            if (result.Size != 3 || result[0].GetInt() != 1 || result[2].Type != XmlRpcValue.ValueType.TypeBoolean)
+                return false;
+            return result[2].asBool;
         }
 
         /// <summary>

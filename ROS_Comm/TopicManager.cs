@@ -100,22 +100,29 @@ namespace Ros_CSharp
                 XmlRpcManager.Instance.unbind("getSubscriptions");
                 XmlRpcManager.Instance.unbind("getPublications");
 
+                bool failedOnceToUnadvertise = false;
                 lock (advertised_topics_mutex)
                 {
                     foreach (Publication p in advertised_topics)
                     {
-                        if (!p.Dropped)
-                            unregisterPublisher(p.Name);
+                        if (!p.Dropped && !failedOnceToUnadvertise)
+                        {
+                            failedOnceToUnadvertise = !unregisterPublisher(p.Name);
+                        }
                         p.drop();
                     }
                     advertised_topics.Clear();
                 }
 
+                bool failedOnceToUnsubscribe = false;
                 lock (subs_mutex)
                 {
                     foreach (Subscription s in subscriptions)
                     {
-                        unregisterSubscriber(s.name);
+                        if (!s.IsDropped && !failedOnceToUnsubscribe)
+                        {
+                            failedOnceToUnsubscribe = !unregisterSubscriber(s.name);
+                        }
                         s.shutdown();
                     }
                     subscriptions.Clear();
@@ -510,8 +517,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterSubscriber", args, result, payload, false);
-            return true;
+            return master.execute("unregisterSubscriber", args, result, payload, false) && result.Valid;
         }
 
         public bool unregisterPublisher(string topic)
@@ -519,8 +525,7 @@ namespace Ros_CSharp
             XmlRpcValue args = new XmlRpcValue(this_node.Name, topic, XmlRpcManager.Instance.uri),
                 result = new XmlRpcValue(),
                 payload = new XmlRpcValue();
-            master.execute("unregisterPublisher", args, result, payload, false);
-            return true;
+            return master.execute("unregisterPublisher", args, result, payload, false) && result.Valid;
         }
 
         public Publication lookupPublicationWithoutLock(string topic)
@@ -610,7 +615,9 @@ namespace Ros_CSharp
 
         public bool pubUpdate(string topic, List<string> pubs)
         {
+#if DEBUG
             EDB.WriteLine("TopicManager is updating publishers for " + topic);
+#endif
             Subscription sub = null;
             lock (subs_mutex)
             {
@@ -711,7 +718,6 @@ namespace Ros_CSharp
             Publication pub = null;
             lock (advertised_topics_mutex)
             {
-                if (shutting_down) return false;
                 foreach (Publication p in advertised_topics)
                 {
                     if (p.Name == topic && !p.Dropped)
