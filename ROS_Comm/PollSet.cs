@@ -107,7 +107,14 @@ namespace Ros_CSharp
                 }
             if (lsocks.Count == 0 || (checkRead.Count == 0 && checkWrite.Count == 0 && checkError.Count == 0))
                 return;
-            System.Net.Sockets.Socket.Select(checkRead, checkWrite, checkError, -1);
+            try
+            {
+                System.Net.Sockets.Socket.Select(checkRead, checkWrite, checkError, -1);
+            }
+            catch
+            {
+                return;
+            }
             int nEvents = checkRead.Count + checkWrite.Count + checkError.Count;
 
             if (nEvents == 0)
