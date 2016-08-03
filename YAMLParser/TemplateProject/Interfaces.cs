@@ -155,6 +155,28 @@ namespace Messages
         {
             throw new NotImplementedException();
         }
+
+        public virtual void Randomize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool Equals(IRosMessage msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as IRosMessage);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
