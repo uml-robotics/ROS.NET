@@ -233,23 +233,31 @@ namespace FauxMessages
 #region MD5
             GUTS = GUTS.Replace("$REQUESTMYMD5SUM", MD5.Sum(Request));
             GUTS = GUTS.Replace("$RESPONSEMYMD5SUM", MD5.Sum(Response));
-            string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "";
+            string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "", GeneratedReqRandomizationCode = "", GeneratedResRandomizationCode = "", GeneratedReqEqualizationCode = "", GeneratedResEqualizationCode = "";
             //TODO: service support
             for (int i = 0; i < Request.Stuff.Count; i++)
             {
                 GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i], 1);
                 GeneratedReqSerializationCode += Request.GenerateSerializationCode(Request.Stuff[i], 1);
+                GeneratedReqRandomizationCode += Request.GenerateRandomizationCode(Request.Stuff[i], 1);
+                GeneratedReqEqualizationCode += Request.GenerateEqualityCode(Request.Stuff[i], 1);
             }
             for (int i = 0; i < Response.Stuff.Count; i++)
             {
                 GeneratedResDeserializationCode += Response.GenerateDeserializationCode(Response.Stuff[i], 1);
                 GeneratedResSerializationCode += Response.GenerateSerializationCode(Response.Stuff[i], 1);
+                GeneratedResRandomizationCode += Response.GenerateRandomizationCode(Response.Stuff[i], 1);
+                GeneratedResEqualizationCode += Response.GenerateEqualityCode(Response.Stuff[i], 1);
             }
             GUTS = GUTS.Replace("$REQUESTSERIALIZATIONCODE", GeneratedReqSerializationCode);
             GUTS = GUTS.Replace("$REQUESTDESERIALIZATIONCODE", GeneratedReqDeserializationCode);
+            GUTS = GUTS.Replace("$REQUESTRANDOMIZATIONCODE", GeneratedReqRandomizationCode);
+            GUTS = GUTS.Replace("$REQUESTEQUALITYCODE", GeneratedReqEqualizationCode);
             GUTS = GUTS.Replace("$RESPONSESERIALIZATIONCODE", GeneratedResSerializationCode);
             GUTS = GUTS.Replace("$RESPONSEDESERIALIZATIONCODE", GeneratedResDeserializationCode);
-            
+            GUTS = GUTS.Replace("$RESPONSERANDOMIZATIONCODE", GeneratedResRandomizationCode);
+            GUTS = GUTS.Replace("$RESPONSEEQUALITYCODE", GeneratedResEqualizationCode);
+
             string md5 = MD5.Sum(this);
             if (md5 == null)
                 return null;
@@ -857,7 +865,7 @@ namespace FauxMessages
             }
         }
 
-        private string GenerateRandomizationCode(SingleType st, int extraTabs = 0)
+        public string GenerateRandomizationCode(SingleType st, int extraTabs = 0)
         {
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
@@ -1133,13 +1141,19 @@ namespace FauxMessages
             }*/
         }
 
-        private string GenerateEqualityCode(SingleType st, int extraTabs = 0)
-        {//Fiiiiix thiiiiiis
+        public string GenerateEqualityCode(SingleType st, int extraTabs = 0)
+        {
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
 
-            return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
+            if(st.IsArray)
+                return string.Format(@"
+{0}if ({1}.length != other.{1}.length)
+{0}ret &= ""false"";", leadingWhitespace, st.Name);
+
+            else
+                return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
         }
         private string GenerateEqualityCodeForOne(string type, string name, SingleType st, int extraTabs = 0)
         {
@@ -1149,10 +1163,6 @@ namespace FauxMessages
             if (st.IsLiteral)
                 return string.Format(@"
 {0}ret &= {1} == other.{1};", leadingWhitespace, name);
-            else if (st.IsArray)
-                return string.Format(@"
-{0}if ({1}.length != other.{1}.length)
-{0}ret &= ""false"";", leadingWhitespace, name);
             else
                 return string.Format(@"
 {0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);

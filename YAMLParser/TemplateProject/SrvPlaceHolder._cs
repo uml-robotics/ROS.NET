@@ -90,6 +90,23 @@ namespace Messages
                 }
                 return __a_b__d;
             }
+
+            public override void Randomize()
+            {
+                int arraylength=-1;
+                Random r = new Random();
+                $REQUESTRANDOMIZATIONCODE
+            }
+
+            public override bool Equals(IRosMessage other)
+            {
+                if (other == null) return false;
+                bool ret = true;
+                $REQUESTEQUALITYCODE
+                // for each SingleType st:
+                //    ret &= {st.Name} == other.{st.Name};
+                return ret;
+            }
         }
 
         public class Response : IRosMessage
@@ -151,6 +168,23 @@ namespace Messages
                     __a_b__e += p.Length;
                 }
                 return __a_b__d;
+            }
+            
+            public override void Randomize()
+            {
+                int arraylength=-1;
+                Random r = new Random();
+                $RESPONSERANDOMIZATIONCODE
+            }
+
+            public override bool Equals(IRosMessage other)
+            {
+                if (other == null) return false;
+                bool ret = true;
+                $RESPONSEEQUALITYCODE
+                // for each SingleType st:
+                //    ret &= {st.Name} == other.{st.Name};
+                return ret;
             }
         }
     }
