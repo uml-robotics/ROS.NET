@@ -923,8 +923,8 @@ namespace FauxMessages
                 return string.Format(@"
 {0}//{1}
 {0}{1} = new {2}(new TimeData(
-{0}        r.Next(),
-{0}        r.Next()));", leadingWhitespace, name, pt);
+{0}        Convert.ToUInt32(r.Next()),
+{0}        Convert.ToUInt32(r.Next())));", leadingWhitespace, name, pt);
             }
             else if (type == "TimeData")
                 return string.Format(@"
@@ -935,86 +935,87 @@ namespace FauxMessages
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1}= r.NextByte();", leadingWhitespace, name);
+{0}Byte[] b = new Byte[1];
+{0}{1}= r.NextBytes(b);", leadingWhitespace, name);
             }
             else if (type == "string")
             {
                 return string.Format(@"
 {0}//{1}
-{0}int length = r.Next(100) + 1;
-{0}byte[] buf = new byte[length];
-{0}r.NextBytes(buf);  //fill the whole buffer with random bytes
-{0}for (int i = 0; i < length; i++)
-{0}    if (buf[i] == 0) //replace null chars with non-null random ones
-{0}        buf[i] = (byte)(r.Next(254) + 1);
-{0}buf[length - 1] = 0; //null terminate
-{0}{1} = Encoding.ASCII.GetString(buf);", leadingWhitespace, name);
+{0}int strlength = r.Next(100) + 1;
+{0}byte[] strbuf = new byte[strlength];
+{0}r.NextBytes(strbuf);  //fill the whole buffer with random bytes
+{0}for (int i = 0; i < strlength; i++)
+{0}    if (strbuf[i] == 0) //replace null chars with non-null random ones
+{0}        strbuf[i] = (byte)(r.Next(254) + 1);
+{0}strbuf[strlength - 1] = 0; //null terminate
+{0}{1} = Encoding.ASCII.GetString(strbuf);", leadingWhitespace, name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = r.Next(2) == 1", leadingWhitespace, name);
+{0}{1} = r.Next(2) == 1;", leadingWhitespace, name);
             }
             else if (type == "int")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = r.Next()", leadingWhitespace, name);
+{0}{1} = r.Next();", leadingWhitespace, name);
             }
             else if (type == "uint")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (uint)r.Next()", leadingWhitespace, name);
+{0}{1} = (uint)r.Next();", leadingWhitespace, name);
             }
             else if (type == "double")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (r.Next() + r.NextDouble())", leadingWhitespace, name);
+{0}{1} = (r.Next() + r.NextDouble());", leadingWhitespace, name);
             }
-            else if (type == "float")
+            else if (type == "float" || type == "Float64" || type == "Single")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (float)(r.Next() + r.NextDouble()", leadingWhitespace, name);
+{0}{1} = (float)(r.Next() + r.NextDouble());", leadingWhitespace, name);
             }
-            else if (type == "Int16")
+            else if (type == "Int16" || type == "Short" || type == "short")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (Int16)r.Next(Int16.MaxValue + 1)", leadingWhitespace, name);
+{0}{1} = (Int16)r.Next(Int16.MaxValue + 1);", leadingWhitespace, name);
             }
-            else if (type == "UInt16")
+            else if (type == "UInt16" || type == "ushort" || type == "UShort")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (UInt16)r.Next(UInt16.MaxValue + 1)", leadingWhitespace, name);
+{0}{1} = (UInt16)r.Next(UInt16.MaxValue + 1);", leadingWhitespace, name);
             }
-            else if (type == "SByte")
+            else if (type == "SByte" || type == "sbyte")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (SByte)r.Next(255) - 127", leadingWhitespace, name);
+{0}{1} = (SByte)(r.Next(255) - 127);", leadingWhitespace, name);
             }
-            else if (type == "UInt64")
+            else if (type == "UInt64" || type == "ULong" || type == "ulong")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (UInt64)((uint)(r.Next() << 32)) | (uint)r.Next()", leadingWhitespace, name);
+{0}{1} = (UInt64)((uint)(r.Next() << 32)) | (uint)r.Next();", leadingWhitespace, name);
             }
-            else if (type == "Int64")
+            else if (type == "Int64" || type == "Long" || type == "long")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (Int64)(r.Next() << 32) | r.Next()", leadingWhitespace, name);
+{0}{1} = (Int64)(r.Next() << 32) | r.Next();", leadingWhitespace, name);
             }
             else if (type == "char")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (char)(byte)(r.Next(254) + 1)", leadingWhitespace, name);
+{0}{1} = (char)(byte)(r.Next(254) + 1);", leadingWhitespace, name);
             }
             else if (st.IsLiteral)
             {
@@ -1027,118 +1028,6 @@ namespace FauxMessages
 {0}{1} = new {2}();
 {0}{1}.Randomize();", leadingWhitespace, name, pt);
             }
-            /*if (T != typeof(TimeData) && T.Namespace.Contains("Message"))
-                {
-                    //Create a new object of the same type as target?
-                    object msg = Activator.CreateInstance(T);
-                    FieldInfo[] infos = GetFields(T, ref target);
-                    if (msg == null)
-                    {
-                        GetFields(T, ref target);
-                        throw new Exception("SOMETHING AIN'T RIGHT");
-                    }
-                    foreach (FieldInfo info in infos)
-                    {
-                        if (info.Name.Contains("(")) continue;
-                        if (msg.GetType().GetField(info.Name).IsLiteral) continue;
-                        if (info.GetValue(target) == null)
-                        {
-                            if (info.FieldType == typeof(string))
-                                info.SetValue(target, "");
-                            else if (info.FieldType.IsArray)
-                                info.SetValue(target, Array.CreateInstance(info.FieldType.GetElementType(), 0));
-                            else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
-                                info.SetValue(target, 0);
-                            else
-                                info.SetValue(target, Activator.CreateInstance(info.FieldType));
-                        }
-                        object field = info.GetValue(target);
-                        //Randomize(info.FieldType, ref field, -1);
-                        info.SetValue(target, field);
-                    }
-                }
-                else if (target is byte || T == typeof(byte))
-                {
-                    target = (byte)r.Next(255);
-                }
-                else if (target is string || T == typeof(string))
-                {
-                    //create a string of random length [1,100], composed of random chars
-                    int length = r.Next(100) + 1;
-                    byte[] buf = new byte[length];
-                    r.NextBytes(buf);  //fill the whole buffer with random bytes
-                    for (int i = 0; i < length; i++)
-                        if (buf[i] == 0) //replace null chars with non-null random ones
-                            buf[i] = (byte)(r.Next(254) + 1);
-                    buf[length - 1] = 0; //null terminate
-                    target = Encoding.ASCII.GetString(buf);
-                }
-                else if (target is bool || T == typeof(bool))
-                {
-                    target = r.Next(2) == 1;
-                }
-                else if (target is int || T == typeof(int))
-                {
-                    target = r.Next();
-                }
-                else if (target is uint || T == typeof(int))
-                {
-                    target = (uint)r.Next();
-                }
-                else if (target is double || T == typeof(double))
-                {
-                    target = r.NextDouble();
-                }
-                else if (target is TimeData || T == typeof(TimeData))
-                {
-                    target = new TimeData((uint)r.Next(), (uint)r.Next());
-                }
-                else if (target is float || T == typeof(float))
-                {
-                    target = (float)r.NextDouble();
-                }
-                else if (target is Int16 || T == typeof(Int16))
-                {
-                    target = (Int16)r.Next(Int16.MaxValue + 1);
-                }
-                else if (target is UInt16 || T == typeof(UInt16))
-                {
-                    target = (UInt16)r.Next(UInt16.MaxValue + 1);
-                }
-                else if (target is SByte || T == typeof(SByte))
-                {
-                    target = (SByte)(r.Next(255) - 127);
-                }
-                else if (target is UInt64 || T == typeof(UInt64))
-                {
-                    target = (UInt64)((uint)(r.Next() << 32)) | (uint)r.Next();
-                }
-                else if (target is Int64 || T == typeof(Int64))
-                {
-                    target = (Int64)(r.Next() << 32) | r.Next();
-                }
-                else if (target is char || T == typeof(char))
-                {
-                    target = (char)(byte)(r.Next(254) + 1);
-                }
-                else
-                {
-                    throw new Exception("Unhandled randomization: " + T);
-                }
-            }
-            else
-            {
-                int length = hardcodedarraylength != -1 ? hardcodedarraylength : r.Next(10);
-                Type elem = T.GetElementType();
-                Array field = Array.CreateInstance(elem, new int[] { length }, new int[] { 0 });
-                for (int i = 0; i < length; i++)
-                {
-                    object val = field.GetValue(i);
-                    RandomizeField(elem, ref val);
-                    field.SetValue(val, i);
-                }
-                target = field;
-            }*/
         }
 
         public string GenerateEqualityCode(SingleType st, int extraTabs = 0)
@@ -1150,7 +1039,7 @@ namespace FauxMessages
             if(st.IsArray)
                 return string.Format(@"
 {0}if ({1}.length != other.{1}.length)
-{0}ret &= ""false"";", leadingWhitespace, st.Name);
+{0}ret &= false;", leadingWhitespace, st.Name);
 
             else
                 return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
