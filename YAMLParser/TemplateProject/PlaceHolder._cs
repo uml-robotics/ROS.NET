@@ -83,9 +83,9 @@ $EXTRACONSTRUCTOR
             $RANDOMIZATIONCODE
         }
 
-        public override bool Equals(IRosMessage other)
+        public override bool Equals(IRosMessage ____other)
         {
-            if (other == null) return false;
+            if (____other == null) return false;
             bool ret = true;
             $EQUALITYCODE
             // for each SingleType st:

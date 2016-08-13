@@ -235,6 +235,8 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEMYMD5SUM", MD5.Sum(Response));
             string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "", GeneratedReqRandomizationCode = "", GeneratedResRandomizationCode = "", GeneratedReqEqualizationCode = "", GeneratedResEqualizationCode = "";
             //TODO: service support
+            GeneratedReqEqualizationCode += string.Format("{0} other = (Messages.{0}.Request)____other;\n", Request.Name);
+            GeneratedResEqualizationCode += string.Format("{0} other = (Messages.{0}.Response)____other;\n", Response.Name);
             for (int i = 0; i < Request.Stuff.Count; i++)
             {
                 GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i], 1);
@@ -935,8 +937,9 @@ namespace FauxMessages
             {
                 return string.Format(@"
 {0}//{1}
-{0}Byte[] b = new Byte[1];
-{0}{1}= r.NextBytes(b);", leadingWhitespace, name);
+{0}byte[] b = new byte[1];
+{0}r.NextBytes(b);
+{0}{1}= b[0];", leadingWhitespace, name);
             }
             else if (type == "string")
             {
@@ -1038,7 +1041,7 @@ namespace FauxMessages
 
             if(st.IsArray)
                 return string.Format(@"
-{0}if ({1}.length != other.{1}.length)
+{0}if ({1}.Length != other.{1}.Length)
 {0}ret &= false;", leadingWhitespace, st.Name);
 
             else

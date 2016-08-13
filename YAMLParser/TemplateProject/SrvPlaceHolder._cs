@@ -98,9 +98,9 @@ namespace Messages
                 $REQUESTRANDOMIZATIONCODE
             }
 
-            public override bool Equals(IRosMessage other)
+            public override bool Equals(IRosMessage ____other)
             {
-                if (other == null) return false;
+                if (____other == null) return false;
                 bool ret = true;
                 $REQUESTEQUALITYCODE
                 // for each SingleType st:
@@ -177,9 +177,9 @@ namespace Messages
                 $RESPONSERANDOMIZATIONCODE
             }
 
-            public override bool Equals(IRosMessage other)
+            public override bool Equals(IRosMessage ____other)
             {
-                if (other == null) return false;
+                if (____other == null) return false;
                 bool ret = true;
                 $RESPONSEEQUALITYCODE
                 // for each SingleType st:
