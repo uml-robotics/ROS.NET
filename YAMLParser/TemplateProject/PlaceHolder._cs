@@ -79,7 +79,9 @@ $EXTRACONSTRUCTOR
         public override void Randomize()
         {
             int arraylength=-1;
-            Random r = new Random();
+            Random rand = new Random();
+            int strlength;
+            byte[] strbuf, myByte;
             $RANDOMIZATIONCODE
         }
 

@@ -235,8 +235,8 @@ namespace FauxMessages
             GUTS = GUTS.Replace("$RESPONSEMYMD5SUM", MD5.Sum(Response));
             string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "", GeneratedReqRandomizationCode = "", GeneratedResRandomizationCode = "", GeneratedReqEqualizationCode = "", GeneratedResEqualizationCode = "";
             //TODO: service support
-            GeneratedReqEqualizationCode += string.Format("{0} other = (Messages.{0}.Request)____other;\n", Request.Name);
-            GeneratedResEqualizationCode += string.Format("{0} other = (Messages.{0}.Response)____other;\n", Response.Name);
+            GeneratedReqEqualizationCode += string.Format("{0}.Request other = (Messages.{0}.Request)____other;\n", Request.Name);
+            GeneratedResEqualizationCode += string.Format("{0}.Response other = (Messages.{0}.Response)____other;\n", Response.Name);
             for (int i = 0; i < Request.Stuff.Count; i++)
             {
                 GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i], 1);
@@ -612,6 +612,7 @@ namespace FauxMessages
             string md5 = MD5.Sum(this);
             if (md5 == null) return null;
 
+            GeneratedEqualityCode += string.Format("{0} other = (Messages.{0})____other;\n", Name);
             for (int i = 0; i < Stuff.Count; i++)
             {
                 GeneratedDeserializationCode += this.GenerateDeserializationCode(Stuff[i]);
@@ -901,7 +902,7 @@ namespace FauxMessages
             else
             {
                 ret += string.Format(@"
-{0}arraylength = r.Next(10);", leadingWhitespace);
+{0}arraylength = rand.Next(10);", leadingWhitespace);
             }
             ret += string.Format(@"
 {0}if ({1} == null)
@@ -925,32 +926,32 @@ namespace FauxMessages
                 return string.Format(@"
 {0}//{1}
 {0}{1} = new {2}(new TimeData(
-{0}        Convert.ToUInt32(r.Next()),
-{0}        Convert.ToUInt32(r.Next())));", leadingWhitespace, name, pt);
+{0}        Convert.ToUInt32(rand.Next()),
+{0}        Convert.ToUInt32(rand.Next())));", leadingWhitespace, name, pt);
             }
             else if (type == "TimeData")
                 return string.Format(@"
 {0}//{1}
-{0}{1}.sec = r.Next();
-{0}{1}.nsec  = r.Next();", leadingWhitespace, name);
+{0}{1}.sec = Convert.ToUInt32(rand.Next());
+{0}{1}.nsec  = Convert.ToUInt32(rand.Next());", leadingWhitespace, name);
             else if (type == "byte")
             {
                 return string.Format(@"
 {0}//{1}
-{0}byte[] b = new byte[1];
-{0}r.NextBytes(b);
-{0}{1}= b[0];", leadingWhitespace, name);
+{0}myByte = new byte[1];
+{0}rand.NextBytes(myByte);
+{0}{1}= myByte[0];", leadingWhitespace, name);
             }
             else if (type == "string")
             {
                 return string.Format(@"
 {0}//{1}
-{0}int strlength = r.Next(100) + 1;
-{0}byte[] strbuf = new byte[strlength];
-{0}r.NextBytes(strbuf);  //fill the whole buffer with random bytes
-{0}for (int i = 0; i < strlength; i++)
-{0}    if (strbuf[i] == 0) //replace null chars with non-null random ones
-{0}        strbuf[i] = (byte)(r.Next(254) + 1);
+{0}strlength = rand.Next(100) + 1;
+{0}strbuf = new byte[strlength];
+{0}rand.NextBytes(strbuf);  //fill the whole buffer with random bytes
+{0}for (int x = 0; x < strlength; x++)
+{0}    if (strbuf[x] == 0) //replace null chars with non-null random ones
+{0}        strbuf[x] = (byte)(rand.Next(254) + 1);
 {0}strbuf[strlength - 1] = 0; //null terminate
 {0}{1} = Encoding.ASCII.GetString(strbuf);", leadingWhitespace, name);
             }
@@ -958,67 +959,67 @@ namespace FauxMessages
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = r.Next(2) == 1;", leadingWhitespace, name);
+{0}{1} = rand.Next(2) == 1;", leadingWhitespace, name);
             }
             else if (type == "int")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = r.Next();", leadingWhitespace, name);
+{0}{1} = rand.Next();", leadingWhitespace, name);
             }
             else if (type == "uint")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (uint)r.Next();", leadingWhitespace, name);
+{0}{1} = (uint)rand.Next();", leadingWhitespace, name);
             }
             else if (type == "double")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (r.Next() + r.NextDouble());", leadingWhitespace, name);
+{0}{1} = (rand.Next() + rand.NextDouble());", leadingWhitespace, name);
             }
             else if (type == "float" || type == "Float64" || type == "Single")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (float)(r.Next() + r.NextDouble());", leadingWhitespace, name);
+{0}{1} = (float)(rand.Next() + rand.NextDouble());", leadingWhitespace, name);
             }
             else if (type == "Int16" || type == "Short" || type == "short")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (Int16)r.Next(Int16.MaxValue + 1);", leadingWhitespace, name);
+{0}{1} = (System.Int16)rand.Next(System.Int16.MaxValue + 1);", leadingWhitespace, name);
             }
             else if (type == "UInt16" || type == "ushort" || type == "UShort")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (UInt16)r.Next(UInt16.MaxValue + 1);", leadingWhitespace, name);
+{0}{1} = (System.UInt16)rand.Next(System.UInt16.MaxValue + 1);", leadingWhitespace, name);
             }
             else if (type == "SByte" || type == "sbyte")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (SByte)(r.Next(255) - 127);", leadingWhitespace, name);
+{0}{1} = (SByte)(rand.Next(255) - 127);", leadingWhitespace, name);
             }
             else if (type == "UInt64" || type == "ULong" || type == "ulong")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (UInt64)((uint)(r.Next() << 32)) | (uint)r.Next();", leadingWhitespace, name);
+{0}{1} = (System.UInt64)((uint)(rand.Next() << 32)) | (uint)rand.Next();", leadingWhitespace, name);
             }
             else if (type == "Int64" || type == "Long" || type == "long")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (Int64)(r.Next() << 32) | r.Next();", leadingWhitespace, name);
+{0}{1} = (System.Int64)(rand.Next() << 32) | rand.Next();", leadingWhitespace, name);
             }
             else if (type == "char")
             {
                 return string.Format(@"
 {0}//{1}
-{0}{1} = (char)(byte)(r.Next(254) + 1);", leadingWhitespace, name);
+{0}{1} = (char)(byte)(rand.Next(254) + 1);", leadingWhitespace, name);
             }
             else if (st.IsLiteral)
             {
@@ -1053,7 +1054,15 @@ namespace FauxMessages
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
             if (st.IsLiteral)
-                return string.Format(@"
+                if (st.Const)
+                    return string.Format(@"
+{0}ret &= true;", leadingWhitespace);
+                else if (type == "TimeData")
+                    return string.Format(@"
+{0}ret &= {1}.sec == other.{1}.sec;
+{0}ret &= {1}.nsec == other.{1}.nsec;", leadingWhitespace, name);
+                else
+                    return string.Format(@"
 {0}ret &= {1} == other.{1};", leadingWhitespace, name);
             else
                 return string.Format(@"

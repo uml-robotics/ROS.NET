@@ -94,7 +94,9 @@ namespace Messages
             public override void Randomize()
             {
                 int arraylength=-1;
-                Random r = new Random();
+                Random rand = new Random();
+                int strlength;
+                byte[] strbuf, myByte;
                 $REQUESTRANDOMIZATIONCODE
             }
 
@@ -173,7 +175,9 @@ namespace Messages
             public override void Randomize()
             {
                 int arraylength=-1;
-                Random r = new Random();
+                Random rand = new Random();
+                int strlength;
+                byte[] strbuf, myByte;
                 $RESPONSERANDOMIZATIONCODE
             }
 
