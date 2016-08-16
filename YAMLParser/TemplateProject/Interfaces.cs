@@ -249,5 +249,10 @@ namespace Messages
             sec = s;
             nsec = ns;
         }
+
+        public bool Equals(TimeData timer)
+        {
+            return (sec == timer.sec && nsec == timer.nsec);
+        }
     }
 }

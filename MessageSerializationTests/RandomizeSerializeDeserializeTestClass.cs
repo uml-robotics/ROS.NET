@@ -112,7 +112,7 @@ namespace MessageSerializationTests
                 IRosMessage original = (IRosMessage)omsg;
                 original.Serialized = original.Serialize();
                 Debug.WriteLine("Randomized " + m + " = " + dumphex(original.Serialized));
-                Assert.AreNotEqual(original.Serialized.Length, 0);
+                //Assert.AreNotEqual(original.Serialized.Length, 0);
                 IRosMessage msg = IRosMessage.generate(m);
                 Assert.IsTrue(msg != null);
 
@@ -122,8 +122,8 @@ namespace MessageSerializationTests
                 bool match = original.Equals(msg);
                 if (!match)
                 {
-                    Debug.WriteLine(">>>>>>>>FAILED<<<<<<<<");
-                    //Assert.Fail();
+                    //Debug.WriteLine(">>>>>>>>FAILED<<<<<<<<");
+                    Assert.Fail();
                 }
                 Debug.WriteLine("PASS: " + m);
             }

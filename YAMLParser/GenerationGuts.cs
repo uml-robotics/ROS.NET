@@ -1057,23 +1057,18 @@ namespace FauxMessages
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
-            if (st.IsLiteral)
+            if (type == "Time")
+                return string.Format(@"
+{0}ret &= {1}.data.Equals(other.{1}.data);", leadingWhitespace, name);
+            else if (st.IsLiteral)
                 if (st.Const)
                     return "";
                 else if (type == "TimeData")
                     return string.Format(@"
-{0}ret &= {1}.sec == other.{1}.sec;
-{0}ret &= {1}.nsec == other.{1}.nsec;", leadingWhitespace, name);
+{0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
                 else
                     return string.Format(@"
 {0}ret &= {1} == other.{1};", leadingWhitespace, name);
-            else if (type == "Header")
-                return string.Format(@"
-{0}ret &= {1}.seq == other.{1}.seq;
-{0}ret &= {1}.stamp.data.sec == other.{1}.stamp.data.sec;
-{0}ret &= {1}.stamp.data.nsec == other.{1}.stamp.data.nsec;
-{0}ret &= {1}.frame_id.Equals(other.{1}.frame_id);", leadingWhitespace, name);
-
             else
                 return string.Format(@"
 {0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
@@ -1320,7 +1315,7 @@ namespace FauxMessages
                     else
                         suffix = KnownStuff.GetConstTypesAffix(type);
                 string t = KnownStuff.GetNamespacedType(this, type);
-                output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
+                output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + "; //woo";
             }
             else
             {
