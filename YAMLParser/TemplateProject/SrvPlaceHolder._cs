@@ -78,11 +78,7 @@ namespace Messages
                 //combine every array in pieces into one array and return it
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
-                if (!partofsomethingelse)
-                    __a_b__f += (__a_b__e = 4);
                 byte[] __a_b__d = new byte[__a_b__f];
-                if (!partofsomethingelse)
-                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
                 foreach(var p in pieces)
                 {
                     Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
@@ -159,11 +155,7 @@ namespace Messages
                 //combine every array in pieces into one array and return it
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
-                if (!partofsomethingelse)
-                    __a_b__f += (__a_b__e = 4);
                 byte[] __a_b__d = new byte[__a_b__f];
-                if (!partofsomethingelse)
-                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
                 foreach(var p in pieces)
                 {
                     Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);

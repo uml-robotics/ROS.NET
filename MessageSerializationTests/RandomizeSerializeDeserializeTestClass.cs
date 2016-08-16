@@ -117,11 +117,8 @@ namespace MessageSerializationTests
                 Assert.IsTrue(msg != null);
 
                 //strip off the length we send with the message to subscribers
-                byte[] data = new byte[original.Serialized.Length - 4];
-                for (int i = 0; i < data.Length; i++)
-                    data[i] = original.Serialized[i+4];
-                Debug.WriteLine("Trying to deserialize " + m + " = " + dumphex(data));
-                msg.Deserialize(data);
+                Debug.WriteLine("Trying to deserialize " + m);
+                msg.Deserialize(original.Serialized);
                 bool match = original.Equals(msg);
                 if (!match)
                 {

@@ -80,9 +80,6 @@ namespace Ros_CSharp
             else
             {
                 stats.bytes_received += (ulong) m.Serialized.Length;
-                byte[] tmp = new byte[m.Serialized.Length - 4];
-                Array.Copy(m.Serialized, 4, tmp, 0, m.Serialized.Length - 4);
-                m.Serialized = tmp;
             }
             if (parent != null)
                 lock (parent)
