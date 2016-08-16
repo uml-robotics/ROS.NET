@@ -11,7 +11,9 @@ using Messages.actionlib_msgs;
 
 namespace Messages
 {
+#if !TRACE
     [System.Diagnostics.DebuggerStepThrough]
+#endif
     public class $WHATAMI : IRosMessage
     {
         $$DOLLADOLLABILLS

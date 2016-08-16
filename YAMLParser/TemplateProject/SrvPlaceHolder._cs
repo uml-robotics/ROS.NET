@@ -8,7 +8,9 @@ using uint8 = System.Byte;
 
 namespace Messages
 {
+#if !TRACE
     [System.Diagnostics.DebuggerStepThrough]
+#endif
     public class $WHATAMI : IRosService
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
