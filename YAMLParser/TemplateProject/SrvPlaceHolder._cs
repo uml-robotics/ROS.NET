@@ -14,11 +14,11 @@ namespace Messages
     public class $WHATAMI : IRosService
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual SrvTypes srvtype() { return $MYSRVTYPE; }
+        public override SrvTypes srvtype() { return $MYSRVTYPE; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual string ServiceDefinition() { return $MYSERVICEDEFINITION; }
+        public override string ServiceDefinition() { return $MYSERVICEDEFINITION; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public virtual string MD5Sum() { return "$MYSRVMD5SUM"; }
+        public override string MD5Sum() { return "$MYSRVMD5SUM"; }
         
         [System.Diagnostics.DebuggerStepThrough]
         public $WHATAMI()
