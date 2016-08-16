@@ -1043,7 +1043,7 @@ namespace FauxMessages
             if(st.IsArray)
                 return string.Format(@"
 {0}if ({1}.Length != other.{1}.Length)
-{0}ret &= false;", leadingWhitespace, st.Name);
+{0}    ret &= false;", leadingWhitespace, st.Name);
 
             else
                 return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
@@ -1055,8 +1055,7 @@ namespace FauxMessages
                 leadingWhitespace += "    ";
             if (st.IsLiteral)
                 if (st.Const)
-                    return string.Format(@"
-{0}ret &= true;", leadingWhitespace);
+                    return "";
                 else if (type == "TimeData")
                     return string.Format(@"
 {0}ret &= {1}.sec == other.{1}.sec;
