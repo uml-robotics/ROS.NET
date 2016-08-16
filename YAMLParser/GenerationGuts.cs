@@ -1040,11 +1040,15 @@ namespace FauxMessages
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
 
-            if(st.IsArray)
+            if (st.IsArray)
+            {
                 return string.Format(@"
 {0}if ({1}.Length != other.{1}.Length)
-{0}    ret &= false;", leadingWhitespace, st.Name);
-
+{0}    return false;
+{0}for (int __i__=0; __i__ < {1}.Length; __i__++)
+{0}{{{2}
+{0}}}", leadingWhitespace, st.Name, GenerateEqualityCodeForOne(st.Type, st.Name + "[__i__]", st, extraTabs + 1));
+            }
             else
                 return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
         }
