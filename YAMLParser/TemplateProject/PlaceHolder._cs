@@ -75,5 +75,24 @@ $EXTRACONSTRUCTOR
             }
             return __a_b__d;
         }
+
+        public override void Randomize()
+        {
+            int arraylength=-1;
+            Random rand = new Random();
+            int strlength;
+            byte[] strbuf, myByte;
+            $RANDOMIZATIONCODE
+        }
+
+        public override bool Equals(IRosMessage ____other)
+        {
+            if (____other == null) return false;
+            bool ret = true;
+            $EQUALITYCODE
+            // for each SingleType st:
+            //    ret &= {st.Name} == other.{st.Name};
+            return ret;
+        }
     }
 }

@@ -17,10 +17,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using YAMLParser;
-
 #endregion
 
 namespace FauxMessages
@@ -233,33 +233,23 @@ namespace FauxMessages
 #region MD5
             GUTS = GUTS.Replace("$REQUESTMYMD5SUM", MD5.Sum(Request));
             GUTS = GUTS.Replace("$RESPONSEMYMD5SUM", MD5.Sum(Response));
-            string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "", GeneratedReqRandomizationCode = "", GeneratedResRandomizationCode = "", GeneratedReqEqualizationCode = "", GeneratedResEqualizationCode = "";
+            string GeneratedReqDeserializationCode = "", GeneratedReqSerializationCode = "", GeneratedResDeserializationCode = "", GeneratedResSerializationCode = "";
             //TODO: service support
-            GeneratedReqEqualizationCode += string.Format("{0}.Request other = (Messages.{0}.Request)____other;\n", Request.Name);
-            GeneratedResEqualizationCode += string.Format("{0}.Response other = (Messages.{0}.Response)____other;\n", Response.Name);
             for (int i = 0; i < Request.Stuff.Count; i++)
             {
-                GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i], 1);
-                GeneratedReqSerializationCode += Request.GenerateSerializationCode(Request.Stuff[i], 1);
-                GeneratedReqRandomizationCode += Request.GenerateRandomizationCode(Request.Stuff[i], 1);
-                GeneratedReqEqualizationCode += Request.GenerateEqualityCode(Request.Stuff[i], 1);
+                GeneratedReqDeserializationCode += Request.GenerateDeserializationCode(Request.Stuff[i]);
+                GeneratedReqSerializationCode += Request.GenerateSerializationCode(Request.Stuff[i]);
             }
             for (int i = 0; i < Response.Stuff.Count; i++)
             {
-                GeneratedResDeserializationCode += Response.GenerateDeserializationCode(Response.Stuff[i], 1);
-                GeneratedResSerializationCode += Response.GenerateSerializationCode(Response.Stuff[i], 1);
-                GeneratedResRandomizationCode += Response.GenerateRandomizationCode(Response.Stuff[i], 1);
-                GeneratedResEqualizationCode += Response.GenerateEqualityCode(Response.Stuff[i], 1);
+                GeneratedResDeserializationCode += Response.GenerateDeserializationCode(Response.Stuff[i]);
+                GeneratedResSerializationCode += Response.GenerateSerializationCode(Response.Stuff[i]);
             }
             GUTS = GUTS.Replace("$REQUESTSERIALIZATIONCODE", GeneratedReqSerializationCode);
             GUTS = GUTS.Replace("$REQUESTDESERIALIZATIONCODE", GeneratedReqDeserializationCode);
-            GUTS = GUTS.Replace("$REQUESTRANDOMIZATIONCODE", GeneratedReqRandomizationCode);
-            GUTS = GUTS.Replace("$REQUESTEQUALITYCODE", GeneratedReqEqualizationCode);
             GUTS = GUTS.Replace("$RESPONSESERIALIZATIONCODE", GeneratedResSerializationCode);
             GUTS = GUTS.Replace("$RESPONSEDESERIALIZATIONCODE", GeneratedResDeserializationCode);
-            GUTS = GUTS.Replace("$RESPONSERANDOMIZATIONCODE", GeneratedResRandomizationCode);
-            GUTS = GUTS.Replace("$RESPONSEEQUALITYCODE", GeneratedResEqualizationCode);
-
+            
             string md5 = MD5.Sum(this);
             if (md5 == null)
                 return null;
@@ -282,7 +272,7 @@ namespace FauxMessages
         }
 
         public static Dictionary<string, Dictionary<string, List<ResolvedMsg>>> resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
-        
+
         private string GUTS;
         public string GeneratedDictHelper;
         public bool HasHeader;
@@ -353,7 +343,7 @@ namespace FauxMessages
         public MsgsFile(MsgFileLocation filename, string extraindent)
         {
             if (resolver == null)
-                resolver = new Dictionary<string, Dictionary<string,List<ResolvedMsg>>>();
+                resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
             if (!filename.Path.Contains(".msg"))
                 throw new Exception("" + filename + " IS NOT A VALID MSG FILE!");
             classname = filename.basename;
@@ -365,9 +355,9 @@ namespace FauxMessages
             if (!resolver.Keys.Contains(Package))
                 resolver.Add(Package, new Dictionary<string, List<ResolvedMsg>>());
             if (!resolver[Package].ContainsKey(classname))
-                resolver[Package].Add(classname, new List<ResolvedMsg> { new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this} });
+                resolver[Package].Add(classname, new List<ResolvedMsg> { new ResolvedMsg { OtherType = Namespace + "." + classname, Definer = this } });
             else
-                resolver[Package][classname].Add(new ResolvedMsg{OtherType = Namespace + "." + classname, Definer = this});
+                resolver[Package][classname].Add(new ResolvedMsg { OtherType = Namespace + "." + classname, Definer = this });
             List<string> lines = new List<string>(File.ReadAllLines(filename.Path));
             lines = lines.Where(st => (!st.Contains('#') || st.Split('#')[0].Length != 0)).ToList();
             for (int i = 0; i < lines.Count; i++)
@@ -400,7 +390,7 @@ namespace FauxMessages
             {
                 KnownStuff.WhatItIs(parent, st);
             }
-            List<string> prefixes = new List<string>(new[] { "", "std_msgs", "geometry_msgs", "actionlib_msgs"});
+            List<string> prefixes = new List<string>(new[] { "", "std_msgs", "geometry_msgs", "actionlib_msgs" });
             if (st.Type.Contains("/"))
             {
                 string[] pieces = st.Type.Split('/');
@@ -420,7 +410,7 @@ namespace FauxMessages
                             st.Package = p;
                             st.Definer = resolver[p][st.Type][0].Definer;
                         }
-                        else if (resolver[p][st.Type].Count>1)
+                        else if (resolver[p][st.Type].Count > 1)
                             throw new Exception("Could not resolve " + st.Type);
                     }
                 }
@@ -467,7 +457,8 @@ namespace FauxMessages
                     memoizedcontent +=
                         "\n\n\t\t\t\t\tpublic String(string s){ data = s; }\n\t\t\t\t\tpublic String(){ data = \"\"; }\n\n";
                 }
-                else*/ if (classname == "Time")
+                else*/
+                if (classname == "Time")
                 {
                     memoizedcontent +=
                         "\n\n\t\t\t\t\tpublic Time(uint s, uint ns) : this(new TimeData{ sec=s, nsec = ns}){}\n\t\t\t\t\tpublic Time(TimeData s){ data = s; }\n\t\t\t\t\tpublic Time() : this(0,0){}\n\n";
@@ -536,7 +527,7 @@ namespace FauxMessages
                         backhalf += lines[i] + "\n";
                 }
             }
-            string GeneratedDeserializationCode = "", GeneratedSerializationCode = "", GeneratedRandomizationCode = "", GeneratedEqualityCode="";
+            string GeneratedDeserializationCode = "", GeneratedSerializationCode = "";
             if (memoizedcontent == null)
             {
                 memoizedcontent = "";
@@ -577,7 +568,7 @@ namespace FauxMessages
                 StringBuilder DEF = new StringBuilder();
                 foreach (string s in def)
                     DEF.AppendLine(s);
-                Debug.WriteLine("============\n"+this.classname);
+                Debug.WriteLine("============\n" + this.classname);
             }
             GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                    (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
@@ -612,462 +603,188 @@ namespace FauxMessages
             string md5 = MD5.Sum(this);
             if (md5 == null) return null;
 
-            GeneratedEqualityCode += string.Format("{0} other = (Messages.{0})____other;\n", Name);
             for (int i = 0; i < Stuff.Count; i++)
             {
                 GeneratedDeserializationCode += this.GenerateDeserializationCode(Stuff[i]);
                 GeneratedSerializationCode += this.GenerateSerializationCode(Stuff[i]);
-                GeneratedRandomizationCode += this.GenerateRandomizationCode(Stuff[i]);
-                GeneratedEqualityCode += this.GenerateEqualityCode(Stuff[i]);
-                //equality TOO
             }
             GUTS = GUTS.Replace("$SERIALIZATIONCODE", GeneratedSerializationCode);
             GUTS = GUTS.Replace("$DESERIALIZATIONCODE", GeneratedDeserializationCode);
-            GUTS = GUTS.Replace("$RANDOMIZATIONCODE", GeneratedRandomizationCode);
-            GUTS = GUTS.Replace("$EQUALITYCODE", GeneratedEqualityCode);
             GUTS = GUTS.Replace("$MYMD5SUM", md5);
 
             return GUTS;
         }
-
-        /// <summary>
-        /// How many 4-space "tabs" to prepend
-        /// </summary>
-        private const int LEADING_WHITESPACE = 3;
-        private string GenerateSerializationForOne(string type, string name, SingleType st, int extraTabs=0)
+        private string GenerateSerializationForOne(string type, string name, SingleType st)
         {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            type = KnownStuff.GetNamespacedType(st, type);
             if (type == "Time" || type == "Duration")
             {
-                return string.Format(@"
-{0}//{1}
-{0}pieces.Add(BitConverter.GetBytes({1}.data.sec));
-{0}pieces.Add(BitConverter.GetBytes({1}.data.nsec));", leadingWhitespace, name);
+                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.data.sec));
+                            pieces.Add(BitConverter.GetBytes({0}.data.nsec));", name);
             }
             else if (type == "TimeData")
-                return string.Format(@"
-{0}//{1}
-{0}pieces.Add(BitConverter.GetBytes({1}.sec));
-{0}pieces.Add(BitConverter.GetBytes({1}.nsec));", leadingWhitespace, name);
+                return string.Format(@"pieces.Add(BitConverter.GetBytes({0}.sec));
+                            pieces.Add(BitConverter.GetBytes({0}.nsec));", name);
             else if (type == "byte")
             {
-                return string.Format(@"
-{0}//{1}
-{0}pieces.Add(new[] {{ (byte){1} }});", leadingWhitespace, name); ;
+                return string.Format("pieces.Add(new[] {{ (byte){0} }});", name); ;
             }
             else if (type == "string")
             {
                 return string.Format(@"
-{0}//{1}
-{0}if ({1} == null)
-{0}    {1} = """";
-{0}scratch1 = Encoding.ASCII.GetBytes((string){1});
-{0}thischunk = new byte[scratch1.Length + 4];
-{0}scratch2 = BitConverter.GetBytes(scratch1.Length);
-{0}Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
-{0}Array.Copy(scratch2, thischunk, 4);
-{0}pieces.Add(thischunk);", leadingWhitespace, name);
+                        if ({0} == null)
+                            {0} = """";
+                        scratch1 = Encoding.ASCII.GetBytes((string){0});
+                        thischunk = new byte[scratch1.Length + 4];
+                        scratch2 = BitConverter.GetBytes(scratch1.Length);
+                        Array.Copy(scratch1, 0, thischunk, 4, scratch1.Length);
+                        Array.Copy(scratch2, thischunk, 4);
+                        pieces.Add(thischunk);", name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
-{0}//{1}
-{0}thischunk = new byte[1];
-{0}thischunk[0] = (byte) ((bool){1} ? 1 : 0 );
-{0}pieces.Add(thischunk);", leadingWhitespace, name);
-            }
-            else if (st.IsLiteral)
-            {
-                return string.Format(@"
-{0}//{1}
-{0}scratch1 = new byte[Marshal.SizeOf(typeof({2}))];
-{0}h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
-{0}Marshal.StructureToPtr({1}, h.AddrOfPinnedObject(), false);
-{0}h.Free();
-{0}pieces.Add(scratch1);", leadingWhitespace, name, type);
-            }
-            else
-            {
-                return string.Format(@"
-{0}//{1}
-{0}if ({1} == null)
-{0}    {1} = new {2}();
-{0}pieces.Add({1}.Serialize(true));", leadingWhitespace, name, type);
-            }
-        }
-        public string GenerateSerializationCode(SingleType st, int extraTabs = 0)
-        {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            if (st.Const)
-                return "";
-            if (!st.IsArray)
-            {
-                return GenerateSerializationForOne(st.Type, st.Name, st, extraTabs);
-            }
-
-            int arraylength = -1;
-            string ret = string.Format(@"
-{0}//{2}
-{0}hasmetacomponents |= {1};", leadingWhitespace, st.meta.ToString().ToLower(), st.Name);
-            string completetype = KnownStuff.GetNamespacedType(st);
-            ret += string.Format(@"
-{0}if ({1} == null)
-{0}    {1} = new {2}[0];", leadingWhitespace, st.Name, completetype);
-            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
-            {
-                ret += string.Format(@"
-{0}pieces.Add(BitConverter.GetBytes({1}.Length));", leadingWhitespace, st.Name);
-            }
-            //special case arrays of bytes
-            if (st.Type == "byte")
-            {
-                ret += string.Format(@"
-{0}pieces.Add(({2}[]){1});", leadingWhitespace, st.Name, st.Type);
-            }
-            else
-            {
-                ret += string.Format(@"
-{0}for (int i=0;i<{1}.Length; i++) {{{2}
-{0}}}", leadingWhitespace, st.Name, GenerateSerializationForOne(st.Type, st.Name + "[i]", st, extraTabs + 1));
-            }
-            return ret;
-        }
-
-        public string GenerateDeserializationCode(SingleType st, int extraTabs = 0)
-        {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            // this happens  for each member of the outer message
-            // after concluding, make sure part of the string is "currentIndex += <amount read while deserializing this thing>"
-            // start of deserializing piece referred to by st is currentIndex (its value at time of call to this fn)"
-
-            string pt = KnownStuff.GetNamespacedType(st);
-            if(st.Const)
-            {
-                return "";
-            }
-            else if(!st.IsArray)
-            {
-                return GenerateDeserializationForOne(st.Type, st.Name, st, extraTabs);
-            }
-
-            string ret = string.Format(@"
-{0}//{2}
-{0}hasmetacomponents |= {1};", leadingWhitespace, st.meta.ToString().ToLower(), st.Name);
-            int arraylength = -1;
-            string arraylengthstr = "arraylength";
-
-            //If the object is an array, send each object to be processed individually, then add them to the string
-
-            //handle fixed length fields?
-            if (!string.IsNullOrEmpty(st.length) && int.TryParse(st.length, out arraylength) && arraylength != -1)
-            {
-                arraylengthstr = "" + arraylength;
-            }
-            else
-            {
-                ret += string.Format(@"
-{0}arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
-{0}currentIndex += Marshal.SizeOf(typeof(System.Int32));", leadingWhitespace);
-            }
-            ret += string.Format(@"
-{0}if ({1} == null)
-{0}    {1} = new {2}[{3}];
-{0}else
-{0}    Array.Resize(ref {1}, {3});", leadingWhitespace, st.Name, pt, arraylengthstr);
-
-            //special case arrays of bytes
-            if (st.Type == "byte")
-            {
-                ret += string.Format(@"
-{0}Array.Copy(SERIALIZEDSTUFF, currentIndex, {1}, 0, {1}.Length);
-{0}currentIndex += {1}.Length;", leadingWhitespace, st.Name);
-            }
-            else
-            {
-                ret += string.Format(@"
-{0}for (int i=0;i<{1}.Length; i++) {{{2}
-{0}}}", leadingWhitespace, st.Name, GenerateDeserializationForOne(pt, st.Name + "[i]", st, extraTabs + 1));
-            }
-            return ret;
-        }
-
-        private string GenerateDeserializationForOne(string type, string name, SingleType st, int extraTabs = 0)
-        {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            string pt = KnownStuff.GetNamespacedType(st);
-            if (type == "Time" || type == "Duration")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = new {2}(new TimeData(
-{0}        BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
-{0}        BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
-{0}currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", leadingWhitespace, name, pt);
-            }
-            else if (type == "TimeData")
-                return string.Format(@"
-{0}//{1}
-{0}{1}.sec = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
-{0}currentIndex += Marshal.SizeOf(typeof(System.Int32));
-{0}{1}.nsec  = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
-{0}currentIndex += Marshal.SizeOf(typeof(System.Int32));", leadingWhitespace, name);
-            else if (type == "byte")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1}=SERIALIZEDSTUFF[currentIndex++];", leadingWhitespace, name);
-            }
-            else if (type == "string")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = """";
-{0}piecesize = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
-{0}currentIndex += 4;
-{0}{1} = Encoding.ASCII.GetString(SERIALIZEDSTUFF, currentIndex, piecesize);
-{0}currentIndex += piecesize;", leadingWhitespace, name);
-            }
-            else if (type == "bool")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = SERIALIZEDSTUFF[currentIndex++]==1;", leadingWhitespace, name);
+                        thischunk = new byte[1];
+                        thischunk[0] = (byte) ((bool){0} ? 1 : 0 );
+                        pieces.Add(thischunk);", name);
             }
             else if (st.IsLiteral)
             {
                 string ret = string.Format(@"
-{0}//{2}
-{0}piecesize = Marshal.SizeOf(typeof({1}));
-{0}h = IntPtr.Zero;
-{0}if (SERIALIZEDSTUFF.Length - currentIndex != 0)
-{0}{{
-{0}    h = Marshal.AllocHGlobal(piecesize);
-{0}    Marshal.Copy(SERIALIZEDSTUFF, currentIndex, h, piecesize);
-{0}}}
-{0}if (h == IntPtr.Zero) throw new Exception(""Alloc failed"");
-{0}{2} = ({1})Marshal.PtrToStructure(h, typeof({1}));
-{0}Marshal.FreeHGlobal(h);
-{0}currentIndex+= piecesize;", leadingWhitespace, pt, name);
-               
+                        scratch1 = new byte[Marshal.SizeOf(typeof({1}))];
+                        h = GCHandle.Alloc(scratch1, GCHandleType.Pinned);
+                        Marshal.StructureToPtr({0}, h.AddrOfPinnedObject(), false);
+                        h.Free();
+                        pieces.Add(scratch1);", name, type);
                 return ret;
             }
             else
             {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = new {2}(SERIALIZEDSTUFF, ref currentIndex);", leadingWhitespace, name, pt);
+                return string.Format("pieces.Add({0}.Serialize(true));", name);
             }
         }
-
-        public string GenerateRandomizationCode(SingleType st, int extraTabs = 0)
+        public string GenerateSerializationCode(SingleType st)
         {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
+            if (st.Const)
+                return "";
+            if (!st.IsArray)
+            {
+                return GenerateSerializationForOne(st.Type, st.Name, st);
+            }
+
+            int arraylength = -1;
+            //TODO: if orientation_covariance does not send successfully, skip prepending length when array length is coded in .msg
+            string ret = string.Format(@"hasmetacomponents |= {0};" + @"
+", st.meta.ToString().ToLower());
+            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
+                ret += "pieces.Add( BitConverter.GetBytes(" + st.Name + ".Length));" + @"
+";
+            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
+                {1}
+            }}" + @"
+", st.Name, GenerateSerializationForOne(st.Type, st.Name + "[i]", st));
+            return ret;
+        }
+
+        public string GenerateDeserializationCode(SingleType st)
+        {
             // this happens  for each member of the outer message
             // after concluding, make sure part of the string is "currentIndex += <amount read while deserializing this thing>"
             // start of deserializing piece referred to by st is currentIndex (its value at time of call to this fn)"
 
-            string pt = KnownStuff.GetNamespacedType(st);
+            System.Diagnostics.Debug.WriteLine(string.Format(stfmat, st.Name, st.Type, st.rostype, st.IsLiteral, st.Const, st.ConstValue, st.IsArray, st.length, st.meta));
             if (st.Const)
             {
                 return "";
             }
             else if (!st.IsArray)
             {
-                return GenerateRandomizationCodeForOne(st.Type, st.Name, st, extraTabs);
+                return GenerateDeserializationForOne(st.Type, st.Name, st);
             }
 
-            string ret = string.Format(@"
-{0}//{1}", leadingWhitespace, st.Name);
             int arraylength = -1;
-            string arraylengthstr = "arraylength";
-
             //If the object is an array, send each object to be processed individually, then add them to the string
-
-            //handle fixed length fields?
-            if (!string.IsNullOrEmpty(st.length) && int.TryParse(st.length, out arraylength) && arraylength != -1)
+            string ret = string.Format(@"hasmetacomponents |= {0};" + @"
+", st.meta.ToString().ToLower());
+            if (string.IsNullOrEmpty(st.length) || !int.TryParse(st.length, out arraylength) || arraylength == -1)
             {
-                arraylengthstr = "" + arraylength;
+                ret += string.Format(@"
+                arraylength = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+                currentIndex += Marshal.SizeOf(typeof(System.Int32));
+                {0} = new {1}[arraylength];
+", st.Name, st.Type);
             }
             else
             {
                 ret += string.Format(@"
-{0}arraylength = rand.Next(10);", leadingWhitespace);
+                {0} = new {1}[{2}];
+", st.Name, st.Type, arraylength);
             }
-            ret += string.Format(@"
-{0}if ({1} == null)
-{0}    {1} = new {2}[{3}];
-{0}else
-{0}    Array.Resize(ref {1}, {3});", leadingWhitespace, st.Name, pt, arraylengthstr);
-
-            ret += string.Format(@"
-{0}for (int i=0;i<{1}.Length; i++) {{{2}
-{0}}}", leadingWhitespace, st.Name, GenerateRandomizationCodeForOne(pt, st.Name + "[i]", st, extraTabs + 1));
+            ret += string.Format(@"for (int i=0;i<{0}.Length; i++) {{
+                {1}
+            }}" + @"
+", st.Name, GenerateDeserializationForOne(st.Type, st.Name + "[i]", st));
             return ret;
         }
-        private string GenerateRandomizationCodeForOne(string type, string name, SingleType st, int extraTabs = 0)
+
+        private string GenerateDeserializationForOne(string type, string name, SingleType st)
         {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            string pt = KnownStuff.GetNamespacedType(st);
             if (type == "Time" || type == "Duration")
             {
                 return string.Format(@"
-{0}//{1}
-{0}{1} = new {2}(new TimeData(
-{0}        Convert.ToUInt32(rand.Next()),
-{0}        Convert.ToUInt32(rand.Next())));", leadingWhitespace, name, pt);
+                    {0} = new {1}(new TimeData(
+                            BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex),
+                            BitConverter.ToUInt32(SERIALIZEDSTUFF,
+                                currentIndex+Marshal.SizeOf(typeof(System.Int32)))));
+                    currentIndex += 2*Marshal.SizeOf(typeof(System.Int32));", name, st.Type);
             }
             else if (type == "TimeData")
                 return string.Format(@"
-{0}//{1}
-{0}{1}.sec = Convert.ToUInt32(rand.Next());
-{0}{1}.nsec  = Convert.ToUInt32(rand.Next());", leadingWhitespace, name);
+                    {0}.sec = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                    currentIndex += Marshal.SizeOf(typeof(System.Int32));
+                    {0}.nsec  = BitConverter.ToUInt32(SERIALIZEDSTUFF, currentIndex);
+                    currentIndex += Marshal.SizeOf(typeof(System.Int32));", name);
             else if (type == "byte")
             {
-                return string.Format(@"
-{0}//{1}
-{0}myByte = new byte[1];
-{0}rand.NextBytes(myByte);
-{0}{1}= myByte[0];", leadingWhitespace, name);
+                return string.Format("{0}=SERIALIZEDSTUFF[currentIndex++];", name); ;
             }
             else if (type == "string")
             {
                 return string.Format(@"
-{0}//{1}
-{0}strlength = rand.Next(100) + 1;
-{0}strbuf = new byte[strlength];
-{0}rand.NextBytes(strbuf);  //fill the whole buffer with random bytes
-{0}for (int x = 0; x < strlength; x++)
-{0}    if (strbuf[x] == 0) //replace null chars with non-null random ones
-{0}        strbuf[x] = (byte)(rand.Next(254) + 1);
-{0}strbuf[strlength - 1] = 0; //null terminate
-{0}{1} = Encoding.ASCII.GetString(strbuf);", leadingWhitespace, name);
+                        {0} = """";
+                        piecesize = BitConverter.ToInt32(SERIALIZEDSTUFF, currentIndex);
+                        currentIndex += 4;
+                        {0} = Encoding.ASCII.GetString(SERIALIZEDSTUFF, currentIndex, piecesize);
+                        currentIndex += piecesize;", name);
             }
             else if (type == "bool")
             {
                 return string.Format(@"
-{0}//{1}
-{0}{1} = rand.Next(2) == 1;", leadingWhitespace, name);
-            }
-            else if (type == "int")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = rand.Next();", leadingWhitespace, name);
-            }
-            else if (type == "uint")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (uint)rand.Next();", leadingWhitespace, name);
-            }
-            else if (type == "double")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (rand.Next() + rand.NextDouble());", leadingWhitespace, name);
-            }
-            else if (type == "float" || type == "Float64" || type == "Single")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (float)(rand.Next() + rand.NextDouble());", leadingWhitespace, name);
-            }
-            else if (type == "Int16" || type == "Short" || type == "short")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (System.Int16)rand.Next(System.Int16.MaxValue + 1);", leadingWhitespace, name);
-            }
-            else if (type == "UInt16" || type == "ushort" || type == "UShort")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (System.UInt16)rand.Next(System.UInt16.MaxValue + 1);", leadingWhitespace, name);
-            }
-            else if (type == "SByte" || type == "sbyte")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (SByte)(rand.Next(255) - 127);", leadingWhitespace, name);
-            }
-            else if (type == "UInt64" || type == "ULong" || type == "ulong")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (System.UInt64)((uint)(rand.Next() << 32)) | (uint)rand.Next();", leadingWhitespace, name);
-            }
-            else if (type == "Int64" || type == "Long" || type == "long")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (System.Int64)(rand.Next() << 32) | rand.Next();", leadingWhitespace, name);
-            }
-            else if (type == "char")
-            {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = (char)(byte)(rand.Next(254) + 1);", leadingWhitespace, name);
+                        {0} = SERIALIZEDSTUFF[currentIndex++]==1;
+", name);
             }
             else if (st.IsLiteral)
             {
-                throw new Exception(st.Type + " needs to be handled SPECIFICALLY!");
+                string ret = string.Format(@"
+                piecesize = Marshal.SizeOf(typeof({0}));
+                h = IntPtr.Zero;
+                if (SERIALIZEDSTUFF.Length - currentIndex != 0)
+                {{
+                    h = Marshal.AllocHGlobal(piecesize);
+                    Marshal.Copy(SERIALIZEDSTUFF, currentIndex, h, piecesize);
+                }}
+                if (h == IntPtr.Zero) throw new Exception(""Alloc failed"");
+                {1} = ({0})Marshal.PtrToStructure(h, typeof({0}));
+                Marshal.FreeHGlobal(h);
+                currentIndex+= piecesize;
+", st.Type, name);
+
+                return ret;
             }
             else
             {
-                return string.Format(@"
-{0}//{1}
-{0}{1} = new {2}();
-{0}{1}.Randomize();", leadingWhitespace, name, pt);
+                return string.Format("{0} = new {1}(SERIALIZEDSTUFF, ref currentIndex);", name, st.Type);
             }
-        }
-
-        public string GenerateEqualityCode(SingleType st, int extraTabs = 0)
-        {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-
-            if(st.IsArray)
-                return string.Format(@"
-{0}if ({1}.Length != other.{1}.Length)
-{0}ret &= false;", leadingWhitespace, st.Name);
-
-            else
-                return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
-        }
-        private string GenerateEqualityCodeForOne(string type, string name, SingleType st, int extraTabs = 0)
-        {
-            string leadingWhitespace = "";
-            for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
-                leadingWhitespace += "    ";
-            if (st.IsLiteral)
-                if (st.Const)
-                    return string.Format(@"
-{0}ret &= true;", leadingWhitespace);
-                else if (type == "TimeData")
-                    return string.Format(@"
-{0}ret &= {1}.sec == other.{1}.sec;
-{0}ret &= {1}.nsec == other.{1}.nsec;", leadingWhitespace, name);
-                else
-                    return string.Format(@"
-{0}ret &= {1} == other.{1};", leadingWhitespace, name);
-            else
-                return string.Format(@"
-{0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
-            // and that's it
         }
 
         public void Write(string outdir)
@@ -1088,31 +805,201 @@ namespace FauxMessages
             else
                 File.WriteAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
         }
+        
+}
+
+    public class SerializationTest
+    {
+        private Random r = new Random();
+
+        public SerializationTest() { }
+
+        public static string dumphex(byte[] test)
+        {
+            if (test == null)
+                return "dumphex(null)";
+            StringBuilder sb = new StringBuilder().Append(Array.ConvertAll<byte, string>(test, (t) => string.Format("{0,3:X2}", t)).Aggregate("", (current, t) => current + t));
+            return sb.ToString();
+        }
+        
+        private void RandomizeObject(Type T)
+        {
+            if(!T.IsArray)
+            {
+                if(T != typeof(TimeData) && T.Namespace.Contains("Message"))
+                {
+                    object msg = Activator.CreateInstance(T);
+                    if (msg == null)
+                        throw new Exception("Error during object creation");
+                    FieldInfo[] infos = GetFields(T, ref msg);
+
+                    foreach (FieldInfo info in infos)
+                    {
+                        //Randomize the field
+                    }
+                }
+            }
+        }
+
+        private void RandomizeField(Type T, ref object target, int hardcodedarraylength=-1)
+        {
+            if (!T.IsArray)
+            {
+                if (T != typeof(TimeData) && T.Namespace.Contains("Message"))
+                {
+                    //Create a new object of the same type as target?
+                    object msg = Activator.CreateInstance(T);
+                    FieldInfo[] infos = GetFields(T, ref target);
+                    if (msg == null)
+                    {
+                        GetFields(T, ref target);
+                        throw new Exception("SOMETHING AIN'T RIGHT");
+                    }
+                    foreach (FieldInfo info in infos)
+                    {
+                        if (info.Name.Contains("(")) continue;
+                        if (msg.GetType().GetField(info.Name).IsLiteral) continue;
+                        if (info.GetValue(target) == null)
+                        {
+                            if (info.FieldType == typeof(string))
+                                info.SetValue(target, "");
+                            else if (info.FieldType.IsArray)
+                                info.SetValue(target, Array.CreateInstance(info.FieldType.GetElementType(), 0));
+                            else if (info.FieldType.FullName != null && !info.FieldType.FullName.Contains("Messages."))
+                                info.SetValue(target, 0);
+                            else
+                                info.SetValue(target, Activator.CreateInstance(info.FieldType));
+                        }
+                        object field = info.GetValue(target);
+                        //Randomize(info.FieldType, ref field, -1);
+                        info.SetValue(target, field);
+                    }
+                }
+                else if (target is byte || T == typeof(byte))
+                {
+                    target = (byte)r.Next(255);
+                }
+                else if (target is string || T == typeof(string))
+                {
+                    //create a string of random length [1,100], composed of random chars
+                    int length = r.Next(100) + 1;
+                    byte[] buf = new byte[length];
+                    r.NextBytes(buf);  //fill the whole buffer with random bytes
+                    for (int i = 0; i < length; i++)
+                        if (buf[i] == 0) //replace null chars with non-null random ones
+                            buf[i] = (byte)(r.Next(254) + 1);
+                    buf[length - 1] = 0; //null terminate
+                    target = Encoding.ASCII.GetString(buf);
+                }
+                else if (target is bool || T == typeof(bool))
+                {
+                    target = r.Next(2) == 1;
+                }
+                else if (target is int || T == typeof(int))
+                {
+                    target = r.Next();
+                }
+                else if (target is uint || T == typeof(int))
+                {
+                    target = (uint)r.Next();
+                }
+                else if (target is double || T == typeof(double))
+                {
+                    target = r.NextDouble();
+                }
+                else if (target is TimeData || T == typeof(TimeData))
+                {
+                    target = new TimeData((uint)r.Next(), (uint)r.Next());
+                }
+                else if (target is float || T == typeof(float))
+                {
+                    target = (float)r.NextDouble();
+                }
+                else if (target is Int16 || T == typeof(Int16))
+                {
+                    target = (Int16)r.Next(Int16.MaxValue + 1);
+                }
+                else if (target is UInt16 || T == typeof(UInt16))
+                {
+                    target = (UInt16)r.Next(UInt16.MaxValue + 1);
+                }
+                else if (target is SByte || T == typeof(SByte))
+                {
+                    target = (SByte)(r.Next(255) - 127);
+                }
+                else if (target is UInt64 || T == typeof(UInt64))
+                {
+                    target = (UInt64)((uint)(r.Next() << 32)) | (uint)r.Next();
+                }
+                else if (target is Int64 || T == typeof(Int64))
+                {
+                    target = (Int64)(r.Next() << 32) | r.Next();
+                }
+                else if (target is char || T == typeof(char))
+                {
+                    target = (char)(byte)(r.Next(254) + 1);
+                }
+                else
+                {
+                    throw new Exception("Unhandled randomization: " + T);
+                }
+            }
+            else
+            {
+                int length = hardcodedarraylength != -1 ? hardcodedarraylength : r.Next(10);
+                Type elem = T.GetElementType();
+                Array field = Array.CreateInstance(elem, new int[] { length }, new int[] { 0 });
+                for (int i = 0; i < length; i++)
+                {
+                    object val = field.GetValue(i);
+                    RandomizeField(elem, ref val);
+                    field.SetValue(val, i);
+                }
+                target = field;
+            }
+        }
+
+        private static Dictionary<Type, FieldInfo[]> speedyFields = new Dictionary<Type, FieldInfo[]>();
+
+        public static FieldInfo[] GetFields(Type T, ref object instance)
+        {
+            if (T.IsArray)
+                throw new Exception("Called GetFields for an array type. Bad form!");
+            if (instance == null)
+            {
+                if (T.IsArray) //This will never run!
+                {
+                    T = T.GetElementType();
+                    instance = Array.CreateInstance(T, 0);
+                }
+                else if (T != typeof(string))
+                    instance = Activator.CreateInstance(T);
+                else
+                    instance = (object)"";
+            }
+            object MSG = instance;
+            if (instance != null && MSG == null)
+                throw new Exception("Garbage");
+            lock (speedyFields)
+            {
+                if (speedyFields.ContainsKey(T))
+                    return speedyFields[T];
+                if (MSG == null || instance.GetType().ToString() == MsgTypes.Unknown.ToString())
+                {
+                    return (speedyFields[T] = instance.GetType().GetFields());
+                }
+                else if (MSG != null)
+                {
+                    return null;// (speedyFields[T] = MSG.GetType().GetFields().Where((fi => MSG.Fields.Keys.Contains(fi.Name) && !fi.IsStatic)).ToArray());
+                }
+            }
+            throw new Exception("GetFields is weaksauce");
+        }
     }
 
     public static class KnownStuff
     {
         private static char[] spliter = {' '};
-        
-        /// <summary>
-        /// Message namespaces known to ALL messages (in their header's using lines)
-        /// </summary>
-        private const string STATIC_NAMESPACE_STRING = "using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;";
-
-        /// <summary>
-        /// Returns the namespaced type name (if neccessary)
-        /// </summary>
-        /// <param name="st">This thing's SingleType</param>
-        /// <param name="type">(optional) the type string</param>
-        /// <returns>duh</returns>
-        public static string GetNamespacedType(SingleType st, string type = null)
-        {
-            if (type == null)
-                type = st.Type;
-            if (!KnownTypes.ContainsKey(st.rostype) && !type.Contains(st.Package) && !STATIC_NAMESPACE_STRING.Contains("Messages." + st.Package))
-                return string.Format("Messages.{0}.{1}", st.Package, type);
-            return type;
-        }
 
         public static Dictionary<string, string> KnownTypes = new Dictionary<string, string>
         {
@@ -1309,7 +1196,9 @@ namespace FauxMessages
                             suffix = " = new " + type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(type);
-                string t = KnownStuff.GetNamespacedType(this, type);
+                string t = type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages."+Package))
+                    t = "Messages." + Package + "." + t;
                 output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
@@ -1322,7 +1211,9 @@ namespace FauxMessages
                     otherstuff = split[0] + " = (" + type + ")" + split[1];
 
                 }
-                string t = KnownStuff.GetNamespacedType(this, type);
+                string t = type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
                 if (length.Length > 0)
                     output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + type + "[" + length + "];";
                 else
@@ -1406,7 +1297,9 @@ namespace FauxMessages
                             suffix = " = new " + Type + "()";
                     else
                         suffix = KnownStuff.GetConstTypesAffix(Type);
-                string t = KnownStuff.GetNamespacedType(this, Type);
+                string t = Type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
                 output = lowestindent + "public " + prefix + t + " " + name + otherstuff + suffix + ";";
             }
             else
@@ -1418,9 +1311,11 @@ namespace FauxMessages
                     string[] split = otherstuff.Split('=');
                     otherstuff = split[0] + " = (" + Type + ")" + split[1];
                 }
-                string t = KnownStuff.GetNamespacedType(this, Type);
+                string t = Type;
+                if (!KnownStuff.KnownTypes.ContainsKey(rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + Package))
+                    t = "Messages." + Package + "." + t;
                 if (length.Length != 0)
-                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + t + "[" + length + "];";
+                    output = lowestindent + "public " + t + "[] " + name + otherstuff + " = new " + Type + "[" + length + "];";
                 else
                     output = lowestindent + "public " + "" + t + "[] " + name + otherstuff + ";";
             }
@@ -1435,13 +1330,17 @@ namespace FauxMessages
         public static string Generate(SingleType members)
         {
             string mt = "MsgTypes.Unknown";
-            string pt = KnownStuff.GetNamespacedType(members);
+            string pt = members.Type;
             if (members.meta)
             {
                 string t = members.Type.Replace("Messages.", "");
                 if (!t.Contains('.'))
                     t = members.Definer.Package + "." + t;
                 mt = "MsgTypes." + t.Replace(".", "__");
+            }
+            if (!KnownStuff.KnownTypes.ContainsKey(members.rostype) && !"using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;".Contains("Messages." + members.Package))
+            {
+                pt = "Messages." + members.Package + "." + pt;
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
@@ -1514,5 +1413,17 @@ namespace FauxMessages
         Not,
         Request,
         Response
+    }
+
+    public struct TimeData
+    {
+        public uint sec;
+        public uint nsec;
+
+        public TimeData(uint s, uint ns)
+        {
+            sec = s;
+            nsec = ns;
+        }
     }
 }
