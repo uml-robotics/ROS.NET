@@ -274,7 +274,8 @@ namespace Ros_CSharp
 
         private static string _processname = null;
         public static string ProcessName { get { if (_processname == null) _processname = Process.GetCurrentProcess().ProcessName; return _processname; } }
-
+        private const string VISUAL_STUDIO_EXE_NAME = "devenv";
+        public static bool IsVisualStudio { get { return ProcessName == VISUAL_STUDIO_EXE_NAME; } }
         /// <summary>
         ///     Gets the current thread's TID, emulating the behavior ROS has in a more interprocess situation on xnix
         /// </summary>

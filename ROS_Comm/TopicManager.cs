@@ -362,9 +362,9 @@ namespace Ros_CSharp
             {
                 bool nocopy = false;
                 bool serialize = false;
-                if (msg != null && msg.msgtype != MsgTypes.Unknown)
+                if (msg != null && msg.msgtype() != MsgTypes.Unknown)
                 {
-                    p.getPublishTypes(ref serialize, ref nocopy, ref msg.msgtype);
+                    p.getPublishTypes(ref serialize, ref nocopy, msg.msgtype());
                 }
                 else
                     serialize = true;

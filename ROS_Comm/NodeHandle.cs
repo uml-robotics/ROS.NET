@@ -38,6 +38,7 @@ namespace Ros_CSharp
         private object nh_refcount_mutex = new object();
         private bool no_validate = false;
         private bool node_started_by_nh;
+        private bool started_by_visual_studio = true;
         private IDictionary remappings = new Hashtable(), unresolved_remappings = new Hashtable();
 
         /// <summary>
@@ -47,8 +48,9 @@ namespace Ros_CSharp
         /// <param name="remappings">any remappings</param>
         public NodeHandle(string ns, IDictionary remappings = null)
         {
-            if (ROS.ProcessName == "devenv")
+            if (ROS.IsVisualStudio)
                 return;
+            started_by_visual_studio = false;
             if (ns != "" && ns[0] == '~')
                 ns = names.resolve(ns);
             construct(ns, true);
@@ -61,8 +63,9 @@ namespace Ros_CSharp
         /// <param name="rhs">The nodehandle this new one aspires to be</param>
         public NodeHandle(NodeHandle rhs)
         {
-            if (ROS.ProcessName == "devenv")
+            if (ROS.IsVisualStudio)
                 return;
+            started_by_visual_studio = false;
             Callback = rhs.Callback;
             remappings = new Hashtable(rhs.remappings);
             unresolved_remappings = new Hashtable(rhs.unresolved_remappings);
@@ -77,8 +80,9 @@ namespace Ros_CSharp
         /// <param name="ns">Namespace of new node</param>
         public NodeHandle(NodeHandle parent, string ns)
         {
-            if (ROS.ProcessName == "devenv")
+            if (ROS.IsVisualStudio)
                 return;
+            started_by_visual_studio = false;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             remappings = new Hashtable(parent.remappings);
@@ -94,8 +98,9 @@ namespace Ros_CSharp
         /// <param name="remappings">Remappings</param>
         public NodeHandle(NodeHandle parent, string ns, IDictionary remappings)
         {
-            if (ROS.ProcessName == "devenv")
+            if (ROS.IsVisualStudio)
                 return;
+            started_by_visual_studio = false;
             Namespace = parent.Namespace;
             Callback = parent.Callback;
             this.remappings = new Hashtable(remappings);
@@ -117,6 +122,7 @@ namespace Ros_CSharp
         {
             get
             {
+                if (started_by_visual_studio) return null;
                 if (_callback == null)
                 {
                     _callback = new CallbackQueue();
@@ -182,6 +188,7 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int q_size) where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return advertise<M>(topic, q_size, false);
         }
 
@@ -195,6 +202,7 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified topic type, name and options</returns>
         public Publisher<M> advertise<M>(string topic, int q_size, bool l) where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return advertise(new AdvertiseOptions<M>(topic, q_size) {latch = l});
         }
 
@@ -211,6 +219,7 @@ namespace Ros_CSharp
             SubscriberStatusCallback disconnectcallback)
             where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return advertise<M>(topic, queue_size, connectcallback, disconnectcallback, false);
         }
 
@@ -228,6 +237,7 @@ namespace Ros_CSharp
             SubscriberStatusCallback disconnectcallback, bool l)
             where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return advertise(new AdvertiseOptions<M>(topic, queue_size, connectcallback, disconnectcallback) {latch = l});
         }
 
@@ -239,8 +249,7 @@ namespace Ros_CSharp
         /// <returns>A publisher with the specified options</returns>
         public Publisher<M> advertise<M>(AdvertiseOptions<M> ops) where M : IRosMessage, new()
         {
-            if (ROS.ProcessName == "devenv")
-                return null;
+            if (started_by_visual_studio) return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
@@ -270,6 +279,7 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackDelegate<M> cb) where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), false);
         }
 
@@ -284,6 +294,7 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackDelegate<M> cb, bool allow_concurrent_callbacks) where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return subscribe<M>(topic, queue_size, new Callback<M>(cb), allow_concurrent_callbacks);
         }
 
@@ -299,6 +310,7 @@ namespace Ros_CSharp
         public Subscriber<M> subscribe<M>(string topic, uint queue_size, CallbackInterface cb, bool allow_concurrent_callbacks)
             where M : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             if (_callback == null)
             {
                 _callback = ROS.GlobalCallbackQueue;
@@ -317,8 +329,7 @@ namespace Ros_CSharp
         /// <returns>A subscriber</returns>
         public Subscriber<M> subscribe<M>(SubscribeOptions<M> ops) where M : IRosMessage, new()
         {
-            if (ROS.ProcessName == "devenv")
-                return null;
+            if (started_by_visual_studio) return null;
             ops.topic = resolveName(ops.topic);
             if (ops.callback_queue == null)
             {
@@ -348,6 +359,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return advertiseService(new AdvertiseServiceOptions<MReq, MRes>(service, srv_func));
         }
 
@@ -362,6 +374,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             ops.service = resolveName(ops.service);
             if (ops.callback_queue == null)
             {
@@ -383,6 +396,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, false, null));
         }
 
@@ -390,6 +404,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, null));
         }
 
@@ -398,6 +413,7 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MReq, MRes>(new ServiceClientOptions(service_name, persistent, header_values));
         }
 
@@ -405,8 +421,9 @@ namespace Ros_CSharp
             where MReq : IRosMessage, new()
             where MRes : IRosMessage, new()
         {
+            if (started_by_visual_studio) return null;
             ops.service = resolveName(ops.service);
-            ops.md5sum = new MReq().MD5Sum;
+            ops.md5sum = new MReq().MD5Sum();
             return new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
@@ -414,6 +431,7 @@ namespace Ros_CSharp
             where MSrv : IRosService, new()
 
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, false, null));
         }
 
@@ -421,6 +439,7 @@ namespace Ros_CSharp
             where MSrv : IRosService, new()
 
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, null));
         }
 
@@ -429,6 +448,7 @@ namespace Ros_CSharp
             where MSrv : IRosService, new()
 
         {
+            if (started_by_visual_studio) return null;
             return serviceClient<MSrv>(new ServiceClientOptions(service_name, persistent, header_values));
         }
 
@@ -436,15 +456,17 @@ namespace Ros_CSharp
             where MSrv : IRosService, new()
 
         {
+            if (started_by_visual_studio) return null;
             ops.service = resolveName(ops.service);
-            ops.md5sum = new MSrv().RequestMessage.MD5Sum;
+            ops.md5sum = new MSrv().RequestMessage.MD5Sum();
             return new ServiceClient<MSrv>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
         private void construct(string ns, bool validate_name)
         {
+            if (started_by_visual_studio) return;
             if (!ROS.initialized)
-                ROS.FREAKOUT();
+                throw new Exception("You must call ROS.Init before instantiating the first nodehandle");
             collection = new NodeHandleBackingCollection();
             UnresolvedNamespace = ns;
             Namespace = validate_name ? resolveName(ns) : resolveName(ns, true, true);

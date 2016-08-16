@@ -8,11 +8,20 @@ using uint8 = System.Byte;
 
 namespace Messages
 {
+#if !TRACE
     [System.Diagnostics.DebuggerStepThrough]
+#endif
     public class $WHATAMI : IRosService
     {
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public virtual SrvTypes srvtype() { return $MYSRVTYPE; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public virtual string ServiceDefinition() { return $MYSERVICEDEFINITION; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public virtual string MD5Sum() { return "$MYSRVMD5SUM"; }
+        
         [System.Diagnostics.DebuggerStepThrough]
-        public $WHATAMI() : base($MYSRVTYPE, $MYSERVICEDEFINITION, "$MYSRVMD5SUM")
+        public $WHATAMI()
         {
             InitSubtypes(new Request(), new Response());
         }
@@ -35,20 +44,33 @@ namespace Messages
         {
             $$REQUESTDOLLADOLLABILLS
 
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override string MD5Sum() { return "$REQUESTMYMD5SUM"; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool HasHeader() { return $REQUESTMYHASHEADER; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool IsMetaType() { return $REQUESTMYISMETA; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override string MessageDefinition() { return $REQUESTMYMESSAGEDEFINITION; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override MsgTypes msgtype() { return $REQUESTMYMSGTYPE__Request; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool IsServiceComponent() { return true; }
+
             [System.Diagnostics.DebuggerStepThrough]
-            public Request() : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            public Request()
             {
                 $REQUESTNULLCONSTBODY
             }
 
             [System.Diagnostics.DebuggerStepThrough]
-            public Request(byte[] SERIALIZEDSTUFF) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            public Request(byte[] SERIALIZEDSTUFF)
             {
                 Deserialize(SERIALIZEDSTUFF);
             }
 
             [System.Diagnostics.DebuggerStepThrough]
-            public Request(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($REQUESTMYMSGTYPE__Request, $REQUESTMYMESSAGEDEFINITION, $REQUESTMYHASHEADER, $REQUESTMYISMETA, new Dictionary<string, MsgFieldInfo>$REQUESTMYFIELDS, "$REQUESTMYMD5SUM", true)
+            public Request(byte[] SERIALIZEDSTUFF, ref int currentIndex)
             {
                 Deserialize(SERIALIZEDSTUFF, ref currentIndex);
             }
@@ -78,11 +100,7 @@ namespace Messages
                 //combine every array in pieces into one array and return it
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
-                if (!partofsomethingelse)
-                    __a_b__f += (__a_b__e = 4);
                 byte[] __a_b__d = new byte[__a_b__f];
-                if (!partofsomethingelse)
-                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
                 foreach(var p in pieces)
                 {
                     Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
@@ -105,8 +123,6 @@ namespace Messages
                 if (____other == null) return false;
                 bool ret = true;
                 $REQUESTEQUALITYCODE
-                // for each SingleType st:
-                //    ret &= {st.Name} == other.{st.Name};
                 return ret;
             }
         }
@@ -115,19 +131,32 @@ namespace Messages
         {
             $$RESPONSEDOLLADOLLABILLS
 
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override string MD5Sum() { return "$RESPONSEMYMD5SUM"; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool HasHeader() { return $RESPONSEMYHASHEADER; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool IsMetaType() { return $RESPONSEMYISMETA; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override string MessageDefinition() { return $RESPONSEMYMESSAGEDEFINITION; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override MsgTypes msgtype() { return $RESPONSEMYMSGTYPE__Response; }
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            public override bool IsServiceComponent() { return true; }
+
             [System.Diagnostics.DebuggerStepThrough]
-            public Response() : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            public Response()
             {
                 $RESPONSENULLCONSTBODY
             }
 
             [System.Diagnostics.DebuggerStepThrough]
-            public Response(byte[] SERIALIZEDSTUFF) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            public Response(byte[] SERIALIZEDSTUFF)
             {
                 Deserialize(SERIALIZEDSTUFF);
             }
             [System.Diagnostics.DebuggerStepThrough]
-            public Response(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($RESPONSEMYMSGTYPE__Response, $RESPONSEMYMESSAGEDEFINITION, $RESPONSEMYHASHEADER, $RESPONSEMYISMETA, new Dictionary<string, MsgFieldInfo>$RESPONSEMYFIELDS, "$RESPONSEMYMD5SUM", true)
+            public Response(byte[] SERIALIZEDSTUFF, ref int currentIndex)
             {
                 Deserialize(SERIALIZEDSTUFF, ref currentIndex);
             }
@@ -159,11 +188,7 @@ namespace Messages
                 //combine every array in pieces into one array and return it
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
-                if (!partofsomethingelse)
-                    __a_b__f += (__a_b__e = 4);
                 byte[] __a_b__d = new byte[__a_b__f];
-                if (!partofsomethingelse)
-                    Array.Copy(BitConverter.GetBytes(__a_b__f-4),0,__a_b__d,0,4);
                 foreach(var p in pieces)
                 {
                     Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);

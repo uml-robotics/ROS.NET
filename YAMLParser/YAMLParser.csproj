@@ -143,7 +143,6 @@
     <None Include="TemplateProject\Interfaces.cs" />
     <None Include="app.config" />
     <None Include="TemplateProject\Time.cs" />
-    <None Include="TemplateProject\SerializationHelper.cs" />
     <None Include="TemplateProject\String.cs" />
     <None Include="TemplateProject\PlaceHolder._cs" />
     <None Include="TemplateProject\AssemblyInfo._cs" />

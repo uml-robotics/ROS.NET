@@ -330,14 +330,7 @@ namespace Ros_CSharp
             if (info.Callback == null)
                 return;
             lock(_queue)
-            if (!_queue.Contains(info))
-            {
                 _queue.Add(info);
-            }
-            else
-            {
-                EDB.WriteLine("ADDING A DUPLICATE CALLBACKINFO TO THE QUEUE");
-            }
         }
 
         public CallbackQueueInterface.ICallbackInfo spliceout(CallbackQueueInterface.ICallbackInfo info)
@@ -346,7 +339,7 @@ namespace Ros_CSharp
             {
                 if (!_queue.Contains(info))
                     return null;
-                _queue.Remove(info);
+                _queue.RemoveAt(_queue.IndexOf(info));
                 return info;
             }
         }

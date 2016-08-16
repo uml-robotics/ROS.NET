@@ -515,7 +515,7 @@ namespace Ros_CSharp
             }
         }
 
-        public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes ti)
+        public void getPublishTypes(ref bool ser, ref bool nocopy, MsgTypes ti)
         {
             lock (callbacks_mutex)
             {
@@ -540,7 +540,7 @@ namespace Ros_CSharp
         {
             public CallbackInfo()
             {
-                helper = new SubscriptionCallbackHelper<M>(new M().msgtype);
+                helper = new SubscriptionCallbackHelper<M>(new M().msgtype());
             }
         }
 

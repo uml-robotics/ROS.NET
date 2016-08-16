@@ -39,7 +39,7 @@ namespace Ros_CSharp
 
         public bool call(MReq request, ref MRes response)
         {
-            string md5 = request.MD5Sum;
+            string md5 = request.MD5Sum();
             return call(request, ref response, md5);
         }
 
@@ -73,7 +73,7 @@ namespace Ros_CSharp
 
         public bool call(MSrv srv)
         {
-            string md5 = srv.RequestMessage.MD5Sum;
+            string md5 = srv.RequestMessage.MD5Sum();
             return call(srv, md5);
         }
 

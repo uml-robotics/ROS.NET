@@ -584,11 +584,11 @@ namespace FauxMessages
             if (classname.ToLower() == "string")
             {
                 GUTS = GUTS.Replace("$NULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
-                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             else if (classname == "Time" || classname == "Duration")
             {
-                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             GUTS = GUTS.Replace("$WHATAMI", classname);
             GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
@@ -1040,11 +1040,15 @@ namespace FauxMessages
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
 
-            if(st.IsArray)
+            if (st.IsArray)
+            {
                 return string.Format(@"
 {0}if ({1}.Length != other.{1}.Length)
-{0}ret &= false;", leadingWhitespace, st.Name);
-
+{0}    return false;
+{0}for (int __i__=0; __i__ < {1}.Length; __i__++)
+{0}{{{2}
+{0}}}", leadingWhitespace, st.Name, GenerateEqualityCodeForOne(st.Type, st.Name + "[__i__]", st, extraTabs + 1));
+            }
             else
                 return GenerateEqualityCodeForOne(st.Type, st.Name, st, extraTabs);
         }
@@ -1055,8 +1059,7 @@ namespace FauxMessages
                 leadingWhitespace += "    ";
             if (st.IsLiteral)
                 if (st.Const)
-                    return string.Format(@"
-{0}ret &= true;", leadingWhitespace);
+                    return "";
                 else if (type == "TimeData")
                     return string.Format(@"
 {0}ret &= {1}.sec == other.{1}.sec;

@@ -80,16 +80,13 @@ namespace Ros_CSharp
             else
             {
                 stats.bytes_received += (ulong) m.Serialized.Length;
-                byte[] tmp = new byte[m.Serialized.Length - 4];
-                Array.Copy(m.Serialized, 4, tmp, 0, m.Serialized.Length - 4);
-                m.Serialized = tmp;
             }
             if (parent != null)
                 lock (parent)
                     stats.drops += parent.handleMessage(m, ser, nocopy, m.connection_header, this);
         }
 
-        public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes mt)
+        public void getPublishTypes(ref bool ser, ref bool nocopy, MsgTypes mt)
         {
             lock (drop_mutex)
             {
@@ -103,7 +100,7 @@ namespace Ros_CSharp
             if (parent != null)
                 lock (parent)
                 {
-                    parent.getPublishTypes(ref ser, ref nocopy, ref mt);
+                    parent.getPublishTypes(ref ser, ref nocopy, mt);
                 }
             else
             {

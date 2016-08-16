@@ -61,34 +61,13 @@ namespace Ros_CSharp
                 datatype = dt;
             else
             {
-                datatype = tt.msgtype.ToString().Replace("__", "/");
+                datatype = tt.msgtype().ToString().Replace("__", "/");
             }
             if (message_def.Length == 0)
-                message_definition = tt.MessageDefinition;
+                message_definition = tt.MessageDefinition();
             else
                 message_definition = message_def;
-            List<Type> visited = new List<Type>();
-            Queue<IRosMessage> frontier = new Queue<IRosMessage>();
-            IRosMessage current = tt;
-            do
-            {
-                if (frontier.Count > 0)
-                {
-                    current = frontier.Dequeue();
-                    message_definition += "\n================================================================================\nMSG: " + current.msgtype.ToString().Replace("__", "/") + "\n" + current.MessageDefinition;
-                }
-                foreach (MsgFieldInfo fi in current.Fields.Values)
-                {
-                    if (fi.message_type == MsgTypes.Unknown) continue;
-                    IRosMessage field = IRosMessage.generate(fi.message_type);
-                    if (field != null && fi.IsMetaType && !visited.Contains(fi.Type))
-                    {
-                        frontier.Enqueue(field);
-                        visited.Add(fi.Type);
-                    }
-                }
-            } while (frontier.Count > 0);
-            has_header = tt.HasHeader;
+            has_header = tt.HasHeader();
             connectCB = connectcallback;
             disconnectCB = disconnectcallback;
         }
@@ -101,9 +80,9 @@ namespace Ros_CSharp
         public AdvertiseOptions(string t, int q_size, SubscriberStatusCallback connectcallback,
             SubscriberStatusCallback disconnectcallback) :
                 this(
-                t, q_size, new T().MD5Sum,
-                new T().msgtype.ToString().Replace("__", "/"),
-                new T().MessageDefinition,
+                t, q_size, new T().MD5Sum(),
+                new T().msgtype().ToString().Replace("__", "/"),
+                new T().MessageDefinition(),
                 connectcallback, disconnectcallback)
         {
         }

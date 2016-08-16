@@ -37,12 +37,12 @@ namespace Messages
                     IRosMessage msg = Activator.CreateInstance(othertype) as IRosMessage;
                     if (msg != null)
                     {
-                        if (msg.msgtype == MsgTypes.Unknown)
+                        if (msg.msgtype() == MsgTypes.Unknown)
                             throw new Exception("OH NOES IRosMessage.generate is borked!");
-                        if (!_typeregistry.ContainsKey(msg.msgtype))
-                            _typeregistry.Add(msg.msgtype, msg.GetType());
-                        if (!constructors.ContainsKey(msg.msgtype))
-                            constructors.Add(msg.msgtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosMessage);
+                        if (!_typeregistry.ContainsKey(msg.msgtype()))
+                            _typeregistry.Add(msg.msgtype(), msg.GetType());
+                        if (!constructors.ContainsKey(msg.msgtype()))
+                            constructors.Add(msg.msgtype(), T => Activator.CreateInstance(_typeregistry[T]) as IRosMessage);
                     }
                 }
                 if (constructors.ContainsKey(t))
@@ -52,61 +52,30 @@ namespace Messages
             }
         }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public string MD5Sum;
+        public virtual string MD5Sum() { return ""; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public bool HasHeader;
+        public virtual bool HasHeader() { return false; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public bool IsMetaType;
+        public virtual bool IsMetaType() { return false; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public string MessageDefinition;
+        public virtual string MessageDefinition() { return ""; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public byte[] Serialized;
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public MsgTypes msgtype;
+        public virtual MsgTypes msgtype() { return MsgTypes.Unknown; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public bool IsServiceComponent;
+        public virtual bool IsServiceComponent() { return false; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public Dictionary<string, MsgFieldInfo> Fields;
 
         public IDictionary connection_header;
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [System.Diagnostics.DebuggerStepThrough]
         public IRosMessage()
-            : this(MsgTypes.Unknown, "", false, false, null)
         {
         }
 
-#if !TRACE
-    [DebuggerStepThrough]
-#endif
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields)
-        :this(t,def,hasheader,meta,fields,"")
-        {}
 
-#if !TRACE
-    [DebuggerStepThrough]
-#endif
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5) : this(t,def,hasheader,meta,fields,ms5,false)
-        {
-        }
-
-#if !TRACE
-    [DebuggerStepThrough]
-#endif
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public IRosMessage(MsgTypes t, string def, bool hasheader, bool meta, Dictionary<string, MsgFieldInfo> fields, string ms5, bool isservicemessage)
-        {
-            msgtype = t;
-            MessageDefinition = def;
-            HasHeader = hasheader;
-            IsMetaType = meta;
-            Fields = fields;
-            MD5Sum = ms5;
-            IsServiceComponent = isservicemessage;
-        }
         [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage(byte[] SERIALIZEDSTUFF)
@@ -185,20 +154,20 @@ namespace Messages
     public class IRosService
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public string MD5Sum;
+        public virtual string MD5Sum() { return ""; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public string ServiceDefinition;
+        public virtual string ServiceDefinition() { return ""; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public SrvTypes srvtype = SrvTypes.Unknown;
+        public virtual SrvTypes srvtype() { return SrvTypes.Unknown; }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype_req
         {
-            get { return RequestMessage.msgtype; }
+            get { return RequestMessage.msgtype(); }
         }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public MsgTypes msgtype_res
         {
-            get { return ResponseMessage.msgtype; }
+            get { return ResponseMessage.msgtype(); }
         }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosMessage RequestMessage, ResponseMessage;
@@ -209,16 +178,9 @@ namespace Messages
         }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IRosService()
-            : this(SrvTypes.Unknown, "", "")
         {
         }
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public IRosService(SrvTypes t, string def, string md5)
-        {
-            srvtype = t;
-            ServiceDefinition = def;
-            MD5Sum = md5;
-        }
+
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         protected void InitSubtypes(IRosMessage request, IRosMessage response)
         {
@@ -249,14 +211,14 @@ namespace Messages
                     IRosService srv = Activator.CreateInstance(othertype) as IRosService;
                     if (srv != null)
                     {
-                        if (srv.srvtype == SrvTypes.Unknown)
+                        if (srv.srvtype() == SrvTypes.Unknown)
                             throw new Exception("OH NOES IRosService.generate is borked!");
-                        if (!_typeregistry.ContainsKey(srv.srvtype))
-                            _typeregistry.Add(srv.srvtype, srv.GetType());
-                        if (!constructors.ContainsKey(srv.srvtype))
-                            constructors.Add(srv.srvtype, T => Activator.CreateInstance(_typeregistry[T]) as IRosService);
-                        srv.RequestMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype + "__Request"));
-                        srv.ResponseMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype + "__Response"));
+                        if (!_typeregistry.ContainsKey(srv.srvtype()))
+                            _typeregistry.Add(srv.srvtype(), srv.GetType());
+                        if (!constructors.ContainsKey(srv.srvtype()))
+                            constructors.Add(srv.srvtype(), T => Activator.CreateInstance(_typeregistry[T]) as IRosService);
+                        srv.RequestMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype() + "__Request"));
+                        srv.ResponseMessage = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), srv.srvtype() + "__Response"));
                     }
                 }
 
@@ -265,6 +227,27 @@ namespace Messages
                 else
                     throw new Exception("OH NOES IRosService.generate is borked!");
             }
+        }
+    }
+
+
+
+    public enum ServiceMessageType
+    {
+        Not,
+        Request,
+        Response
+    }
+    [System.Diagnostics.DebuggerStepThrough]
+    public struct TimeData
+    {
+        public uint sec;
+        public uint nsec;
+
+        public TimeData(uint s, uint ns)
+        {
+            sec = s;
+            nsec = ns;
         }
     }
 }
