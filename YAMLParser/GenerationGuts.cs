@@ -1064,6 +1064,13 @@ namespace FauxMessages
                 else
                     return string.Format(@"
 {0}ret &= {1} == other.{1};", leadingWhitespace, name);
+            else if (type == "Header")
+                return string.Format(@"
+{0}ret &= {1}.seq == other.{1}.seq;
+{0}ret &= {1}.stamp.data.sec == other.{1}.stamp.data.sec;
+{0}ret &= {1}.stamp.data.nsec == other.{1}.stamp.data.nsec;
+{0}ret &= {1}.frame_id.Equals(other.{1}.frame_id);", leadingWhitespace, name);
+
             else
                 return string.Format(@"
 {0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
