@@ -44,11 +44,11 @@ namespace Ros_CSharp
             this.service = service;
             srv_func = callback;
             helper = new ServiceCallbackHelper<MReq, MRes>(callback);
-            req_datatype = new MReq().msgtype.ToString().Replace("__", "/").Replace("/Request", "__Request");
-            res_datatype = new MRes().msgtype.ToString().Replace("__", "/").Replace("/Response", "__Response");
+            req_datatype = new MReq().msgtype().ToString().Replace("__", "/").Replace("/Request", "__Request");
+            res_datatype = new MRes().msgtype().ToString().Replace("__", "/").Replace("/Response", "__Response");
             srvtype = (SrvTypes) Enum.Parse(typeof (SrvTypes), req_datatype.Replace("__Request", "").Replace("/", "__"));
             datatype = srvtype.ToString().Replace("__", "/");
-            md5sum = IRosService.generate(srvtype).MD5Sum;
+            md5sum = IRosService.generate(srvtype).MD5Sum();
         }
     }
 }

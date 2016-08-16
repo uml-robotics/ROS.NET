@@ -359,14 +359,14 @@ namespace Ros_CSharp
             }
         }
 
-        internal void getPublishTypes(ref bool serialize, ref bool nocopy, ref MsgTypes typeEnum)
+        internal void getPublishTypes(ref bool serialize, ref bool nocopy, MsgTypes typeEnum)
         {
             lock (subscriber_links_mutex)
             {
                 foreach (SubscriberLink sub in subscriber_links)
                 {
                     bool s = false, n = false;
-                    sub.getPublishTypes(ref s, ref n, ref typeEnum);
+                    sub.getPublishTypes(ref s, ref n, typeEnum);
                     serialize = serialize || s;
                     nocopy = nocopy || n;
                     if (serialize && nocopy)

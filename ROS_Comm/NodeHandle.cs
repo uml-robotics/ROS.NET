@@ -423,7 +423,7 @@ namespace Ros_CSharp
         {
             if (started_by_visual_studio) return null;
             ops.service = resolveName(ops.service);
-            ops.md5sum = new MReq().MD5Sum;
+            ops.md5sum = new MReq().MD5Sum();
             return new ServiceClient<MReq, MRes>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 
@@ -458,7 +458,7 @@ namespace Ros_CSharp
         {
             if (started_by_visual_studio) return null;
             ops.service = resolveName(ops.service);
-            ops.md5sum = new MSrv().RequestMessage.MD5Sum;
+            ops.md5sum = new MSrv().RequestMessage.MD5Sum();
             return new ServiceClient<MSrv>(ops.service, ops.persistent, ops.header_values, ops.md5sum);
         }
 

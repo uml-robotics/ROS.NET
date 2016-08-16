@@ -86,7 +86,7 @@ namespace Ros_CSharp
                     stats.drops += parent.handleMessage(m, ser, nocopy, m.connection_header, this);
         }
 
-        public void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes mt)
+        public void getPublishTypes(ref bool ser, ref bool nocopy, MsgTypes mt)
         {
             lock (drop_mutex)
             {
@@ -100,7 +100,7 @@ namespace Ros_CSharp
             if (parent != null)
                 lock (parent)
                 {
-                    parent.getPublishTypes(ref ser, ref nocopy, ref mt);
+                    parent.getPublishTypes(ref ser, ref nocopy, mt);
                 }
             else
             {

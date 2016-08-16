@@ -415,7 +415,7 @@ wiimote/TimedSwitch e4c8d9327409cef6066fa6c368032c1e";
                 string type = msg.GetType().FullName.Replace("Messages.", "").Replace(".", "/");
                 if (!sums.ContainsKey(type)) continue;
                 string desiredSum = sums[type];
-                string actualSum = msg.MD5Sum;
+                string actualSum = msg.MD5Sum();
                 bool eq = String.Equals(desiredSum,actualSum);
                 Debug.WriteLine("{0}\t{1}", type, eq?"OK":"FAIL");
                 if (!eq)

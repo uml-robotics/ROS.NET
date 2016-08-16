@@ -83,7 +83,7 @@ namespace Ros_CSharp
         }
 
 
-        public override void getPublishTypes(ref bool ser, ref bool nocopy, ref MsgTypes mt)
+        public override void getPublishTypes(ref bool ser, ref bool nocopy, MsgTypes mt)
         {
             lock (drop_mutex)
             {
@@ -94,7 +94,7 @@ namespace Ros_CSharp
                     return;
                 }
             }
-            subscriber.getPublishTypes(ref ser, ref nocopy, ref mt);
+            subscriber.getPublishTypes(ref ser, ref nocopy, mt);
         }
     }
 }

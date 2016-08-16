@@ -68,20 +68,20 @@ namespace Ros_CSharp
             where MSrv : IRosService, new()
         {
             MSrv srv = new MSrv();
-            RequestMd5Sum = srv.RequestMessage.MD5Sum;
-            ResponseMd5Sum = srv.ResponseMessage.MD5Sum;
-            RequestType = srv.RequestMessage.msgtype;
-            ResponseType = srv.ResponseMessage.msgtype;
+            RequestMd5Sum = srv.RequestMessage.MD5Sum();
+            ResponseMd5Sum = srv.ResponseMessage.MD5Sum();
+            RequestType = srv.RequestMessage.msgtype();
+            ResponseType = srv.ResponseMessage.msgtype();
         }
 
         public void initialize<MReq, MRes>() where MReq : IRosMessage, new() where MRes : IRosMessage, new()
         {
             MReq req = new MReq();
             MRes res = new MRes();
-            RequestMd5Sum = req.MD5Sum;
-            ResponseMd5Sum = res.MD5Sum;
-            RequestType = req.msgtype;
-            ResponseType = res.msgtype;
+            RequestMd5Sum = req.MD5Sum();
+            ResponseMd5Sum = res.MD5Sum();
+            RequestType = req.msgtype();
+            ResponseType = res.msgtype();
         }
 
         internal void initialize(Connection connection)
@@ -92,7 +92,7 @@ namespace Ros_CSharp
 
             IDictionary dict = new Hashtable();
             dict["service"] = name;
-            dict["md5sum"] = IRosService.generate((SrvTypes) Enum.Parse(typeof (SrvTypes), RequestType.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum;
+            dict["md5sum"] = IRosService.generate((SrvTypes) Enum.Parse(typeof (SrvTypes), RequestType.ToString().Replace("__Request", "").Replace("__Response", ""))).MD5Sum();
             dict["callerid"] = this_node.Name;
             dict["persistent"] = persistent ? "1" : "0";
             if (header_values != null)
@@ -297,7 +297,7 @@ namespace Ros_CSharp
             if (resp == null)
             {
                 //instantiate null response IN CASE this call succeeds
-                resp = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), req.msgtype.ToString().Replace("Request", "Response")));
+                resp = IRosMessage.generate((MsgTypes) Enum.Parse(typeof (MsgTypes), req.msgtype().ToString().Replace("Request", "Response")));
             }
             CallInfo info = new CallInfo {req = req, resp = resp, success = false, finished = false};
 
