@@ -16,21 +16,34 @@ namespace Messages
     {
         $$DOLLADOLLABILLS
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override string MD5Sum() { return "$MYMD5SUM"; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override bool HasHeader() { return $MYHASHEADER; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override bool IsMetaType() { return $MYISMETA; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override string MessageDefinition() { return $MYMESSAGEDEFINITION; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override MsgTypes msgtype() { return $MYMSGTYPE; }
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public override bool IsServiceComponent() { return false; }
+
         [System.Diagnostics.DebuggerStepThrough]
-        public $WHATAMI() : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        public $WHATAMI()
         {
             $NULLCONSTBODY
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public $WHATAMI(byte[] SERIALIZEDSTUFF) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        public $WHATAMI(byte[] SERIALIZEDSTUFF)
         {
             Deserialize(SERIALIZEDSTUFF);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public $WHATAMI(byte[] SERIALIZEDSTUFF, ref int currentIndex) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS, "$MYMD5SUM")
+        public $WHATAMI(byte[] SERIALIZEDSTUFF, ref int currentIndex)
         {
             Deserialize(SERIALIZEDSTUFF, ref currentIndex);
         }

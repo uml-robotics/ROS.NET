@@ -205,25 +205,4 @@ namespace Messages
             message_type = mt;
         }
     }
-
-
-
-    public enum ServiceMessageType
-    {
-        Not,
-        Request,
-        Response
-    }
-    [System.Diagnostics.DebuggerStepThrough]
-    public struct TimeData
-    {
-        public uint sec;
-        public uint nsec;
-
-        public TimeData(uint s, uint ns)
-        {
-            sec = s;
-            nsec = ns;
-        }
-    }
 }

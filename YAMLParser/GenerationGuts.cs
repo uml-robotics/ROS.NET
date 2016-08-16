@@ -584,11 +584,11 @@ namespace FauxMessages
             if (classname.ToLower() == "string")
             {
                 GUTS = GUTS.Replace("$NULLCONSTBODY", "if (data == null)\n\t\t\tdata = \"\";\n");
-                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(string d)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             else if (classname == "Time" || classname == "Duration")
             {
-                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d) : base($MYMSGTYPE, $MYMESSAGEDEFINITION, $MYHASHEADER, $MYISMETA, new Dictionary<string, MsgFieldInfo>$MYFIELDS)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
+                GUTS = GUTS.Replace("$EXTRACONSTRUCTOR", "\n\t\tpublic $WHATAMI(TimeData d)\n\t\t{\n\t\t\tdata = d;\n\t\t}\n");
             }
             GUTS = GUTS.Replace("$WHATAMI", classname);
             GUTS = GUTS.Replace("$MYISMETA", meta.ToString().ToLower());
