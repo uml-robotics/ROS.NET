@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using FauxMessages;
 
 #endregion
@@ -109,7 +110,8 @@ namespace YAMLParser
                     Debug.WriteLine("STILL NEEDS ANOTHER PASS: " + irm.Name + " B/C OF " + irm.Stuff[i].Type);
                     return null;
                 }
-                string[] BLADAMN = hashme.Replace(fields[i].Type,sum).Split('\n');
+                Regex findCurrentFieldType = new Regex("\\b" + fields[i].Type + "\\b");
+                string[] BLADAMN = findCurrentFieldType.Replace(hashme, sum).Split('\n');
                 hashme = "";
                 for (int x = 0; x < BLADAMN.Length; x++)
                 {
