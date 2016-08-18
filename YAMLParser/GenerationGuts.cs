@@ -122,7 +122,7 @@ namespace FauxMessages
                     if (lines[i].Contains("namespace"))
                     {
                         requestfronthalf +=
-                          "\nusing Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;\n\n"; //\nusing Messages.roscsharp;
+                          "\nusing Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\n\n"; //\nusing Messages.roscsharp;
                         requestfronthalf += "namespace " + Namespace + "\n";
                         continue;
                     }
@@ -1112,7 +1112,7 @@ namespace FauxMessages
         /// <summary>
         /// Message namespaces known to ALL messages (in their header's using lines)
         /// </summary>
-        private const string STATIC_NAMESPACE_STRING = "using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;\nusing Messages.nav_msgs;";
+        private const string STATIC_NAMESPACE_STRING = "using Messages.std_msgs;\nusing String=System.String;\nusing Messages.geometry_msgs;";
 
         /// <summary>
         /// Returns the namespaced type name (if neccessary)
