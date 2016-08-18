@@ -101,11 +101,11 @@ namespace Messages
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
                 byte[] __a_b__d = new byte[__a_b__f];
-                foreach(var p in pieces)
-                {
-                    Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
-                    __a_b__e += p.Length;
-                }
+                foreach(var __p__ in pieces)
+				{
+					Array.Copy(__p__,0,__a_b__d,__a_b__e,__p__.Length);
+					__a_b__e += __p__.Length;
+				}
                 return __a_b__d;
             }
 
@@ -189,11 +189,11 @@ namespace Messages
                 int __a_b__f = pieces.Sum((__a_b__c)=>__a_b__c.Length);
                 int __a_b__e=0;
                 byte[] __a_b__d = new byte[__a_b__f];
-                foreach(var p in pieces)
-                {
-                    Array.Copy(p,0,__a_b__d,__a_b__e,p.Length);
-                    __a_b__e += p.Length;
-                }
+                foreach(var __p__ in pieces)
+				{
+					Array.Copy(__p__,0,__a_b__d,__a_b__e,__p__.Length);
+					__a_b__e += __p__.Length;
+				}
                 return __a_b__d;
             }
             
