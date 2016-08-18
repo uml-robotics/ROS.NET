@@ -1067,18 +1067,19 @@ namespace FauxMessages
             string leadingWhitespace = "";
             for (int i = 0; i < LEADING_WHITESPACE + extraTabs; i++)
                 leadingWhitespace += "    ";
-            if (type == "Time")
+            if (type == "Time" || type == "Duration")
                 return string.Format(@"
 {0}ret &= {1}.data.Equals(other.{1}.data);", leadingWhitespace, name);
+            else if (type == "TimeData")
+                return string.Format(@"
+{0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
             else if (st.IsLiteral)
+            {
                 if (st.Const)
                     return "";
-                else if (type == "TimeData")
-                    return string.Format(@"
-{0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
-                else
-                    return string.Format(@"
+                return string.Format(@"
 {0}ret &= {1} == other.{1};", leadingWhitespace, name);
+            }
             else
                 return string.Format(@"
 {0}ret &= {1}.Equals(other.{1});", leadingWhitespace, name);
