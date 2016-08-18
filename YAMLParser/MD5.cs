@@ -115,7 +115,7 @@ namespace YAMLParser
                 hashme = "";
                 for (int x = 0; x < BLADAMN.Length; x++)
                 {
-                    if (BLADAMN[x].Contains(fields[i].Name))
+                    if (BLADAMN[x].Contains(fields[i].Name.Replace("@", "")))
                     {
                         if (BLADAMN[x].Contains("/"))
                         {

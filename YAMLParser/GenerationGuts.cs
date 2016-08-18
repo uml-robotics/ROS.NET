@@ -1267,6 +1267,12 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
+            // TODO extend check to other C# keywords
+            if (name.Equals("object"))
+            {
+                name = "@" + name; // TODO muellerm check this
+            }
+
             for (int i = 2; i < s.Length; i++)
                 otherstuff += " " + s[i];
             if (otherstuff.Contains('=')) isconst = true;
@@ -1359,6 +1365,11 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
+            // TODO extend check to other C# keywords
+            if (name.Equals("object"))
+            {
+                name = "@" + name;
+            }
             for (int i = 2; i < backup.Length; i++)
                 otherstuff += " " + backup[i];
             if (otherstuff.Contains('=')) isconst = true;
@@ -1450,7 +1461,7 @@ namespace FauxMessages
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
-                    members.Name,
+                    members.Name.Replace("@", ""),
                     members.IsLiteral.ToString().ToLower(),
                     ("typeof(" + pt + ")"),
                     members.Const.ToString().ToLower(),
