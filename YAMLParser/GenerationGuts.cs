@@ -1196,6 +1196,8 @@ namespace FauxMessages
 
     public class SingleType
     {
+        // TODO extend check to other C# keywords
+        private static readonly string[] CSharpKeywords = {"object", };
         public bool Const;
         public string ConstValue = "";
         public bool IsArray;
@@ -1267,10 +1269,9 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
-            // TODO extend check to other C# keywords
-            if (name.Equals("object"))
+            if (IsCSharpKeyword(name))
             {
-                name = "@" + name; // TODO muellerm check this
+                name = "@" + name;
             }
 
             for (int i = 2; i < s.Length; i++)
@@ -1365,8 +1366,7 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
-            // TODO extend check to other C# keywords
-            if (name.Equals("object"))
+            if (IsCSharpKeyword(name))
             {
                 name = "@" + name;
             }
@@ -1443,6 +1443,11 @@ namespace FauxMessages
             if (!KnownStuff.KnownTypes.ContainsKey(rostype))
                 meta = true;
             Name = name.Length == 0 ? otherstuff.Split('=')[0].Trim() : name;
+        }
+
+        private static bool IsCSharpKeyword(string name)
+        {
+            return CSharpKeywords.Contains(name);
         }
     }
 
