@@ -959,9 +959,9 @@ namespace FauxMessages
 {0}strlength = rand.Next(100) + 1;
 {0}strbuf = new byte[strlength];
 {0}rand.NextBytes(strbuf);  //fill the whole buffer with random bytes
-{0}for (int x = 0; x < strlength; x++)
-{0}    if (strbuf[x] == 0) //replace null chars with non-null random ones
-{0}        strbuf[x] = (byte)(rand.Next(254) + 1);
+{0}for (int __x__ = 0; __x__ < strlength; __x__++)
+{0}    if (strbuf[__x__] == 0) //replace null chars with non-null random ones
+{0}        strbuf[__x__] = (byte)(rand.Next(254) + 1);
 {0}strbuf[strlength - 1] = 0; //null terminate
 {0}{1} = Encoding.ASCII.GetString(strbuf);", leadingWhitespace, name);
             }
