@@ -46,8 +46,11 @@ namespace FauxMessages
         public string responsebackhalf;
         public string resposonebackhalf;
 
+        internal MsgFileLocation msgfilelocation;
+
         public SrvsFile(MsgFileLocation filename)
         {
+            msgfilelocation = filename;
             //read in srv file
             string[] lines = File.ReadAllLines(filename.Path);
             classname = filename.basename;
@@ -94,11 +97,9 @@ namespace FauxMessages
                 outdir += "\\" + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
-            string localcn = classname;
-            localcn = classname.Replace("Request", "").Replace("Response", "");
             string contents = ToString();
             if (contents != null)
-                File.WriteAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.WriteAllText(outdir + "\\" + msgfilelocation.basename + ".cs", contents.Replace("FauxMessages", "Messages"));
         }
 
         public override string ToString()
@@ -283,6 +284,8 @@ namespace FauxMessages
             public MsgsFile Definer;
         }
 
+        internal MsgFileLocation msgfilelocation;
+
         public static Dictionary<string, Dictionary<string, List<ResolvedMsg>>> resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
         
         private string GUTS;
@@ -316,6 +319,7 @@ namespace FauxMessages
         public
             MsgsFile(MsgFileLocation filename, bool isrequest, List<string> lines, string extraindent)
         {
+            msgfilelocation = filename;
             if (resolver == null)
                 resolver = new Dictionary<string, Dictionary<string, List<ResolvedMsg>>>();
             serviceMessageType = isrequest ? ServiceMessageType.Request : ServiceMessageType.Response;
@@ -354,6 +358,7 @@ namespace FauxMessages
 
         public MsgsFile(MsgFileLocation filename, string extraindent)
         {
+            msgfilelocation = filename;
             if (resolver == null)
                 resolver = new Dictionary<string, Dictionary<string,List<ResolvedMsg>>>();
             if (!filename.Path.Contains(".msg"))
@@ -431,8 +436,12 @@ namespace FauxMessages
 
         public string GetSrvHalf()
         {
-            string wholename = classname.Replace("Request", ".Request").Replace("Response", ".Response");
-            classname = classname.Contains("Request") ? "Request" : "Response";
+            string wholename = classname;
+            if (wholename.Contains("Response"))
+                wholename = wholename.Substring(0, wholename.LastIndexOf("Response"));
+            else if (wholename.Contains("Request"))
+                wholename = wholename.Substring(0, wholename.LastIndexOf("Request"));
+            classname = classname.Replace(wholename, "");
             if (memoizedcontent == null)
             {
                 memoizedcontent = "";
@@ -579,7 +588,6 @@ namespace FauxMessages
                 StringBuilder DEF = new StringBuilder();
                 foreach (string s in def)
                     DEF.AppendLine(s);
-                Debug.WriteLine("============\n"+this.classname);
             }
             GUTS = (serviceMessageType != ServiceMessageType.Response ? fronthalf : "") + "\n" + memoizedcontent + "\n" +
                    (serviceMessageType != ServiceMessageType.Request ? backhalf : "");
@@ -1463,8 +1471,16 @@ namespace FauxMessages
             {
                 string t = members.Type.Replace("Messages.", "");
                 if (!t.Contains('.'))
-                    t = members.Definer.Package + "." + t;
-                mt = "MsgTypes." + t.Replace(".", "__");
+                    if (members.Definer != null)
+                        t = members.Definer.Package + "." + t;
+                    else
+                    {
+                        t = null;
+                    }
+                if (t != null)
+                    mt = "MsgTypes." + t.Replace(".", "__");
+                else
+                    members.meta = false;
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
