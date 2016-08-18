@@ -120,6 +120,11 @@
   <ItemGroup>
     <Compile Include="MD5Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="test_resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>test_resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ROS_Comm\ROS_C-Sharp.csproj">
@@ -130,6 +135,20 @@
       <Project>{EFD1C674-0E1B-44E4-8AC9-DC9CCA7DCDCD}</Project>
       <Name>YAMLParser</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="srv_sums.txt">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </Content>
+    <Content Include="msg_sums.txt">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="test_resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>test_resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
