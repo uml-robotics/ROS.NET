@@ -1,2 +1,0 @@
-﻿string name
-string value

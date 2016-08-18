@@ -1,0 +1,3 @@
+string[] names
+EndpointState[] states
+
