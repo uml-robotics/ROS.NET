@@ -1196,6 +1196,8 @@ namespace FauxMessages
 
     public class SingleType
     {
+        // TODO extend check to other C# keywords
+        private static readonly string[] CSharpKeywords = {"object", };
         public bool Const;
         public string ConstValue = "";
         public bool IsArray;
@@ -1267,6 +1269,11 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
+            if (IsCSharpKeyword(name))
+            {
+                name = "@" + name;
+            }
+
             for (int i = 2; i < s.Length; i++)
                 otherstuff += " " + s[i];
             if (otherstuff.Contains('=')) isconst = true;
@@ -1359,6 +1366,10 @@ namespace FauxMessages
                 name = parts[0];
                 otherstuff = " = " + parts[1];
             }
+            if (IsCSharpKeyword(name))
+            {
+                name = "@" + name;
+            }
             for (int i = 2; i < backup.Length; i++)
                 otherstuff += " " + backup[i];
             if (otherstuff.Contains('=')) isconst = true;
@@ -1433,6 +1444,11 @@ namespace FauxMessages
                 meta = true;
             Name = name.Length == 0 ? otherstuff.Split('=')[0].Trim() : name;
         }
+
+        private static bool IsCSharpKeyword(string name)
+        {
+            return CSharpKeywords.Contains(name);
+        }
     }
 
     public static class MessageFieldHelper
@@ -1450,7 +1466,7 @@ namespace FauxMessages
             }
             return String.Format
                 ("\"{0}\", new MsgFieldInfo(\"{0}\", {1}, {2}, {3}, \"{4}\", {5}, \"{6}\", {7}, {8})",
-                    members.Name,
+                    members.Name.Replace("@", ""),
                     members.IsLiteral.ToString().ToLower(),
                     ("typeof(" + pt + ")"),
                     members.Const.ToString().ToLower(),
