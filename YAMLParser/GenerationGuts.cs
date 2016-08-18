@@ -191,7 +191,9 @@ namespace FauxMessages
             }
             string MessageDefinition = md.ToString().Trim();
             string RequestDefinition = reqd.ToString().Trim();
-            string ResponseDefinition = resd.ToString().Trim();
+            string ResponseDefinition = "";
+            if (resd != null)
+                ResponseDefinition = resd.ToString().Trim();
 
             #endregion
 
