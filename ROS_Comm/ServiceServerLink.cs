@@ -194,8 +194,12 @@ namespace Ros_CSharp
                 {
                     request = current_call.req;
                 }
+
                 request.Serialized = request.Serialize();
-                connection.write(request.Serialized, request.Serialized.Length, onRequestWritten);
+                byte[] tosend = new byte[request.Serialized.Length + 4];
+                Array.Copy(BitConverter.GetBytes(request.Serialized.Length), tosend, 4);
+                Array.Copy(request.Serialized, 0, tosend, 4, request.Serialized.Length);
+                connection.write(tosend, tosend.Length, onRequestWritten);
             }
         }
 
