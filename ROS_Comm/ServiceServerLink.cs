@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Messages;
 using String = Messages.std_msgs.String;
@@ -283,8 +284,11 @@ namespace Ros_CSharp
                         throw new Exception("HAUUU?!");
                     current_call.resp.Serialized = buf;
                 }
-                else
-                    current_call.exception = new String(buf).data;
+                else if (buf.Length > 0)
+                    // call failed with reason
+                    current_call.exception = Encoding.UTF8.GetString(buf);
+                else { } // call failed, but no reason is given
+
             }
 
             callFinished();
@@ -325,7 +329,11 @@ namespace Ros_CSharp
                 info.finished_condition.WaitOne();
             }
 
-            resp.Deserialize(resp.Serialized);
+            if (info.success)
+            {
+                // response is only sent on success => don't try to deserialize on failure.
+                resp.Deserialize(resp.Serialized);
+            }
 
             if (!string.IsNullOrEmpty(info.exception))
             {
