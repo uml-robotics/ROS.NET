@@ -1,0 +1,33 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>XmlRpc_Wrapper</Name>
+    <Description>XmlRpc template dep</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>XmlRpc_Wrapper</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>..\TemplateIcon.png</Icon>
+    <PreviewImage>..\PreviewImage.png</PreviewImage>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="XmlRpc_Wrapper.csproj" File="XmlRpc_Wrapper.csproj" ReplaceParameters="false">
+      <ProjectItem ReplaceParameters="false" TargetFileName="AsyncXmlRpcConnection.cs">AsyncXmlRpcConnection.cs</ProjectItem>
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="false" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XMLRPCCallWrapper.cs">XMLRPCCallWrapper.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcClient.cs">XmlRpcClient.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcDispatch.cs">XmlRpcDispatch.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcServer.cs">XmlRpcServer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcServerConnection.cs">XmlRpcServerConnection.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcSource.cs">XmlRpcSource.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcUtil.cs">XmlRpcUtil.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcValue.cs">XmlRpcValue.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

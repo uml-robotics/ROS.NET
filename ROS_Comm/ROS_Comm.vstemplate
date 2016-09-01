@@ -1,0 +1,76 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>ROS_C-Sharp</Name>
+    <Description>Template wrapper for ROS.NET core dep</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>ROS_C-Sharp</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>..\TemplateIcon.png</Icon>
+    <PreviewImage>..\PreviewImage.png</PreviewImage>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="ROS_C-Sharp.template.csproj" File="ROS_C-Sharp.template.csproj" ReplaceParameters="false">
+      <ProjectItem ReplaceParameters="false" TargetFileName="_Init.cs">_Init.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="AdvertiseOptions.cs">AdvertiseOptions.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="AdvertiseServiceOptions.cs">AdvertiseServiceOptions.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="CallbackInterface.cs">CallbackInterface.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="CallbackQueue.cs">CallbackQueue.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Connection.cs">Connection.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ConnectionManager.cs">ConnectionManager.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Header.cs">Header.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="LocalPublisherLink.cs">LocalPublisherLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="LocalSubscriberLink.cs">LocalSubscriberLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Master.cs">Master.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="MessageAndSerializerFunc.cs">MessageAndSerializerFunc.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="names.cs">names.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="network.cs">network.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="NodeHandle.cs">NodeHandle.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Param.cs">Param.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="PendingConnection.cs">PendingConnection.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="PollManager.cs">PollManager.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="PollSet.cs">PollSet.cs</ProjectItem>
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="false" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Publication.cs">Publication.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Publisher.cs">Publisher.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="PublisherLink.cs">PublisherLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RemappingHelper.cs">RemappingHelper.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RosOutAppender.cs">RosOutAppender.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ScopedTimer.cs">ScopedTimer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Service.cs">Service.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceCallbackHelper.cs">ServiceCallbackHelper.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceClient.cs">ServiceClient.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceClientLink.cs">ServiceClientLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceClientOptions.cs">ServiceClientOptions.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceManager.cs">ServiceManager.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServicePublication.cs">ServicePublication.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceServer.cs">ServiceServer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ServiceServerLink.cs">ServiceServerLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="SingleSubscriberPublisher.cs">SingleSubscriberPublisher.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Socket.cs">Socket.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Spinner.cs">Spinner.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="SubscribeOptions.cs">SubscribeOptions.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Subscriber.cs">Subscriber.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="SubscriberCallbacks.cs">SubscriberCallbacks.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="SubscriberLink.cs">SubscriberLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Subscription.cs">Subscription.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="SubscriptionCallbackHelper.cs">SubscriptionCallbackHelper.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TcpTransport.cs">TcpTransport.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="this_node.cs">this_node.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Time.cs">Time.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TimerManager.cs">TimerManager.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TopicInfo.cs">TopicInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TopicManager.cs">TopicManager.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TransportPublisherLink.cs">TransportPublisherLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TransportSubscriberLink.cs">TransportSubscriberLink.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="XmlRpcManager.cs">XmlRpcManager.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

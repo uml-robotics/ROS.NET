@@ -1,0 +1,47 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>YAMLParser</Name>
+    <Description>Message generation template dep</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>YAMLParser</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>..\TemplateIcon.png</Icon>
+    <PreviewImage>..\PreviewImage.png</PreviewImage>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="YAMLParser.csproj" File="YAMLParser.csproj" ReplaceParameters="false">
+      <ProjectItem ReplaceParameters="false" TargetFileName="app.config">app.config</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FileUtils.cs">FileUtils.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="GenerationGuts.cs">GenerationGuts.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="MD5.cs">MD5.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="MessageTypes.cs">MessageTypes.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="MsgFileLocator.cs">MsgFileLocator.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="PInvokeAllUpInYoGrill.cs">PInvokeAllUpInYoGrill.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Program.cs">Program.cs</ProjectItem>
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="false" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <Folder Name="ROS_MESSAGES" TargetFolderName="ROS_MESSAGES">
+        <ProjectItem ReplaceParameters="false" TargetFileName="README.txt">README.txt</ProjectItem>
+      </Folder>
+      <Folder Name="TemplateProject" TargetFolderName="TemplateProject">
+        <ProjectItem ReplaceParameters="false" TargetFileName="AssemblyInfo._cs">AssemblyInfo._cs</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="Interfaces.cs">Interfaces.cs</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="Messages._csproj">Messages._csproj</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="PlaceHolder._cs">PlaceHolder._cs</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="SrvPlaceHolder._cs">SrvPlaceHolder._cs</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="String.cs">String.cs</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="TempMessages._csproj">TempMessages._csproj</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="Time.cs">Time.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Templates.resx">Templates.resx</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Templates.Designer.cs">Templates.Designer.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

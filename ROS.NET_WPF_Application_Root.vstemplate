@@ -1,0 +1,33 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>ROS.NET WPF Application</Name>
+    <Description>A functional WPF application with minimal ROS.NET dependencies</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>ROS.NET WPF Application</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>TemplateIcon.png</Icon>
+    <PreviewImage>PreviewImage.png</PreviewImage>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="ROS_C-Sharp">
+        ROS_Comm\ROS_Comm.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="YAMLParser">
+        YAMLParser\YAMLParser.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="XmlRpc_Wrapper">
+        XmlRpc_Wrapper\XmlRpc_Wrapper.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$projectname$">
+        ROS.NET Console Application\ROS.NET_Console_Application.vstemplate
+      </ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+</VSTemplate>
