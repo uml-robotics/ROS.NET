@@ -1,7 +1,7 @@
-# ROS.NET
+![ROS.NET](https://github.com/uml-robotics/ROS.NET/raw/master/Logo.png)
 
 ## What is ROS,NET?
-A series of C# projects and one C++ project (a p/invoke wrapper around XMLRPC++) that allow a MANAGED .NET application co communicate with any other ROS nodes.
+A series of C# projects that allow a MANAGED .NET application to communicate traditional ROS nodes.
 
 ## How do I use it?
 - Set your ROS_HOSTNAME and ROS_MASTER_URI in your windows environment variables
