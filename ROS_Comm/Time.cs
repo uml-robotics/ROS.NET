@@ -78,10 +78,6 @@ namespace Ros_CSharp
                 if (Param.get("/use_sim_time", ref simTime))
                 {
                     checkedSimTime = true;
-                    if (simTime)
-                    {
-                        ROS.Warn("Switching to sim time");
-                    }
                 }
             }
             if (simTime && SimTimeEvent != null)

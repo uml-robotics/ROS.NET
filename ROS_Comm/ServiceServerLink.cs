@@ -106,7 +106,9 @@ namespace Ros_CSharp
         {
             if (connection != this.connection) throw new Exception("WRONG CONNECTION ZOMG!");
 
-            ROS.Debug("Service client from [{0}] for [{1}] dropped", connection.RemoteString, name);
+#if DEBUG
+            EDB.WriteLine("Service client from [{0}] for [{1}] dropped", connection.RemoteString, name);
+#endif
 
             clearCalls();
 
