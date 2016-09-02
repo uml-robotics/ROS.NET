@@ -100,7 +100,11 @@ namespace Ros_CSharp
         private void Append(string m, ROSOUT_LEVEL lvl, int level)
         {
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
-            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line = (uint)sf.GetFileLineNumber(), level = ((byte)((int)lvl)) };
+            Log logmsg = new Log
+            {
+                msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line = (uint) sf.GetFileLineNumber(), level = ((byte) ((int) lvl)),
+                header = new m.Header() { stamp = ROS.GetTime() }
+            };
             TopicManager.Instance.getAdvertisedTopics(out logmsg.topics);
             lock (log_queue)
                 log_queue.Enqueue(logmsg);
