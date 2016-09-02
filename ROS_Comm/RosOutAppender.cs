@@ -100,9 +100,8 @@ namespace Ros_CSharp
         private void Append(string m, ROSOUT_LEVEL lvl, int level)
         {
             StackFrame sf = new StackTrace(new StackFrame(level, true)).GetFrame(0);
-            IEnumerable<string> advert;
-            TopicManager.Instance.getAdvertisedTopics(out advert);
-            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line = (uint)sf.GetFileLineNumber(), level = ((byte)((int)lvl)), topics = (advert as string[] ?? advert.ToArray()).ToArray() };
+            Log logmsg = new Log { msg = m, name = this_node.Name, file = sf.GetFileName(), function = sf.GetMethod().Name, line = (uint)sf.GetFileLineNumber(), level = ((byte)((int)lvl)) };
+            TopicManager.Instance.getAdvertisedTopics(out logmsg.topics);
             lock (log_queue)
                 log_queue.Enqueue(logmsg);
         }

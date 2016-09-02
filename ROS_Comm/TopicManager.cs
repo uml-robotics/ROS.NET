@@ -131,26 +131,26 @@ namespace Ros_CSharp
         }
 
         /// <summary>
-        ///     Updates the list of advertised topics.
+        ///     gets the list of advertised topics.
         /// </summary>
         /// <param name="topics">List of topics to update</param>
-        public void getAdvertisedTopics(out IEnumerable<string> topics)
+        public void getAdvertisedTopics(out string[] topics)
         {
             lock (advertised_topics_mutex)
             {
-                topics = advertised_topics.Select(a => a.Name);
+                topics = advertised_topics.Select(a => a.Name).ToArray();
             }
         }
 
         /// <summary>
-        ///     Updates the list of subscribed topics
+        ///     gets the list of subscribed topics.
         /// </summary>
         /// <param name="topics"></param>
-        public void getSubscribedTopics(out IEnumerable<string> topics)
+        public void getSubscribedTopics(out string[] topics)
         {
             lock (subs_mutex)
             {
-                topics = subscriptions.Select(s => s.name);
+                topics = subscriptions.Select(s => s.name).ToArray();
             }
         }
 
