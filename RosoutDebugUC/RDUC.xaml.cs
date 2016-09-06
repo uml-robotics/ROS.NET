@@ -198,6 +198,14 @@ namespace RosoutDebugUC
             Dispatcher.Invoke(new Action(() =>
             {
                 rosoutdata.Add(rss);
+
+                // remove any messages that are more than a minute NEWER than the JUST RECEIVED log message
+                List<rosoutString> tooNew = rosoutdata.Where(s => s.stamp > rss.stamp+60).ToList();
+                if (tooNew.Count > 0)
+                    EDB.WriteLine("Dropping " + tooNew.Count + " rosout messages FROM THE FUTURE");
+                foreach (rosoutString rs in tooNew)
+                    rosoutdata.Remove(rs);
+
                 if (rosoutdata.Count > 1000)
                     rosoutdata.RemoveAt(0);
                 abraCadabra.InvalidateMeasure();               
