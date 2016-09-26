@@ -175,7 +175,6 @@ namespace ROS_ImageWPF
                 Console.WriteLine("Subscribing to map at:= " + topic);
                 mapSub = imagehandle.subscribe<nm.OccupancyGrid>(topic, 1, i => Dispatcher.Invoke(new Action(() =>
                                                                                                                  {
-                                                                                                                     Console.WriteLine("Map says its size is W: " + i.info.width + " H: " + i.info.height + " and its resolution is: " + i.info.resolution);
                                                                                                                      mapResolution = i.info.resolution;
                                                                                                                      mapHeight = i.info.height;
                                                                                                                      mapWidth = i.info.width;
@@ -187,7 +186,6 @@ namespace ROS_ImageWPF
                                                                                                                          actualResolution = 0;
                                                                                                                      else
                                                                                                                      {
-                                                                                                                         Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
                                                                                                                          MatchAspectRatio();
                                                                                                                      }
                                                                                                                      origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
