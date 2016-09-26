@@ -13,6 +13,7 @@
 #region USINGZ
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -178,9 +179,17 @@ namespace ROS_ImageWPF
                                                                                                                      mapResolution = i.info.resolution;
                                                                                                                      mapHeight = i.info.height;
                                                                                                                      mapWidth = i.info.width;
-                                                                                                                     actualResolution = (mapWidth / (float)Width) * mapResolution;
-                                                                                                                     Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
-                                                                                                                     MatchAspectRatio();
+                                                                                                                     if (Width != 0)
+                                                                                                                         actualResolution = (mapWidth/(float) Width)*mapResolution;
+                                                                                                                     else
+                                                                                                                         actualResolution = (mapWidth / (float)ActualWidth) * mapResolution;
+                                                                                                                     if (float.IsNaN(actualResolution) || float.IsInfinity(actualResolution))
+                                                                                                                         actualResolution = 0;
+                                                                                                                     else
+                                                                                                                     {
+                                                                                                                         Console.WriteLine("Actual rendered map resolution is: " + actualResolution);
+                                                                                                                         MatchAspectRatio();
+                                                                                                                     }
                                                                                                                      origin = new Point(i.info.origin.position.x, i.info.origin.position.y);
                                                                                                                      Size size = new Size(i.info.width, i.info.height);
                                                                                                                      byte[] data = createRGBA(i.data);
