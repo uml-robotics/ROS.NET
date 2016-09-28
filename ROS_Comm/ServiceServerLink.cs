@@ -378,12 +378,25 @@ namespace Ros_CSharp
 
         public bool call(MSrv srv)
         {
-            bool r = call((IRosService)srv);
-            if (srv.ResponseMessage != null)
-                srv.ResponseMessage.Deserialize(srv.ResponseMessage.Serialized);
-            else
-                srv.ResponseMessage = null;
-            return r;
+            bool result = false;
+            try
+            {
+                bool r = call((IRosService) srv);
+                if (srv.ResponseMessage != null)
+                    srv.ResponseMessage.Deserialize(srv.ResponseMessage.Serialized);
+                else
+                    srv.ResponseMessage = null;
+                result = r;
+            }
+            catch(Exception ex)
+            {
+                if (ROS.isStarted() && !ROS.shutting_down)
+                {
+                    throw;
+                }
+                EDB.WriteLine($"Exception occurred while calling a {name}, but ROS is not started OR is shutting down\n{ex}");
+            }
+            return result;
         }
     }
 
