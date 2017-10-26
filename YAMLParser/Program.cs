@@ -81,6 +81,7 @@ namespace YAMLParser
                 Console.WriteLine("Spelunking in " + d);
                 MsgFileLocator.findMessages(paths, pathssrv, d);
             }
+            paths = MsgFileLocator.sortMessages(paths);
             foreach (MsgFileLocation path in paths)
             {
                 msgsFiles.Add(new MsgsFile(path));
