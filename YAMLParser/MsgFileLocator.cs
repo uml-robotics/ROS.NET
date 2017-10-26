@@ -102,6 +102,22 @@ namespace YAMLParser
             Console.WriteLine("Skipped " + (msgfiles.Length - (m.Count - mb4)) + " duplicate msgs and " + (srvfiles.Length - (s.Count - sb4)) + " duplicate srvs");
         }
 
+        internal static int priority(string package)
+        {
+            switch (package)
+            {
+                case "std_msgs": return 1;
+                case "geometry_msgs": return 2;
+                case "actionlib_msgs": return 3;
+                default: return 9;
+            }
+        }
+
+        internal static List<MsgFileLocation> sortMessages(List<MsgFileLocation> msgs)
+        {
+            return msgs.OrderBy(m => "" + priority(m.package) + m.package + m.basename).ToList();
+        }
+
         public static void findMessages(List<MsgFileLocation> msgs, List<MsgFileLocation> srvs, params string[] args)
         {
             //solution directory (where the reference to msg_gen is) is passed -- or assumed to be in a file in the same directory as the executable (which would be the case when msg_gen is directly run in the debugger
