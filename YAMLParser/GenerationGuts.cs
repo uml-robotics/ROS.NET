@@ -94,12 +94,12 @@ namespace FauxMessages
         {
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
+                outdir += Path.DirectorySeparatorChar + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
             string contents = ToString();
             if (contents != null)
-                File.WriteAllText(outdir + "\\" + msgfilelocation.basename + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.WriteAllText(Path.Combine(outdir, msgfilelocation.basename + ".cs"), contents.Replace("FauxMessages", "Messages"));
         }
 
         public override string ToString()
@@ -1090,7 +1090,7 @@ namespace FauxMessages
         {
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
+                outdir += Path.DirectorySeparatorChar + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
             string localcn = classname;
@@ -1100,9 +1100,9 @@ namespace FauxMessages
             if (contents == null)
                 return;
             if (serviceMessageType == ServiceMessageType.Response)
-                File.AppendAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.AppendAllText(Path.Combine(outdir, localcn + ".cs"), contents.Replace("FauxMessages", "Messages"));
             else
-                File.WriteAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.WriteAllText(Path.Combine(outdir, localcn + ".cs"), contents.Replace("FauxMessages", "Messages"));
         }
     }
 
