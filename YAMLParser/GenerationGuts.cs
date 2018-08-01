@@ -94,12 +94,12 @@ namespace FauxMessages
         {
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
+                outdir += Path.DirectorySeparatorChar + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
             string contents = ToString();
             if (contents != null)
-                File.WriteAllText(outdir + "\\" + msgfilelocation.basename + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.WriteAllText(Path.Combine(outdir, msgfilelocation.basename + ".cs"), contents.Replace("FauxMessages", "Messages"));
         }
 
         public override string ToString()
@@ -614,7 +614,7 @@ namespace FauxMessages
                     def[i] = def[i].Replace("  ", " ");
                 def[i] = def[i].Replace(" = ", "=");
             }
-            GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
+            GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n').Replace("\"", "\"\"") + "\"");
             GUTS = GUTS.Replace("$MYHASHEADER", HasHeader.ToString().ToLower());
             GUTS = GUTS.Replace("$MYFIELDS", GeneratedDictHelper.Length > 5 ? "{{" + GeneratedDictHelper + "}}" : "()");
             GUTS = GUTS.Replace("$NULLCONSTBODY", "");
@@ -1090,7 +1090,7 @@ namespace FauxMessages
         {
             string[] chunks = Name.Split('.');
             for (int i = 0; i < chunks.Length - 1; i++)
-                outdir += "\\" + chunks[i];
+                outdir += Path.DirectorySeparatorChar + chunks[i];
             if (!Directory.Exists(outdir))
                 Directory.CreateDirectory(outdir);
             string localcn = classname;
@@ -1100,9 +1100,9 @@ namespace FauxMessages
             if (contents == null)
                 return;
             if (serviceMessageType == ServiceMessageType.Response)
-                File.AppendAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.AppendAllText(Path.Combine(outdir, localcn + ".cs"), contents.Replace("FauxMessages", "Messages"));
             else
-                File.WriteAllText(outdir + "\\" + localcn + ".cs", contents.Replace("FauxMessages", "Messages"));
+                File.WriteAllText(Path.Combine(outdir, localcn + ".cs"), contents.Replace("FauxMessages", "Messages"));
         }
     }
 
@@ -1179,7 +1179,9 @@ namespace FauxMessages
         {
             string[] pieces = s.Split('/');
             string package = parent.Package;
-            if (pieces.Length == 2)
+            // sometimes, a string can contain the char '/', such as the following line:
+            // string CONTENT_JSON = "application/json"
+            if (pieces.Length == 2 && !s.ToLower().Contains("string"))
             {
                 package = pieces[0];
                 s = pieces[1];

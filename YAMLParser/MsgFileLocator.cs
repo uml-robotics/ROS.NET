@@ -35,8 +35,8 @@ namespace YAMLParser
             searchroot = root;
             packagedir = getPackagePath(root, path);
             package = getPackageName(path);
-            extension = path.Split('.').Last();
-            basename = path.Replace(extension, "").Split('\\').Last().Trim('.');
+            extension = System.IO.Path.GetExtension(path).Trim('.');
+            basename = System.IO.Path.GetFileNameWithoutExtension(path);
         }
 
         /// <summary>
@@ -47,17 +47,17 @@ namespace YAMLParser
         /// <returns>"package name"</returns>
         private static string getPackageName(string path)
         {
-            string[] chunks = path.Split('\\');
-            string foldername = chunks[chunks.Length - 2];
+            DirectoryInfo innermostPath = Directory.GetParent(path);
+            string foldername = innermostPath.Name;
             if (msg_gen_folder_names.Contains(foldername))
-                foldername = chunks[chunks.Length - 3];
+                foldername = Directory.GetParent(innermostPath.FullName).Name;
             return foldername;
         }
 
         private static string getPackagePath(string basedir, string msgpath)
         {
             string p = getPackageName(msgpath);
-            return basedir + "\\" + p;
+            return System.IO.Path.Combine(basedir, p);
         }
 
         public override bool Equals(object obj)
@@ -73,7 +73,7 @@ namespace YAMLParser
 
         public override string  ToString()
         {
-            return string.Format("{0}\\{1}.{2}", package, basename, extension);
+            return string.Format("{0}" + System.IO.Path.DirectorySeparatorChar + "{1}.{2}", package, basename, extension);
         }
     }
 
