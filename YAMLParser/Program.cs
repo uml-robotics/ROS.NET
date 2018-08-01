@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using FauxMessages;
+using static FauxMessages.MsgsFile;
 
 #endregion
 
@@ -90,6 +91,11 @@ namespace YAMLParser
             {
                 srvFiles.Add(new SrvsFile(path));
             }
+            if (!StdMsgsProcessed()) // may seem obvious, but needed so that all other messages can resolve...
+            {
+                Console.WriteLine("std_msgs was not found in any search directory. Exiting...");
+                return;
+            }
             if (paths.Count + pathssrv.Count > 0)
             {
                 MakeTempDir();
@@ -109,6 +115,11 @@ namespace YAMLParser
                 Console.WriteLine("Finished. Press enter.");
                 Console.ReadLine();
             }
+        }
+
+        public static bool StdMsgsProcessed()
+        {
+            return MsgsFile.resolver.ContainsKey("std_msgs");
         }
 
         public static void MakeTempDir()
