@@ -614,7 +614,7 @@ namespace FauxMessages
                     def[i] = def[i].Replace("  ", " ");
                 def[i] = def[i].Replace(" = ", "=");
             }
-            GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n') + "\"");
+            GUTS = GUTS.Replace("$MYMESSAGEDEFINITION", "@\"" + def.Aggregate("", (current, d) => current + (d + "\n")).Trim('\n').Replace("\"", "\"\"") + "\"");
             GUTS = GUTS.Replace("$MYHASHEADER", HasHeader.ToString().ToLower());
             GUTS = GUTS.Replace("$MYFIELDS", GeneratedDictHelper.Length > 5 ? "{{" + GeneratedDictHelper + "}}" : "()");
             GUTS = GUTS.Replace("$NULLCONSTBODY", "");
@@ -1179,7 +1179,9 @@ namespace FauxMessages
         {
             string[] pieces = s.Split('/');
             string package = parent.Package;
-            if (pieces.Length == 2)
+            // sometimes, a string can contain the char '/', such as the following line:
+            // string CONTENT_JSON = "application/json"
+            if (pieces.Length == 2 && !s.ToLower().Contains("string"))
             {
                 package = pieces[0];
                 s = pieces[1];
