@@ -282,6 +282,17 @@ namespace ROS_ImageWPF
                         }
                     }
                         break;
+                    case "rgb8":
+                        {
+                            correcteddata = new byte[data.Length];
+                            for (int ci = 0; ci < data.Length; ci += 3)
+                            {
+                                correcteddata[ci] = data[ci + 2];
+                                correcteddata[ci + 1] = data[ci + 1];
+                                correcteddata[ci + 2] = data[ci];
+                            }
+                        }
+                        break;
                     default:
                         correcteddata = data;
                         break;
