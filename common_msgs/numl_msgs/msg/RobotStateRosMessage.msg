@@ -1,0 +1,9 @@
+Header header
+string[] jointName
+float64[] position
+float64[] temperature
+float64[] heartbeat
+float64[] estop
+float64[] init
+float64[] fault
+string[] faultType
